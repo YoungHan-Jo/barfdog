@@ -1,5 +1,7 @@
 package com.bi.barfdog.domain;
 
+import com.bi.barfdog.domain.dog.Dog;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,8 +22,8 @@ public class Member {
     private String recCode;
     private LocalDateTime createDate;
     private LocalDateTime lastLoginDate;
-    private String recvSms;
-    private String recvEmail;
+    private String receiveSms;
+    private String receiveEmail;
     private int rewardPoint;
 
     @Enumerated(EnumType.STRING)
