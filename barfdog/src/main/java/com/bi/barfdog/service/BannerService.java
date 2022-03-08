@@ -18,11 +18,11 @@ public class BannerService {
      * 배너 저장
      * */
     @Transactional
-    public Long save(String bannerType, BannerSaveRequestDto requestDto) {
+    public Long save(BannerSaveRequestDto requestDto) {
 
-        switch (bannerType) {
+        switch (requestDto.getBannerType()) {
             case "main":
-
+                System.out.println("requestDto.getBannerType() = " + requestDto.getBannerType());
                 break;
             case "myPage":
 

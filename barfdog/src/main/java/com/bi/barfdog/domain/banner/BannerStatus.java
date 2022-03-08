@@ -9,11 +9,6 @@ public enum BannerStatus {
 
     @JsonCreator
     public static BannerStatus from(String str) {
-        for (BannerStatus value : BannerStatus.values()) {
-            if (value.name().equals(str.toUpperCase())) {
-                return value;
-            }
-        }
-        return null;
+        return BannerStatus.valueOf(str.toUpperCase());
     }
 }

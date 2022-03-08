@@ -27,9 +27,8 @@ public class BannerApiController {
         return new Result(banners);
     }
 
-    @PostMapping("/api/v1/banners/{bannerType}")
-    public Result create(@PathVariable("bannerType") String bannerType,
-                         @RequestPart(value = "requestDto", required = false) BannerSaveRequestDto requestDto,
+    @PostMapping("/api/v1/banners")
+    public Result create(@RequestPart(value = "requestDto", required = false) BannerSaveRequestDto requestDto,
                          @RequestParam(required = false) MultipartFile pc,
                          @RequestParam(required = false) MultipartFile mobile) {
         if(pc != null){
@@ -41,7 +40,7 @@ public class BannerApiController {
             System.out.println("moblie의 값이 없습니다.");
         }
 
-        bannerService.save(bannerType, requestDto);
+        bannerService.save(requestDto);
 
         return new Result(requestDto);
     }

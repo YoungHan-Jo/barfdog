@@ -12,6 +12,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class BannerSaveRequestDto {
 
+    private String bannerType;
+
     private String name;
     private LocalDateTime createDate;
     private int leakedOrder;

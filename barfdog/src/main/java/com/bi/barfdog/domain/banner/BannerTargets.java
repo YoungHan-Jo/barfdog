@@ -8,12 +8,6 @@ public enum BannerTargets {
     @JsonCreator
     public static BannerTargets from(String str) {
         return BannerTargets.valueOf(str.toUpperCase());
-//        for (BannerTargets value : BannerTargets.values()) {
-//            if (value.name().equals(str.toUpperCase())) {
-//                return value;
-//            }
-//        }
-//        return null;
     }
 
 }
