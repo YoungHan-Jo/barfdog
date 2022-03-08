@@ -61,38 +61,35 @@ public class InitDb {
         }
 
         private MainBanner createMainBanner(String name, int leakedOrder) {
-            MainBanner mainBanner = new MainBanner();
-            mainBanner.setName(name);
-            mainBanner.setCreateDate(LocalDateTime.now());
-            mainBanner.setStatus(BannerStatus.LEAKED);
-            mainBanner.setTargets(BannerTargets.ALL);
-            mainBanner.setLeakedOrder(leakedOrder);
+            MainBanner mainBanner = MainBanner.builder()
+                    .name(name)
+                    .leakedOrder(leakedOrder)
+                    .build();
+
             return mainBanner;
         }
 
         private MypageBanner createMypageBanner(String name) {
-            MypageBanner mypageBanner = new MypageBanner();
-            mypageBanner.setName(name);
-            mypageBanner.setCreateDate(LocalDateTime.now());
-            mypageBanner.setStatus(BannerStatus.LEAKED);
+            MypageBanner mypageBanner = MypageBanner.builder()
+                    .name(name)
+                    .build();
             return mypageBanner;
         }
 
         private PopupBanner createPopupBanner(String name, int leakedOrder) {
-            PopupBanner popupBanner = new PopupBanner();
-            popupBanner.setName(name);
-            popupBanner.setCreateDate(LocalDateTime.now());
-            popupBanner.setStatus(BannerStatus.LEAKED);
-            popupBanner.setLeakedOrder(leakedOrder);
+            PopupBanner popupBanner = PopupBanner.builder()
+                    .name(name)
+                    .leakedOrder(leakedOrder)
+                    .build();
             return popupBanner;
         }
 
-        private TopBanner createTopBanner(String name, String bgColor) {
-            TopBanner topBanner = new TopBanner();
-            topBanner.setName(name);
-            topBanner.setCreateDate(LocalDateTime.now());
-            topBanner.setStatus(BannerStatus.LEAKED);
-            topBanner.setBgColor(bgColor);
+        private TopBanner createTopBanner(String name, String backgroundColor) {
+            TopBanner topBanner = TopBanner.builder()
+                    .name(name)
+                    .backgroundColor(backgroundColor)
+                    .build();
+
             return topBanner;
         }
 

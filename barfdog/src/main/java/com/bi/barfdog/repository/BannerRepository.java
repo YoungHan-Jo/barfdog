@@ -13,8 +13,10 @@ public class BannerRepository {
 
     private final EntityManager em;
 
-    public void save(Banner banner) {
+    public Long save(Banner banner) {
         em.persist(banner);
+
+        return banner.getId();
     }
 
     public List<Banner> findAll(String dtype) {
