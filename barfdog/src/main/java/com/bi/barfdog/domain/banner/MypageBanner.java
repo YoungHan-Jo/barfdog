@@ -6,21 +6,21 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.DiscriminatorValue;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import java.time.LocalDateTime;
 
 @Entity
 @DiscriminatorValue("mypage")
-@Getter
+@Getter @NoArgsConstructor
 public class MypageBanner extends Banner{
 
-    private String pcImgPath;
-    private String mobileImgPath;
+    @Embedded
+    private ImgFile imgfile;
 
     @Builder
-    public MypageBanner(String name, LocalDateTime createDate, int leakedOrder, String pcUrlLink, String mobileUrlLink, BannerStatus status, String pcImgPath, String mobileImgPath) {
-        super(name, createDate, leakedOrder, pcUrlLink, mobileUrlLink, status);
-        this.pcImgPath = pcImgPath;
-        this.mobileImgPath = mobileImgPath;
+    public MypageBanner(Long id, String name, int leakedOrder, LinkUrl linkUrl, BannerStatus status, ImgFile imgfile) {
+        super(id, name, leakedOrder, linkUrl, status);
+        this.imgfile = imgfile;
     }
 }

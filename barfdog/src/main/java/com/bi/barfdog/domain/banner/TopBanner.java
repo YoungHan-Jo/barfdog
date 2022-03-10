@@ -11,15 +11,15 @@ import java.time.LocalDateTime;
 
 @Entity
 @DiscriminatorValue("top")
-@Getter
+@Getter @NoArgsConstructor
 public class TopBanner extends Banner{
 
     private String backgroundColor;
     private String fontColor;
 
     @Builder
-    public TopBanner(String name, LocalDateTime createDate, int leakedOrder, String pcUrlLink, String mobileUrlLink, BannerStatus status, String backgroundColor, String fontColor) {
-        super(name, createDate, leakedOrder, pcUrlLink, mobileUrlLink, status);
+    public TopBanner(Long id, String name, int leakedOrder, LinkUrl linkUrl, BannerStatus status, String backgroundColor, String fontColor) {
+        super(id, name, leakedOrder, linkUrl, status);
         this.backgroundColor = backgroundColor;
         this.fontColor = fontColor;
     }

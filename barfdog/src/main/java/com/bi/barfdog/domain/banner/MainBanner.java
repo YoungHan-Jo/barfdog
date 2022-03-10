@@ -2,29 +2,26 @@ package com.bi.barfdog.domain.banner;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
 @DiscriminatorValue("main")
-@Getter
+@Getter @NoArgsConstructor
 public class MainBanner extends Banner{
 
-    private String pcImgPath;
-    private String mobileImgPath;
+    @Embedded
+    private ImgFile imgfile;
 
     @Enumerated(EnumType.STRING)
     private BannerTargets targets; // [ALL, GUESTS, MEMBERS, SUBSCRIBERS]
 
     @Builder
-    public MainBanner(String name, LocalDateTime createDate, int leakedOrder, String pcUrlLink, String mobileUrlLink, BannerStatus status, String pcImgPath, String mobileImgPath, BannerTargets targets) {
-        super(name, createDate, leakedOrder, pcUrlLink, mobileUrlLink, status);
-        this.pcImgPath = pcImgPath;
-        this.mobileImgPath = mobileImgPath;
+    public MainBanner(Long id, String name, int leakedOrder, LinkUrl linkUrl, BannerStatus status, ImgFile imgfile, BannerTargets targets) {
+        super(id, name, leakedOrder, linkUrl, status);
+        this.imgfile = imgfile;
         this.targets = targets;
     }
 }

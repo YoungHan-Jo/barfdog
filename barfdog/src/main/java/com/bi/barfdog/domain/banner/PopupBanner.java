@@ -1,26 +1,23 @@
 package com.bi.barfdog.domain.banner;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.DiscriminatorValue;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import java.time.LocalDateTime;
 
 @Entity
 @DiscriminatorValue("popup")
-@Getter
+@Getter @NoArgsConstructor
 public class PopupBanner extends Banner{
 
-    private String pcImgPath;
-    private String mobileImgPath;
+    @Embedded
+    private ImgFile imgfile;
 
     @Builder
-    public PopupBanner(String name, LocalDateTime createDate, int leakedOrder, String pcUrlLink, String mobileUrlLink, BannerStatus status, String pcImgPath, String mobileImgPath) {
-        super(name, createDate, leakedOrder, pcUrlLink, mobileUrlLink, status);
-        this.pcImgPath = pcImgPath;
-        this.mobileImgPath = mobileImgPath;
+    public PopupBanner(Long id, String name, int leakedOrder, LinkUrl linkUrl, BannerStatus status, ImgFile imgfile) {
+        super(id, name, leakedOrder, linkUrl, status);
+        this.imgfile = imgfile;
     }
 }

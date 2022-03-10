@@ -12,25 +12,17 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class BannerSaveRequestDto {
 
-    private String bannerType;
+    private String bannerType; // [ main, mypage, popup, top ]
 
     private String name;
-    private LocalDateTime createDate;
-    private int leakedOrder;
-    private BannerStatus status;
-
-    private String pcUrlLink;
-    private String mobileUrlLink;
-
-    private String pcImgPath;
-    private String mobileImgPath;
-
     private BannerTargets targets;
+    private BannerStatus status;
+    private int leakedOrder;
+
+    private String pcLinkUrl;
+    private String mobileLinkUrl;
 
     private String backgroundColor;
     private String fontColor;
-
-
-
 
 }
