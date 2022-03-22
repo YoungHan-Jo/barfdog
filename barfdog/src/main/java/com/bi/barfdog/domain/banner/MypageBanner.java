@@ -19,8 +19,8 @@ public class MypageBanner extends Banner{
     private ImgFile imgfile;
 
     @Builder
-    public MypageBanner(Long id, String name, int leakedOrder, LinkUrl linkUrl, BannerStatus status, ImgFile imgfile) {
-        super(id, name, leakedOrder, linkUrl, status);
+    public MypageBanner(Long id, String name, int leakedOrder, String pcLinkUrl, String mobileLinkUrl, BannerStatus status, ImgFile imgfile) {
+        super(id, name, leakedOrder, pcLinkUrl, mobileLinkUrl, status);
         this.imgfile = imgfile;
     }
 }

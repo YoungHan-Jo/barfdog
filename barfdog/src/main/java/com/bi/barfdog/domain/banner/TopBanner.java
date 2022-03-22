@@ -18,8 +18,8 @@ public class TopBanner extends Banner{
     private String fontColor;
 
     @Builder
-    public TopBanner(Long id, String name, int leakedOrder, LinkUrl linkUrl, BannerStatus status, String backgroundColor, String fontColor) {
-        super(id, name, leakedOrder, linkUrl, status);
+    public TopBanner(Long id, String name, int leakedOrder, String pcLinkUrl, String mobileLinkUrl, BannerStatus status, String backgroundColor, String fontColor) {
+        super(id, name, leakedOrder, pcLinkUrl, mobileLinkUrl, status);
         this.backgroundColor = backgroundColor;
         this.fontColor = fontColor;
     }

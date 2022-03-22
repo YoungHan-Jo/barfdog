@@ -1,6 +1,7 @@
 package com.bi.barfdog.repository;
 
 import com.bi.barfdog.domain.banner.Banner;
+import com.bi.barfdog.domain.banner.MainBanner;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -19,15 +20,16 @@ public class BannerRepository {
         return banner.getId();
     }
 
-    public List<Banner> findAll(String dtype) {
-        return em.createQuery(
-                "select b" +
-                        " from Banner b" +
-                        " where dtype = :dtype" +
-                        " order by leaked_order desc", Banner.class)
-                .setParameter("dtype",dtype)
-                .getResultList();
+
+    public void saveMainBanner(MainBanner mainbanner) {
+        em.persist(mainbanner);
     }
 
-
+    public List<MainBanner> findAllMain() {
+        List<MainBanner> resultList = em.createQuery(
+                        "select m" +
+                                " from MainBanner m", MainBanner.class)
+                .getResultList();
+        return resultList;
+    }
 }

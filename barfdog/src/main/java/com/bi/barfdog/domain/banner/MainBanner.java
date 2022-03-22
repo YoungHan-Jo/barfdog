@@ -16,11 +16,11 @@ public class MainBanner extends Banner{
     private ImgFile imgfile;
 
     @Enumerated(EnumType.STRING)
-    private BannerTargets targets; // [ALL, GUESTS, MEMBERS, SUBSCRIBERS]
+    private BannerTargets targets = BannerTargets.ALL; // [ALL, GUESTS, MEMBERS, SUBSCRIBERS]
 
     @Builder
-    public MainBanner(Long id, String name, int leakedOrder, LinkUrl linkUrl, BannerStatus status, ImgFile imgfile, BannerTargets targets) {
-        super(id, name, leakedOrder, linkUrl, status);
+    public MainBanner(Long id, String name, int leakedOrder, String pcLinkUrl, String mobileLinkUrl, BannerStatus status, ImgFile imgfile, BannerTargets targets) {
+        super(id, name, leakedOrder, pcLinkUrl, mobileLinkUrl, status);
         this.imgfile = imgfile;
         this.targets = targets;
     }

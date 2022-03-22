@@ -20,8 +20,8 @@ public abstract class Banner extends BaseTimeEntity {
     private String name;
     private int leakedOrder;
 
-    @Embedded
-    private LinkUrl linkUrl;
+    private String pcLinkUrl;
+    private String mobileLinkUrl;
 
     @Enumerated(EnumType.STRING)
     private BannerStatus status; // [LEAKED, HIDDEN]

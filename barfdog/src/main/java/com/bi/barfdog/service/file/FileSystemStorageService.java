@@ -1,11 +1,14 @@
 package com.bi.barfdog.service.file;
 
+import com.bi.barfdog.domain.banner.ImgFilenamePath;
+import net.coobird.thumbnailator.Thumbnailator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -33,7 +36,7 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    public void store(MultipartFile file) {
+    public ImgFilenamePath store(MultipartFile file) {
         try {
             if (file.isEmpty()) {
                 throw new Exception("ERROR : File is empty.");
@@ -46,10 +49,23 @@ public class FileSystemStorageService implements StorageService {
 
             try (InputStream inputStream = file.getInputStream()) {
                 UUID uuid = UUID.randomUUID();
+                String filename = uuid.toString() + "_" + file.getOriginalFilename();
                 Files.copy(inputStream,
-                        root.resolve(uuid.toString() + "-" + file.getOriginalFilename()),
+                        root.resolve(filename),
                         StandardCopyOption.REPLACE_EXISTING);
 
+
+                ImgFilenamePath imgFilenamePath = ImgFilenamePath.builder()
+                        .folder(uploadPath)
+                        .filename(filename)
+                        .build();
+
+                File inFile = new File(uploadPath, uuid.toString() + "_" + file.getOriginalFilename());
+                File outFile = new File(uploadPath, "s_" + filename);
+
+                Thumbnailator.createThumbnail(inFile, outFile, 200, 200);
+
+                return imgFilenamePath;
             }
         } catch (Exception e) {
             throw new RuntimeException("Could not store the file. Error: " + e.getMessage());

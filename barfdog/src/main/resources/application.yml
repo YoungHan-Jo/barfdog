@@ -1,4 +1,8 @@
 spring:
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+
   datasource:
     url: jdbc:mariadb://binter.synology.me:3307/barfdog?characterEncoding=UTF-8&serverTimezone=UTC
     driver-class-name: org.mariadb.jdbc.Driver
@@ -12,6 +16,7 @@ spring:
       hibernate:
         format_sql: true
         default_batch_fetch_size: 500
+        jdbc.lob.non_contextual_creation: true
 
 # 파일 업로드 설정
   servlet:
@@ -23,3 +28,9 @@ spring:
 logging.level:
   org.hibernate.SQL: debug
   org.hibernate.type: trace
+
+server:
+  servlet:
+    encoding:
+      charset: UTF-8 #한글처리
+      force: true    #한글처리
