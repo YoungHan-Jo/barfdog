@@ -31,6 +31,7 @@ public class BannerService {
     @Transactional
     public Long saveMainBanner(MainBannerSaveRequestDto requestDto, MultipartFile pcFile, MultipartFile mobileFile) {
 
+
         ImgFilenamePath pcStore = storageService.store(pcFile);
         ImgFilenamePath mobileStore = storageService.store(mobileFile);
 

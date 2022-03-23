@@ -9,6 +9,12 @@ import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -21,17 +27,27 @@ public class BannerApiControllerTest extends BaseTest {
     @DisplayName("정상적으로 메인 배너를 생성하는 테스트")
     public void createMainBanner() throws Exception {
        //Given
+
+        MockMultipartFile pcFile = new MockMultipartFile("pcFile", "file1.jpg", "image/jpg", new FileInputStream("src/test/resources/uploadTest/file1.jpg"));
+        MockMultipartFile mobileFile = new MockMultipartFile("mobileFile", "file2.jpg", "image/jpg", new FileInputStream("src/test/resources/uploadTest/file2.jpg"));
+
         MainBannerSaveRequestDto requestDto = MainBannerSaveRequestDto.builder()
                 .name("메인배너1")
                 .pcLinkUrl("pc link")
                 .mobileLinkUrl("mobile link")
                 .build();
 
+        String requestDtoJson = objectMapper.writeValueAsString(requestDto);
+        MockMultipartFile request = new MockMultipartFile("requestDto", "requestDto", "application/json", requestDtoJson.getBytes(StandardCharsets.UTF_8));
+
         //when
-        mockMvc.perform(post("/api/banners/main")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .accept(MediaTypes.HAL_JSON)
-                    .content(objectMapper.writeValueAsString(requestDto)))
+        mockMvc.perform(multipart("/api/banners/main")
+                        .file(pcFile)
+                        .file(mobileFile)
+                        .file(request)
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+//                        .accept(MediaTypes.HAL_JSON)
+                )
                 .andDo(print())
                 .andExpect(status().isCreated())
         ;
@@ -40,8 +56,10 @@ public class BannerApiControllerTest extends BaseTest {
 
     }
 
-
-
+    private MockMultipartFile getMockMultipartFile(String fileName, String contentType, String path) throws IOException {
+        FileInputStream fileInputStream = new FileInputStream(new File(path));
+        return new MockMultipartFile(fileName, fileName + "." + contentType, contentType, fileInputStream);
+    }
 
 
     @Test
