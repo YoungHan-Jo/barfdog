@@ -1,13 +1,15 @@
 package com.bi.barfdog.service;
 
 import com.bi.barfdog.api.dto.MainBannerSaveRequestDto;
-import com.bi.barfdog.domain.banner.ImgFile;
-import com.bi.barfdog.domain.banner.ImgFilenamePath;
-import com.bi.barfdog.domain.banner.MainBanner;
+import com.bi.barfdog.api.dto.MyPageBannerSaveRequestDto;
+import com.bi.barfdog.api.dto.PopupBannerSaveRequestDto;
+import com.bi.barfdog.api.dto.TopBannerSaveRequestDto;
+import com.bi.barfdog.domain.banner.*;
 import com.bi.barfdog.repository.BannerRepository;
 import com.bi.barfdog.service.file.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,8 +31,7 @@ public class BannerService {
      * 배너 저장
      * */
     @Transactional
-    public Long saveMainBanner(MainBannerSaveRequestDto requestDto, MultipartFile pcFile, MultipartFile mobileFile) {
-
+    public Banner saveMainBanner(MainBannerSaveRequestDto requestDto, MultipartFile pcFile, MultipartFile mobileFile) {
 
         ImgFilenamePath pcStore = storageService.store(pcFile);
         ImgFilenamePath mobileStore = storageService.store(mobileFile);
@@ -40,11 +41,7 @@ public class BannerService {
         String filenameMobile = mobileStore.getFilename();
 
         List<MainBanner> results = bannerRepository.findAllMain();
-        for (MainBanner result : results) {
-            System.out.println("result = " + result.toString());
-        }
 
-        System.out.println("count = " + results.size());
         int nextNum = results.size() + 1;
 
         MainBanner mainbanner = MainBanner.builder()
@@ -54,13 +51,116 @@ public class BannerService {
                 .leakedOrder(nextNum)
                 .pcLinkUrl(requestDto.getPcLinkUrl())
                 .mobileLinkUrl(requestDto.getMobileLinkUrl())
-                .imgfile(new ImgFile(folder,filenamePc,filenameMobile))
+                .imgFile(new ImgFile(folder,filenamePc,filenameMobile))
                 .build();
 
         return bannerRepository.save(mainbanner);
     }
 
 
+    @Transactional
+    public Banner saveMyPageBanner(MyPageBannerSaveRequestDto requestDto, MultipartFile pcFile, MultipartFile mobileFile) {
+
+        ImgFilenamePath pcStore = storageService.store(pcFile);
+        ImgFilenamePath mobileStore = storageService.store(mobileFile);
+
+        String folder = pcStore.getFolder();
+        String filenamePc = pcStore.getFilename();
+        String filenameMobile = mobileStore.getFilename();
+
+        Banner myPageBanner = MyPageBanner.builder()
+                .name(requestDto.getName())
+                .status(requestDto.getStatus())
+                .pcLinkUrl(requestDto.getPcLinkUrl())
+                .mobileLinkUrl(requestDto.getMobileLinkUrl())
+                .imgFile(new ImgFile(folder, filenamePc, filenameMobile))
+                .build();
+
+        return bannerRepository.save(myPageBanner);
+    }
+
+    @Transactional
+    public Banner savePopupBanner(PopupBannerSaveRequestDto requestDto, MultipartFile pcFile, MultipartFile mobileFile) {
+
+        ImgFilenamePath pcStore = storageService.store(pcFile);
+        ImgFilenamePath mobileStore = storageService.store(mobileFile);
+
+        String folder = pcStore.getFolder();
+        String filenamePc = pcStore.getFilename();
+        String filenameMobile = mobileStore.getFilename();
+
+        List<PopupBanner> results = bannerRepository.findAllPopup();
+
+        int nextNum = results.size() + 1;
+
+        PopupBanner popupBanner = PopupBanner.builder()
+                .name(requestDto.getName())
+                .status(requestDto.getStatus())
+                .leakedOrder(nextNum)
+                .position(requestDto.getPosition())
+                .pcLinkUrl(requestDto.getPcLinkUrl())
+                .mobileLinkUrl(requestDto.getMobileLinkUrl())
+                .imgFile(new ImgFile(folder, filenamePc, filenameMobile))
+                .build();
+
+        return bannerRepository.save(popupBanner);
+    }
+
+    @Transactional
+    public Banner saveTopBanner(TopBannerSaveRequestDto requestDto) {
+
+        TopBanner topBanner = TopBanner.builder()
+                .name(requestDto.getName())
+                .pcLinkUrl(requestDto.getPcLinkUrl())
+                .mobileLinkUrl(requestDto.getMobileLinkUrl())
+                .status(requestDto.getStatus())
+                .backgroundColor(requestDto.getBackgroundColor())
+                .fontColor(requestDto.getFontColor())
+                .build();
+
+        return bannerRepository.save(topBanner);
+    }
+
+    @Transactional
+    public MyPageBanner updateMyPageBanner(Long id, MyPageBannerSaveRequestDto requestDto, MultipartFile pcFile, MultipartFile mobileFile) {
+        MyPageBanner banner = bannerRepository.findMyPageBannerById(id);
+
+        ImgFile imgFile = getImgFile(pcFile, mobileFile);
 
 
+        MyPageBanner myPageBanner = null;
+        if(imgFile != null){
+            myPageBanner = banner.updateBanner(requestDto, imgFile);
+        }else{
+            myPageBanner = banner.updateBanner(requestDto);
+        }
+
+        return myPageBanner;
+    }
+
+    private ImgFile getImgFile(MultipartFile pcFile, MultipartFile mobileFile) {
+
+        if(pcFile != null && mobileFile != null){
+            ImgFilenamePath pcStore = storageService.store(pcFile);
+            ImgFilenamePath mobileStore = storageService.store(mobileFile);
+            return new ImgFile(pcStore.getFolder(),pcStore.getFilename(),mobileStore.getFilename());
+        }else if(pcFile != null){
+            ImgFilenamePath pcStore = storageService.store(pcFile);
+            return new ImgFile(pcStore.getFolder(),pcStore.getFilename(),null);
+        }else if(mobileFile != null){
+            ImgFilenamePath mobileStore = storageService.store(mobileFile);
+            return new ImgFile(mobileStore.getFolder(),null,mobileStore.getFilename());
+        }
+
+        return null;
+    }
+
+    @Transactional
+    public Banner updateTopBanner(Long id, TopBannerSaveRequestDto requestDto) {
+        TopBanner banner = bannerRepository.findTopBannerById(id);
+
+        banner.update(requestDto);
+
+        return banner;
+    }
 }

@@ -2,9 +2,7 @@ package com.bi.barfdog.domain.banner;
 
 import lombok.*;
 
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
@@ -12,13 +10,19 @@ import java.time.LocalDateTime;
 @Getter @NoArgsConstructor
 public class PopupBanner extends Banner{
 
+    private int leakedOrder;
+
+    @Enumerated(EnumType.STRING)
+    private PopupBannerPosition position; // [LEFT, MID, RIGHT]
+
     @Embedded
-    private ImgFile imgfile;
+    private ImgFile imgFile;
 
     @Builder
-    public PopupBanner(Long id, String name, int leakedOrder, String pcLinkUrl, String mobileLinkUrl, BannerStatus status, ImgFile imgfile) {
-        super(id, name, leakedOrder, pcLinkUrl, mobileLinkUrl, status);
-        this.imgfile = imgfile;
+    public PopupBanner(Long id, String name, String pcLinkUrl, String mobileLinkUrl, BannerStatus status, int leakedOrder, PopupBannerPosition position, ImgFile imgFile) {
+        super(id, name, pcLinkUrl, mobileLinkUrl, status);
+        this.leakedOrder = leakedOrder;
+        this.position = position;
+        this.imgFile = imgFile;
     }
-
 }

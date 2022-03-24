@@ -1,5 +1,6 @@
 package com.bi.barfdog.domain.banner;
 
+import com.bi.barfdog.api.dto.TopBannerSaveRequestDto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,9 +19,20 @@ public class TopBanner extends Banner{
     private String fontColor;
 
     @Builder
-    public TopBanner(Long id, String name, int leakedOrder, String pcLinkUrl, String mobileLinkUrl, BannerStatus status, String backgroundColor, String fontColor) {
-        super(id, name, leakedOrder, pcLinkUrl, mobileLinkUrl, status);
+    public TopBanner(Long id, String name, String pcLinkUrl, String mobileLinkUrl, BannerStatus status, String backgroundColor, String fontColor) {
+        super(id, name, pcLinkUrl, mobileLinkUrl, status);
         this.backgroundColor = backgroundColor;
         this.fontColor = fontColor;
+    }
+
+    public TopBanner update(TopBannerSaveRequestDto requestDto) {
+        setName(requestDto.getName());
+        setPcLinkUrl(requestDto.getPcLinkUrl());
+        setMobileLinkUrl(requestDto.getMobileLinkUrl());
+        setStatus(requestDto.getStatus());
+        this.backgroundColor = requestDto.getBackgroundColor();
+        this.fontColor = requestDto.getFontColor();
+
+        return this;
     }
 }

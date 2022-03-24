@@ -15,7 +15,7 @@ public class BannerTest {
     @DisplayName("빌더 테스트")
     public void builder() {
         MainBanner mainBanner = MainBanner.builder().build();
-        MypageBanner mypageBanner = MypageBanner.builder().build();
+        MyPageBanner mypageBanner = MyPageBanner.builder().build();
         PopupBanner popupBanner = PopupBanner.builder().build();
         TopBanner topBanner = TopBanner.builder().build();
 

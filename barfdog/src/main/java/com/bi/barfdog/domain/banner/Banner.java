@@ -1,5 +1,6 @@
 package com.bi.barfdog.domain.banner;
 
+import com.bi.barfdog.api.dto.MyPageBannerSaveRequestDto;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import lombok.*;
 
@@ -9,7 +10,7 @@ import java.time.LocalDateTime;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "dtype")
-@Getter @NoArgsConstructor
+@Getter @NoArgsConstructor @Setter
 @AllArgsConstructor
 public abstract class Banner extends BaseTimeEntity {
 
@@ -18,7 +19,6 @@ public abstract class Banner extends BaseTimeEntity {
     private Long id;
 
     private String name;
-    private int leakedOrder;
 
     private String pcLinkUrl;
     private String mobileLinkUrl;
