@@ -1,5 +1,6 @@
 package com.bi.barfdog.validator;
 
+import com.bi.barfdog.domain.banner.MainBanner;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,4 +16,5 @@ public class BannerValidator {
             }
         }
     }
+
 }

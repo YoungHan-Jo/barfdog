@@ -1,17 +1,18 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.dto.*;
+import com.bi.barfdog.common.BannerResource;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.banner.Banner;
 import com.bi.barfdog.domain.banner.MainBanner;
 import com.bi.barfdog.domain.banner.MyPageBanner;
 import com.bi.barfdog.domain.banner.TopBanner;
 import com.bi.barfdog.repository.BannerRepository;
-import com.bi.barfdog.repository.BannerRepositoryImpl;
 import com.bi.barfdog.service.BannerService;
 import com.bi.barfdog.validator.BannerValidator;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
@@ -24,7 +25,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
@@ -153,7 +156,7 @@ public class BannerApiController {
 
     @GetMapping("/myPage")
     public ResponseEntity getMyPageBanner() {
-        List<MyPageBanner> results = bannerRepository.findAllMyPage();
+        List<MyPageBanner> results = bannerRepository.findMyPageBanners();
 
         MyPageBanner myPageBanner = results.get(0);
 
@@ -176,11 +179,13 @@ public class BannerApiController {
         if (errors.hasErrors()) {
             return badRequest(errors);
         }
-        try {
-            Banner savedBanner = bannerRepository.f;
-        } catch (Exception e) {
+
+        Optional<Banner> optionalBanner = bannerRepository.findById(id);
+
+        if(optionalBanner.isPresent() == false){
             return ResponseEntity.notFound().build();
         }
+
 
         MyPageBanner myPageBanner = bannerService.updateMyPageBanner(id, requestDto, pcFile, mobileFile);
 
@@ -199,7 +204,7 @@ public class BannerApiController {
     @GetMapping("/top")
     public ResponseEntity getTopBanner() {
 
-        List<TopBanner> results = bannerRepository.findAllTop();
+        List<TopBanner> results = bannerRepository.findTopBanners();
 
         TopBanner banner = results.get(0);
 
@@ -222,17 +227,17 @@ public class BannerApiController {
             return badRequest(errors);
         }
 
-        try {
-            bannerRepository.findById(id);
-        }catch(Exception e){
+        Optional<Banner> optionalBanner = bannerRepository.findById(id);
+
+        if(!optionalBanner.isPresent()){
             return ResponseEntity.notFound().build();
         }
 
-        Banner banner = bannerService.updateTopBanner(id, requestDto);
+        TopBanner banner = bannerService.updateTopBanner(id, requestDto);
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(BannerApiController.class).slash("top").slash(banner.getId());
 
-        EntityModel<Banner> entityModel = EntityModel.of(banner,
+        EntityModel<TopBanner> entityModel = EntityModel.of(banner,
                 selfLinkBuilder.withSelfRel(),
                 linkTo(BannerApiController.class).slash("top").withRel("query-topBanner"),
                 Link.of(ROOT + "#resources-update-topBanner").withRel("profile")
@@ -243,12 +248,88 @@ public class BannerApiController {
 
     @GetMapping("/main")
     public ResponseEntity queryMainBanners() {
-        List<MainBanner> mainBanners = bannerRepository.findAllMain();
+        List<EntityModel<MainBanner>> result = new ArrayList<>();
+        List<MainBanner> mainBanners = bannerRepository.findMainBanners();
 
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(BannerApiController.class).slash("main");
 
-        CollectionModel<MainBanner> collectionModel = CollectionModel.of(mainBanners);
+        for (MainBanner mainBanner : mainBanners) {
+            EntityModel<MainBanner> entityModel = EntityModel.of(mainBanner,
+                    selfLinkBuilder.slash(mainBanner.getId()).withSelfRel()
+            );
+            result.add(entityModel);
+        }
+
+        CollectionModel<EntityModel<MainBanner>> collectionModel = CollectionModel.of(result,
+                selfLinkBuilder.withSelfRel(),
+                selfLinkBuilder.withRel("create-banner"),
+                Link.of(ROOT + "#resources-query-mainBanners").withRel("profile")
+        );
 
         return ResponseEntity.ok(collectionModel);
+    }
+
+    @GetMapping("/main/{id}")
+    public ResponseEntity queryMainBanner(@PathVariable Long id) {
+        Optional<Banner> optionalBanner = bannerRepository.findById(id);
+        if (!optionalBanner.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+        Banner banner = optionalBanner.get();
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(BannerApiController.class).slash("/main").slash(banner.getId());
+
+        EntityModel<Banner> entityModel = EntityModel.of(banner,
+                selfLinkBuilder.withSelfRel(),
+                selfLinkBuilder.withRel("update-banner"),
+                Link.of(ROOT + "#resources-query-mainBanner").withRel("profile")
+        );
+
+        return ResponseEntity.ok(entityModel);
+    }
+
+    @PostMapping("/main/{id}")
+    public ResponseEntity updateMainBanner(@PathVariable Long id,
+                                             @RequestPart @Valid MainBannerSaveRequestDto requestDto, Errors errors,
+                                             @RequestPart(required = false) MultipartFile pcFile,
+                                             @RequestPart(required = false) MultipartFile mobileFile) {
+        if (errors.hasErrors()) {
+            return badRequest(errors);
+        }
+
+        Optional<Banner> optionalBanner = bannerRepository.findById(id);
+
+        if(!optionalBanner.isPresent()){
+            return ResponseEntity.notFound().build();
+        }
+
+
+        MainBanner mainBanner = bannerService.updateMainBanner(id, requestDto, pcFile, mobileFile);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(BannerApiController.class).slash("main").slash(id);
+
+
+        EntityModel<MainBanner> entityModel = EntityModel.of(mainBanner,
+                selfLinkBuilder.withSelfRel(),
+                selfLinkBuilder.withRel("query-banner"),
+                linkTo(BannerApiController.class).slash("main").withRel("query-mainBanners"),
+                Link.of(ROOT + "#resources-update-mainBanner").withRel("profile")
+        );
+
+        return ResponseEntity.ok(entityModel);
+    }
+
+    @PutMapping("/main/{id}/up")
+    public ResponseEntity updateMainBannerUp(@PathVariable @Valid Long id) {
+        Optional<Banner> optionalBanner = bannerRepository.findById(id);
+        if (!optionalBanner.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+        MainBanner banner = (MainBanner) optionalBanner.get();
+
+        bannerService.mainBannerUp(id);
+
+        return ResponseEntity.ok(null);
     }
 
 

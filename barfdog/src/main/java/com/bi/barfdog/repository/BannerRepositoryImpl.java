@@ -13,63 +13,6 @@ public class BannerRepositoryImpl implements BannerRepositoryCustom{
 
     private final EntityManager em;
 
-
-    public List<MainBanner> findAllMain() {
-        List<MainBanner> resultList = em.createQuery(
-                        "select m" +
-                                " from MainBanner m", MainBanner.class)
-                .getResultList();
-        return resultList;
-    }
-
-    public List<MyPageBanner> findAllMyPage() {
-        List<MyPageBanner> resultList = em.createQuery(
-                "select b " +
-                        " from MyPageBanner b", MyPageBanner.class)
-                .getResultList();
-
-        return resultList;
-    }
-
-
-
-//    public Banner findById(Long id){
-//        Banner banner = em.createQuery(
-//                        "select b" +
-//                                " from Banner b" +
-//                                " where b.id =:id", Banner.class)
-//                .setParameter("id", id)
-//                .getSingleResult();
-//
-//        return banner;
-//    }
-
-    public MyPageBanner findMyPageBannerById(Long id) {
-
-        MyPageBanner banner = em.createQuery(
-                        "select b from MyPageBanner b where b.id = :id", MyPageBanner.class)
-                .setParameter("id", id)
-                .getSingleResult();
-
-        return banner;
-    }
-
-    public TopBanner findTopBannerById(Long id) {
-
-        TopBanner banner = em.createQuery(
-                        "select b from TopBanner b where b.id = :id", TopBanner.class)
-                .setParameter("id", id)
-                .getSingleResult();
-
-        return banner;
-    }
-
-    public List<TopBanner> findAllTop() {
-        List<TopBanner> results = em.createQuery("select b from TopBanner b", TopBanner.class)
-                .getResultList();
-        return results;
-    }
-
     @Override
     public List<MainBanner> findMainBanners() {
         List<MainBanner> mainBanners = em.createQuery("select b from MainBanner b", MainBanner.class)
@@ -83,6 +26,34 @@ public class BannerRepositoryImpl implements BannerRepositoryCustom{
                         "select p" +
                                 " from PopupBanner p", PopupBanner.class)
                 .getResultList();
+        return resultList;
+    }
+
+    @Override
+    public List<TopBanner> findTopBanners() {
+        List<TopBanner> results = em.createQuery("select b from TopBanner b", TopBanner.class)
+                .getResultList();
+        return results;
+    }
+
+    @Override
+    public MainBanner findToDownByOrder(int order) {
+        MainBanner result = em.createQuery(
+                        "select b" +
+                                " from MainBanner b" +
+                                " where b.leakedOrder = :order", MainBanner.class)
+                .setParameter("order", order)
+                .getSingleResult();
+        return result;
+    }
+
+    @Override
+    public List<MyPageBanner> findMyPageBanners() {
+        List<MyPageBanner> resultList = em.createQuery(
+                        "select b " +
+                                " from MyPageBanner b", MyPageBanner.class)
+                .getResultList();
+
         return resultList;
     }
 }

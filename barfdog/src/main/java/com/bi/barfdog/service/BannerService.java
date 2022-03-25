@@ -122,13 +122,25 @@ public class BannerService {
     }
 
     @Transactional
+    public TopBanner updateTopBanner(Long id, TopBannerSaveRequestDto requestDto) {
+        Optional<Banner> optionalBanner = bannerRepository.findById(id);
+
+        TopBanner banner = (TopBanner) optionalBanner.get();
+
+        banner.update(requestDto);
+
+        return banner;
+    }
+
+    @Transactional
     public MyPageBanner updateMyPageBanner(Long id, MyPageBannerSaveRequestDto requestDto, MultipartFile pcFile, MultipartFile mobileFile) {
-        Optional<Banner> banner = bannerRepository.findById(id);
 
-        ImgFile imgFile = getImgFile(pcFile, mobileFile);
+        MyPageBanner banner = (MyPageBanner) bannerRepository.findById(id).get();
 
+        ImgFile imgFile = saveFilesAndGetImgFile(pcFile, mobileFile);
 
         MyPageBanner myPageBanner = null;
+
         if(imgFile != null){
             myPageBanner = banner.updateBanner(requestDto, imgFile);
         }else{
@@ -138,7 +150,34 @@ public class BannerService {
         return myPageBanner;
     }
 
-    private ImgFile getImgFile(MultipartFile pcFile, MultipartFile mobileFile) {
+    @Transactional
+    public MainBanner updateMainBanner(Long id, MainBannerSaveRequestDto requestDto, MultipartFile pcFile, MultipartFile mobileFile) {
+        MainBanner banner = (MainBanner) bannerRepository.findById(id).get();
+
+        ImgFile imgFile = saveFilesAndGetImgFile(pcFile, mobileFile);
+
+        MainBanner mainBanner = null;
+
+        if (imgFile != null) {
+            mainBanner = banner.updateBanner(requestDto, imgFile);
+        }else{
+            mainBanner = banner.updateBanner(requestDto);
+        }
+
+        return mainBanner;
+    }
+
+    @Transactional
+    public void mainBannerUp(Long id) {
+        MainBanner bannerToUp = (MainBanner) bannerRepository.findById(id).get();
+        MainBanner bannerToDown = bannerRepository.findToDownByOrder(bannerToUp.getLeakedOrder() - 1);
+
+        bannerToUp.orderUp();
+        bannerToDown.orderDown();
+
+    }
+
+    private ImgFile saveFilesAndGetImgFile(MultipartFile pcFile, MultipartFile mobileFile) {
 
         if(pcFile != null && mobileFile != null){
             ImgFilenamePath pcStore = storageService.store(pcFile);
@@ -153,14 +192,5 @@ public class BannerService {
         }
 
         return null;
-    }
-
-    @Transactional
-    public Banner updateTopBanner(Long id, TopBannerSaveRequestDto requestDto) {
-        TopBanner banner = bannerRepository.findTopBannerById(id);
-
-        banner.update(requestDto);
-
-        return banner;
     }
 }
