@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.FileInputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.stream.IntStream;
 
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
@@ -905,14 +906,38 @@ public class BannerApiControllerTest extends BaseTest {
                 .andExpect(jsonPath("_links.index").exists());
     }
 
+    @Test
+    @Transactional
+    @DisplayName("정상적으로 메인배너 리스트 호출하는 테스트")
+    public void queryMainBanners() throws Exception {
+       //Given
+        IntStream.range(0,10).forEach(i -> {
+            generateMainBanner(i);
+        });
 
+        //when & then
 
+        mockMvc.perform(get("/api/banners/main")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+        ;
 
+    }
 
-
-
-
-
+    private void generateMainBanner(int index) {
+        MainBanner banner = MainBanner.builder()
+                .name("메인배너" + index)
+                .pcLinkUrl("pc link")
+                .mobileLinkUrl("mobile link")
+                .status(BannerStatus.LEAKED)
+                .leakedOrder(index)
+                .imgFile(new ImgFile("C:/Users/verin/jyh/upload/test/banners", "filenamePc.jpg", "filenameMobile.jpg"))
+                .targets(BannerTargets.ALL)
+                .build();
+        bannerRepository.save(banner);
+    }
 
 
     private Banner generateTopBanner() {

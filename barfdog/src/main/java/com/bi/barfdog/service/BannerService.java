@@ -9,12 +9,12 @@ import com.bi.barfdog.repository.BannerRepository;
 import com.bi.barfdog.service.file.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.hateoas.EntityModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -40,7 +40,7 @@ public class BannerService {
         String filenamePc = pcStore.getFilename();
         String filenameMobile = mobileStore.getFilename();
 
-        List<MainBanner> results = bannerRepository.findAllMain();
+        List<MainBanner> results = bannerRepository.findMainBanners();
 
         int nextNum = results.size() + 1;
 
@@ -89,7 +89,7 @@ public class BannerService {
         String filenamePc = pcStore.getFilename();
         String filenameMobile = mobileStore.getFilename();
 
-        List<PopupBanner> results = bannerRepository.findAllPopup();
+        List<PopupBanner> results = bannerRepository.findPopupBanners();
 
         int nextNum = results.size() + 1;
 
@@ -123,7 +123,7 @@ public class BannerService {
 
     @Transactional
     public MyPageBanner updateMyPageBanner(Long id, MyPageBannerSaveRequestDto requestDto, MultipartFile pcFile, MultipartFile mobileFile) {
-        MyPageBanner banner = bannerRepository.findMyPageBannerById(id);
+        Optional<Banner> banner = bannerRepository.findById(id);
 
         ImgFile imgFile = getImgFile(pcFile, mobileFile);
 

@@ -1,41 +1,32 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.dto.*;
-import com.bi.barfdog.common.DefaultRes;
 import com.bi.barfdog.common.ErrorsResource;
-import com.bi.barfdog.common.ResponseMessage;
-import com.bi.barfdog.common.StatusCode;
 import com.bi.barfdog.domain.banner.Banner;
 import com.bi.barfdog.domain.banner.MainBanner;
 import com.bi.barfdog.domain.banner.MyPageBanner;
 import com.bi.barfdog.domain.banner.TopBanner;
 import com.bi.barfdog.repository.BannerRepository;
+import com.bi.barfdog.repository.BannerRepositoryImpl;
 import com.bi.barfdog.service.BannerService;
 import com.bi.barfdog.validator.BannerValidator;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.modelmapper.ModelMapper;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.swing.*;
 import javax.validation.Valid;
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RequiredArgsConstructor
 @RequestMapping(value = "/api/banners", produces = MediaTypes.HAL_JSON_VALUE)
@@ -186,7 +177,7 @@ public class BannerApiController {
             return badRequest(errors);
         }
         try {
-            Banner savedBanner = bannerRepository.findById(id);
+            Banner savedBanner = bannerRepository.f;
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
@@ -248,6 +239,16 @@ public class BannerApiController {
         );
 
         return ResponseEntity.ok(entityModel);
+    }
+
+    @GetMapping("/main")
+    public ResponseEntity queryMainBanners() {
+        List<MainBanner> mainBanners = bannerRepository.findAllMain();
+
+
+        CollectionModel<MainBanner> collectionModel = CollectionModel.of(mainBanners);
+
+        return ResponseEntity.ok(collectionModel);
     }
 
 
