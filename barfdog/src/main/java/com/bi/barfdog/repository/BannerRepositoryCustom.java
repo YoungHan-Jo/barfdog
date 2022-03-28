@@ -16,5 +16,8 @@ public interface BannerRepositoryCustom {
 
     List<MyPageBanner> findMyPageBanners();
 
-    MainBanner findToDownByOrder(int order);
+    MainBanner findMainBannerByOrder(int order);
+
+    PopupBanner findPopupBannerByOrder(int order);
+
 }

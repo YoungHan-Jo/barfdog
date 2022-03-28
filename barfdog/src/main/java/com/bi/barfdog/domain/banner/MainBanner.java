@@ -66,10 +66,10 @@ public class MainBanner extends Banner{
     }
 
     public void orderUp() {
-        this.leakedOrder -= leakedOrder;
+        this.leakedOrder -= 1;
     }
 
     public void orderDown() {
-        this.leakedOrder += leakedOrder;
+        this.leakedOrder += 1;
     }
 }

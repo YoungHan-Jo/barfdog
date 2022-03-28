@@ -37,11 +37,22 @@ public class BannerRepositoryImpl implements BannerRepositoryCustom{
     }
 
     @Override
-    public MainBanner findToDownByOrder(int order) {
+    public MainBanner findMainBannerByOrder(int order) {
         MainBanner result = em.createQuery(
                         "select b" +
                                 " from MainBanner b" +
                                 " where b.leakedOrder = :order", MainBanner.class)
+                .setParameter("order", order)
+                .getSingleResult();
+        return result;
+    }
+
+    @Override
+    public PopupBanner findPopupBannerByOrder(int order) {
+        PopupBanner result = em.createQuery(
+                        "select b" +
+                                " from PopupBanner b" +
+                                " where b.leakedOrder = :order", PopupBanner.class)
                 .setParameter("order", order)
                 .getSingleResult();
         return result;

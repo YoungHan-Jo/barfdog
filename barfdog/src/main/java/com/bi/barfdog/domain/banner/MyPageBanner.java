@@ -37,8 +37,8 @@ public class MyPageBanner extends Banner{
 
     public MyPageBanner updateBanner(MyPageBannerSaveRequestDto requestDto, ImgFile imgFile) {
         String folder = imgFile.getFolder();
-        String filenamePc = imgFile.getFilenamePc();
         String filenameMobile = imgFile.getFilenameMobile();
+        String filenamePc = imgFile.getFilenamePc();
 
         if(filenamePc == null){
             this.imgFile.setFolder(folder);

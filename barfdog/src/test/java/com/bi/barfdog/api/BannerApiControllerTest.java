@@ -7,7 +7,7 @@ import com.bi.barfdog.api.dto.TopBannerSaveRequestDto;
 import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.banner.*;
 import com.bi.barfdog.repository.BannerRepository;
-import org.assertj.core.api.Assertions;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.FileInputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 import java.util.stream.IntStream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
@@ -41,7 +41,13 @@ public class BannerApiControllerTest extends BaseTest {
 
     MediaType contentType = new MediaType("application", "hal+json", Charset.forName("UTF-8"));
 
+    @Before
+    public void setUp() {
+        bannerRepository.deleteAll();
+    }
+
     @Test
+    @Transactional
     @DisplayName("정상적으로 메인 배너를 생성하는 테스트")
     public void createMainBanner() throws Exception {
        //Given
@@ -175,6 +181,7 @@ public class BannerApiControllerTest extends BaseTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("정상적으로 마이페이지 배너 생성하는 테스트")
     public void createMyPageBanner() throws Exception {
        //Given
@@ -310,6 +317,7 @@ public class BannerApiControllerTest extends BaseTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("정상적으로 팝업 배너 생성하는 테스트")
     public void createPopupBanner() throws Exception {
        //Given
@@ -448,6 +456,7 @@ public class BannerApiControllerTest extends BaseTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("정상적으로 상단 띠 배너 생성하는 테스트")
     public void createTopBanner() throws Exception {
        //Given
@@ -1235,20 +1244,57 @@ public class BannerApiControllerTest extends BaseTest {
         IntStream.range(1,10).forEach(i -> {
             generateMainBanner(i);
         });
+
+        MainBanner order6 = bannerRepository.findMainBannerByOrder(6);
+        MainBanner order5 = bannerRepository.findMainBannerByOrder(5);
+
+
         //when
-        mockMvc.perform(put("/api/banners/main/6/up")
+        mockMvc.perform(put("/api/banners/main/{id}/up", order6.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-        ;
+                .andExpect(header().exists(HttpHeaders.CONTENT_TYPE))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, contentType.toString()))
+                .andExpect(jsonPath("leakedOrder").value(5))
+                .andDo(document("update_mainBanner_up",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query-mainBanners").description("메인 배너 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("createdDate").description("배너 생성 날짜"),
+                                fieldWithPath("modifiedDate").description("마지막으로 배너 수정한 날짜"),
+                                fieldWithPath("id").description("배너 id 번호"),
+                                fieldWithPath("name").description("배너 이름"),
+                                fieldWithPath("pcLinkUrl").description("pc 배너 클릭 시 이동할 url 주소"),
+                                fieldWithPath("mobileLinkUrl").description("모바일 배너 클릭 시 이동할 url 주소"),
+                                fieldWithPath("status").description("배너 노출 상태"),
+                                fieldWithPath("leakedOrder").description("배너 노출 순서"),
+                                fieldWithPath("imgFile.folder").description("파일이 저장된 폴더 경로"),
+                                fieldWithPath("imgFile.filenamePc").description("pc 배너 파일 이름"),
+                                fieldWithPath("imgFile.filenameMobile").description("mobile 배너 파일 이름"),
+                                fieldWithPath("targets").description("배너 노출 대상"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query-mainBanners.href").description("메인 배너 리스트 호출 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
 
-        MainBanner was5 = (MainBanner) bannerRepository.findById(5L).get();
-        MainBanner was6 = (MainBanner) bannerRepository.findById(6L).get();
+        MainBanner was6 = (MainBanner) bannerRepository.findById(order6.getId()).get();
+        MainBanner was5 = (MainBanner) bannerRepository.findById(order5.getId()).get();
 
-        Assertions.assertThat(was5.getLeakedOrder()).isEqualTo(6);
-        Assertions.assertThat(was6.getLeakedOrder()).isEqualTo(5);
-
+        assertThat(was5.getLeakedOrder()).isEqualTo(6);
+        assertThat(was6.getLeakedOrder()).isEqualTo(5);
     }
 
     @Test
@@ -1259,8 +1305,11 @@ public class BannerApiControllerTest extends BaseTest {
         IntStream.range(1,10).forEach(i -> {
             generateMainBanner(i);
         });
+
+        MainBanner order1 = bannerRepository.findMainBannerByOrder(1);
+
         //when
-        mockMvc.perform(put("/api/banners/main/1/up")
+        mockMvc.perform(put("/api/banners/main/{id}/up", order1.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -1277,9 +1326,568 @@ public class BannerApiControllerTest extends BaseTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
-                .andExpect(status().isNotFound())
-        ;
+                .andExpect(status().isNotFound());
     }
+
+    @Test
+    @Transactional
+    @DisplayName("정상적으로 메인 배너 노출 순위를 내리는 테스트")
+    public void updateMainBannerDown() throws Exception {
+       //Given
+        IntStream.range(1,10).forEach(i -> {
+            generateMainBanner(i);
+        });
+
+       //when & then
+        mockMvc.perform(put("/api/banners/main/5/down")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().exists(HttpHeaders.CONTENT_TYPE))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, contentType.toString()))
+                .andExpect(jsonPath("leakedOrder").value(6))
+                .andDo(document("update_mainBanner_down",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query-mainBanners").description("메인 배너 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("createdDate").description("배너 생성 날짜"),
+                                fieldWithPath("modifiedDate").description("마지막으로 배너 수정한 날짜"),
+                                fieldWithPath("id").description("배너 id 번호"),
+                                fieldWithPath("name").description("배너 이름"),
+                                fieldWithPath("pcLinkUrl").description("pc 배너 클릭 시 이동할 url 주소"),
+                                fieldWithPath("mobileLinkUrl").description("모바일 배너 클릭 시 이동할 url 주소"),
+                                fieldWithPath("status").description("배너 노출 상태"),
+                                fieldWithPath("leakedOrder").description("배너 노출 순서"),
+                                fieldWithPath("imgFile.folder").description("파일이 저장된 폴더 경로"),
+                                fieldWithPath("imgFile.filenamePc").description("pc 배너 파일 이름"),
+                                fieldWithPath("imgFile.filenameMobile").description("mobile 배너 파일 이름"),
+                                fieldWithPath("targets").description("배너 노출 대상"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query-mainBanners.href").description("메인 배너 리스트 호출 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        MainBanner was5 = (MainBanner) bannerRepository.findById(5L).get();
+        MainBanner was6 = (MainBanner) bannerRepository.findById(6L).get();
+
+        assertThat(was5.getLeakedOrder()).isEqualTo(6);
+        assertThat(was6.getLeakedOrder()).isEqualTo(5);
+    }
+    
+    @Test
+    @Transactional
+    @DisplayName("노출 순위를 내릴 메인 배너가 없을 경우 NOT FOUND 나오는 테스트")
+    public void updateMainBannerDown_Not_Found() throws Exception {
+       //Given
+       
+       //when & then
+        mockMvc.perform(put("/api/banners/main/999999/down")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andExpect(status().isNotFound());
+    }
+    
+    @Test
+    @Transactional
+    @DisplayName("노출 순위를 더 이상 내릴 수 없을 경우 Bad Request 나오는 테스트")
+    public void updateMainBannerDown_Bad_Request() throws Exception {
+        //Given
+        IntStream.range(1,10).forEach(i -> {
+            generateMainBanner(i);
+        });
+
+        MainBanner order9 = bannerRepository.findMainBannerByOrder(9);
+
+        //when & then
+        mockMvc.perform(put("/api/banners/main/${id}/down", order9.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andExpect(status().isBadRequest());
+    }
+    
+    @Test
+    @Transactional
+    @DisplayName("정상적으로 메인배너를 삭제하는 테스트")
+    public void deleteMainBanner() throws Exception {
+       //Given
+        IntStream.range(1,6).forEach(i -> {
+            generateMainBanner(i);
+        });
+
+        MainBanner order3 = bannerRepository.findMainBannerByOrder(3);
+        MainBanner order4 = bannerRepository.findMainBannerByOrder(4);
+
+        //when & then
+        mockMvc.perform(delete("/api/banners/main/{id}",order3.getId())
+                        .accept(MediaTypes.HAL_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, contentType.toString()))
+                .andDo(document("delete_mainBanner",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query-mainBanners").description("메인 배너 리스트 조회 링크"),
+                                linkWithRel("create-banner").description("배너 생성 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_embedded.mainBannerList[0].createdDate").description("배너 생성 날짜"),
+                                fieldWithPath("_embedded.mainBannerList[0].modifiedDate").description("마지막으로 배너 수정한 날짜"),
+                                fieldWithPath("_embedded.mainBannerList[0].id").description("배너 id 번호"),
+                                fieldWithPath("_embedded.mainBannerList[0].name").description("배너 이름"),
+                                fieldWithPath("_embedded.mainBannerList[0].pcLinkUrl").description("pc 배너 클릭 시 이동할 url 주소"),
+                                fieldWithPath("_embedded.mainBannerList[0].mobileLinkUrl").description("모바일 배너 클릭 시 이동할 url 주소"),
+                                fieldWithPath("_embedded.mainBannerList[0].status").description("배너 노출 상태"),
+                                fieldWithPath("_embedded.mainBannerList[0].imgFile.folder").description("파일이 저장된 폴더 경로"),
+                                fieldWithPath("_embedded.mainBannerList[0].imgFile.filenamePc").description("pc 배너 파일 이름"),
+                                fieldWithPath("_embedded.mainBannerList[0].imgFile.filenameMobile").description("mobile 배너 파일 이름"),
+                                fieldWithPath("_embedded.mainBannerList[0].targets").description("배너 노출 대상"),
+                                fieldWithPath("_embedded.mainBannerList[0].leakedOrder").description("배너 노출 순서"),
+                                fieldWithPath("_embedded.mainBannerList[0]._links.self.href").description("배너 조회 링크"),
+                                fieldWithPath("_embedded.mainBannerList[0]._links.delete-mainBanner.href").description("배너 삭제 링크"),
+                                fieldWithPath("_embedded.mainBannerList[0]._links.update-mainBanner.href").description("배너 수정 링크"),
+                                fieldWithPath("_embedded.mainBannerList[0]._links.update-mainBanner-order-up.href").description("배너 노출 순위 올리는 링크"),
+                                fieldWithPath("_embedded.mainBannerList[0]._links.update-mainBanner-order-down.href").description("배너 노출 순위 내리는 링크"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query-mainBanners.href").description("메인 배너 리스트 조회 링크"),
+                                fieldWithPath("_links.create-banner.href").description("배너 생성하는 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        MainBanner was4 = (MainBanner) bannerRepository.findById(order4.getId()).get();
+        assertThat(was4.getLeakedOrder()).isEqualTo(3);
+
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("삭제할 메인 배너가 없을 경우 NOT FOUND 나오는 테스트")
+    public void deleteMainBanner_Not_Found() throws Exception {
+        //Given
+
+        //when & then
+        mockMvc.perform(delete("/api/banners/main/9999")
+                        .accept(MediaTypes.HAL_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+
+    }
+    
+    @Test
+    @Transactional
+    @DisplayName("정상적으로 팝업 배너 리스트 호출하는 테스트")
+    public void queryPopupBanners() throws Exception {
+       //Given
+        IntStream.range(1,6).forEach(i -> {
+            generatePopupBanner(i);
+        });
+       
+       //when & then
+        mockMvc.perform(get("/api/banners/popup")
+                        .accept(MediaTypes.HAL_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, contentType.toString()))
+                .andDo(document("query_popupBanners",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("create-banner").description("배너 생성 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_embedded.popupBannerList[0].createdDate").description("배너 생성 날짜"),
+                                fieldWithPath("_embedded.popupBannerList[0].modifiedDate").description("마지막으로 배너 수정한 날짜"),
+                                fieldWithPath("_embedded.popupBannerList[0].id").description("배너 id 번호"),
+                                fieldWithPath("_embedded.popupBannerList[0].name").description("배너 이름"),
+                                fieldWithPath("_embedded.popupBannerList[0].pcLinkUrl").description("pc 배너 클릭 시 이동할 url 주소"),
+                                fieldWithPath("_embedded.popupBannerList[0].mobileLinkUrl").description("모바일 배너 클릭 시 이동할 url 주소"),
+                                fieldWithPath("_embedded.popupBannerList[0].status").description("배너 노출 상태"),
+                                fieldWithPath("_embedded.popupBannerList[0].leakedOrder").description("배너 노출 순서"),
+                                fieldWithPath("_embedded.popupBannerList[0].position").description("배너 노출 위치"),
+                                fieldWithPath("_embedded.popupBannerList[0].imgFile.folder").description("파일이 저장된 폴더 경로"),
+                                fieldWithPath("_embedded.popupBannerList[0].imgFile.filenamePc").description("pc 배너 파일 이름"),
+                                fieldWithPath("_embedded.popupBannerList[0].imgFile.filenameMobile").description("mobile 배너 파일 이름"),
+                                fieldWithPath("_embedded.popupBannerList[0]._links.self.href").description("배너 조회 링크"),
+                                fieldWithPath("_embedded.popupBannerList[0]._links.delete-popupBanner.href").description("배너 삭제 링크"),
+                                fieldWithPath("_embedded.popupBannerList[0]._links.update-popupBanner.href").description("배너 수정 링크"),
+                                fieldWithPath("_embedded.popupBannerList[0]._links.update-popupBanner-order-up.href").description("배너 노출 순위 올리는 링크"),
+                                fieldWithPath("_embedded.popupBannerList[0]._links.update-popupBanner-order-down.href").description("배너 노출 순위 내리는 링크"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.create-banner.href").description("배너 생성하는 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+    }
+    
+    @Test
+    @Transactional
+    @DisplayName("정상적으로 팝업 배너 하나만 조회하는 테스트")
+    public void queryPopupBanner() throws Exception {
+       //Given
+        Banner banner = generatePopupBanner(1);
+
+        //when & then
+        mockMvc.perform(get("/api/banners/popup/{id}",banner.getId())
+                        .accept(MediaTypes.HAL_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, contentType.toString()))
+                .andExpect(jsonPath("id").value(banner.getId()))
+                .andDo(document("query_popupBanner",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("update-banner").description("배너 수정 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("createdDate").description("배너 생성 날짜"),
+                                fieldWithPath("modifiedDate").description("마지막으로 배너 수정한 날짜"),
+                                fieldWithPath("id").description("배너 id 번호"),
+                                fieldWithPath("name").description("배너 이름"),
+                                fieldWithPath("pcLinkUrl").description("pc 배너 클릭 시 이동할 url 주소"),
+                                fieldWithPath("mobileLinkUrl").description("모바일 배너 클릭 시 이동할 url 주소"),
+                                fieldWithPath("status").description("배너 노출 상태"),
+                                fieldWithPath("leakedOrder").description("배너 노출 순서"),
+                                fieldWithPath("position").description("배너 노출 위치"),
+                                fieldWithPath("imgFile.folder").description("파일이 저장된 폴더 경로"),
+                                fieldWithPath("imgFile.filenamePc").description("pc 배너 파일 이름"),
+                                fieldWithPath("imgFile.filenameMobile").description("mobile 배너 파일 이름"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.update-banner.href").description("배너 수정 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("조회할 팝업 배너가 없을 경우 NOT FOUND 나오는 테스트")
+    public void queryPopupBanner_Not_Found() throws Exception {
+        //Given
+
+        //when & then
+        mockMvc.perform(get("/api/banners/popup/999999")
+                        .accept(MediaTypes.HAL_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+    
+    @Test
+    @Transactional
+    @DisplayName("정상적으로 팝업 배너 수정하는 테스트")
+    public void updatePopupBanner() throws Exception {
+       //Given
+        Banner banner = generatePopupBanner(1);
+
+        MockMultipartFile pcFile = new MockMultipartFile("pcFile", "file1.jpg", "image/jpg", new FileInputStream("src/test/resources/uploadTest/file1.jpg"));
+        MockMultipartFile mobileFile = new MockMultipartFile("mobileFile", "file2.jpg", "image/jpg", new FileInputStream("src/test/resources/uploadTest/file2.jpg"));
+
+        PopupBannerSaveRequestDto requestDto = modelmapper.map(banner, PopupBannerSaveRequestDto.class);
+        String name = "new popup Banner";
+        requestDto.setName(name);
+
+        String requestDtoJson = objectMapper.writeValueAsString(requestDto);
+        MockMultipartFile request = new MockMultipartFile(
+                "requestDto",
+                "requestDto",
+                "application/json",
+                requestDtoJson.getBytes(StandardCharsets.UTF_8));
+
+        //when & then
+        mockMvc.perform(multipart("/api/banners/popup/{id}", banner.getId())
+                        .file(pcFile)
+                        .file(mobileFile)
+                        .file(request)
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, contentType.toString()))
+                .andExpect(jsonPath("name").value(name))
+                .andDo(document("update_popupBanner",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query-banner").description("해당 배너 정보 조회 링크"),
+                                linkWithRel("query-popupBanners").description("팝업 배너 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        requestParts(
+                                partWithName("pcFile").description("pc용 배너 이미지 파일"),
+                                partWithName("mobileFile").description("모바일 용 배너 이미지 파일"),
+                                partWithName("requestDto").description("배너 내용 / Json")
+                        ),
+                        requestPartFields("requestDto",
+                                fieldWithPath("name").description("배너 이름"),
+                                fieldWithPath("position").description("배너 노출 위치 [LEFT, MID, RIGHT]"),
+                                fieldWithPath("status").description("배너 노출 상태 [LEAKED, HIDDEN]"),
+                                fieldWithPath("pcLinkUrl").description("pc 배너 클릭 시 이동할 url 주소"),
+                                fieldWithPath("mobileLinkUrl").description("모바일 배너 클릭 시 이동할 url 주소")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("createdDate").description("배너 생성 날짜"),
+                                fieldWithPath("modifiedDate").description("마지막으로 배너 수정한 날짜"),
+                                fieldWithPath("id").description("배너 id 번호"),
+                                fieldWithPath("name").description("배너 이름"),
+                                fieldWithPath("pcLinkUrl").description("pc 배너 클릭 시 이동할 url 주소"),
+                                fieldWithPath("mobileLinkUrl").description("모바일 배너 클릭 시 이동할 url 주소"),
+                                fieldWithPath("status").description("배너 노출 상태"),
+                                fieldWithPath("leakedOrder").description("배너 노출 순서"),
+                                fieldWithPath("position").description("배너 노출 위치"),
+                                fieldWithPath("imgFile.folder").description("파일이 저장된 폴더 경로"),
+                                fieldWithPath("imgFile.filenamePc").description("pc 배너 파일 이름"),
+                                fieldWithPath("imgFile.filenameMobile").description("mobile 배너 파일 이름"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query-banner.href").description("해당 배너 정보 조회 링크"),
+                                fieldWithPath("_links.query-popupBanners.href").description("팝업 배너 리스트 호출 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("파일이 하나일때 정상적으로 수정하는 테스트")
+    public void updatePopupBanner_One_File() throws Exception {
+        //Given
+        PopupBanner banner = (PopupBanner) generatePopupBanner(1);
+
+        MockMultipartFile pcFile = new MockMultipartFile("pcFile", "file1.jpg", "image/jpg", new FileInputStream("src/test/resources/uploadTest/file1.jpg"));
+
+        PopupBannerSaveRequestDto requestDto = modelmapper.map(banner, PopupBannerSaveRequestDto.class);
+        String name = "new popup Banner";
+        requestDto.setName(name);
+
+        String requestDtoJson = objectMapper.writeValueAsString(requestDto);
+        MockMultipartFile request = new MockMultipartFile(
+                "requestDto",
+                "requestDto",
+                "application/json",
+                requestDtoJson.getBytes(StandardCharsets.UTF_8));
+
+        //when & then
+        mockMvc.perform(multipart("/api/banners/popup/{id}", banner.getId())
+                        .file(pcFile)
+                        .file(request)
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().exists(HttpHeaders.CONTENT_TYPE))
+                .andExpect(jsonPath("name").value(name))
+                .andExpect(jsonPath("imgFile.filenameMobile").value(banner.getImgFile().getFilenameMobile()));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("파일이 없어도 정상적으로 수정하는 테스트")
+    public void updatePopupBanner_Empty_Files() throws Exception {
+        //Given
+        Banner banner = generatePopupBanner(1);
+
+        MockMultipartFile pcFile = new MockMultipartFile("pcFile", "file1.jpg", "image/jpg", new FileInputStream("src/test/resources/uploadTest/file1.jpg"));
+        MockMultipartFile mobileFile = new MockMultipartFile("mobileFile", "file2.jpg", "image/jpg", new FileInputStream("src/test/resources/uploadTest/file2.jpg"));
+
+        PopupBannerSaveRequestDto requestDto = modelmapper.map(banner, PopupBannerSaveRequestDto.class);
+        String name = "new popup Banner";
+        requestDto.setName(name);
+
+        String requestDtoJson = objectMapper.writeValueAsString(requestDto);
+        MockMultipartFile request = new MockMultipartFile(
+                "requestDto",
+                "requestDto",
+                "application/json",
+                requestDtoJson.getBytes(StandardCharsets.UTF_8));
+
+        //when & then
+        mockMvc.perform(multipart("/api/banners/popup/{id}", banner.getId())
+                        .file(pcFile)
+                        .file(mobileFile)
+                        .file(request)
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().exists(HttpHeaders.CONTENT_TYPE))
+                .andExpect(jsonPath("name").value(name));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("입력값이 부족핧 경우 Bad Request 나오는 테스트")
+    public void updatePopupBanner_Bad_Request() throws Exception {
+        //Given
+        Banner banner = generatePopupBanner(1);
+
+        MockMultipartFile pcFile = new MockMultipartFile("pcFile", "file1.jpg", "image/jpg", new FileInputStream("src/test/resources/uploadTest/file1.jpg"));
+        MockMultipartFile mobileFile = new MockMultipartFile("mobileFile", "file2.jpg", "image/jpg", new FileInputStream("src/test/resources/uploadTest/file2.jpg"));
+
+        PopupBannerSaveRequestDto requestDto = PopupBannerSaveRequestDto.builder().build();
+
+        String requestDtoJson = objectMapper.writeValueAsString(requestDto);
+        MockMultipartFile request = new MockMultipartFile(
+                "requestDto",
+                "requestDto",
+                "application/json",
+                requestDtoJson.getBytes(StandardCharsets.UTF_8));
+
+        //when & then
+        mockMvc.perform(multipart("/api/banners/popup/{id}", banner.getId())
+                        .file(pcFile)
+                        .file(mobileFile)
+                        .file(request)
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("수정할 팝업 배너가 없을 경우 Not Found 나오는 테스트")
+    public void updatePopupBanner_Not_Found() throws Exception {
+        //Given
+        Banner banner = generatePopupBanner(1);
+
+        MockMultipartFile pcFile = new MockMultipartFile("pcFile", "file1.jpg", "image/jpg", new FileInputStream("src/test/resources/uploadTest/file1.jpg"));
+        MockMultipartFile mobileFile = new MockMultipartFile("mobileFile", "file2.jpg", "image/jpg", new FileInputStream("src/test/resources/uploadTest/file2.jpg"));
+
+        PopupBannerSaveRequestDto requestDto = modelmapper.map(banner, PopupBannerSaveRequestDto.class);
+        String name = "new popup Banner";
+        requestDto.setName(name);
+
+        String requestDtoJson = objectMapper.writeValueAsString(requestDto);
+        MockMultipartFile request = new MockMultipartFile(
+                "requestDto",
+                "requestDto",
+                "application/json",
+                requestDtoJson.getBytes(StandardCharsets.UTF_8));
+
+        //when & then
+        mockMvc.perform(multipart("/api/banners/popup/9999")
+                        .file(pcFile)
+                        .file(mobileFile)
+                        .file(request)
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("정상적으로 팝업 배너의 노출 순서를 올리는 테스트")
+    public void updatePopupBannerUp() throws Exception {
+       //Given
+        IntStream.range(1,9).forEach(i -> {
+            generatePopupBanner(i);
+        });
+
+        PopupBanner order5 = bannerRepository.findPopupBannerByOrder(5);
+        PopupBanner order6 = bannerRepository.findPopupBannerByOrder(6);
+        //when & then
+        mockMvc.perform(put("/api/banners/popup/{id}/up", order6.getId())
+                        .accept(MediaTypes.HAL_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("leakedOrder").value(5))
+        ;
+
+        PopupBanner was6 = (PopupBanner) bannerRepository.findById(order6.getId()).get();
+        PopupBanner was5 = (PopupBanner) bannerRepository.findById(order5.getId()).get();
+
+        assertThat(was5.getLeakedOrder()).isEqualTo(6);
+        assertThat(was6.getLeakedOrder()).isEqualTo(5);
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("노출 순서를 올릴 팝업 배너가 존재 하지 않을 경우 Not Found 나오는 테스트")
+    public void updatePopupBannerUp_Not_Found() throws Exception {
+        //Given
+        IntStream.range(1,2).forEach(i -> {
+            generatePopupBanner(i);
+        });
+
+        //when & then
+        mockMvc.perform(put("/api/banners/popup/999999/up")
+                        .accept(MediaTypes.HAL_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("팝업배너의 순서를 더 이상 올릴 수 없을 경우 Bad Request가 나오는 테스트")
+    public void updatePopupBannerUp_Bad_Request() throws Exception {
+        //Given
+        IntStream.range(1,4).forEach(i -> {
+            generatePopupBanner(i);
+        });
+
+        PopupBanner banner = bannerRepository.findPopupBannerByOrder(1);
+
+        //when & then
+        mockMvc.perform(put("/api/banners/popup/{id}/up", banner.getId())
+                        .accept(MediaTypes.HAL_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    
+    
+    
+    
+    
+
 
 
 
@@ -1299,6 +1907,19 @@ public class BannerApiControllerTest extends BaseTest {
         return bannerRepository.save(banner);
     }
 
+    private Banner generatePopupBanner(int index) {
+        PopupBanner banner = PopupBanner.builder()
+                .name("팝업배너" + index)
+                .pcLinkUrl("pc link")
+                .mobileLinkUrl("mobile link")
+                .status(BannerStatus.LEAKED)
+                .leakedOrder(index)
+                .position(PopupBannerPosition.LEFT)
+                .imgFile(new ImgFile("C:/Users/verin/jyh/upload/test/banners", "filenamePc.jpg", "filenameMobile.jpg"))
+                .build();
+        return bannerRepository.save(banner);
+    }
+
 
     private Banner generateTopBanner() {
         TopBanner topbanner = TopBanner.builder()
@@ -1311,7 +1932,6 @@ public class BannerApiControllerTest extends BaseTest {
                 .build();
         return bannerRepository.save(topbanner);
     }
-
 
     private Banner generateMyPageBanner() {
         MyPageBanner banner = MyPageBanner.builder()

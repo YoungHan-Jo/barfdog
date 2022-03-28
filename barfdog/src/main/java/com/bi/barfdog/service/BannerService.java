@@ -168,13 +168,66 @@ public class BannerService {
     }
 
     @Transactional
-    public void mainBannerUp(Long id) {
+    public Banner mainBannerUp(Long id) {
         MainBanner bannerToUp = (MainBanner) bannerRepository.findById(id).get();
-        MainBanner bannerToDown = bannerRepository.findToDownByOrder(bannerToUp.getLeakedOrder() - 1);
+        MainBanner bannerToDown = bannerRepository.findMainBannerByOrder(bannerToUp.getLeakedOrder() - 1);
 
         bannerToUp.orderUp();
         bannerToDown.orderDown();
 
+        return bannerToUp;
+    }
+
+    @Transactional
+    public Banner mainBannerDown(Long id) {
+        MainBanner bannerToDown = (MainBanner) bannerRepository.findById(id).get();
+        MainBanner bannerToUp = bannerRepository.findMainBannerByOrder(bannerToDown.getLeakedOrder() + 1);
+
+        bannerToDown.orderDown();
+        bannerToUp.orderUp();
+
+        return bannerToDown;
+
+    }
+
+    @Transactional
+    public int deleteMainBanner(Long id) {
+        MainBanner banner = (MainBanner) bannerRepository.findById(id).get();
+        int order = banner.getLeakedOrder();
+        bannerRepository.delete(banner);
+        int count = bannerRepository.increaseOrdersUnderDeleteMainBanner(order);
+
+        return count;
+    }
+
+    @Transactional
+    public PopupBanner updatePopupBanner(Long id, PopupBannerSaveRequestDto requestDto, MultipartFile pcFile, MultipartFile mobileFile) {
+
+        PopupBanner banner = (PopupBanner) bannerRepository.findById(id).get();
+
+
+        ImgFile imgFile = saveFilesAndGetImgFile(pcFile, mobileFile);
+
+        PopupBanner popupBanner = null;
+
+        if (imgFile != null) {
+            popupBanner = banner.updateBanner(requestDto, imgFile);
+        }else{
+            popupBanner = banner.updateBanner(requestDto);
+        }
+
+        return popupBanner;
+    }
+
+    @Transactional
+    public Banner popupBannerUp(Long id) {
+        PopupBanner bannerToUp = (PopupBanner) bannerRepository.findById(id).get();
+        PopupBanner bannerToDown = bannerRepository.findPopupBannerByOrder(bannerToUp.getLeakedOrder() - 1);
+
+        bannerToUp.orderUp();
+        bannerToDown.orderDown();
+
+        return bannerToUp;
     }
 
     private ImgFile saveFilesAndGetImgFile(MultipartFile pcFile, MultipartFile mobileFile) {
