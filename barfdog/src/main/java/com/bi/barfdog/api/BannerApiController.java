@@ -10,10 +10,7 @@ import com.bi.barfdog.validator.BannerValidator;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.CollectionModel;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.MediaTypes;
+import org.springframework.hateoas.*;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
@@ -493,6 +490,66 @@ public class BannerApiController {
         );
 
         return ResponseEntity.ok(entityModel);
+    }
+
+    @PutMapping("/popup/{id}/down")
+    public ResponseEntity updatePopupBannerDown(@PathVariable Long id) {
+        Optional<Banner> optionalBanner = bannerRepository.findById(id);
+        if (!optionalBanner.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        PopupBanner popupBanner = (PopupBanner) optionalBanner.get();
+        List<PopupBanner> popupBanners = bannerRepository.findPopupBanners();
+        if (popupBanner.getLeakedOrder() == popupBanners.size()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Banner banner = bannerService.popupBannerDown(id);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(BannerApiController.class).slash("popup").slash(id).slash("down");
+
+        EntityModel<Banner> entityModel = EntityModel.of(banner,
+                selfLinkBuilder.withSelfRel(),
+                linkTo(BannerApiController.class).slash("popup").withRel("query-popupBanners"),
+                Link.of(ROOT + "#resources-update-popupBanner-leakedOrder-up").withRel("profile")
+        );
+
+        return ResponseEntity.ok(entityModel);
+    }
+
+    @DeleteMapping("/popup/{id}")
+    public ResponseEntity deletePopupBanner(@PathVariable Long id) {
+        Optional<Banner> optionalBanner = bannerRepository.findById(id);
+        if (!optionalBanner.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        int count = bannerService.deletePopupBanner(id);
+
+        List<PopupBanner> popupBanners = bannerRepository.findPopupBanners();
+        List<EntityModel<PopupBanner>> entityModelList = new ArrayList<>();
+        for (PopupBanner popupBanner : popupBanners) {
+            EntityModel<PopupBanner> entityModel = EntityModel.of(popupBanner,
+                    linkTo(BannerApiController.class).slash("popup").slash(popupBanner.getId()).withSelfRel(),
+                    linkTo(BannerApiController.class).slash("popup").slash(popupBanner.getId()).withRel("delete-popupBanner"),
+                    linkTo(BannerApiController.class).slash("popup").slash(popupBanner.getId()).withRel("update-popupBanner"),
+                    linkTo(BannerApiController.class).slash("popup").slash(popupBanner.getId()).slash("up").withRel("update-popupBanner-order-up"),
+                    linkTo(BannerApiController.class).slash("popup").slash(popupBanner.getId()).slash("down").withRel("update-popupBanner-order-down")
+            );
+            entityModelList.add(entityModel);
+        }
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(BannerApiController.class).slash("popup").slash(id);
+
+        CollectionModel<EntityModel<PopupBanner>> collectionModel = CollectionModel.of(entityModelList,
+                selfLinkBuilder.withSelfRel(),
+                selfLinkBuilder.withRel("query-popupBanners"),
+                selfLinkBuilder.withRel("create-banner"),
+                Link.of(ROOT + "#resources-delete-popupBanner").withRel("profile"));
+
+
+        return ResponseEntity.ok(collectionModel);
     }
 
 

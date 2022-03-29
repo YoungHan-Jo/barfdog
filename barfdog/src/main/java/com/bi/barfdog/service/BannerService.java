@@ -230,6 +230,27 @@ public class BannerService {
         return bannerToUp;
     }
 
+    @Transactional
+    public Banner popupBannerDown(Long id) {
+        PopupBanner bannerToDown = (PopupBanner) bannerRepository.findById(id).get();
+        PopupBanner bannerToUp = bannerRepository.findPopupBannerByOrder(bannerToDown.getLeakedOrder() + 1);
+
+        bannerToDown.orderDown();
+        bannerToUp.orderUp();
+
+        return bannerToDown;
+    }
+
+    @Transactional
+    public int deletePopupBanner(Long id) {
+        PopupBanner banner = (PopupBanner) bannerRepository.findById(id).get();
+        int order = banner.getLeakedOrder();
+        bannerRepository.delete(banner);
+        int count = bannerRepository.increaseOrdersUnderDeletePopupBanner(order);
+
+        return count;
+    }
+
     private ImgFile saveFilesAndGetImgFile(MultipartFile pcFile, MultipartFile mobileFile) {
 
         if(pcFile != null && mobileFile != null){
@@ -246,4 +267,6 @@ public class BannerService {
 
         return null;
     }
+
+
 }

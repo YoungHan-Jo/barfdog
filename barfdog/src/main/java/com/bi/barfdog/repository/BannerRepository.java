@@ -11,4 +11,8 @@ public interface BannerRepository extends JpaRepository<Banner, Long>, BannerRep
     @Modifying(clearAutomatically = true)
     @Query("update MainBanner b set b.leakedOrder = b.leakedOrder - 1 where b.leakedOrder > :order")
     int increaseOrdersUnderDeleteMainBanner(@Param("order") int order);
+
+    @Modifying(clearAutomatically = true)
+    @Query("update PopupBanner b set b.leakedOrder = b.leakedOrder - 1 where b.leakedOrder > :order")
+    int increaseOrdersUnderDeletePopupBanner(@Param("order") int order);
 }
