@@ -12,7 +12,7 @@ public class IndexController {
     @GetMapping("/api")
     public RepresentationModel index(){
         RepresentationModel index = new RepresentationModel();
-        index.add(linkTo(BannerApiController.class).withRel("events"));
+        index.add(linkTo(IndexController.class).withRel("banners"));
         return index;
     }
 }

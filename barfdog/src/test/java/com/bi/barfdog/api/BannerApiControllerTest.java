@@ -779,7 +779,7 @@ public class BannerApiControllerTest extends BaseTest {
     @Test
     @Transactional
     @DisplayName("상단 띠 배너 정상적으로 호출 하는 테스트")
-    public void getTopBanner() throws Exception {
+    public void queryTopBanner() throws Exception {
        //Given
         Banner banner = generateTopBanner();
 
@@ -1474,23 +1474,6 @@ public class BannerApiControllerTest extends BaseTest {
                                 parameterWithName("id").description("배너 id")
                         ),
                         responseFields(
-                                fieldWithPath("_embedded.mainBannerList[0].createdDate").description("배너 생성 날짜"),
-                                fieldWithPath("_embedded.mainBannerList[0].modifiedDate").description("마지막으로 배너 수정한 날짜"),
-                                fieldWithPath("_embedded.mainBannerList[0].id").description("배너 id 번호"),
-                                fieldWithPath("_embedded.mainBannerList[0].name").description("배너 이름"),
-                                fieldWithPath("_embedded.mainBannerList[0].pcLinkUrl").description("pc 배너 클릭 시 이동할 url 주소"),
-                                fieldWithPath("_embedded.mainBannerList[0].mobileLinkUrl").description("모바일 배너 클릭 시 이동할 url 주소"),
-                                fieldWithPath("_embedded.mainBannerList[0].status").description("배너 노출 상태"),
-                                fieldWithPath("_embedded.mainBannerList[0].imgFile.folder").description("파일이 저장된 폴더 경로"),
-                                fieldWithPath("_embedded.mainBannerList[0].imgFile.filenamePc").description("pc 배너 파일 이름"),
-                                fieldWithPath("_embedded.mainBannerList[0].imgFile.filenameMobile").description("mobile 배너 파일 이름"),
-                                fieldWithPath("_embedded.mainBannerList[0].targets").description("배너 노출 대상"),
-                                fieldWithPath("_embedded.mainBannerList[0].leakedOrder").description("배너 노출 순서"),
-                                fieldWithPath("_embedded.mainBannerList[0]._links.self.href").description("배너 조회 링크"),
-                                fieldWithPath("_embedded.mainBannerList[0]._links.delete-mainBanner.href").description("배너 삭제 링크"),
-                                fieldWithPath("_embedded.mainBannerList[0]._links.update-mainBanner.href").description("배너 수정 링크"),
-                                fieldWithPath("_embedded.mainBannerList[0]._links.update-mainBanner-order-up.href").description("배너 노출 순위 올리는 링크"),
-                                fieldWithPath("_embedded.mainBannerList[0]._links.update-mainBanner-order-down.href").description("배너 노출 순위 내리는 링크"),
                                 fieldWithPath("_links.self.href").description("self 링크"),
                                 fieldWithPath("_links.query-mainBanners.href").description("메인 배너 리스트 조회 링크"),
                                 fieldWithPath("_links.create-banner.href").description("배너 생성하는 링크"),
@@ -2073,23 +2056,6 @@ public class BannerApiControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
                         ),
                         responseFields(
-                                fieldWithPath("_embedded.popupBannerList[0].createdDate").description("배너 생성 날짜"),
-                                fieldWithPath("_embedded.popupBannerList[0].modifiedDate").description("마지막으로 배너 수정한 날짜"),
-                                fieldWithPath("_embedded.popupBannerList[0].id").description("배너 id 번호"),
-                                fieldWithPath("_embedded.popupBannerList[0].name").description("배너 이름"),
-                                fieldWithPath("_embedded.popupBannerList[0].pcLinkUrl").description("pc 배너 클릭 시 이동할 url 주소"),
-                                fieldWithPath("_embedded.popupBannerList[0].mobileLinkUrl").description("모바일 배너 클릭 시 이동할 url 주소"),
-                                fieldWithPath("_embedded.popupBannerList[0].status").description("배너 노출 상태"),
-                                fieldWithPath("_embedded.popupBannerList[0].leakedOrder").description("배너 노출 순서"),
-                                fieldWithPath("_embedded.popupBannerList[0].position").description("배너 노출 위치"),
-                                fieldWithPath("_embedded.popupBannerList[0].imgFile.folder").description("파일이 저장된 폴더 경로"),
-                                fieldWithPath("_embedded.popupBannerList[0].imgFile.filenamePc").description("pc 배너 파일 이름"),
-                                fieldWithPath("_embedded.popupBannerList[0].imgFile.filenameMobile").description("mobile 배너 파일 이름"),
-                                fieldWithPath("_embedded.popupBannerList[0]._links.self.href").description("배너 조회 링크"),
-                                fieldWithPath("_embedded.popupBannerList[0]._links.delete-popupBanner.href").description("배너 삭제 링크"),
-                                fieldWithPath("_embedded.popupBannerList[0]._links.update-popupBanner.href").description("배너 수정 링크"),
-                                fieldWithPath("_embedded.popupBannerList[0]._links.update-popupBanner-order-up.href").description("배너 노출 순위 올리는 링크"),
-                                fieldWithPath("_embedded.popupBannerList[0]._links.update-popupBanner-order-down.href").description("배너 노출 순위 내리는 링크"),
                                 fieldWithPath("_links.self.href").description("self 링크"),
                                 fieldWithPath("_links.query-popupBanners.href").description("팝업 배너 리스트 조회 링크"),
                                 fieldWithPath("_links.create-banner.href").description("배너 생성하는 링크"),
