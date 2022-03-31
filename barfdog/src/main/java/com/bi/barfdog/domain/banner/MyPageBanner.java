@@ -1,16 +1,13 @@
 package com.bi.barfdog.domain.banner;
 
-import com.bi.barfdog.api.dto.MyPageBannerSaveRequestDto;
+import com.bi.barfdog.api.bannerDto.MyPageBannerSaveRequestDto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
-import java.sql.PreparedStatement;
 
 @Entity
 @DiscriminatorValue("myPage")

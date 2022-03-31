@@ -1,6 +1,5 @@
-package com.bi.barfdog.api.dto;
+package com.bi.barfdog.api.bannerDto;
 
-import com.bi.barfdog.domain.banner.Banner;
 import com.bi.barfdog.domain.banner.BannerStatus;
 import com.bi.barfdog.domain.banner.BannerTargets;
 import lombok.AllArgsConstructor;
@@ -9,8 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor

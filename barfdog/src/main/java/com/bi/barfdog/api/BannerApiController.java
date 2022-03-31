@@ -1,16 +1,19 @@
 package com.bi.barfdog.api;
 
-import com.bi.barfdog.api.dto.*;
-import com.bi.barfdog.common.BannerResource;
+import com.bi.barfdog.api.bannerDto.MainBannerSaveRequestDto;
+import com.bi.barfdog.api.bannerDto.MyPageBannerSaveRequestDto;
+import com.bi.barfdog.api.bannerDto.PopupBannerSaveRequestDto;
+import com.bi.barfdog.api.bannerDto.TopBannerSaveRequestDto;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.banner.*;
 import com.bi.barfdog.repository.BannerRepository;
 import com.bi.barfdog.service.BannerService;
 import com.bi.barfdog.validator.BannerValidator;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
-import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.*;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.MediaTypes;
+import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
@@ -32,11 +35,9 @@ public class BannerApiController {
 
     private final BannerRepository bannerRepository;
     private final BannerService bannerService;
-    private final ModelMapper modelMapper;
     private final BannerValidator bannerValidator;
 
-    final String ROOT = "/docs/index.html";
-    WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexController.class).slash("docs");
+    WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
 
 
     @PostMapping("/main")

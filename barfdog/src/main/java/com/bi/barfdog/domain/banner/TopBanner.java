@@ -1,14 +1,12 @@
 package com.bi.barfdog.domain.banner;
 
-import com.bi.barfdog.api.dto.TopBannerSaveRequestDto;
+import com.bi.barfdog.api.bannerDto.TopBannerSaveRequestDto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import java.time.LocalDateTime;
 
 @Entity
 @DiscriminatorValue("top")

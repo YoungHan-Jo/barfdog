@@ -1,9 +1,9 @@
 package com.bi.barfdog.api;
 
-import com.bi.barfdog.api.dto.MainBannerSaveRequestDto;
-import com.bi.barfdog.api.dto.MyPageBannerSaveRequestDto;
-import com.bi.barfdog.api.dto.PopupBannerSaveRequestDto;
-import com.bi.barfdog.api.dto.TopBannerSaveRequestDto;
+import com.bi.barfdog.api.bannerDto.MainBannerSaveRequestDto;
+import com.bi.barfdog.api.bannerDto.MyPageBannerSaveRequestDto;
+import com.bi.barfdog.api.bannerDto.PopupBannerSaveRequestDto;
+import com.bi.barfdog.api.bannerDto.TopBannerSaveRequestDto;
 import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.banner.*;
 import com.bi.barfdog.repository.BannerRepository;
@@ -95,7 +95,7 @@ public class BannerApiControllerTest extends BaseTest {
                         ),
                         requestPartFields("requestDto",
                                 fieldWithPath("name").description("배너 이름"),
-                                fieldWithPath("targets").description("배너 대상 [ALL, GUESTS, MEMBERS, SUBSCRIBERS]"),
+                                fieldWithPath("targets").description("배너 대상 [ALL, GUEST, USER, SUBSCRIBER]"),
                                 fieldWithPath("status").description("배너 노출 상태 [LEAKED, HIDDEN]"),
                                 fieldWithPath("pcLinkUrl").description("pc 배너 클릭 시 이동할 url 주소"),
                                 fieldWithPath("mobileLinkUrl").description("모바일 배너 클릭 시 이동할 url 주소")
@@ -1091,7 +1091,7 @@ public class BannerApiControllerTest extends BaseTest {
                         ),
                         requestPartFields("requestDto",
                                 fieldWithPath("name").description("배너 이름"),
-                                fieldWithPath("targets").description("배너 대상 [ALL, GUESTS, MEMBERS, SUBSCRIBERS]"),
+                                fieldWithPath("targets").description("배너 대상 [ALL, GUEST, USER, SUBSCRIBER]"),
                                 fieldWithPath("status").description("배너 노출 상태 [LEAKED, HIDDEN]"),
                                 fieldWithPath("pcLinkUrl").description("pc 배너 클릭 시 이동할 url 주소"),
                                 fieldWithPath("mobileLinkUrl").description("모바일 배너 클릭 시 이동할 url 주소")

@@ -1,11 +1,9 @@
 package com.bi.barfdog.domain.banner;
 
-import com.bi.barfdog.api.dto.MyPageBannerSaveRequestDto;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import lombok.*;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)

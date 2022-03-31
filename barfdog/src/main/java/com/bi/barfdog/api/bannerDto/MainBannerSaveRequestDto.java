@@ -1,6 +1,7 @@
-package com.bi.barfdog.api.dto;
+package com.bi.barfdog.api.bannerDto;
 
 import com.bi.barfdog.domain.banner.BannerStatus;
+import com.bi.barfdog.domain.banner.BannerTargets;
 import lombok.*;
 
 import javax.validation.constraints.NotEmpty;
@@ -8,23 +9,19 @@ import javax.validation.constraints.NotEmpty;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-@Data
-public class TopBannerSaveRequestDto {
+@Builder @Data
+public class MainBannerSaveRequestDto {
 
     @NotEmpty
     private String name;
 
-    @Builder.Default
+    private BannerTargets targets = BannerTargets.ALL;
     private BannerStatus status = BannerStatus.LEAKED;
-    @Builder.Default
-    private String backgroundColor = "#CA0101";
-    @Builder.Default
-    private String fontColor = "#fff";
 
     @NotEmpty
     private String pcLinkUrl;
 
     @NotEmpty
     private String mobileLinkUrl;
+
 }

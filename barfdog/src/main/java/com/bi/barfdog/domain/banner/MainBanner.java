@@ -1,13 +1,11 @@
 package com.bi.barfdog.domain.banner;
 
-import com.bi.barfdog.api.dto.MainBannerSaveRequestDto;
+import com.bi.barfdog.api.bannerDto.MainBannerSaveRequestDto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 
 @Entity
 @DiscriminatorValue("main")
@@ -20,7 +18,7 @@ public class MainBanner extends Banner{
     private ImgFile imgFile;
 
     @Enumerated(EnumType.STRING)
-    private BannerTargets targets = BannerTargets.ALL; // [ALL, GUESTS, MEMBERS, SUBSCRIBERS]
+    private BannerTargets targets = BannerTargets.ALL; // [ALL, GUEST, USER, SUBSCRIBER]
 
     @Builder
     public MainBanner(Long id, String name, String pcLinkUrl, String mobileLinkUrl, BannerStatus status, int leakedOrder, ImgFile imgFile, BannerTargets targets) {

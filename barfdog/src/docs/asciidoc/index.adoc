@@ -50,6 +50,9 @@ BarfDog;
 | `400 Bad Request`
 | 잘못된 요청을 보낸 경우. 응답 본문에 더 오류에 대한 정보가 담겨있다.
 
+| `401 Unauthorized`
+| 인증되지 않음.
+
 | `403 Forbidden`
 | 접근 권한 없음.
 
@@ -64,7 +67,7 @@ BarfDog;
 
 //include::{snippets}/errors/response-fields.adoc[]
 
-예를 들어, 잘못된 요청으로 이벤트를 만들려고 했을 때 다음과 같은 `400 Bad Request` 응답을 받는다.
+예를 들어, 잘못된 요청으로 배너를 만들려고 했을 때 다음과 같은 `400 Bad Request` 응답을 받는다.
 
 //include::{snippets}/errors/http-response.adoc[]
 

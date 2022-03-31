@@ -1,7 +1,6 @@
-package com.bi.barfdog.api.dto;
+package com.bi.barfdog.api.bannerDto;
 
 import com.bi.barfdog.domain.banner.BannerStatus;
-import com.bi.barfdog.domain.banner.BannerTargets;
 import lombok.*;
 
 import javax.validation.constraints.NotEmpty;

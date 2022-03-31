@@ -1,10 +1,9 @@
 package com.bi.barfdog.domain.banner;
 
-import com.bi.barfdog.api.dto.PopupBannerSaveRequestDto;
+import com.bi.barfdog.api.bannerDto.PopupBannerSaveRequestDto;
 import lombok.*;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 
 @Entity
 @DiscriminatorValue("popup")

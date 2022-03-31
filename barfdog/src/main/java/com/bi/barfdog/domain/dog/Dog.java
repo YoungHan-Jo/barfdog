@@ -1,6 +1,6 @@
 package com.bi.barfdog.domain.dog;
 
-import com.bi.barfdog.domain.Member;
+import com.bi.barfdog.domain.member.Member;
 import lombok.Getter;
 
 import javax.persistence.*;
