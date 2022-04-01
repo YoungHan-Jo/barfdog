@@ -58,6 +58,9 @@ BarfDog;
 
 | `404 Not Found`
 | 요청한 리소스가 없음.
+
+| `409 Conflict`
+| 리소스 충돌(중복).
 |===
 
 [[overview-errors]]
@@ -242,9 +245,17 @@ operation::query_topBanner[snippets='curl-request,request-headers,request-body,r
 
 `PUT` 요청을 사용해서 상단 띠 배너를 수정할 수 있다.
 
-operation::update_topBanner[snippets='curl-request,path-parameters,request-headers,request-body,response-body,response-headers,response-fields,links']
+operation::update_topBanner[snippets='curl-request,path-parameters,request-headers,request-fields,request-body,response-body,response-headers,response-fields,links']
 
 
+[[resources-join-info]]
+== 회원가입
 
+회원가입 관련 리소스.
 
+[[resources-join]]
+=== 회원가입하기
 
+`POST` 요청을 사용해서 회원가입을 할 수 있다.
+
+operation::join[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']

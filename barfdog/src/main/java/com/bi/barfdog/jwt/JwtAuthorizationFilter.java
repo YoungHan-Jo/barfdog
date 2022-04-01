@@ -16,6 +16,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Optional;
 
 
 public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
@@ -45,7 +46,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
         // 서명이 정상적으로 됨
         if (username != null) {
-            Member memberEntity = memberRepository.findByEmail(username);
+            Member memberEntity = memberRepository.findByEmail(username).get();
 
             PrincipalDetails principalDetails = new PrincipalDetails(memberEntity);
 

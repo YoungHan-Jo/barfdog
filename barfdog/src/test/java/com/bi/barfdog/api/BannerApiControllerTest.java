@@ -125,7 +125,6 @@ public class BannerApiControllerTest extends BaseTest {
                 ));
     }
 
-
     @Test
     @DisplayName("업로드 파일이 없을 경우 에러가 발생하는 테스트")
     public void createMainBanner_Bad_Request_Empty_File() throws Exception {

@@ -14,6 +14,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -31,16 +32,20 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            Member member = objectMapper.readValue(request.getInputStream(), Member.class); // json 파싱
+            ServletInputStream inputStream = request.getInputStream();
+            JwtMemberDto jwtMemberDto = objectMapper.readValue(request.getInputStream(), JwtMemberDto.class); // json 파싱
 
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(member.getName(), member.getPassword());
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(jwtMemberDto.getUsername(), jwtMemberDto.getPassword());
 
             // PrincipalDetails의 loadUserByUsernamer() 메소드가 실행된 후 정상이면 authentication을 리턴함
             // DB에 있는 username 과 password 가 일치한다.(인증완료)
             Authentication authentication = authenticationManager.authenticate(authenticationToken);
+            if (authentication == null) {
+                return null;
+            }
 
             PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal();
-            System.out.println("로그인 완료된 = " + principalDetails.getMember().getName()); // 로그인 완료
+            System.out.println("로그인 완료됨 = " + principalDetails.getMember().getName()); // 로그인 완료
 
             return authentication;
 
@@ -69,4 +74,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         response.addHeader(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + jwtToken);
     }
+
+
 }
