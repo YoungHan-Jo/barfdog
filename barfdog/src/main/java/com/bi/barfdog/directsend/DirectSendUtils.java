@@ -1,12 +1,14 @@
 package com.bi.barfdog.directsend;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 
 public class DirectSendUtils {
 
-    public static void sendSmsDirect(String title, String message, String phoneNumber) throws IOException {
+    public static DirectSendResponseDto sendSmsDirect(String title, String message, String phoneNumber) throws IOException {
         String url = "https://directsend.co.kr/index.php/api_v2/sms_change_word";		// URL
 
         java.net.URL obj;
@@ -93,5 +95,14 @@ public class DirectSendUtils {
         in.close();
 
         System.out.println("결과 : " + response.toString());
+
+        String responseString = response.toString();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        DirectSendResponseDto responseDto = objectMapper.readValue(responseString, DirectSendResponseDto.class);
+
+        responseDto.setResponseCode(responseCode);
+
+        return responseDto;
     }
 }

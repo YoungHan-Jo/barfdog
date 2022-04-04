@@ -2,6 +2,7 @@ package com.bi.barfdog.config;
 
 import com.bi.barfdog.jwt.JwtAuthenticationFilter;
 import com.bi.barfdog.jwt.JwtAuthorizationFilter;
+import com.bi.barfdog.oauth.PrincipalOauth2UserService;
 import com.bi.barfdog.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +20,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final CorsFilter corsFilter;
     private final MemberRepository memberRepository;
+    private final PrincipalOauth2UserService principalOauth2UserService;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -34,6 +36,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/banners/**")
                 .access("hasRole('ROLE_ADMIN')")
                 .anyRequest().permitAll()
+                .and()
+                .logout()
+                .logoutSuccessUrl("/") // 로그아웃 시 이동하는 주소
+                .and()
+                .oauth2Login()
+                .userInfoEndpoint()
+                .userService(principalOauth2UserService)
         ;
     }
 }

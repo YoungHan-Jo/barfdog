@@ -259,3 +259,31 @@ operation::update_topBanner[snippets='curl-request,path-parameters,request-heade
 `POST` 요청을 사용해서 회원가입을 할 수 있다.
 
 operation::join[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-join-phoneAuth]]
+=== 휴대폰 인증 요청
+
+`POST` 요청을 사용해서 휴대폰 본인 인증 요청을 할 수 있다.
+
+operation::join_phoneAuth[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-login]]
+=== 일반 로그인 하기
+
+`POST` 요청을 사용해서 일반 로그인을 할 수 있다.
+
+operation::login[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body']
+
+[[resources-find-email]]
+=== 이메일 찾기
+
+`GET` 요청을 사용해서 이메일을 찾을 수 있다.
+
+operation::find_email[snippets='curl-request,request-headers,request-parameters,response-headers,response-body,response-fields,links']
+
+[[resources-find-password]]
+=== 임시 비밀번호 발급
+
+`PUT` 요청을 사용해서 임시 비밀번호를 발급 받을 수 있다.
+
+operation::find_password[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']

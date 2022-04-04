@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter @Builder
-public class JwtMemberDto {
+public class JwtLoginDto {
 
     private String username;
     private String password;

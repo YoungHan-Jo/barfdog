@@ -3,7 +3,6 @@ package com.bi.barfdog.jwt;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.bi.barfdog.auth.PrincipalDetails;
-import com.bi.barfdog.domain.member.Member;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -33,7 +32,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             ServletInputStream inputStream = request.getInputStream();
-            JwtMemberDto jwtMemberDto = objectMapper.readValue(request.getInputStream(), JwtMemberDto.class); // json 파싱
+            JwtLoginDto jwtMemberDto = objectMapper.readValue(request.getInputStream(), JwtLoginDto.class); // json 파싱
 
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(jwtMemberDto.getUsername(), jwtMemberDto.getPassword());
 

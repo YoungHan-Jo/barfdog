@@ -80,5 +80,9 @@ public class Member extends BaseTimeEntity {
     public void usePoint(int usedPoint) {
         this.rewardPoint -= usedPoint;
     }
+
+    public void temporaryPassword(String temporaryPassword) {
+        password = temporaryPassword;
+    }
 }
 

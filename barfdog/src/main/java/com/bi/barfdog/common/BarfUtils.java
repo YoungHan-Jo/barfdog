@@ -1,5 +1,7 @@
 package com.bi.barfdog.common;
 
+import java.util.Random;
+
 public class BarfUtils {
 
     public static String generateRandomCode() {
@@ -23,5 +25,14 @@ public class BarfUtils {
             number >>>= shift;
         } while (number != 0);
         return new String(buf, charPos, (64 - charPos));
+    }
+
+    public static String generate4Number() {
+        String authNumber = "";
+
+        for (int i = 0; i < 4; i++) {
+            authNumber += Integer.toString(new Random().nextInt(10));
+        }
+        return authNumber;
     }
 }

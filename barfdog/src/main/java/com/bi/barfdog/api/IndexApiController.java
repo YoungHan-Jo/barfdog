@@ -3,6 +3,7 @@ package com.bi.barfdog.api;
 import com.bi.barfdog.api.memberDto.MemberSaveRequestDto;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.directsend.PhoneAuthRequestDto;
+import com.bi.barfdog.directsend.DirectSendResponseDto;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.service.MemberService;
 import com.bi.barfdog.validator.MemberValidator;
@@ -79,12 +80,20 @@ public class IndexApiController {
             return conflict(errors);
         }
 
-        String authNumber = memberService.sendJoinPhoneAuth(phoneAuthDto.getPhoneNumber());
+        DirectSendResponseDto responseDto = memberService.sendPhoneAuth(phoneAuthDto.getPhoneNumber());
 
+        if (responseDto.getResponseCode() != 200) {
+            return ResponseEntity.internalServerError().build();
+        }
 
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(IndexApiController.class).slash("join/phoneAuth");
 
+        EntityModel<DirectSendResponseDto> entityModel = EntityModel.of(responseDto,
+                selfLinkBuilder.withSelfRel(),
+                profileRootUrlBuilder.slash("index.html#resources-join-phoneAuth").withRel("profile")
+                );
 
-        return null;
+        return ResponseEntity.ok(entityModel);
     }
 
 
@@ -93,6 +102,7 @@ public class IndexApiController {
     private ResponseEntity<EntityModel<Errors>> badRequest(Errors errors) {
         return ResponseEntity.badRequest().body(new ErrorsResource(errors));
     }
+
     private ResponseEntity<EntityModel<Errors>> conflict(Errors errors) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorsResource(errors));
     }

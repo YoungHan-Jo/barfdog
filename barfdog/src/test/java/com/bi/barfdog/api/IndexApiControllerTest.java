@@ -8,7 +8,7 @@ import com.bi.barfdog.domain.Address;
 import com.bi.barfdog.domain.member.Agreement;
 import com.bi.barfdog.domain.member.Gender;
 import com.bi.barfdog.domain.member.Member;
-import com.bi.barfdog.jwt.JwtMemberDto;
+import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.jwt.JwtProperties;
 import com.bi.barfdog.repository.MemberRepository;
 import org.junit.Test;
@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
@@ -40,6 +41,8 @@ public class IndexApiControllerTest extends BaseTest {
 
     @PersistenceContext
     EntityManager em;
+
+    @Autowired BCryptPasswordEncoder bCryptPasswordEncoder;
 
     MediaType contentType = new MediaType("application", "hal+json", Charset.forName("UTF-8"));
 
@@ -350,21 +353,83 @@ public class IndexApiControllerTest extends BaseTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andDo(document("join_phoneAuth",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        requestFields(
+                                fieldWithPath("phoneNumber").description("메일을 보낼 휴대폰 번호")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("authNumber").description("휴대폰 인증번호"),
+                                fieldWithPath("responseCode").description("응답코드 (200 이외의 값이면 다이렉트센드 내부 에러)"),
+                                fieldWithPath("status").description("다이렉트 센드 상태 코드"),
+                                fieldWithPath("msg").description("다이렉트 센드 상태 메시지"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
     }
-    
+
     @Test
-    @DisplayName("정상적으로 로그인 성공 테스트")
+    @DisplayName("폰 인증 번호 중복 시 Conflict 나오는 테스트")
+    public void phoneAuth_Duplicate_Conflict() throws Exception {
+       //Given
+        Member member = generateSampleMember();
+
+        PhoneAuthRequestDto requestDto = PhoneAuthRequestDto.builder()
+                .phoneNumber(member.getPhoneNumber())
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/join/phoneAuth")
+                        .accept(MediaTypes.HAL_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isConflict());
+    }
+
+//    @Test
+//    @DisplayName("회원가입 휴대폰 인증 요청 중 내부 에러 발생시 500 응답하는 테스트")
+//    public void phoneAuth_Internal_Error() throws Exception {
+//        //Given
+//        PhoneAuthRequestDto requestDto = PhoneAuthRequestDto.builder()
+//                .phoneNumber("00000000000")
+//                .build();
+//
+//        //when & then
+//        mockMvc.perform(post("/join/phoneAuth")
+//                        .accept(MediaTypes.HAL_JSON)
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .content(objectMapper.writeValueAsString(requestDto)))
+//                .andDo(print())
+//                .andExpect(status().isInternalServerError());
+//    }
+
+
+    @Test
+    @DisplayName("정상적으로 로그인 성공 후 jwt 토큰 받는 테스트")
     public void login() throws Exception {
        //Given
         Member member = generateSampleMember();
 
-//        em.flush();
-//        em.clear();
+        Member findMember = memberRepository.findById(member.getId()).get();
 
-        JwtMemberDto requestDto = JwtMemberDto.builder()
+        System.out.println("findMember = " + findMember.getEmail());
+
+        JwtLoginDto requestDto = JwtLoginDto.builder()
                 .username(member.getEmail())
-                .password("12341234")
+                .password("1234")
                 .build();
 
         //when & then
@@ -375,11 +440,45 @@ public class IndexApiControllerTest extends BaseTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().exists(JwtProperties.HEADER_STRING))
-        ;
-      
+                .andDo(document("login",
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        requestFields(
+                                fieldWithPath("username").description("회원 이메일(로그인 ID)"),
+                                fieldWithPath("password").description("회원 비밀번호")
+                        ),
+                        responseHeaders(
+                                headerWithName("Authorization").description("bearer 방식 JWT 토큰")
+                        )
+                ));
     }
     
-    
+    @Test
+    @DisplayName("로그인 실패 시 Unauthorized 401 에러 나오는 테스트")
+    public void login_Unauthorized() throws Exception {
+       //Given
+        Member member = generateSampleMember();
+
+        Member findMember = memberRepository.findById(member.getId()).get();
+
+        System.out.println("findMember = " + findMember.getEmail());
+
+        JwtLoginDto requestDto = JwtLoginDto.builder()
+                .username(member.getEmail())
+                .password("5678")
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+    }
+
 
 
 
@@ -391,13 +490,14 @@ public class IndexApiControllerTest extends BaseTest {
         Member member = Member.builder()
                 .name("샘플Member")
                 .email("sample4494@gmail.com")
-                .password("12341234")
+                .password(bCryptPasswordEncoder.encode("1234"))
                 .phoneNumber("01088881111")
                 .address(new Address("48060","부산시","해운대구 센텀2로 19","브리티시인터내셔널"))
                 .birthday("20000521")
                 .gender(Gender.FEMALE)
                 .agreement(new Agreement(true, true, true, true, true))
                 .myRecommendationCode(BarfUtils.generateRandomCode())
+                .roles("USER")
                 .build();
 
         return memberRepository.save(member);
