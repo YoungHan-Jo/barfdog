@@ -17,11 +17,9 @@ import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
 import java.io.IOException;
@@ -53,7 +51,7 @@ public class IndexApiController {
         if (errors.hasErrors()) {
             return badRequest(errors);
         }
-        memberValidator.validate(requestDto, errors);
+        memberValidator.validatePasswordConfirm(requestDto, errors);
         if (errors.hasErrors()) {
             return badRequest(errors);
         }
@@ -73,6 +71,7 @@ public class IndexApiController {
                 linkTo(IndexApiController.class).slash("login").withRel("login"),
                 profileRootUrlBuilder.slash("index.html#resources-join").withRel("profile")
         );
+
 
         return ResponseEntity.created(createUri).body(entityModel);
     }

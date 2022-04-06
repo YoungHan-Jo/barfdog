@@ -2,14 +2,17 @@ package com.bi.barfdog.service;
 
 import com.bi.barfdog.api.memberDto.FindPasswordRequestDto;
 import com.bi.barfdog.api.memberDto.MemberSaveRequestDto;
+import com.bi.barfdog.api.memberDto.MemberUpdateRequestDto;
 import com.bi.barfdog.common.BarfUtils;
-import com.bi.barfdog.config.RewardPoint;
+import com.bi.barfdog.domain.reward.*;
 import com.bi.barfdog.directsend.DirectSendResponseDto;
 import com.bi.barfdog.directsend.DirectSendUtils;
 import com.bi.barfdog.directsend.PhoneAuthResponseDto;
+import com.bi.barfdog.domain.member.FirstReward;
 import com.bi.barfdog.domain.member.Grade;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.repository.MemberRepository;
+import com.bi.barfdog.repository.RewardRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,6 +27,8 @@ import java.util.Optional;
 public class MemberService {
 
     private final MemberRepository memberRepository;
+    private final RewardRepository rewardRepository;
+
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
 
@@ -43,7 +48,8 @@ public class MemberService {
                 .agreement(requestDto.getAgreement())
                 .myRecommendationCode(BarfUtils.generateRandomCode())
                 .grade(Grade.BRONZE)
-                .rewardPoint(0)
+                .reward(0)
+                .firstReward(new FirstReward(false,false))
                 .roles("USER")
                 .build();
 
@@ -52,14 +58,25 @@ public class MemberService {
             Optional<Member> optionalMember = memberRepository.findByMyRecommendationCode(recommendCode);
             if (optionalMember.isPresent()) {
                 member.setRecommendCode(recommendCode);
-                member.chargePoint(RewardPoint.RECOMMEND_CODE);
+                member.getFirstRewardRecommend();
+                member.chargePoint(RewardPoint.RECOMMEND);
+
+                Reward reward = Reward.builder()
+                        .member(member)
+                        .rewardType(RewardType.RECOMMEND)
+                        .rewardStatus(RewardStatus.SAVED)
+                        .tradeReward(RewardPoint.RECOMMEND)
+                        .content(RewardContent.RECOMMEND)
+                        .build();
+
+                rewardRepository.save(reward);
             }
         }
 
-        if (member.getAgreement().isReceiveEmail() &&
-                member.getAgreement().isReceiveSms()) {
-            member.chargePoint(RewardPoint.RECEIVE_AGREEMENT);
-        }
+//        if (member.getAgreement().isReceiveEmail() &&
+//                member.getAgreement().isReceiveSms()) {
+//            member.chargePoint(RewardPoint.RECEIVE_AGREEMENT);
+//        }
 
 
         return memberRepository.save(member);
@@ -94,10 +111,16 @@ public class MemberService {
         return responseDto;
     }
 
+    @Transactional
+    public void updateMember(Long memberId, MemberUpdateRequestDto requestDto) {
+        Member findMember = memberRepository.findById(memberId).get();
 
+        String hashPassword = bCryptPasswordEncoder.encode(requestDto.getPassword());
+        requestDto.setPassword(hashPassword);
 
+        findMember.updateMember(requestDto);
 
-
+    }
 
 
 

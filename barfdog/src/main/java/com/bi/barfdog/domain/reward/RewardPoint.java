@@ -1,6 +1,6 @@
-package com.bi.barfdog.config;
+package com.bi.barfdog.domain.reward;
 
 public interface RewardPoint {
-    int RECOMMEND_CODE = 3000;
+    int RECOMMEND = 3000;
     int RECEIVE_AGREEMENT = 1000;
 }

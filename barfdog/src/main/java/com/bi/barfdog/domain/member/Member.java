@@ -1,12 +1,12 @@
 package com.bi.barfdog.domain.member;
 
+import com.bi.barfdog.api.memberDto.MemberUpdateRequestDto;
 import com.bi.barfdog.domain.Address;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.aspectj.lang.JoinPoint;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -54,7 +54,10 @@ public class Member extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private Grade grade; // [BRONZE, SILVER, GOLD, PLATINUM, DIAMOND, BARF]
 
-    private int rewardPoint;
+    private int reward;
+
+    @Embedded
+    private FirstReward firstReward;
 
     private LocalDateTime lastLoginDate;
 
@@ -74,16 +77,32 @@ public class Member extends BaseTimeEntity {
         this.recommendCode = recommendCode;
     }
 
-    public void chargePoint(int chargedPoint) {
-        this.rewardPoint += chargedPoint;
+    public void chargePoint(int chargedReward) {
+        this.reward += chargedReward;
     }
 
-    public void usePoint(int usedPoint) {
-        this.rewardPoint -= usedPoint;
+    public void usePoint(int usedReward) {
+        this.reward -= usedReward;
     }
 
     public void temporaryPassword(String temporaryPassword) {
         password = temporaryPassword;
+    }
+
+    public void updateMember(MemberUpdateRequestDto requestDto) {
+        name = requestDto.getName();
+        password = requestDto.getPassword();
+        phoneNumber = requestDto.getPhoneNumber();
+        address = requestDto.getAddress();
+        birthday = requestDto.getBirthday();
+        gender = requestDto.getGender();
+        agreement = new Agreement(true, true,
+                requestDto.isReceiveSms(), requestDto.isReceiveEmail(), true);
+
+    }
+
+    public void getFirstRewardRecommend() {
+        firstReward.setRecommend(true);
     }
 }
 

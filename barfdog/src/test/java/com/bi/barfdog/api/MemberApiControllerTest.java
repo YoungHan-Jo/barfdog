@@ -1,9 +1,16 @@
 package com.bi.barfdog.api;
 
+import com.bi.barfdog.api.memberDto.MemberUpdateRequestDto;
+import com.bi.barfdog.api.memberDto.UpdatePasswordRequestDto;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
+import com.bi.barfdog.domain.Address;
+import com.bi.barfdog.domain.member.Gender;
+import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.MemberRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +22,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.validation.constraints.AssertFalse;
+
+import static org.assertj.core.api.Assertions.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
@@ -24,8 +34,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -80,14 +89,13 @@ public class MemberApiControllerTest extends BaseTest {
                                 fieldWithPath("gender").description("성별"),
                                 fieldWithPath("provider").description("sns 로그인 제공사(네이버/카카오)"),
                                 fieldWithPath("providerId").description("sns 로그인 제공사 고유 id"),
-                                fieldWithPath("agreement.receiveSms").description("sms 수신 여부"),
-                                fieldWithPath("agreement.receiveEmail").description("email 수신 여부"),
+                                fieldWithPath("receiveSms").description("sms 수신 여부"),
+                                fieldWithPath("receiveEmail").description("email 수신 여부"),
                                 fieldWithPath("_links.self.href").description("self 링크"),
                                 fieldWithPath("_links.update-member.href").description("회원정보 수정 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
-        ;
     }
 
     @Test
@@ -104,13 +112,211 @@ public class MemberApiControllerTest extends BaseTest {
         ;
     }
 
+    @Test
+    @DisplayName("정상적으로 유저 정보 수정하는 테스트")
+    public void updateMember() throws Exception {
+       //Given
+        String phoneNumber = "01099990000";
+        String birthday = "19901023";
+        MemberUpdateRequestDto requestDto = MemberUpdateRequestDto.builder()
+                .name("김바프")
+                .password(appProperties.getUserPassword())
+                .phoneNumber(phoneNumber)
+                .address(new Address("12345", "서울특별시", "강남대로123", "강남빌딩 102호"))
+                .birthday(birthday)
+                .gender(Gender.NONE)
+                .receiveSms(false)
+                .receiveEmail(false)
+                .build();
+        //when & then
+        mockMvc.perform(put("/api/members")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("update_member",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query-member").description("회원 정보 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query-member.href").description("회원 정보 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        Member findMember = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        assertThat(findMember.getPhoneNumber()).isEqualTo(phoneNumber);
+        assertThat(findMember.getBirthday()).isEqualTo(birthday);
+        assertThat(findMember.getAgreement().isReceiveSms()).isFalse();
+        assertThat(findMember.getAgreement().isReceiveEmail()).isFalse();
+    }
+
+    @Test
+    @DisplayName("회원 정보 수정 시 요청 파라미터가 부족할 때 bad request 나오는 테스트")
+    public void updateMember_bad_request() throws Exception {
+        //Given
+        MemberUpdateRequestDto requestDto = MemberUpdateRequestDto.builder()
+                .build();
+        //when & then
+        mockMvc.perform(put("/api/members")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("회원 정보 수정 시 비밀번호가 틀렸을 때 bad request 나오는 테스트 ")
+    public void updateMember_wrong_password() throws Exception {
+        //Given
+        MemberUpdateRequestDto requestDto = MemberUpdateRequestDto.builder()
+                .name("김바프")
+                .password("asdfasdf")
+                .phoneNumber("01099990000")
+                .address(new Address("12345", "서울특별시", "강남대로123", "강남빌딩 102호"))
+                .birthday("19901023")
+                .gender(Gender.NONE)
+                .receiveSms(false)
+                .receiveEmail(false)
+                .build();
+        //when & then
+        mockMvc.perform(put("/api/members")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("회원 정보 수정 시 휴대전화가 중복일 경우 conflict 나오는 테스트 ")
+    public void updateMember_phone_conflict() throws Exception {
+        //Given
+        MemberUpdateRequestDto requestDto = MemberUpdateRequestDto.builder()
+                .name("김바프")
+                .password(appProperties.getUserPassword())
+                .phoneNumber("01056785678")
+                .address(new Address("12345", "서울특별시", "강남대로123", "강남빌딩 102호"))
+                .birthday("19901023")
+                .gender(Gender.NONE)
+                .receiveSms(false)
+                .receiveEmail(false)
+                .build();
+        //when & then
+        mockMvc.perform(put("/api/members")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isConflict());
+    }
+    
+    @Test
+    @DisplayName("정상적으로 비밀번호 변경하는 테스트")
+    public void updatePassword() throws Exception {
+       //Given
+        UpdatePasswordRequestDto requestDto = UpdatePasswordRequestDto.builder()
+                .password(appProperties.getUserPassword())
+                .newPassword("1234")
+                .newPasswordConfirm("1234")
+                .build();
+        //when & then
+        mockMvc.perform(put("/api/members/password")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+        ;
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 요청 값이 부족할 경우 bad request 나오는 테스트")
+    public void updatePassword_bad_request() throws Exception {
+        //Given
+        UpdatePasswordRequestDto requestDto = UpdatePasswordRequestDto.builder()
+                .password(appProperties.getUserPassword())
+                .build();
+        //when & then
+        mockMvc.perform(put("/api/members/password")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+        ;
+    }
+
+    @Test
+    @DisplayName("비밀번호가 다를 경우 bad request 나오는 테스트")
+    public void updatePassword_wrong_password() throws Exception {
+        //Given
+        UpdatePasswordRequestDto requestDto = UpdatePasswordRequestDto.builder()
+                .password("잘못된패스워드")
+                .newPassword("1234")
+                .newPasswordConfirm("1234")
+                .build();
+        //when & then
+        mockMvc.perform(put("/api/members/password")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+        ;
+    }
+
+    @Test
+    @DisplayName("새 비밀번호, 새 비밀번호 확인이 다르면 bad request 나오는 테스트")
+    public void updatePassword_wrong_new_password_bad_request() throws Exception {
+        //Given
+        UpdatePasswordRequestDto requestDto = UpdatePasswordRequestDto.builder()
+                .password(appProperties.getUserPassword())
+                .newPassword("1234")
+                .newPasswordConfirm("비밀번호확인이다름")
+                .build();
+        //when & then
+        mockMvc.perform(put("/api/members/password")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+        ;
+    }
+    
+
+
+
+
 
 
 
     private String getBearerToken() throws Exception {
         JwtLoginDto requestDto = JwtLoginDto.builder()
-                .username(appProperties.getAdminEmail())
-                .password(appProperties.getAdminPassword())
+                .username(appProperties.getUserEmail())
+                .password(appProperties.getUserPassword())
                 .build();
 
         //when & then

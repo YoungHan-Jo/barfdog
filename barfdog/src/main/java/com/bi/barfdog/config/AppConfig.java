@@ -3,10 +3,7 @@ package com.bi.barfdog.config;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.domain.Address;
-import com.bi.barfdog.domain.member.Agreement;
-import com.bi.barfdog.domain.member.Gender;
-import com.bi.barfdog.domain.member.Grade;
-import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.domain.member.*;
 import com.bi.barfdog.repository.MemberRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,13 +11,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.domain.AuditorAware;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-
-import java.util.Date;
-import java.util.Optional;
-import java.util.Set;
 
 @Configuration
 public class AppConfig {
@@ -65,7 +56,8 @@ public class AppConfig {
                         .agreement(new Agreement(true,true,true,true,true))
                         .myRecommendationCode(BarfUtils.generateRandomCode())
                         .grade(Grade.BARF)
-                        .rewardPoint(100000)
+                        .reward(100000)
+                        .firstReward(new FirstReward(true,true))
                         .roles("ADMIN")
                         .build();
                 memberRepository.save(admin);
@@ -81,7 +73,8 @@ public class AppConfig {
                         .agreement(new Agreement(true,true,true,true,true))
                         .myRecommendationCode(BarfUtils.generateRandomCode())
                         .grade(Grade.BRONZE)
-                        .rewardPoint(1000)
+                        .reward(0)
+                        .firstReward(new FirstReward(false,false))
                         .roles("USER")
                         .build();
 

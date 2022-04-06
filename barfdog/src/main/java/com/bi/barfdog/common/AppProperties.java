@@ -20,5 +20,4 @@ public class AppProperties {
     private String userEmail;
     @NotEmpty
     private String userPassword;
-
 }

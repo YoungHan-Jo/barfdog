@@ -7,11 +7,15 @@ import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.directsend.PhoneAuthRequestDto;
 import com.bi.barfdog.domain.Address;
 import com.bi.barfdog.domain.member.Agreement;
+import com.bi.barfdog.domain.member.FirstReward;
 import com.bi.barfdog.domain.member.Gender;
 import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.domain.reward.*;
 import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.jwt.JwtProperties;
 import com.bi.barfdog.repository.MemberRepository;
+import com.bi.barfdog.repository.RewardRepository;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,10 +26,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.nio.charset.Charset;
+import java.util.List;
+import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
@@ -44,12 +49,15 @@ public class IndexApiControllerTest extends BaseTest {
     @Autowired
     MemberRepository memberRepository;
 
+    @Autowired
+    RewardRepository rewardRepository;
+
     @Autowired BCryptPasswordEncoder bCryptPasswordEncoder;
 
     MediaType contentType = new MediaType("application", "hal+json", Charset.forName("UTF-8"));
 
     @Test
-    @DisplayName("추천인 코드ㅇ/수신동의ㅇ 적립금 4000원으로 회원 가입이 완료되는 테스트")
+    @DisplayName("추천인 코드ㅇ/수신동의ㅇ 적립금 3000원으로 회원 가입이 완료되는 테스트")
     public void join() throws Exception {
        //Given
         Member sampleMember = generateSampleMember();
@@ -76,7 +84,7 @@ public class IndexApiControllerTest extends BaseTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, contentType.toString()))
                 .andExpect(header().exists(HttpHeaders.LOCATION))
-                .andExpect(jsonPath("rewardPoint").value(4000))
+                .andExpect(jsonPath("reward").value(3000))
                 .andExpect(jsonPath("recommendCode").value(sampleMember.getMyRecommendationCode()))
                 .andExpect(jsonPath("agreement.receiveSms").value(true))
                 .andExpect(jsonPath("agreement.receiveEmail").value(true))
@@ -135,9 +143,11 @@ public class IndexApiControllerTest extends BaseTest {
                                 fieldWithPath("recommendCode").description("내가 추천한 사람 추천코드"),
                                 fieldWithPath("myRecommendationCode").description("내 추천 코드"),
                                 fieldWithPath("grade").description("등급"),
-                                fieldWithPath("rewardPoint").description("적립금"),
+                                fieldWithPath("reward").description("적립금"),
+                                fieldWithPath("firstReward.recommend").description("추천인 적립금 받았는 지 여부"),
+                                fieldWithPath("firstReward.receiveAgree").description("수신 동의 적립금 받았는 지 여부"),
                                 fieldWithPath("lastLoginDate").description("마지막 로그인 날짜시간"),
-                                fieldWithPath("roles").description("권한"),
+                                fieldWithPath("roles").description("유저 권한"),
                                 fieldWithPath("provider").description("sns 로그인 제공사(네이버/카카오)"),
                                 fieldWithPath("providerId").description("sns 로그인 제공사 고유 id"),
                                 fieldWithPath("roleList").description("권한 리스트"),
@@ -146,7 +156,17 @@ public class IndexApiControllerTest extends BaseTest {
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
+
+        Member findMember = memberRepository.findByEmail("verin4494@gmail.com").get();
+
+        Reward reward = rewardRepository.findByMember(findMember).get(0);
+        assertThat(reward.getRewardType()).isEqualTo(RewardType.RECOMMEND);
+        assertThat(reward.getRewardStatus()).isEqualTo(RewardStatus.SAVED);
+        assertThat(reward.getTradeReward()).isEqualTo(RewardPoint.RECOMMEND);
+        assertThat(reward.getContent()).isEqualTo(RewardContent.RECOMMEND);
+        assertThat(findMember.getFirstReward().isRecommend()).isTrue();
     }
+
 
     @Test
     @DisplayName("추천인 코드ㅇ 적립금3000원으로 회원 가입이 완료되는 테스트")
@@ -176,19 +196,26 @@ public class IndexApiControllerTest extends BaseTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, contentType.toString()))
                 .andExpect(header().exists(HttpHeaders.LOCATION))
-                .andExpect(jsonPath("rewardPoint").value(3000))
+                .andExpect(jsonPath("reward").value(3000))
                 .andExpect(jsonPath("recommendCode").value(sampleMember.getMyRecommendationCode()))
                 .andExpect(jsonPath("agreement.receiveSms").value(false))
-                .andExpect(jsonPath("agreement.receiveEmail").value(true))
-        ;
+                .andExpect(jsonPath("agreement.receiveEmail").value(true));
+
+
+        Member findMember = memberRepository.findByEmail("verin4494@gmail.com").get();
+
+        Reward reward = rewardRepository.findByMember(findMember).get(0);
+        assertThat(reward.getRewardType()).isEqualTo(RewardType.RECOMMEND);
+        assertThat(reward.getRewardStatus()).isEqualTo(RewardStatus.SAVED);
+        assertThat(reward.getTradeReward()).isEqualTo(RewardPoint.RECOMMEND);
+        assertThat(reward.getContent()).isEqualTo(RewardContent.RECOMMEND);
+        assertThat(findMember.getFirstReward().isRecommend()).isTrue();
     }
 
     @Test
-    @DisplayName("수신여부ㅇ 적립금1000원으로 회원 가입이 완료되는 테스트")
+    @DisplayName("수신여부ㅇ 적립금0원으로 회원 가입이 완료되는 테스트")
     public void join_receive_agree() throws Exception {
         //Given
-        Member sampleMember = generateSampleMember();
-
         MemberSaveRequestDto requestDto = MemberSaveRequestDto.builder()
                 .name("이름")
                 .email("verin4494@gmail.com")
@@ -210,7 +237,7 @@ public class IndexApiControllerTest extends BaseTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, contentType.toString()))
                 .andExpect(header().exists(HttpHeaders.LOCATION))
-                .andExpect(jsonPath("rewardPoint").value(1000))
+                .andExpect(jsonPath("reward").value(0))
                 .andExpect(jsonPath("agreement.receiveSms").value(true))
                 .andExpect(jsonPath("agreement.receiveEmail").value(true));
     }
@@ -219,8 +246,6 @@ public class IndexApiControllerTest extends BaseTest {
     @DisplayName("수신여부x/추천인x 적립금 0원으로 회원 가입이 완료되는 테스트")
     public void join_no_point() throws Exception {
         //Given
-        Member sampleMember = generateSampleMember();
-
         MemberSaveRequestDto requestDto = MemberSaveRequestDto.builder()
                 .name("이름")
                 .email("verin4494@gmail.com")
@@ -242,7 +267,7 @@ public class IndexApiControllerTest extends BaseTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, contentType.toString()))
                 .andExpect(header().exists(HttpHeaders.LOCATION))
-                .andExpect(jsonPath("rewardPoint").value(0))
+                .andExpect(jsonPath("reward").value(0))
                 .andExpect(jsonPath("agreement.receiveSms").value(false))
                 .andExpect(jsonPath("agreement.receiveEmail").value(false));
     }
@@ -651,6 +676,8 @@ public class IndexApiControllerTest extends BaseTest {
                 .agreement(new Agreement(true, true, true, true, true))
                 .myRecommendationCode(BarfUtils.generateRandomCode())
                 .roles("USER")
+                .reward(0)
+                .firstReward(new FirstReward(true,true))
                 .build();
 
         return memberRepository.save(member);
