@@ -14,8 +14,9 @@ public class MainBannerSaveRequestDto {
 
     @NotEmpty
     private String name;
-
+    @Builder.Default
     private BannerTargets targets = BannerTargets.ALL;
+    @Builder.Default
     private BannerStatus status = BannerStatus.LEAKED;
 
     @NotEmpty

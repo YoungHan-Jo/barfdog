@@ -14,7 +14,7 @@ public class MyPageBannerSaveRequestDto {
 
     @NotEmpty
     private String name;
-
+    @Builder.Default
     private BannerStatus status = BannerStatus.LEAKED;
 
     @NotEmpty

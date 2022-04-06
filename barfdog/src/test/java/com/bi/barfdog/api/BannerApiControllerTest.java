@@ -4,8 +4,10 @@ import com.bi.barfdog.api.bannerDto.MainBannerSaveRequestDto;
 import com.bi.barfdog.api.bannerDto.MyPageBannerSaveRequestDto;
 import com.bi.barfdog.api.bannerDto.PopupBannerSaveRequestDto;
 import com.bi.barfdog.api.bannerDto.TopBannerSaveRequestDto;
+import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.banner.*;
+import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.BannerRepository;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,8 +16,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileInputStream;
@@ -38,6 +42,9 @@ public class BannerApiControllerTest extends BaseTest {
 
     @Autowired
     BannerRepository bannerRepository;
+
+    @Autowired
+    AppProperties appProperties;
 
     MediaType contentType = new MediaType("application", "hal+json", Charset.forName("UTF-8"));
 
@@ -70,6 +77,7 @@ public class BannerApiControllerTest extends BaseTest {
                         .file(pcFile)
                         .file(mobileFile)
                         .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON)
                 )
@@ -144,6 +152,7 @@ public class BannerApiControllerTest extends BaseTest {
 
         mockMvc.perform(multipart("/api/banners/main")
                         .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -169,6 +178,7 @@ public class BannerApiControllerTest extends BaseTest {
        //when & then
         mockMvc.perform(multipart("/api/banners/main")
                         .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -206,6 +216,7 @@ public class BannerApiControllerTest extends BaseTest {
                         .file(pcFile)
                         .file(mobileFile)
                         .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -277,6 +288,7 @@ public class BannerApiControllerTest extends BaseTest {
        //when & then
         mockMvc.perform(multipart("/api/banners/myPage")
                         .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -305,6 +317,7 @@ public class BannerApiControllerTest extends BaseTest {
        //when
         mockMvc.perform(multipart("/api/banners/myPage")
                         .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -342,6 +355,7 @@ public class BannerApiControllerTest extends BaseTest {
                         .file(pcFile)
                         .file(mobileFile)
                         .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -416,6 +430,7 @@ public class BannerApiControllerTest extends BaseTest {
         //when & then
         mockMvc.perform(multipart("/api/banners/popup")
                         .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -444,6 +459,7 @@ public class BannerApiControllerTest extends BaseTest {
         //when
         mockMvc.perform(multipart("/api/banners/popup")
                         .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -468,6 +484,7 @@ public class BannerApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(post("/api/banners/top")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -527,6 +544,7 @@ public class BannerApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(post("/api/banners/top")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -547,6 +565,7 @@ public class BannerApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(get("/api/banners/myPage")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -610,6 +629,7 @@ public class BannerApiControllerTest extends BaseTest {
                         .file(pcFile)
                         .file(mobileFile)
                         .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -686,6 +706,7 @@ public class BannerApiControllerTest extends BaseTest {
         mockMvc.perform(multipart("/api/banners/myPage/{id}", banner.getId())
                         .file(mobileFile)
                         .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -713,6 +734,7 @@ public class BannerApiControllerTest extends BaseTest {
         //when & then
         mockMvc.perform(multipart("/api/banners/myPage/{id}", banner.getId())
                         .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -738,6 +760,7 @@ public class BannerApiControllerTest extends BaseTest {
        //when & then
         mockMvc.perform(multipart("/api/banners/myPage/{id}", banner.getId())
                         .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -769,6 +792,7 @@ public class BannerApiControllerTest extends BaseTest {
         //when & then
         mockMvc.perform(multipart("/api/banners/myPage/9999", banner.getId())
                         .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -784,6 +808,7 @@ public class BannerApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(get("/api/banners/top")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -833,6 +858,7 @@ public class BannerApiControllerTest extends BaseTest {
         
         //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.put("/api/banners/top/{id}", banner.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -893,6 +919,7 @@ public class BannerApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(put("/api/banners/top/9999", banner.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -911,6 +938,7 @@ public class BannerApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(put("/api/banners/top/{id}", banner.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -933,6 +961,7 @@ public class BannerApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(get("/api/banners/main")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -980,6 +1009,7 @@ public class BannerApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.get("/api/banners/main/{id}", banner.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -1029,6 +1059,7 @@ public class BannerApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(get("/api/banners/main/90999")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -1064,6 +1095,7 @@ public class BannerApiControllerTest extends BaseTest {
                         .file(pcFile)
                         .file(mobileFile)
                         .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -1146,6 +1178,7 @@ public class BannerApiControllerTest extends BaseTest {
         mockMvc.perform(multipart("/api/banners/main/{id}", banner.getId())
                         .file(pcFile)
                         .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -1177,6 +1210,7 @@ public class BannerApiControllerTest extends BaseTest {
         //then
         mockMvc.perform(multipart("/api/banners/main/{id}", banner.getId())
                         .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -1208,6 +1242,7 @@ public class BannerApiControllerTest extends BaseTest {
                         .file(pcFile)
                         .file(mobileFile)
                         .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -1241,6 +1276,7 @@ public class BannerApiControllerTest extends BaseTest {
                         .file(pcFile)
                         .file(mobileFile)
                         .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -1262,6 +1298,7 @@ public class BannerApiControllerTest extends BaseTest {
 
         //when
         mockMvc.perform(RestDocumentationRequestBuilders.put("/api/banners/main/{id}/up", order6.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -1324,6 +1361,7 @@ public class BannerApiControllerTest extends BaseTest {
 
         //when
         mockMvc.perform(put("/api/banners/main/{id}/up", order1.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -1337,6 +1375,7 @@ public class BannerApiControllerTest extends BaseTest {
     public void updateMainBannerUp_Not_Found() throws Exception {
         //when
         mockMvc.perform(put("/api/banners/main/9999/up")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -1357,6 +1396,7 @@ public class BannerApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.put("/api/banners/main/{id}/down",order5.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -1413,6 +1453,7 @@ public class BannerApiControllerTest extends BaseTest {
        
        //when & then
         mockMvc.perform(put("/api/banners/main/999999/down")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
                 .andExpect(status().isNotFound());
@@ -1431,6 +1472,7 @@ public class BannerApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(put("/api/banners/main/${id}/down", order9.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
                 .andExpect(status().isBadRequest());
@@ -1450,6 +1492,7 @@ public class BannerApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.delete("/api/banners/main/{id}",order3.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .accept(MediaTypes.HAL_JSON)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -1493,6 +1536,7 @@ public class BannerApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(delete("/api/banners/main/9999")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .accept(MediaTypes.HAL_JSON)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -1511,6 +1555,7 @@ public class BannerApiControllerTest extends BaseTest {
        
        //when & then
         mockMvc.perform(get("/api/banners/popup")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .accept(MediaTypes.HAL_JSON)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -1563,6 +1608,7 @@ public class BannerApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.get("/api/banners/popup/{id}",banner.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .accept(MediaTypes.HAL_JSON)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -1613,6 +1659,7 @@ public class BannerApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(get("/api/banners/popup/999999")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .accept(MediaTypes.HAL_JSON)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -1645,6 +1692,7 @@ public class BannerApiControllerTest extends BaseTest {
                         .file(pcFile)
                         .file(mobileFile)
                         .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -1725,6 +1773,7 @@ public class BannerApiControllerTest extends BaseTest {
         mockMvc.perform(multipart("/api/banners/popup/{id}", banner.getId())
                         .file(pcFile)
                         .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -1760,6 +1809,7 @@ public class BannerApiControllerTest extends BaseTest {
                         .file(pcFile)
                         .file(mobileFile)
                         .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -1792,6 +1842,7 @@ public class BannerApiControllerTest extends BaseTest {
                         .file(pcFile)
                         .file(mobileFile)
                         .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -1824,6 +1875,7 @@ public class BannerApiControllerTest extends BaseTest {
                         .file(pcFile)
                         .file(mobileFile)
                         .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
@@ -1843,6 +1895,7 @@ public class BannerApiControllerTest extends BaseTest {
         PopupBanner order6 = bannerRepository.findPopupBannerByOrder(6);
         //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.put("/api/banners/popup/{id}/up", order6.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .accept(MediaTypes.HAL_JSON)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -1901,6 +1954,7 @@ public class BannerApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(put("/api/banners/popup/999999/up")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .accept(MediaTypes.HAL_JSON)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -1920,6 +1974,7 @@ public class BannerApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(put("/api/banners/popup/{id}/up", banner.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .accept(MediaTypes.HAL_JSON)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -1940,6 +1995,7 @@ public class BannerApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.put("/api/banners/popup/{id}/down", order5.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .accept(MediaTypes.HAL_JSON)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -1993,6 +2049,7 @@ public class BannerApiControllerTest extends BaseTest {
     public void updatePopupBannerDown_Not_Found() throws Exception {
         //when & then
         mockMvc.perform(put("/api/banners/popup/999999/down")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .accept(MediaTypes.HAL_JSON)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -2012,6 +2069,7 @@ public class BannerApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(put("/api/banners/popup/{id}/down", order6.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .accept(MediaTypes.HAL_JSON)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -2032,6 +2090,7 @@ public class BannerApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.delete("/api/banners/popup/{id}", order5.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .accept(MediaTypes.HAL_JSON)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -2074,6 +2133,7 @@ public class BannerApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(delete("/api/banners/popup/999999")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .accept(MediaTypes.HAL_JSON)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -2141,6 +2201,21 @@ public class BannerApiControllerTest extends BaseTest {
                 .build();
 
         return bannerRepository.save(banner);
+    }
+
+    private String getBearerToken() throws Exception {
+        JwtLoginDto requestDto = JwtLoginDto.builder()
+                .username(appProperties.getAdminEmail())
+                .password(appProperties.getAdminPassword())
+                .build();
+
+        //when & then
+        ResultActions perform = mockMvc.perform(post("/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaTypes.HAL_JSON)
+                .content(objectMapper.writeValueAsString(requestDto)));
+        MockHttpServletResponse response = perform.andReturn().getResponse();
+        return response.getHeaders("Authorization").get(0);
     }
 
 

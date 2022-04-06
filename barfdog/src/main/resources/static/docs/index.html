@@ -707,11 +707,73 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#resources-update-topBanner_curl_request">Example request</a></li>
 <li><a href="#resources-update-topBanner_path_parameters">Path parameters</a></li>
 <li><a href="#resources-update-topBanner_request_headers">Request headers</a></li>
+<li><a href="#resources-update-topBanner_request_fields">Request fields</a></li>
 <li><a href="#resources-update-topBanner_request_body">Request body</a></li>
 <li><a href="#resources-update-topBanner_response_body">Response body</a></li>
 <li><a href="#resources-update-topBanner_response_headers">Response headers</a></li>
 <li><a href="#resources-update-topBanner_response_fields">Response fields</a></li>
 <li><a href="#resources-update-topBanner_links">Links</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#resources-join-info">회원가입</a>
+<ul class="sectlevel2">
+<li><a href="#resources-join">회원가입하기</a>
+<ul class="sectlevel3">
+<li><a href="#resources-join_curl_request">Example request</a></li>
+<li><a href="#resources-join_request_headers">Request headers</a></li>
+<li><a href="#resources-join_request_body">Request body</a></li>
+<li><a href="#resources-join_request_fields">Request fields</a></li>
+<li><a href="#resources-join_response_headers">Response headers</a></li>
+<li><a href="#resources-join_response_body">Response body</a></li>
+<li><a href="#resources-join_response_fields">Response fields</a></li>
+<li><a href="#resources-join_links">Links</a></li>
+</ul>
+</li>
+<li><a href="#resources-join-phoneAuth">휴대폰 인증 요청</a>
+<ul class="sectlevel3">
+<li><a href="#resources-join-phoneAuth_curl_request">Example request</a></li>
+<li><a href="#resources-join-phoneAuth_request_headers">Request headers</a></li>
+<li><a href="#resources-join-phoneAuth_request_body">Request body</a></li>
+<li><a href="#resources-join-phoneAuth_request_fields">Request fields</a></li>
+<li><a href="#resources-join-phoneAuth_response_headers">Response headers</a></li>
+<li><a href="#resources-join-phoneAuth_response_body">Response body</a></li>
+<li><a href="#resources-join-phoneAuth_response_fields">Response fields</a></li>
+<li><a href="#resources-join-phoneAuth_links">Links</a></li>
+</ul>
+</li>
+<li><a href="#resources-login">일반 로그인 하기</a>
+<ul class="sectlevel3">
+<li><a href="#resources-login_curl_request">Example request</a></li>
+<li><a href="#resources-login_request_headers">Request headers</a></li>
+<li><a href="#resources-login_request_body">Request body</a></li>
+<li><a href="#resources-login_request_fields">Request fields</a></li>
+<li><a href="#resources-login_response_headers">Response headers</a></li>
+<li><a href="#resources-login_response_body">Response body</a></li>
+</ul>
+</li>
+<li><a href="#resources-find-email">이메일 찾기</a>
+<ul class="sectlevel3">
+<li><a href="#resources-find-email_curl_request">Example request</a></li>
+<li><a href="#resources-find-email_request_headers">Request headers</a></li>
+<li><a href="#resources-find-email_request_parameters">Request parameters</a></li>
+<li><a href="#resources-find-email_response_headers">Response headers</a></li>
+<li><a href="#resources-find-email_response_body">Response body</a></li>
+<li><a href="#resources-find-email_response_fields">Response fields</a></li>
+<li><a href="#resources-find-email_links">Links</a></li>
+</ul>
+</li>
+<li><a href="#resources-find-password">임시 비밀번호 발급</a>
+<ul class="sectlevel3">
+<li><a href="#resources-find-password_curl_request">Example request</a></li>
+<li><a href="#resources-find-password_request_headers">Request headers</a></li>
+<li><a href="#resources-find-password_request_body">Request body</a></li>
+<li><a href="#resources-find-password_request_fields">Request fields</a></li>
+<li><a href="#resources-find-password_response_headers">Response headers</a></li>
+<li><a href="#resources-find-password_response_body">Response body</a></li>
+<li><a href="#resources-find-password_response_fields">Response fields</a></li>
+<li><a href="#resources-find-password_links">Links</a></li>
 </ul>
 </li>
 </ul>
@@ -792,8 +854,20 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <td class="tableblock halign-left valign-top"><p class="tableblock">잘못된 요청을 보낸 경우. 응답 본문에 더 오류에 대한 정보가 담겨있다.</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>401 Unauthorized</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">인증되지 않음.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>403 Forbidden</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">접근 권한 없음.</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>404 Not Found</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">요청한 리소스가 없음.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>409 Conflict</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">리소스 충돌(중복).</p></td>
 </tr>
 </tbody>
 </table>
@@ -806,7 +880,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>에러 응답이 발생했을 때 (상태 코드 &gt;= 400), 본문에 해당 문제를 기술한 JSON 객체가 담겨있다. 에러 객체는 다음의 구조를 따른다.</p>
 </div>
 <div class="paragraph">
-<p>예를 들어, 잘못된 요청으로 이벤트를 만들려고 했을 때 다음과 같은 <code>400 Bad Request</code> 응답을 받는다.</p>
+<p>예를 들어, 잘못된 요청으로 배너를 만들려고 했을 때 다음과 같은 <code>400 Bad Request</code> 응답을 받는다.</p>
 </div>
 </div>
 </div>
@@ -870,6 +944,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/main' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY0OTE0ODg1NiwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.BlERAmKiRubL2pc3Q8q-CaIp4t9DVRblXejTkyc0jBHoUo79SVRjPLBhq1J7pQ1gR4jiutCW5tbS4MyYrM-GBw' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -914,9 +989,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "_embedded" : {
     "mainBannerList" : [ {
-      "createdDate" : "2022-03-30T13:22:22.186",
-      "modifiedDate" : "2022-03-30T13:22:22.186",
-      "id" : 37,
+      "createdDate" : "2022-04-05T17:24:16.442",
+      "modifiedDate" : "2022-04-05T17:24:16.442",
+      "id" : 39,
       "name" : "메인배너1",
       "pcLinkUrl" : "pc link",
       "mobileLinkUrl" : "mobile link",
@@ -930,13 +1005,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
       "targets" : "ALL",
       "_links" : {
         "self" : {
-          "href" : "http://localhost:8080/api/banners/main/37"
+          "href" : "http://localhost:8080/api/banners/main/39"
         }
       }
     }, {
-      "createdDate" : "2022-03-30T13:22:22.186",
-      "modifiedDate" : "2022-03-30T13:22:22.186",
-      "id" : 38,
+      "createdDate" : "2022-04-05T17:24:16.442",
+      "modifiedDate" : "2022-04-05T17:24:16.442",
+      "id" : 40,
       "name" : "메인배너2",
       "pcLinkUrl" : "pc link",
       "mobileLinkUrl" : "mobile link",
@@ -950,13 +1025,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
       "targets" : "ALL",
       "_links" : {
         "self" : {
-          "href" : "http://localhost:8080/api/banners/main/38"
+          "href" : "http://localhost:8080/api/banners/main/40"
         }
       }
     }, {
-      "createdDate" : "2022-03-30T13:22:22.186",
-      "modifiedDate" : "2022-03-30T13:22:22.186",
-      "id" : 39,
+      "createdDate" : "2022-04-05T17:24:16.442",
+      "modifiedDate" : "2022-04-05T17:24:16.442",
+      "id" : 41,
       "name" : "메인배너3",
       "pcLinkUrl" : "pc link",
       "mobileLinkUrl" : "mobile link",
@@ -970,7 +1045,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
       "targets" : "ALL",
       "_links" : {
         "self" : {
-          "href" : "http://localhost:8080/api/banners/main/39"
+          "href" : "http://localhost:8080/api/banners/main/41"
         }
       }
     } ]
@@ -1151,6 +1226,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/main' -i -X POST \
     -H 'Content-Type: multipart/form-data;charset=UTF-8' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY0OTE0ODg2MCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.LBc1HG7dsdxtFedbx548XVRUl7_2_J8N8XorQ_XnSmqMcplIMKAc8J_ZN2lhYwIwNJ-AkAXn4bldfjf1TcjzUg' \
     -H 'Accept: application/hal+json' \
     -F 'pcFile=@file1.jpg;type=image/jpg' \
     -F 'mobileFile=@file2.jpg;type=image/jpg' \
@@ -1244,7 +1320,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>targets</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">배너 대상 [ALL, GUESTS, MEMBERS, SUBSCRIBERS]</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">배너 대상 [ALL, GUEST, USER, SUBSCRIBER]</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>status</code></p></td>
@@ -1269,9 +1345,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "createdDate" : "2022-03-30T13:22:23.257",
-  "modifiedDate" : "2022-03-30T13:22:23.257",
-  "id" : 108,
+  "createdDate" : "2022-04-05T17:24:20.655",
+  "modifiedDate" : "2022-04-05T17:24:20.655",
+  "id" : 110,
   "name" : "메인배너1",
   "pcLinkUrl" : "pc link",
   "mobileLinkUrl" : "mobile link",
@@ -1279,8 +1355,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
   "leakedOrder" : 1,
   "imgFile" : {
     "folder" : "C:/Users/verin/jyh/upload/banners",
-    "filenamePc" : "6a3fe45a-6b95-473d-a586-054e07b56114_file1.jpg",
-    "filenameMobile" : "17a2e402-5171-4f94-a834-08724858b881_file2.jpg"
+    "filenamePc" : "665feaa3-e64c-4144-a935-cc45a06b1b85_file1.jpg",
+    "filenameMobile" : "e56a3a64-6ba0-4c1d-ad0d-de9a7142e0b4_file2.jpg"
   },
   "targets" : "ALL",
   "_links" : {
@@ -1291,7 +1367,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
       "href" : "http://localhost:8080/api/banners/main"
     },
     "update-banner" : {
-      "href" : "http://localhost:8080/api/banners/main/108"
+      "href" : "http://localhost:8080/api/banners/main/110"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-create-mainBanner"
@@ -1468,8 +1544,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="resources-query-mainBanner_curl_request"><a class="link" href="#resources-query-mainBanner_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/main/106' -i -X GET \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/main/108' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY0OTE0ODg2MCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.LBc1HG7dsdxtFedbx548XVRUl7_2_J8N8XorQ_XnSmqMcplIMKAc8J_ZN2lhYwIwNJ-AkAXn4bldfjf1TcjzUg' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -1534,9 +1611,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "createdDate" : "2022-03-30T13:22:23.17",
-  "modifiedDate" : "2022-03-30T13:22:23.17",
-  "id" : 106,
+  "createdDate" : "2022-04-05T17:24:20.194",
+  "modifiedDate" : "2022-04-05T17:24:20.194",
+  "id" : 108,
   "name" : "메인배너1",
   "pcLinkUrl" : "pc link",
   "mobileLinkUrl" : "mobile link",
@@ -1550,10 +1627,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
   "targets" : "ALL",
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/banners/main/106"
+      "href" : "http://localhost:8080/api/banners/main/108"
     },
     "update-banner" : {
-      "href" : "http://localhost:8080/api/banners/main/106"
+      "href" : "http://localhost:8080/api/banners/main/108"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-query-mainBanner"
@@ -1717,8 +1794,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="resources-update-mainBanner_curl_request"><a class="link" href="#resources-update-mainBanner_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/main/27' -i -X POST \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/main/29' -i -X POST \
     -H 'Content-Type: multipart/form-data;charset=UTF-8' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY0OTE0ODg1NiwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.BlERAmKiRubL2pc3Q8q-CaIp4t9DVRblXejTkyc0jBHoUo79SVRjPLBhq1J7pQ1gR4jiutCW5tbS4MyYrM-GBw' \
     -H 'Accept: application/hal+json' \
     -F 'pcFile=@file1.jpg;type=image/jpg' \
     -F 'mobileFile=@file2.jpg;type=image/jpg' \
@@ -1834,7 +1912,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>targets</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">배너 대상 [ALL, GUESTS, MEMBERS, SUBSCRIBERS]</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">배너 대상 [ALL, GUEST, USER, SUBSCRIBER]</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>status</code></p></td>
@@ -1859,9 +1937,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "createdDate" : "2022-03-30T13:22:22.082",
-  "modifiedDate" : "2022-03-30T13:22:22.082",
-  "id" : 27,
+  "createdDate" : "2022-04-05T17:24:16.178",
+  "modifiedDate" : "2022-04-05T17:24:16.178",
+  "id" : 29,
   "name" : "new Main Banner",
   "pcLinkUrl" : "pc link",
   "mobileLinkUrl" : "mobile link",
@@ -1869,16 +1947,16 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
   "leakedOrder" : 200,
   "imgFile" : {
     "folder" : "C:/Users/verin/jyh/upload/banners",
-    "filenamePc" : "26c4c064-b9a0-4c18-a488-0177f9a5fb36_file1.jpg",
-    "filenameMobile" : "b0ea9f72-f445-4dab-9633-7855da776161_file2.jpg"
+    "filenamePc" : "592890ec-5575-4a65-9689-10ac4e9a9752_file1.jpg",
+    "filenameMobile" : "1c7d35f3-2686-4dc7-90da-a896500c7a11_file2.jpg"
   },
   "targets" : "ALL",
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/banners/main/27"
+      "href" : "http://localhost:8080/api/banners/main/29"
     },
     "query-banner" : {
-      "href" : "http://localhost:8080/api/banners/main/27"
+      "href" : "http://localhost:8080/api/banners/main/29"
     },
     "query-mainBanners" : {
       "href" : "http://localhost:8080/api/banners/main"
@@ -2054,8 +2132,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="resources-update-mainBanner-leakedOrder-up_curl_request"><a class="link" href="#resources-update-mainBanner-leakedOrder-up_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/main/75/up' -i -X PUT \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/main/77/up' -i -X PUT \
     -H 'Content-Type: application/json;charset=UTF-8' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY0OTE0ODg1OCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.TMiILdBhSzBXFEz9qK5gJvdtoQs0e_J7twnOILzgW2pvhjpaVoOj5wqdnnvh7tw_6fDNf3f4K-FUHJfZ0kf5xg' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -2120,9 +2199,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "createdDate" : "2022-03-30T13:22:22.72",
-  "modifiedDate" : "2022-03-30T13:22:22.72",
-  "id" : 75,
+  "createdDate" : "2022-04-05T17:24:18.594",
+  "modifiedDate" : "2022-04-05T17:24:18.594",
+  "id" : 77,
   "name" : "메인배너6",
   "pcLinkUrl" : "pc link",
   "mobileLinkUrl" : "mobile link",
@@ -2136,7 +2215,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
   "targets" : "ALL",
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/banners/75/up"
+      "href" : "http://localhost:8080/api/banners/77/up"
     },
     "query-mainBanners" : {
       "href" : "http://localhost:8080/api/banners/main"
@@ -2303,8 +2382,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="resources-update-mainBanner-leakedOrder-down_curl_request"><a class="link" href="#resources-update-mainBanner-leakedOrder-down_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/main/5/down' -i -X PUT \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/main/7/down' -i -X PUT \
     -H 'Content-Type: application/json;charset=UTF-8' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY0OTE0ODg1NCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.obaeDeCRkk5oDIWYT8WZiDJPucNPbpZBSFUJjyLSJb-onIHS8BJwnNKq9diOH6Bg_uMgz0v_GNgt-qCpe2X1Yw' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -2369,9 +2449,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "createdDate" : "2022-03-30T13:22:21.369",
-  "modifiedDate" : "2022-03-30T13:22:21.369",
-  "id" : 5,
+  "createdDate" : "2022-04-05T17:24:14.869",
+  "modifiedDate" : "2022-04-05T17:24:14.869",
+  "id" : 7,
   "name" : "메인배너5",
   "pcLinkUrl" : "pc link",
   "mobileLinkUrl" : "mobile link",
@@ -2385,7 +2465,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
   "targets" : "ALL",
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/banners/5/down"
+      "href" : "http://localhost:8080/api/banners/7/down"
     },
     "query-mainBanners" : {
       "href" : "http://localhost:8080/api/banners/main"
@@ -2552,8 +2632,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="resources-delete-mainBanner_curl_request"><a class="link" href="#resources-delete-mainBanner_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/main/23' -i -X DELETE \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/main/25' -i -X DELETE \
     -H 'Content-Type: application/json;charset=UTF-8' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY0OTE0ODg1NSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.582SixQaPBYHmin3LxnfJqZ98ht0Hkuu05unGbTprDAVPU8-6aZvlwFanUJ4rVOiQ2gK1VwKcd9BQblQANR5MQ' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -2620,13 +2701,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/banners/main/23"
+      "href" : "http://localhost:8080/api/banners/main/25"
     },
     "query-mainBanners" : {
-      "href" : "http://localhost:8080/api/banners/main/23"
+      "href" : "http://localhost:8080/api/banners/main/25"
     },
     "create-banner" : {
-      "href" : "http://localhost:8080/api/banners/main/23"
+      "href" : "http://localhost:8080/api/banners/main/25"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-delete-mainBanner"
@@ -2741,6 +2822,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/popup' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY0OTE0ODg1NywiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.8onjZ-_lNnpqTFW-cYnQN9sUIDOI9hrvAwHeSoLOIF4I0cOKFxWZJ3XlPLRp1Oxg7JBfpemSF2Zbtmv_RGi-9A' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -2785,78 +2867,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "_embedded" : {
     "popupBannerList" : [ {
-      "createdDate" : "2022-03-30T13:22:22.536",
-      "modifiedDate" : "2022-03-30T13:22:22.536",
-      "id" : 54,
+      "createdDate" : "2022-04-05T17:24:17.572",
+      "modifiedDate" : "2022-04-05T17:24:17.572",
+      "id" : 56,
       "name" : "팝업배너1",
       "pcLinkUrl" : "pc link",
       "mobileLinkUrl" : "mobile link",
       "status" : "LEAKED",
       "leakedOrder" : 1,
-      "position" : "LEFT",
-      "imgFile" : {
-        "folder" : "C:/Users/verin/jyh/upload/test/banners",
-        "filenamePc" : "filenamePc.jpg",
-        "filenameMobile" : "filenameMobile.jpg"
-      },
-      "_links" : {
-        "self" : {
-          "href" : "http://localhost:8080/api/banners/popup/54"
-        },
-        "delete-popupBanner" : {
-          "href" : "http://localhost:8080/api/banners/popup/54"
-        },
-        "update-popupBanner" : {
-          "href" : "http://localhost:8080/api/banners/popup/54"
-        },
-        "update-popupBanner-order-up" : {
-          "href" : "http://localhost:8080/api/banners/popup/54/up"
-        },
-        "update-popupBanner-order-down" : {
-          "href" : "http://localhost:8080/api/banners/popup/54/down"
-        }
-      }
-    }, {
-      "createdDate" : "2022-03-30T13:22:22.536",
-      "modifiedDate" : "2022-03-30T13:22:22.536",
-      "id" : 55,
-      "name" : "팝업배너2",
-      "pcLinkUrl" : "pc link",
-      "mobileLinkUrl" : "mobile link",
-      "status" : "LEAKED",
-      "leakedOrder" : 2,
-      "position" : "LEFT",
-      "imgFile" : {
-        "folder" : "C:/Users/verin/jyh/upload/test/banners",
-        "filenamePc" : "filenamePc.jpg",
-        "filenameMobile" : "filenameMobile.jpg"
-      },
-      "_links" : {
-        "self" : {
-          "href" : "http://localhost:8080/api/banners/popup/55"
-        },
-        "delete-popupBanner" : {
-          "href" : "http://localhost:8080/api/banners/popup/55"
-        },
-        "update-popupBanner" : {
-          "href" : "http://localhost:8080/api/banners/popup/55"
-        },
-        "update-popupBanner-order-up" : {
-          "href" : "http://localhost:8080/api/banners/popup/55/up"
-        },
-        "update-popupBanner-order-down" : {
-          "href" : "http://localhost:8080/api/banners/popup/55/down"
-        }
-      }
-    }, {
-      "createdDate" : "2022-03-30T13:22:22.536",
-      "modifiedDate" : "2022-03-30T13:22:22.536",
-      "id" : 56,
-      "name" : "팝업배너3",
-      "pcLinkUrl" : "pc link",
-      "mobileLinkUrl" : "mobile link",
-      "status" : "LEAKED",
-      "leakedOrder" : 3,
       "position" : "LEFT",
       "imgFile" : {
         "folder" : "C:/Users/verin/jyh/upload/test/banners",
@@ -2881,14 +2899,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
         }
       }
     }, {
-      "createdDate" : "2022-03-30T13:22:22.536",
-      "modifiedDate" : "2022-03-30T13:22:22.536",
+      "createdDate" : "2022-04-05T17:24:17.572",
+      "modifiedDate" : "2022-04-05T17:24:17.572",
       "id" : 57,
-      "name" : "팝업배너4",
+      "name" : "팝업배너2",
       "pcLinkUrl" : "pc link",
       "mobileLinkUrl" : "mobile link",
       "status" : "LEAKED",
-      "leakedOrder" : 4,
+      "leakedOrder" : 2,
       "position" : "LEFT",
       "imgFile" : {
         "folder" : "C:/Users/verin/jyh/upload/test/banners",
@@ -2913,14 +2931,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
         }
       }
     }, {
-      "createdDate" : "2022-03-30T13:22:22.536",
-      "modifiedDate" : "2022-03-30T13:22:22.536",
+      "createdDate" : "2022-04-05T17:24:17.572",
+      "modifiedDate" : "2022-04-05T17:24:17.572",
       "id" : 58,
-      "name" : "팝업배너5",
+      "name" : "팝업배너3",
       "pcLinkUrl" : "pc link",
       "mobileLinkUrl" : "mobile link",
       "status" : "LEAKED",
-      "leakedOrder" : 5,
+      "leakedOrder" : 3,
       "position" : "LEFT",
       "imgFile" : {
         "folder" : "C:/Users/verin/jyh/upload/test/banners",
@@ -2942,6 +2960,70 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
         },
         "update-popupBanner-order-down" : {
           "href" : "http://localhost:8080/api/banners/popup/58/down"
+        }
+      }
+    }, {
+      "createdDate" : "2022-04-05T17:24:17.572",
+      "modifiedDate" : "2022-04-05T17:24:17.572",
+      "id" : 59,
+      "name" : "팝업배너4",
+      "pcLinkUrl" : "pc link",
+      "mobileLinkUrl" : "mobile link",
+      "status" : "LEAKED",
+      "leakedOrder" : 4,
+      "position" : "LEFT",
+      "imgFile" : {
+        "folder" : "C:/Users/verin/jyh/upload/test/banners",
+        "filenamePc" : "filenamePc.jpg",
+        "filenameMobile" : "filenameMobile.jpg"
+      },
+      "_links" : {
+        "self" : {
+          "href" : "http://localhost:8080/api/banners/popup/59"
+        },
+        "delete-popupBanner" : {
+          "href" : "http://localhost:8080/api/banners/popup/59"
+        },
+        "update-popupBanner" : {
+          "href" : "http://localhost:8080/api/banners/popup/59"
+        },
+        "update-popupBanner-order-up" : {
+          "href" : "http://localhost:8080/api/banners/popup/59/up"
+        },
+        "update-popupBanner-order-down" : {
+          "href" : "http://localhost:8080/api/banners/popup/59/down"
+        }
+      }
+    }, {
+      "createdDate" : "2022-04-05T17:24:17.572",
+      "modifiedDate" : "2022-04-05T17:24:17.572",
+      "id" : 60,
+      "name" : "팝업배너5",
+      "pcLinkUrl" : "pc link",
+      "mobileLinkUrl" : "mobile link",
+      "status" : "LEAKED",
+      "leakedOrder" : 5,
+      "position" : "LEFT",
+      "imgFile" : {
+        "folder" : "C:/Users/verin/jyh/upload/test/banners",
+        "filenamePc" : "filenamePc.jpg",
+        "filenameMobile" : "filenameMobile.jpg"
+      },
+      "_links" : {
+        "self" : {
+          "href" : "http://localhost:8080/api/banners/popup/60"
+        },
+        "delete-popupBanner" : {
+          "href" : "http://localhost:8080/api/banners/popup/60"
+        },
+        "update-popupBanner" : {
+          "href" : "http://localhost:8080/api/banners/popup/60"
+        },
+        "update-popupBanner-order-up" : {
+          "href" : "http://localhost:8080/api/banners/popup/60/up"
+        },
+        "update-popupBanner-order-down" : {
+          "href" : "http://localhost:8080/api/banners/popup/60/down"
         }
       }
     } ]
@@ -3142,6 +3224,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/popup' -i -X POST \
     -H 'Content-Type: multipart/form-data;charset=UTF-8' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY0OTE0ODg1OSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.v6f636pVIWx9BPxsqhGBAPbHonSHTynOiVf1YdRHCqEvV7VFBqn0IkL80npoSsmUkel8HRjmVZSDF9I4tC-nhQ' \
     -H 'Accept: application/hal+json' \
     -F 'pcFile=@file1.jpg;type=image/jpg' \
     -F 'mobileFile=@file2.jpg;type=image/jpg' \
@@ -3234,7 +3317,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>status</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">배너 노출 상태 [LEAKED, HIDDEN]</p></td>
 </tr>
 <tr>
@@ -3260,19 +3343,19 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "createdDate" : "2022-03-30T13:22:23.121",
-  "modifiedDate" : "2022-03-30T13:22:23.121",
-  "id" : 104,
+  "createdDate" : "2022-04-05T17:24:19.994",
+  "modifiedDate" : "2022-04-05T17:24:19.994",
+  "id" : 106,
   "name" : "팝업배너1",
   "pcLinkUrl" : "pc link",
   "mobileLinkUrl" : "mobile link",
-  "status" : null,
+  "status" : "LEAKED",
   "leakedOrder" : 1,
   "position" : "LEFT",
   "imgFile" : {
     "folder" : "C:/Users/verin/jyh/upload/banners",
-    "filenamePc" : "a856f0b8-0d59-47d2-808b-69f99cc14d05_file1.jpg",
-    "filenameMobile" : "159d7f63-4c14-40af-8321-f5ab11b279f8_file2.jpg"
+    "filenamePc" : "44547ade-f84f-4884-b32e-333d480bc5d6_file1.jpg",
+    "filenameMobile" : "d1a42469-8dcf-4537-b484-fe98738e1593_file2.jpg"
   },
   "_links" : {
     "self" : {
@@ -3282,7 +3365,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
       "href" : "http://localhost:8080/api/banners/popup"
     },
     "update-banner" : {
-      "href" : "http://localhost:8080/api/banners/popup/104"
+      "href" : "http://localhost:8080/api/banners/popup/106"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-create-popupBanner"
@@ -3365,7 +3448,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>status</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">배너 노출 상태</p></td>
 </tr>
 <tr>
@@ -3459,8 +3542,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="resources-query-popupBanner_curl_request"><a class="link" href="#resources-query-popupBanner_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/popup/79' -i -X GET \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/popup/81' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY0OTE0ODg1OCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.TMiILdBhSzBXFEz9qK5gJvdtoQs0e_J7twnOILzgW2pvhjpaVoOj5wqdnnvh7tw_6fDNf3f4K-FUHJfZ0kf5xg' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -3525,9 +3609,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "createdDate" : "2022-03-30T13:22:22.751",
-  "modifiedDate" : "2022-03-30T13:22:22.751",
-  "id" : 79,
+  "createdDate" : "2022-04-05T17:24:18.727",
+  "modifiedDate" : "2022-04-05T17:24:18.727",
+  "id" : 81,
   "name" : "팝업배너1",
   "pcLinkUrl" : "pc link",
   "mobileLinkUrl" : "mobile link",
@@ -3541,10 +3625,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
   },
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/banners/popup/79"
+      "href" : "http://localhost:8080/api/banners/popup/81"
     },
     "update-banner" : {
-      "href" : "http://localhost:8080/api/banners/popup/79"
+      "href" : "http://localhost:8080/api/banners/popup/81"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-query-popupBanner"
@@ -3708,8 +3792,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="resources-update-popupBanner_curl_request"><a class="link" href="#resources-update-popupBanner_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/popup/49' -i -X POST \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/popup/51' -i -X POST \
     -H 'Content-Type: multipart/form-data;charset=UTF-8' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY0OTE0ODg1NiwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.BlERAmKiRubL2pc3Q8q-CaIp4t9DVRblXejTkyc0jBHoUo79SVRjPLBhq1J7pQ1gR4jiutCW5tbS4MyYrM-GBw' \
     -H 'Accept: application/hal+json' \
     -F 'pcFile=@file1.jpg;type=image/jpg' \
     -F 'mobileFile=@file2.jpg;type=image/jpg' \
@@ -3850,9 +3935,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "createdDate" : "2022-03-30T13:22:22.321",
-  "modifiedDate" : "2022-03-30T13:22:22.321",
-  "id" : 49,
+  "createdDate" : "2022-04-05T17:24:16.866",
+  "modifiedDate" : "2022-04-05T17:24:16.866",
+  "id" : 51,
   "name" : "new popup Banner",
   "pcLinkUrl" : "pc link",
   "mobileLinkUrl" : "mobile link",
@@ -3861,15 +3946,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
   "position" : "LEFT",
   "imgFile" : {
     "folder" : "C:/Users/verin/jyh/upload/banners",
-    "filenamePc" : "9030b139-bb5e-4c90-a2a0-b6b11876d04e_file1.jpg",
-    "filenameMobile" : "41d9c7b0-c60f-4d8e-a716-c51e2318a904_file2.jpg"
+    "filenamePc" : "90584922-ec78-45ff-9bda-76eb621ee288_file1.jpg",
+    "filenameMobile" : "4fb0f12a-771d-4bd1-a7b5-f1baa0f81ec8_file2.jpg"
   },
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/banners/popup/49"
+      "href" : "http://localhost:8080/api/banners/popup/51"
     },
     "query-banner" : {
-      "href" : "http://localhost:8080/api/banners/popup/49"
+      "href" : "http://localhost:8080/api/banners/popup/51"
     },
     "query-popupBanners" : {
       "href" : "http://localhost:8080/api/banners/popup"
@@ -4045,8 +4130,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="resources-update-popupBanner-leakedOrder-up_curl_request"><a class="link" href="#resources-update-popupBanner-leakedOrder-up_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/popup/67/up' -i -X PUT \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/popup/69/up' -i -X PUT \
     -H 'Content-Type: application/json;charset=UTF-8' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY0OTE0ODg1OCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.TMiILdBhSzBXFEz9qK5gJvdtoQs0e_J7twnOILzgW2pvhjpaVoOj5wqdnnvh7tw_6fDNf3f4K-FUHJfZ0kf5xg' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -4111,9 +4197,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "createdDate" : "2022-03-30T13:22:22.672",
-  "modifiedDate" : "2022-03-30T13:22:22.672",
-  "id" : 67,
+  "createdDate" : "2022-04-05T17:24:18.26",
+  "modifiedDate" : "2022-04-05T17:24:18.26",
+  "id" : 69,
   "name" : "팝업배너6",
   "pcLinkUrl" : "pc link",
   "mobileLinkUrl" : "mobile link",
@@ -4127,7 +4213,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
   },
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/banners/popup/67/up"
+      "href" : "http://localhost:8080/api/banners/popup/69/up"
     },
     "query-popupBanners" : {
       "href" : "http://localhost:8080/api/banners/popup"
@@ -4294,8 +4380,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="resources-update-popupBanner-leakedOrder-down_curl_request"><a class="link" href="#resources-update-popupBanner-leakedOrder-down_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/popup/44/down' -i -X PUT \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/popup/46/down' -i -X PUT \
     -H 'Content-Type: application/json;charset=UTF-8' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY0OTE0ODg1NiwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.BlERAmKiRubL2pc3Q8q-CaIp4t9DVRblXejTkyc0jBHoUo79SVRjPLBhq1J7pQ1gR4jiutCW5tbS4MyYrM-GBw' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -4360,9 +4447,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "createdDate" : "2022-03-30T13:22:22.258",
-  "modifiedDate" : "2022-03-30T13:22:22.258",
-  "id" : 44,
+  "createdDate" : "2022-04-05T17:24:16.579",
+  "modifiedDate" : "2022-04-05T17:24:16.579",
+  "id" : 46,
   "name" : "팝업배너5",
   "pcLinkUrl" : "pc link",
   "mobileLinkUrl" : "mobile link",
@@ -4376,7 +4463,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
   },
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/banners/popup/44/down"
+      "href" : "http://localhost:8080/api/banners/popup/46/down"
     },
     "query-popupBanners" : {
       "href" : "http://localhost:8080/api/banners/popup"
@@ -4543,8 +4630,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="resources-delete-popupBanner_curl_request"><a class="link" href="#resources-delete-popupBanner_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/popup/96' -i -X DELETE \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/popup/98' -i -X DELETE \
     -H 'Content-Type: application/json;charset=UTF-8' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY0OTE0ODg1OSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.v6f636pVIWx9BPxsqhGBAPbHonSHTynOiVf1YdRHCqEvV7VFBqn0IkL80npoSsmUkel8HRjmVZSDF9I4tC-nhQ' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -4611,13 +4699,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/banners/popup/96"
+      "href" : "http://localhost:8080/api/banners/popup/98"
     },
     "query-popupBanners" : {
-      "href" : "http://localhost:8080/api/banners/popup/96"
+      "href" : "http://localhost:8080/api/banners/popup/98"
     },
     "create-banner" : {
-      "href" : "http://localhost:8080/api/banners/popup/96"
+      "href" : "http://localhost:8080/api/banners/popup/98"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-delete-popupBanner"
@@ -4732,6 +4820,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/myPage' -i -X POST \
     -H 'Content-Type: multipart/form-data;charset=UTF-8' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY0OTE0ODg1NywiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.8onjZ-_lNnpqTFW-cYnQN9sUIDOI9hrvAwHeSoLOIF4I0cOKFxWZJ3XlPLRp1Oxg7JBfpemSF2Zbtmv_RGi-9A' \
     -H 'Accept: application/hal+json' \
     -F 'pcFile=@file1.jpg;type=image/jpg' \
     -F 'mobileFile=@file2.jpg;type=image/jpg' \
@@ -4845,17 +4934,17 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "createdDate" : "2022-03-30T13:22:22.429",
-  "modifiedDate" : "2022-03-30T13:22:22.429",
-  "id" : 50,
+  "createdDate" : "2022-04-05T17:24:17.194",
+  "modifiedDate" : "2022-04-05T17:24:17.194",
+  "id" : 52,
   "name" : "마이페이지 배너",
   "pcLinkUrl" : "pc url",
   "mobileLinkUrl" : "mobile url",
   "status" : "LEAKED",
   "imgFile" : {
     "folder" : "C:/Users/verin/jyh/upload/banners",
-    "filenamePc" : "22c16541-6afa-4aa2-bc9a-6a007a75e094_file1.jpg",
-    "filenameMobile" : "9525585a-6fab-4f58-bc83-4da3f4dc42e2_file2.jpg"
+    "filenamePc" : "f2f6a68a-c066-4c6b-a66a-a107132e2314_file1.jpg",
+    "filenameMobile" : "0f89f79c-a136-441d-9ad8-6ee8504048f5_file2.jpg"
   },
   "_links" : {
     "self" : {
@@ -4865,7 +4954,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
       "href" : "http://localhost:8080/api/banners/myPage"
     },
     "update-banner" : {
-      "href" : "http://localhost:8080/api/banners/myPage/50"
+      "href" : "http://localhost:8080/api/banners/myPage/52"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-create-myPageBanner"
@@ -5034,6 +5123,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/myPage' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY0OTE0ODg1NiwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.BlERAmKiRubL2pc3Q8q-CaIp4t9DVRblXejTkyc0jBHoUo79SVRjPLBhq1J7pQ1gR4jiutCW5tbS4MyYrM-GBw' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -5076,9 +5166,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "createdDate" : "2022-03-30T13:22:22.023",
-  "modifiedDate" : "2022-03-30T13:22:22.023",
-  "id" : 26,
+  "createdDate" : "2022-04-05T17:24:15.99",
+  "modifiedDate" : "2022-04-05T17:24:15.99",
+  "id" : 28,
   "name" : "마이페이지 배너",
   "pcLinkUrl" : "pc url",
   "mobileLinkUrl" : "mobile url",
@@ -5093,7 +5183,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
       "href" : "http://localhost:8080/api/banners/myPage"
     },
     "update-banner" : {
-      "href" : "http://localhost:8080/api/banners/myPage/26"
+      "href" : "http://localhost:8080/api/banners/myPage/28"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-query-myPageBanner"
@@ -5249,6 +5339,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/myPage' -i -X POST \
     -H 'Content-Type: multipart/form-data;charset=UTF-8' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY0OTE0ODg1NywiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.8onjZ-_lNnpqTFW-cYnQN9sUIDOI9hrvAwHeSoLOIF4I0cOKFxWZJ3XlPLRp1Oxg7JBfpemSF2Zbtmv_RGi-9A' \
     -H 'Accept: application/hal+json' \
     -F 'pcFile=@file1.jpg;type=image/jpg' \
     -F 'mobileFile=@file2.jpg;type=image/jpg' \
@@ -5362,17 +5453,17 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "createdDate" : "2022-03-30T13:22:22.429",
-  "modifiedDate" : "2022-03-30T13:22:22.429",
-  "id" : 50,
+  "createdDate" : "2022-04-05T17:24:17.194",
+  "modifiedDate" : "2022-04-05T17:24:17.194",
+  "id" : 52,
   "name" : "마이페이지 배너",
   "pcLinkUrl" : "pc url",
   "mobileLinkUrl" : "mobile url",
   "status" : "LEAKED",
   "imgFile" : {
     "folder" : "C:/Users/verin/jyh/upload/banners",
-    "filenamePc" : "22c16541-6afa-4aa2-bc9a-6a007a75e094_file1.jpg",
-    "filenameMobile" : "9525585a-6fab-4f58-bc83-4da3f4dc42e2_file2.jpg"
+    "filenamePc" : "f2f6a68a-c066-4c6b-a66a-a107132e2314_file1.jpg",
+    "filenameMobile" : "0f89f79c-a136-441d-9ad8-6ee8504048f5_file2.jpg"
   },
   "_links" : {
     "self" : {
@@ -5382,7 +5473,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
       "href" : "http://localhost:8080/api/banners/myPage"
     },
     "update-banner" : {
-      "href" : "http://localhost:8080/api/banners/myPage/50"
+      "href" : "http://localhost:8080/api/banners/myPage/52"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-create-myPageBanner"
@@ -5551,6 +5642,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/top' -i -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY0OTE0ODg2MCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.LBc1HG7dsdxtFedbx548XVRUl7_2_J8N8XorQ_XnSmqMcplIMKAc8J_ZN2lhYwIwNJ-AkAXn4bldfjf1TcjzUg' \
     -H 'Accept: application/hal+json' \
     -d '{
   "name" : "친구 초대하면 2천원 적립금!",
@@ -5608,9 +5700,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "createdDate" : "2022-03-30T13:22:23.292",
-  "modifiedDate" : "2022-03-30T13:22:23.292",
-  "id" : 109,
+  "createdDate" : "2022-04-05T17:24:20.749",
+  "modifiedDate" : "2022-04-05T17:24:20.749",
+  "id" : 111,
   "name" : "친구 초대하면 2천원 적립금!",
   "pcLinkUrl" : "pc link",
   "mobileLinkUrl" : "mobile link",
@@ -5625,7 +5717,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
       "href" : "http://localhost:8080/api/banners/top"
     },
     "update-banner" : {
-      "href" : "http://localhost:8080/api/banners/top/109"
+      "href" : "http://localhost:8080/api/banners/top/111"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-create-topBanner"
@@ -5789,6 +5881,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/top' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY0OTE0ODg1NywiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.8onjZ-_lNnpqTFW-cYnQN9sUIDOI9hrvAwHeSoLOIF4I0cOKFxWZJ3XlPLRp1Oxg7JBfpemSF2Zbtmv_RGi-9A' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -5831,9 +5924,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "createdDate" : "2022-03-30T13:22:22.503",
-  "modifiedDate" : "2022-03-30T13:22:22.503",
-  "id" : 53,
+  "createdDate" : "2022-04-05T17:24:17.455",
+  "modifiedDate" : "2022-04-05T17:24:17.455",
+  "id" : 55,
   "name" : "친구 초대하면 2천원 적립금!",
   "pcLinkUrl" : "pc link",
   "mobileLinkUrl" : "mobile link",
@@ -5845,7 +5938,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
       "href" : "http://localhost:8080/api/banners/top"
     },
     "update-banner" : {
-      "href" : "http://localhost:8080/api/banners/top/53"
+      "href" : "http://localhost:8080/api/banners/top/55"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-query-topBanner"
@@ -5994,8 +6087,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="resources-update-topBanner_curl_request"><a class="link" href="#resources-update-topBanner_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/top/103' -i -X PUT \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/top/105' -i -X PUT \
     -H 'Content-Type: application/json;charset=UTF-8' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY0OTE0ODg1OSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.v6f636pVIWx9BPxsqhGBAPbHonSHTynOiVf1YdRHCqEvV7VFBqn0IkL80npoSsmUkel8HRjmVZSDF9I4tC-nhQ' \
     -H 'Accept: application/hal+json' \
     -d '{
   "name" : "수정된 상단 띠 배너 제목",
@@ -6056,6 +6150,55 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </table>
 </div>
 <div class="sect3">
+<h4 id="resources-update-topBanner_request_fields"><a class="link" href="#resources-update-topBanner_request_fields">Request fields</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>name</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">배너 이름</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>status</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">배너 노출 상태 [LEAKED, HIDDEN]</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>backgroundColor</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">띠 배너 배경 색상</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>fontColor</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">띠 배너 글자 색상</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>pcLinkUrl</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">pc 배너 클릭 시 이동할 url 주소</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mobileLinkUrl</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">모바일 배너 클릭 시 이동할 url 주소</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
 <h4 id="resources-update-topBanner_request_body"><a class="link" href="#resources-update-topBanner_request_body">Request body</a></h4>
 <div class="listingblock">
 <div class="content">
@@ -6075,9 +6218,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "createdDate" : "2022-03-30T13:22:23.063",
-  "modifiedDate" : "2022-03-30T13:22:23.063",
-  "id" : 103,
+  "createdDate" : "2022-04-05T17:24:19.704",
+  "modifiedDate" : "2022-04-05T17:24:19.704",
+  "id" : 105,
   "name" : "수정된 상단 띠 배너 제목",
   "pcLinkUrl" : "pc link",
   "mobileLinkUrl" : "mobile link",
@@ -6086,7 +6229,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
   "fontColor" : "white",
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/banners/top/103"
+      "href" : "http://localhost:8080/api/banners/top/105"
     },
     "query-topBanner" : {
       "href" : "http://localhost:8080/api/banners/top"
@@ -6231,11 +6374,1195 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="resources-join-info"><a class="link" href="#resources-join-info">회원가입</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>회원가입 관련 리소스.</p>
+</div>
+<div class="sect2">
+<h3 id="resources-join"><a class="link" href="#resources-join">회원가입하기</a></h3>
+<div class="paragraph">
+<p><code>POST</code> 요청을 사용해서 회원가입을 할 수 있다.</p>
+</div>
+<div class="sect3">
+<h4 id="resources-join_curl_request"><a class="link" href="#resources-join_curl_request">Example request</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/join' -i -X POST \
+    -H 'Content-Type: application/json;charset=UTF-8' \
+    -H 'Accept: application/hal+json' \
+    -d '{
+  "name" : "이름",
+  "email" : "verin4494@gmail.com",
+  "password" : "12341234",
+  "confirmPassword" : "12341234",
+  "phoneNumber" : "01099038544",
+  "address" : {
+    "zipcode" : "48060",
+    "city" : "부산시",
+    "street" : "해운대구 센텀2로 19",
+    "detailAddress" : "브리티시인터내셔널"
+  },
+  "birthday" : "19930521",
+  "gender" : "MALE",
+  "recommendCode" : "2gp9fYbn0",
+  "agreement" : {
+    "servicePolicy" : true,
+    "privacyPolicy" : true,
+    "receiveSms" : true,
+    "receiveEmail" : true,
+    "over14YearsOld" : true
+  }
+}'</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="resources-join_request_headers"><a class="link" href="#resources-join_request_headers">Request headers</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Accept</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">accept header</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Content-Type</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">content type header</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-join_request_body"><a class="link" href="#resources-join_request_body">Request body</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
+  "name" : "이름",
+  "email" : "verin4494@gmail.com",
+  "password" : "12341234",
+  "confirmPassword" : "12341234",
+  "phoneNumber" : "01099038544",
+  "address" : {
+    "zipcode" : "48060",
+    "city" : "부산시",
+    "street" : "해운대구 센텀2로 19",
+    "detailAddress" : "브리티시인터내셔널"
+  },
+  "birthday" : "19930521",
+  "gender" : "MALE",
+  "recommendCode" : "2gp9fYbn0",
+  "agreement" : {
+    "servicePolicy" : true,
+    "privacyPolicy" : true,
+    "receiveSms" : true,
+    "receiveEmail" : true,
+    "over14YearsOld" : true
+  }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="resources-join_request_fields"><a class="link" href="#resources-join_request_fields">Request fields</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>name</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">회원 이름</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>email</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">회원 이메일(로그인 ID)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>password</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">회원 비밀번호</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>confirmPassword</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">회원 비밀번호 확인</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>phoneNumber</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">휴대폰 번호 '010xxxxxxxx' -없는 문자열</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>address.zipcode</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">우편 번호</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>address.city</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">시/도</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>address.street</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">도로명주소</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>address.detailAddress</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">상세주소</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>birthday</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">생년월일 'yyyymmdd' 길이 8 문자열</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>gender</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">성별 [MALE, FEMALE, NONE]</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>recommendCode</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">추천인 코드</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>agreement.servicePolicy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">이용약관 동의 [true/false]</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>agreement.privacyPolicy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">개인정보 제공 동의 [true/false]</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>agreement.receiveSms</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">sms 수신 여부 [true/false]</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>agreement.receiveEmail</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">email 수신 여부 [true/false]</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>agreement.over14YearsOld</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">14세 이상 여부 [true/false]</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-join_response_headers"><a class="link" href="#resources-join_response_headers">Response headers</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Location</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">location header</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Content-Type</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">content type header</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-join_response_body"><a class="link" href="#resources-join_response_body">Response body</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
+  "createdDate" : "2022-04-05T18:05:48.749",
+  "modifiedDate" : "2022-04-05T18:05:48.749",
+  "id" : 9,
+  "name" : "이름",
+  "email" : "verin4494@gmail.com",
+  "password" : "$2a$10$ccmQbo0Dw/T5DpnD6ik3Ye0dgv88OUWN4obKt7jgez5QdbazAoTlm",
+  "phoneNumber" : "01099038544",
+  "address" : {
+    "zipcode" : "48060",
+    "city" : "부산시",
+    "street" : "해운대구 센텀2로 19",
+    "detailAddress" : "브리티시인터내셔널"
+  },
+  "birthday" : "19930521",
+  "gender" : "MALE",
+  "agreement" : {
+    "servicePolicy" : true,
+    "privacyPolicy" : true,
+    "receiveSms" : true,
+    "receiveEmail" : true,
+    "over14YearsOld" : true
+  },
+  "recommendCode" : "2gp9fYbn0",
+  "myRecommendationCode" : "2gp9kjTaw",
+  "grade" : "BRONZE",
+  "rewardPoint" : 4000,
+  "lastLoginDate" : null,
+  "roles" : "USER",
+  "provider" : null,
+  "providerId" : null,
+  "roleList" : [ "USER" ],
+  "_links" : {
+    "self" : {
+      "href" : "http://localhost:8080/join"
+    },
+    "login" : {
+      "href" : "http://localhost:8080/login"
+    },
+    "profile" : {
+      "href" : "/docs/index.html#resources-join"
+    }
+  }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="resources-join_response_fields"><a class="link" href="#resources-join_response_fields">Response fields</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>createdDate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">회원 생성 날짜</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>modifiedDate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">마지막으로 회원 수정한 날짜</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>id</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">회원 id 번호</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>name</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">회원 이름</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>email</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">회원 이메일(로그인 ID)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>password</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">회원 비밀번호 암호화</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>phoneNumber</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">휴대폰 번호</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>address.zipcode</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">우편 번호</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>address.city</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">시/도</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>address.street</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">도로명주소</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>address.detailAddress</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">상세주소</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>birthday</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">생년월일 'yyyymmdd' 길이 8 문자열 형식</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>gender</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">성별</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>agreement.servicePolicy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">이용약관 동의</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>agreement.privacyPolicy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">개인정보 제공 동의</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>agreement.receiveSms</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">sms 수신 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>agreement.receiveEmail</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">email 수신 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>agreement.over14YearsOld</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">14세 이상 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>recommendCode</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">내가 추천한 사람 추천코드</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>myRecommendationCode</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">내 추천 코드</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>grade</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">등급</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>rewardPoint</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">적립금</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>lastLoginDate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">마지막 로그인 날짜시간</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>roles</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">권한</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>provider</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">sns 로그인 제공사(네이버/카카오)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>providerId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">sns 로그인 제공사 고유 id</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>roleList</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">권한 리스트</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>_links.self.href</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">self 링크</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>_links.login.href</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">로그인 요청 링크</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>_links.profile.href</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">해당 API 관련 문서 링크</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-join_links"><a class="link" href="#resources-join_links">Links</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Relation</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>self</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">self 링크</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>login</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">로그인 요청 링크</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>profile</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">해당 API 관련 문서 링크</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="resources-join-phoneAuth"><a class="link" href="#resources-join-phoneAuth">휴대폰 인증 요청</a></h3>
+<div class="paragraph">
+<p><code>POST</code> 요청을 사용해서 휴대폰 본인 인증 요청을 할 수 있다.</p>
+</div>
+<div class="sect3">
+<h4 id="resources-join-phoneAuth_curl_request"><a class="link" href="#resources-join-phoneAuth_curl_request">Example request</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/join/phoneAuth' -i -X POST \
+    -H 'Content-Type: application/json;charset=UTF-8' \
+    -H 'Accept: application/hal+json' \
+    -d '{
+  "phoneNumber" : "01099038544"
+}'</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="resources-join-phoneAuth_request_headers"><a class="link" href="#resources-join-phoneAuth_request_headers">Request headers</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Accept</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">accept header</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Content-Type</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">content type header</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-join-phoneAuth_request_body"><a class="link" href="#resources-join-phoneAuth_request_body">Request body</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
+  "phoneNumber" : "01099038544"
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="resources-join-phoneAuth_request_fields"><a class="link" href="#resources-join-phoneAuth_request_fields">Request fields</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>phoneNumber</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">메일을 보낼 휴대폰 번호</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-join-phoneAuth_response_headers"><a class="link" href="#resources-join-phoneAuth_response_headers">Response headers</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Content-Type</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">content type header</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-join-phoneAuth_response_body"><a class="link" href="#resources-join-phoneAuth_response_body">Response body</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
+  "authNumber" : "6959",
+  "responseCode" : 200,
+  "status" : 101,
+  "msg" : "Sender 번호가 유효하지 않습니다.",
+  "_links" : {
+    "self" : {
+      "href" : "http://localhost:8080/join/phoneAuth"
+    },
+    "profile" : {
+      "href" : "/docs/index.html#resources-join-phoneAuth"
+    }
+  }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="resources-join-phoneAuth_response_fields"><a class="link" href="#resources-join-phoneAuth_response_fields">Response fields</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>authNumber</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">휴대폰 인증번호</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>responseCode</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답코드 (200 이외의 값이면 다이렉트센드 내부 에러)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>status</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">다이렉트 센드 상태 코드</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>msg</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">다이렉트 센드 상태 메시지</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>_links.self.href</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">self 링크</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>_links.profile.href</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">해당 API 관련 문서 링크</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-join-phoneAuth_links"><a class="link" href="#resources-join-phoneAuth_links">Links</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Relation</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>self</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">self 링크</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>profile</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">해당 API 관련 문서 링크</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="resources-login"><a class="link" href="#resources-login">일반 로그인 하기</a></h3>
+<div class="paragraph">
+<p><code>POST</code> 요청을 사용해서 일반 로그인을 할 수 있다.</p>
+</div>
+<div class="sect3">
+<h4 id="resources-login_curl_request"><a class="link" href="#resources-login_curl_request">Example request</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/login' -i -X POST \
+    -H 'Content-Type: application/json;charset=UTF-8' \
+    -H 'Accept: application/hal+json' \
+    -d '{
+  "username" : "sample4494@gmail.com",
+  "password" : "1234"
+}'</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="resources-login_request_headers"><a class="link" href="#resources-login_request_headers">Request headers</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Accept</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">accept header</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Content-Type</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">content type header</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-login_request_body"><a class="link" href="#resources-login_request_body">Request body</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
+  "username" : "sample4494@gmail.com",
+  "password" : "1234"
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="resources-login_request_fields"><a class="link" href="#resources-login_request_fields">Request fields</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>username</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">회원 이메일(로그인 ID)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>password</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">회원 비밀번호</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-login_response_headers"><a class="link" href="#resources-login_response_headers">Response headers</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Authorization</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">bearer 방식 JWT 토큰</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-login_response_body"><a class="link" href="#resources-login_response_body">Response body</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs"></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="resources-find-email"><a class="link" href="#resources-find-email">이메일 찾기</a></h3>
+<div class="paragraph">
+<p><code>GET</code> 요청을 사용해서 이메일을 찾을 수 있다.</p>
+</div>
+<div class="sect3">
+<h4 id="resources-find-email_curl_request"><a class="link" href="#resources-find-email_curl_request">Example request</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/email?name=%EC%83%98%ED%94%8CMember&amp;phoneNumber=01088881111' -i -X GET \
+    -H 'Content-Type: application/json;charset=UTF-8' \
+    -H 'Accept: application/hal+json'</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="resources-find-email_request_headers"><a class="link" href="#resources-find-email_request_headers">Request headers</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Accept</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">accept header</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Content-Type</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">content type header</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-find-email_request_parameters"><a class="link" href="#resources-find-email_request_parameters">Request parameters</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Parameter</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>name</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">이름</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>phoneNumber</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">휴대폰 번호 '010xxxxxxxx' -없는 문자열</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-find-email_response_headers"><a class="link" href="#resources-find-email_response_headers">Response headers</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Content-Type</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">content type header</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-find-email_response_body"><a class="link" href="#resources-find-email_response_body">Response body</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
+  "email" : "sample4494@gmail.com",
+  "provider" : null,
+  "_links" : {
+    "self" : {
+      "href" : "http://localhost:8080/email"
+    },
+    "login" : {
+      "href" : "http://localhost:8080/login"
+    },
+    "profile" : {
+      "href" : "/docs/index.html#resources-find-email"
+    }
+  }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="resources-find-email_response_fields"><a class="link" href="#resources-find-email_response_fields">Response fields</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>email</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">회원 이메일</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>provider</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">sns 로그인 제공사 / 없으면 Null</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>_links.self.href</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">self 링크</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>_links.login.href</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">로그인 요청 링크</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>_links.profile.href</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">해당 API 관련 문서 링크</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-find-email_links"><a class="link" href="#resources-find-email_links">Links</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Relation</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>self</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">self 링크</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>login</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">로그인 요청 링크</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>profile</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">해당 API 관련 문서 링크</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="resources-find-password"><a class="link" href="#resources-find-password">임시 비밀번호 발급</a></h3>
+<div class="paragraph">
+<p><code>PUT</code> 요청을 사용해서 임시 비밀번호를 발급 받을 수 있다.</p>
+</div>
+<div class="sect3">
+<h4 id="resources-find-password_curl_request"><a class="link" href="#resources-find-password_curl_request">Example request</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/temporaryPassword' -i -X PUT \
+    -H 'Content-Type: application/json;charset=UTF-8' \
+    -H 'Accept: application/hal+json' \
+    -d '{
+  "email" : "sample4494@gmail.com",
+  "name" : "샘플Member",
+  "phoneNumber" : "01088881111"
+}'</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="resources-find-password_request_headers"><a class="link" href="#resources-find-password_request_headers">Request headers</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Accept</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">accept header</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Content-Type</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">content type header</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-find-password_request_body"><a class="link" href="#resources-find-password_request_body">Request body</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
+  "email" : "sample4494@gmail.com",
+  "name" : "샘플Member",
+  "phoneNumber" : "01088881111"
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="resources-find-password_request_fields"><a class="link" href="#resources-find-password_request_fields">Request fields</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>email</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">이메일 주소</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>name</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">회원 이름</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>phoneNumber</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">휴대전화 번호</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-find-password_response_headers"><a class="link" href="#resources-find-password_response_headers">Response headers</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Content-Type</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">content type header</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-find-password_response_body"><a class="link" href="#resources-find-password_response_body">Response body</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
+  "responseCode" : 200,
+  "status" : 101,
+  "msg" : "Sender 번호가 유효하지 않습니다.",
+  "_links" : {
+    "self" : {
+      "href" : "http://localhost:8080/temporaryPassword"
+    },
+    "login" : {
+      "href" : "http://localhost:8080/login"
+    },
+    "profile" : {
+      "href" : "/docs/index.html#resources-find-password"
+    }
+  }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="resources-find-password_response_fields"><a class="link" href="#resources-find-password_response_fields">Response fields</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>responseCode</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답코드 (200 이외의 값이면 다이렉트센드 내부 에러)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>status</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">다이렉트 센드 상태 코드</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>msg</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">다이렉트 센드 상태 메시지</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>_links.self.href</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">self 링크</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>_links.login.href</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">로그인 요청 링크</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>_links.profile.href</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">해당 API 관련 문서 링크</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="resources-find-password_links"><a class="link" href="#resources-find-password_links">Links</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Relation</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>self</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">self 링크</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>login</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">로그인 요청 링크</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>profile</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">해당 API 관련 문서 링크</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
 Version 0.0.1-SNAPSHOT<br>
-Last updated 2022-03-30 11:59:25 +0900
+Last updated 2022-04-04 17:29:22 +0900
 </div>
 </div>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css">

@@ -4,7 +4,7 @@ import java.util.Map;
 
 public class NaverUserInfo implements OAuth2UserInfo{
 
-    private Map<String, Object> attributes;
+    private Map<String, Object> attributes; // oauth2User.getAttributes()
 
     public NaverUserInfo(Map<String, Object> attributes) {
         this.attributes = attributes;

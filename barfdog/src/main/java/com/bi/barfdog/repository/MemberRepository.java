@@ -1,6 +1,7 @@
 package com.bi.barfdog.repository;
 
 import com.bi.barfdog.api.memberDto.FindEmailResponseDto;
+import com.bi.barfdog.api.memberDto.MemberInfoResponseDto;
 import com.bi.barfdog.domain.member.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -20,4 +21,5 @@ public interface MemberRepository extends JpaRepository<Member,Long> {
     Optional<FindEmailResponseDto> findByNameAndPhoneNumber(@Param("name") String name,@Param("phoneNumber") String phoneNumber);
 
     Optional<Member> findByEmailAndNameAndPhoneNumber(String email, String name, String phoneNumber);
+
 }

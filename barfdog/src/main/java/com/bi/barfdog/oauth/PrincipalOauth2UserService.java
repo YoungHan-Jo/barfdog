@@ -1,6 +1,7 @@
 package com.bi.barfdog.oauth;
 
 import com.bi.barfdog.auth.PrincipalDetails;
+import com.bi.barfdog.domain.member.Agreement;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.oauth.provider.NaverUserInfo;
 import com.bi.barfdog.oauth.provider.OAuth2UserInfo;
@@ -12,6 +13,14 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -30,16 +39,29 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
         OAuth2UserInfo oAuth2UserInfo = null;
-        if (userRequest.getClientRegistration().getRegistrationId().equals("naver")) {
-            oAuth2UserInfo = new NaverUserInfo((Map) oAuth2User.getAttributes().get("response"));
+        if (userRequest.getClientRegistration().getRegistrationId().equals("naver")){
+            oAuth2UserInfo = new NaverUserInfo((Map)oAuth2User.getAttributes().get("response"));
         }
+
+
+
+
 
         String email = oAuth2UserInfo.getEmail();
 
         Optional<Member> optionalMember = memberRepository.findByEmail(email);
 
         if (!optionalMember.isPresent()) {
-            return null;
+            Member member = Member.builder()
+                    .provider("naver")
+                    .name(oAuth2UserInfo.getName())
+                    .email(oAuth2UserInfo.getEmail())
+                    .agreement(new Agreement(true,true,true,true,true))
+                    .roles("USER")
+                    .build();
+
+            memberRepository.save(member);
+            return new PrincipalDetails(member, oAuth2User.getAttributes());
         }
 
         Member member = optionalMember.get();

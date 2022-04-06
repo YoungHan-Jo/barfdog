@@ -2,6 +2,7 @@ package com.bi.barfdog.jwt;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.bi.barfdog.auth.PrincipalDetails;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.repository.MemberRepository;
@@ -42,11 +43,11 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
         String jwtToken = jwtHeader.replace(JwtProperties.TOKEN_PREFIX, "");
 
-        String username = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET)).build().verify(jwtToken).getClaim("username").asString();
+        String email = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET)).build().verify(jwtToken).getClaim("email").asString();
 
         // 서명이 정상적으로 됨
-        if (username != null) {
-            Member memberEntity = memberRepository.findByEmail(username).get();
+        if (email != null) {
+            Member memberEntity = memberRepository.findByEmail(email).get();
 
             PrincipalDetails principalDetails = new PrincipalDetails(memberEntity);
 

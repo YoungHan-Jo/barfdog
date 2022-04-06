@@ -4,8 +4,8 @@ import com.bi.barfdog.api.memberDto.FindPasswordRequestDto;
 import com.bi.barfdog.api.memberDto.MemberSaveRequestDto;
 import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.config.RewardPoint;
-import com.bi.barfdog.directsend.DirectSendUtils;
 import com.bi.barfdog.directsend.DirectSendResponseDto;
+import com.bi.barfdog.directsend.DirectSendUtils;
 import com.bi.barfdog.directsend.PhoneAuthResponseDto;
 import com.bi.barfdog.domain.member.Grade;
 import com.bi.barfdog.domain.member.Member;
@@ -109,8 +109,12 @@ public class MemberService {
         String title = "바프독 본인 인증";
         String message = "휴대폰 인증 번호는 " + "[" + authNumber + "] 입니다.";
 
-        PhoneAuthResponseDto responseDto = (PhoneAuthResponseDto) DirectSendUtils.sendSmsDirect(title, message, phoneNumber);
-        responseDto.setAuthNumber(authNumber);
+
+        DirectSendResponseDto directSendResponseDto = DirectSendUtils.sendSmsDirect(title, message, phoneNumber);
+
+        DirectSendResponseDto responseDto = new PhoneAuthResponseDto(directSendResponseDto.getResponseCode(),
+                directSendResponseDto.getStatus(), directSendResponseDto.getMsg(), authNumber);
+
         return responseDto;
     }
 }

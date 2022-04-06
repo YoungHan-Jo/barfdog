@@ -1,10 +1,13 @@
 package com.bi.barfdog.api;
 
+import com.bi.barfdog.api.memberDto.FindEmailResponseDto;
+import com.bi.barfdog.api.memberDto.FindPasswordRequestDto;
 import com.bi.barfdog.api.memberDto.MemberSaveRequestDto;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.directsend.PhoneAuthRequestDto;
 import com.bi.barfdog.directsend.DirectSendResponseDto;
 import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.repository.MemberRepository;
 import com.bi.barfdog.service.MemberService;
 import com.bi.barfdog.validator.MemberValidator;
 import lombok.RequiredArgsConstructor;
@@ -14,13 +17,16 @@ import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
@@ -31,6 +37,7 @@ public class IndexApiController {
 
     private final MemberService memberService;
     private final MemberValidator memberValidator;
+    private final MemberRepository memberRepository;
 
     WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
 
@@ -92,6 +99,50 @@ public class IndexApiController {
                 selfLinkBuilder.withSelfRel(),
                 profileRootUrlBuilder.slash("index.html#resources-join-phoneAuth").withRel("profile")
                 );
+
+        return ResponseEntity.ok(entityModel);
+    }
+
+
+    @GetMapping("/email")
+    public ResponseEntity findEmail(@RequestParam String name, @RequestParam String phoneNumber) {
+        Optional<FindEmailResponseDto> optionalFindEmailResponseDto = memberRepository.findByNameAndPhoneNumber(name, phoneNumber);
+        if (!optionalFindEmailResponseDto.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        FindEmailResponseDto responseDto = optionalFindEmailResponseDto.get();
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(IndexApiController.class).slash("email");
+
+        EntityModel<FindEmailResponseDto> entityModel = EntityModel.of(responseDto,
+                selfLinkBuilder.withSelfRel(),
+                linkTo(IndexApiController.class).slash("login").withRel("login"),
+                profileRootUrlBuilder.slash("index.html#resources-find-email").withRel("profile")
+        );
+
+        return ResponseEntity.ok(entityModel);
+    }
+
+    @PutMapping("/temporaryPassword")
+    public ResponseEntity sendTemporaryPassword(@RequestBody @Valid FindPasswordRequestDto requestDto, Errors errors) throws IOException {
+        if (errors.hasErrors()) {
+            return badRequest(errors);
+        }
+        Optional<Member> optionalMember = memberRepository.findByEmailAndNameAndPhoneNumber(requestDto.getEmail(), requestDto.getName(), requestDto.getPhoneNumber());
+        if (!optionalMember.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        DirectSendResponseDto responseDto = memberService.temporaryPassword(requestDto);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(IndexApiController.class).slash("temporaryPassword");
+
+        EntityModel<DirectSendResponseDto> entityModel = EntityModel.of(responseDto,
+                selfLinkBuilder.withSelfRel(),
+                linkTo(IndexApiController.class).slash("login").withRel("login"),
+                profileRootUrlBuilder.slash("index.html#resources-find-password").withRel("profile")
+        );
 
         return ResponseEntity.ok(entityModel);
     }
