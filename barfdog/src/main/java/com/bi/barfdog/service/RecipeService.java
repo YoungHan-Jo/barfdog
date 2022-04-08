@@ -3,6 +3,7 @@ package com.bi.barfdog.service;
 import com.bi.barfdog.api.recipeDto.RecipeRequestDto;
 import com.bi.barfdog.domain.banner.ImgFilenamePath;
 import com.bi.barfdog.domain.recipe.Recipe;
+import com.bi.barfdog.domain.recipe.RecipeStatus;
 import com.bi.barfdog.domain.recipe.ThumbnailImage;
 import com.bi.barfdog.repository.RecipeRepository;
 import com.bi.barfdog.service.file.StorageService;
@@ -44,6 +45,7 @@ public class RecipeService {
                 .thumbnailImage(new ThumbnailImage(folder, filename1, filename2))
                 .leaked(requestDto.getLeaked())
                 .inStock(requestDto.isInStock())
+                .status(RecipeStatus.ACTIVE)
                 .build();
 
         Recipe saveRecipe = recipeRepository.save(recipe);

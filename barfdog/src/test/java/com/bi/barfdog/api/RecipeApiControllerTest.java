@@ -614,12 +614,12 @@ public class RecipeApiControllerTest extends BaseTest {
 
     @Test
     @DisplayName("정상적으로 레시피를 비활성화 시키는 테스트")
-    public void hide_recipe() throws Exception {
+    public void inactive_recipe() throws Exception {
        //given
         Recipe recipe = generateRecipe(1);
 
        //when & then
-        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/recipes/{id}/hidden", recipe.getId())
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/recipes/{id}/inactive", recipe.getId())
                         .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
