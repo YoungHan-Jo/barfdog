@@ -9,9 +9,11 @@ import java.util.stream.Stream;
 
 public interface StorageService {
 
-    void init();
+    void init(String fileType);
 
-    ImgFilenamePath store(MultipartFile file);
+    ImgFilenamePath storeBannerImg(MultipartFile file);
+    ImgFilenamePath storeDogProfilePic(MultipartFile file);
+    ImgFilenamePath storeRecipeImg(MultipartFile file);
 
     Stream<Path> loadAll();
 

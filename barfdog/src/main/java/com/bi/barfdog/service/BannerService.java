@@ -33,8 +33,8 @@ public class BannerService {
     @Transactional
     public Banner saveMainBanner(MainBannerSaveRequestDto requestDto, MultipartFile pcFile, MultipartFile mobileFile) {
 
-        ImgFilenamePath pcStore = storageService.store(pcFile);
-        ImgFilenamePath mobileStore = storageService.store(mobileFile);
+        ImgFilenamePath pcStore = storageService.storeBannerImg(pcFile);
+        ImgFilenamePath mobileStore = storageService.storeBannerImg(mobileFile);
 
         String folder = pcStore.getFolder();
         String filenamePc = pcStore.getFilename();
@@ -61,8 +61,8 @@ public class BannerService {
     @Transactional
     public Banner saveMyPageBanner(MyPageBannerSaveRequestDto requestDto, MultipartFile pcFile, MultipartFile mobileFile) {
 
-        ImgFilenamePath pcStore = storageService.store(pcFile);
-        ImgFilenamePath mobileStore = storageService.store(mobileFile);
+        ImgFilenamePath pcStore = storageService.storeBannerImg(pcFile);
+        ImgFilenamePath mobileStore = storageService.storeBannerImg(mobileFile);
 
         String folder = pcStore.getFolder();
         String filenamePc = pcStore.getFilename();
@@ -82,8 +82,8 @@ public class BannerService {
     @Transactional
     public Banner savePopupBanner(PopupBannerSaveRequestDto requestDto, MultipartFile pcFile, MultipartFile mobileFile) {
 
-        ImgFilenamePath pcStore = storageService.store(pcFile);
-        ImgFilenamePath mobileStore = storageService.store(mobileFile);
+        ImgFilenamePath pcStore = storageService.storeBannerImg(pcFile);
+        ImgFilenamePath mobileStore = storageService.storeBannerImg(mobileFile);
 
         String folder = pcStore.getFolder();
         String filenamePc = pcStore.getFilename();
@@ -254,14 +254,14 @@ public class BannerService {
     private ImgFile saveFilesAndGetImgFile(MultipartFile pcFile, MultipartFile mobileFile) {
 
         if(pcFile != null && mobileFile != null){
-            ImgFilenamePath pcStore = storageService.store(pcFile);
-            ImgFilenamePath mobileStore = storageService.store(mobileFile);
+            ImgFilenamePath pcStore = storageService.storeBannerImg(pcFile);
+            ImgFilenamePath mobileStore = storageService.storeBannerImg(mobileFile);
             return new ImgFile(pcStore.getFolder(),pcStore.getFilename(),mobileStore.getFilename());
         }else if(pcFile != null){
-            ImgFilenamePath pcStore = storageService.store(pcFile);
+            ImgFilenamePath pcStore = storageService.storeBannerImg(pcFile);
             return new ImgFile(pcStore.getFolder(),pcStore.getFilename(),null);
         }else if(mobileFile != null){
-            ImgFilenamePath mobileStore = storageService.store(mobileFile);
+            ImgFilenamePath mobileStore = storageService.storeBannerImg(mobileFile);
             return new ImgFile(mobileStore.getFolder(),null,mobileStore.getFilename());
         }
 

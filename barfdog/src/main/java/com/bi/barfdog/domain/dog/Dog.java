@@ -1,11 +1,15 @@
 package com.bi.barfdog.domain.dog;
 
+import com.bi.barfdog.domain.member.Gender;
 import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.domain.recipe.Recipe;
 import lombok.Getter;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+
+import static javax.persistence.FetchType.*;
 
 @Entity
 @Getter
@@ -16,43 +20,52 @@ public class Dog {
     @Column(name = "dog_id")
     private Long id;
 
-    private String name;
-    private LocalDate birth;
-    private String oldAge; // 노령견 여부 Y/N
-    private String dogType;
-    private String dogSize; // LARGE, MIDDLE, SMALL
-
-    @Column(precision = 3, scale = 1) // 총 3자리, 소수점 1자리
-    private BigDecimal weight;
-
-    private String neutralization; // 중성화 여부 Y/N
-    private String activityLevel; // 활동량 1~5
-    private int walkingCountPerWeek; // 산책 회수
-    private double walkingTimePerOneTime; // 산책 시간
-
-    @Enumerated(EnumType.STRING)
-    private DogStatus dogStatus; // [HEALTHY, DIET, OBESITY, PREGNANT, LACTATING]
-    private int snackCount;
-
-    @Enumerated(EnumType.STRING)
-    private SpecialOption specialOption; // [FIRST, RECOVERY, CARE, GROWTH]
-
-    @Enumerated(EnumType.STRING)
-    private InedibleFood inedibleFood; // [NONE, CHICKEN, TURKEY, BEEF, LAMB, DUCK, ETC]
-    private String inedibleFoodEtc; // 못먹는 음식 기타 일 때
-
-    private String disease; // 질병
-
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
 
+    private boolean representative; // 대표견
 
+    private String name;
 
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
 
+    private String birth; // yyyyMM 형식
 
+    private boolean oldDog; // 노령견 여부
 
+    private String dogType;
+
+    @Enumerated(EnumType.STRING)
+    private DogSize dogSize; // [LARGE, MIDDLE, SMALL]
+
+    private double weight;
+
+    private boolean neutralization; // 중성화 여부
+
+    @Embedded
+    private DogActivity dogActivity;
+
+    @Enumerated(EnumType.STRING)
+    private DogStatus dogStatus; // [HEALTHY, NEED_DIET, OBESITY, PREGNANT, LACTATING]
+
+    private int snackCountLevel; // 간식 횟수 1~3
+
+    private String inedibleFood;
+    private String inedibleFoodEtc; // 못먹는 음식 기타 일 때
+
+    @OneToOne(fetch = LAZY)
+    @JoinColumn(name = "recipe_id")
+    private Recipe recipe;
+
+    private String caution; // 질병 및 주의사항
+
+    @Embedded
+    private DogProfilePicture dogProfilePicture;
+
+    @Embedded
+    private DogAnalysis dogAnalysis;
 
 
 

@@ -31,7 +31,6 @@ public class MemberValidator {
         }
     }
 
-
     public void duplicateValidate(MemberSaveRequestDto requestDto, Errors errors) {
         Optional<Member> optionalMember = memberRepository.findByEmail(requestDto.getEmail());
         if (optionalMember.isPresent()) {

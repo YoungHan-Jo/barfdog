@@ -8,7 +8,7 @@ import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.banner.*;
 import com.bi.barfdog.repository.BannerRepository;
 import com.bi.barfdog.service.BannerService;
-import com.bi.barfdog.validator.BannerValidator;
+import com.bi.barfdog.validator.CommonValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -35,7 +35,8 @@ public class BannerApiController {
 
     private final BannerRepository bannerRepository;
     private final BannerService bannerService;
-    private final BannerValidator bannerValidator;
+
+    private final CommonValidator commonValidator;
 
     WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
 
@@ -48,7 +49,7 @@ public class BannerApiController {
         if(errors.hasErrors()){
             return badRequest(errors);
         }
-        bannerValidator.validate(errors, pcFile, mobileFile);
+        commonValidator.validateFiles(errors, pcFile, mobileFile);
         if(errors.hasErrors()){
             return badRequest(errors);
         }
@@ -77,7 +78,7 @@ public class BannerApiController {
             System.out.println("에러 발생");
             return badRequest(errors);
         }
-        bannerValidator.validate(errors, pcFile, mobileFile);
+        commonValidator.validateFiles(errors, pcFile, mobileFile);
         if(errors.hasErrors()){
             return badRequest(errors);
         }
@@ -105,10 +106,9 @@ public class BannerApiController {
             @RequestPart(required = false) MultipartFile pcFile,
             @RequestPart(required = false) MultipartFile mobileFile) {
         if(errors.hasErrors()){
-            System.out.println("에러 발생");
             return badRequest(errors);
         }
-        bannerValidator.validate(errors, pcFile, mobileFile);
+        commonValidator.validateFiles(errors, pcFile, mobileFile);
         if(errors.hasErrors()){
             return badRequest(errors);
         }
@@ -179,7 +179,7 @@ public class BannerApiController {
         Optional<Banner> optionalBanner = bannerRepository.findById(id);
 
         if(optionalBanner.isPresent() == false){
-            return ResponseEntity.notFound().build();
+            return notFound();
         }
 
         MyPageBanner myPageBanner = bannerService.updateMyPageBanner(id, requestDto, pcFile, mobileFile);
@@ -224,7 +224,7 @@ public class BannerApiController {
         Optional<Banner> optionalBanner = bannerRepository.findById(id);
 
         if(!optionalBanner.isPresent()){
-            return ResponseEntity.notFound().build();
+            return notFound();
         }
 
         TopBanner banner = bannerService.updateTopBanner(id, requestDto);
@@ -267,7 +267,7 @@ public class BannerApiController {
     public ResponseEntity queryMainBanner(@PathVariable Long id) {
         Optional<Banner> optionalBanner = bannerRepository.findById(id);
         if (!optionalBanner.isPresent()) {
-            return ResponseEntity.notFound().build();
+            return notFound();
         }
         Banner banner = optionalBanner.get();
 
@@ -294,7 +294,7 @@ public class BannerApiController {
         Optional<Banner> optionalBanner = bannerRepository.findById(id);
 
         if(!optionalBanner.isPresent()){
-            return ResponseEntity.notFound().build();
+            return notFound();
         }
 
         MainBanner mainBanner = bannerService.updateMainBanner(id, requestDto, pcFile, mobileFile);
@@ -311,11 +311,13 @@ public class BannerApiController {
         return ResponseEntity.ok(entityModel);
     }
 
+
+
     @PutMapping("/main/{id}/up")
     public ResponseEntity updateMainBannerUp(@PathVariable Long id) {
         Optional<Banner> optionalBanner = bannerRepository.findById(id);
         if (!optionalBanner.isPresent()) {
-            return ResponseEntity.notFound().build();
+            return notFound();
         }
 
         MainBanner savedBanner = (MainBanner) optionalBanner.get();
@@ -339,7 +341,7 @@ public class BannerApiController {
     public ResponseEntity updateMainBannerDown(@PathVariable Long id) {
         Optional<Banner> optionalBanner = bannerRepository.findById(id);
         if (!optionalBanner.isPresent()) {
-            return ResponseEntity.notFound().build();
+            return notFound();
         }
 
         MainBanner savedBanner = (MainBanner) optionalBanner.get();
@@ -366,7 +368,7 @@ public class BannerApiController {
     public ResponseEntity deleteMainBanner(@PathVariable Long id) {
         Optional<Banner> optionalBanner = bannerRepository.findById(id);
         if (!optionalBanner.isPresent()) {
-            return ResponseEntity.notFound().build();
+            return notFound();
         }
 
         bannerService.deleteMainBanner(id);
@@ -412,7 +414,7 @@ public class BannerApiController {
     public ResponseEntity queryPopupBanner(@PathVariable Long id) {
         Optional<Banner> optionalBanner = bannerRepository.findById(id);
         if (!optionalBanner.isPresent()) {
-            return ResponseEntity.notFound().build();
+            return notFound();
         }
         Banner banner = optionalBanner.get();
 
@@ -438,7 +440,7 @@ public class BannerApiController {
 
         Optional<Banner> optionalBanner = bannerRepository.findById(id);
         if (!optionalBanner.isPresent()) {
-            return ResponseEntity.notFound().build();
+            return notFound();
         }
 
         PopupBanner banner = bannerService.updatePopupBanner(id, requestDto, pcFile, mobileFile);
@@ -460,7 +462,7 @@ public class BannerApiController {
     public ResponseEntity updatePopupBannerUp(@PathVariable Long id) {
         Optional<Banner> optionalBanner = bannerRepository.findById(id);
         if (!optionalBanner.isPresent()) {
-            return ResponseEntity.notFound().build();
+            return notFound();
         }
 
         PopupBanner popupBanner = (PopupBanner) optionalBanner.get();
@@ -485,7 +487,7 @@ public class BannerApiController {
     public ResponseEntity updatePopupBannerDown(@PathVariable Long id) {
         Optional<Banner> optionalBanner = bannerRepository.findById(id);
         if (!optionalBanner.isPresent()) {
-            return ResponseEntity.notFound().build();
+            return notFound();
         }
 
         PopupBanner popupBanner = (PopupBanner) optionalBanner.get();
@@ -511,7 +513,7 @@ public class BannerApiController {
     public ResponseEntity deletePopupBanner(@PathVariable Long id) {
         Optional<Banner> optionalBanner = bannerRepository.findById(id);
         if (!optionalBanner.isPresent()) {
-            return ResponseEntity.notFound().build();
+            return notFound();
         }
 
         bannerService.deletePopupBanner(id);
@@ -536,6 +538,10 @@ public class BannerApiController {
 
     private ResponseEntity<EntityModel<Errors>> badRequest(Errors errors) {
         return ResponseEntity.badRequest().body(new ErrorsResource(errors));
+    }
+
+    private ResponseEntity<Object> notFound() {
+        return ResponseEntity.notFound().build();
     }
 
 }

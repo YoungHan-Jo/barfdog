@@ -1,5 +1,7 @@
 package com.bi.barfdog.common;
 
+import org.springframework.validation.Errors;
+
 import java.util.Random;
 
 public class BarfUtils {
@@ -35,4 +37,6 @@ public class BarfUtils {
         }
         return authNumber;
     }
+
+
 }

@@ -9,8 +9,6 @@ import com.bi.barfdog.domain.member.Gender;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.MemberRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,18 +20,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.constraints.AssertFalse;
-
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
-import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
-import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
-import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
-import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -147,6 +139,19 @@ public class MemberApiControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
                                 headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
                         ),
+                        requestFields(
+                                fieldWithPath("name").description("회원 이름"),
+                                fieldWithPath("password").description("회원 현재 비밀번호"),
+                                fieldWithPath("phoneNumber").description("휴대폰 번호 '010xxxxxxxx' -없는 문자열"),
+                                fieldWithPath("address.zipcode").description("우편 번호"),
+                                fieldWithPath("address.city").description("시/도"),
+                                fieldWithPath("address.street").description("도로명주소"),
+                                fieldWithPath("address.detailAddress").description("상세주소"),
+                                fieldWithPath("birthday").description("생년월일 'yyyymmdd' 길이 8 문자열"),
+                                fieldWithPath("gender").description("성별 [MALE, FEMALE, NONE]"),
+                                fieldWithPath("receiveSms").description("sms 수신 여부 [true/false]"),
+                                fieldWithPath("receiveEmail").description("email 수신 여부 [true/false]")
+                        ),
                         responseHeaders(
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
                         ),
@@ -226,6 +231,7 @@ public class MemberApiControllerTest extends BaseTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isConflict());
+
     }
     
     @Test
@@ -245,7 +251,29 @@ public class MemberApiControllerTest extends BaseTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isOk())
-        ;
+                .andDo(document("update_password",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestFields(
+                                fieldWithPath("password").description("회원 현재 비밀번호"),
+                                fieldWithPath("newPassword").description("새 비밀번호"),
+                                fieldWithPath("newPasswordConfirm").description("새  비밀번호 확인")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
     }
 
     @Test

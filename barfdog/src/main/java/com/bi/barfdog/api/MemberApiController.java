@@ -1,10 +1,10 @@
 package com.bi.barfdog.api;
 
-import com.bi.barfdog.api.memberDto.*;
+import com.bi.barfdog.api.memberDto.MemberInfoResponseDto;
+import com.bi.barfdog.api.memberDto.MemberUpdateRequestDto;
+import com.bi.barfdog.api.memberDto.UpdatePasswordRequestDto;
 import com.bi.barfdog.auth.CurrentUser;
-import com.bi.barfdog.auth.PrincipalDetails;
 import com.bi.barfdog.common.ErrorsResource;
-import com.bi.barfdog.directsend.DirectSendResponseDto;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.repository.MemberRepository;
 import com.bi.barfdog.service.MemberService;
@@ -17,14 +17,10 @@ import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.io.IOException;
-import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 

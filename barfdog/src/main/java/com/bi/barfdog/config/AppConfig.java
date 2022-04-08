@@ -58,7 +58,7 @@ public class AppConfig {
                         .grade(Grade.BARF)
                         .reward(100000)
                         .firstReward(new FirstReward(true,true))
-                        .roles("ADMIN")
+                        .roles("ADMIN,USER")
                         .build();
                 memberRepository.save(admin);
 

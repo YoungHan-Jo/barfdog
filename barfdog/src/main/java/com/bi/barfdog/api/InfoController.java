@@ -41,7 +41,7 @@ public class InfoController {
 
             System.out.println("file name = " + file.getOriginalFilename());
             System.out.println("file ContentType = " + file.getContentType());
-            storageService.store(file);
+            storageService.storeBannerImg(file);
         }
 
         return new ResponseEntity<>("", HttpStatus.OK);

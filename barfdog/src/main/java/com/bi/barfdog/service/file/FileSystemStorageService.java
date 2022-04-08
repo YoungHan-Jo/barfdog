@@ -26,9 +26,9 @@ public class FileSystemStorageService implements StorageService {
     private String uploadRootPath;
 
     @Override
-    public void init() {
+    public void init(String fileType) {
         try {
-            String uploadPath = uploadRootPath + "/banners";
+            String uploadPath = uploadRootPath + "/" + fileType;
             Files.createDirectories(Paths.get(uploadPath));
         } catch (IOException e) {
             throw new RuntimeException("Could not create upload folder!");
@@ -36,41 +36,45 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    public ImgFilenamePath store(MultipartFile file) {
+    public ImgFilenamePath storeBannerImg(MultipartFile file) {
         try {
             if (file.isEmpty()) {
                 throw new Exception("ERROR : File is empty.");
             }
-            String uploadPath = uploadRootPath + "/banners";
-            Path root = Paths.get(uploadPath);
-            if (!Files.exists(root)) {
-                init();
-            }
-
-            try (InputStream inputStream = file.getInputStream()) {
-                UUID uuid = UUID.randomUUID();
-                String filename = uuid.toString() + "_" + file.getOriginalFilename();
-                Files.copy(inputStream,
-                        root.resolve(filename),
-                        StandardCopyOption.REPLACE_EXISTING);
-
-
-                ImgFilenamePath imgFilenamePath = ImgFilenamePath.builder()
-                        .folder(uploadPath)
-                        .filename(filename)
-                        .build();
-
-                File inFile = new File(uploadPath, uuid.toString() + "_" + file.getOriginalFilename());
-                File outFile = new File(uploadPath, "s_" + filename);
-
-                Thumbnailator.createThumbnail(inFile, outFile, 200, 200);
-
-                return imgFilenamePath;
-            }
+            String fileType = "banners";
+            return getImgFilenamePath(fileType, file);
         } catch (Exception e) {
             throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
         }
     }
+
+    @Override
+    public ImgFilenamePath storeDogProfilePic(MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                throw new Exception("ERROR : File is empty.");
+            }
+            String fileType = "dogProfile";
+            return getImgFilenamePath(fileType, file);
+        } catch (Exception e) {
+            throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public ImgFilenamePath storeRecipeImg(MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                throw new Exception("ERROR : File is empty.");
+            }
+            String fileType = "recipe";
+            return getImgFilenamePath(fileType, file);
+        } catch (Exception e) {
+            throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
+        }
+    }
+
+
 
     @Override
     public Stream<Path> loadAll() {
@@ -110,5 +114,35 @@ public class FileSystemStorageService implements StorageService {
     @Override
     public void deleteAll() {
 
+    }
+
+    private ImgFilenamePath getImgFilenamePath(String fileType, MultipartFile file) throws IOException {
+        String uploadPath = uploadRootPath + "/"+ fileType;
+        Path root = Paths.get(uploadPath);
+        if (!Files.exists(root)) {
+            init(fileType);
+        }
+
+        try (InputStream inputStream = file.getInputStream()) {
+            UUID uuid = UUID.randomUUID();
+            String filename = uuid.toString() + "_" + file.getOriginalFilename();
+            Files.copy(inputStream,
+                    root.resolve(filename),
+                    StandardCopyOption.REPLACE_EXISTING);
+
+            ImgFilenamePath imgFilenamePath = ImgFilenamePath.builder()
+                    .folder(uploadPath)
+                    .filename(filename)
+                    .build();
+
+            if (fileType.equals("banners")) {
+                File inFile = new File(uploadPath, uuid.toString() + "_" + file.getOriginalFilename());
+                File outFile = new File(uploadPath, "s_" + filename);
+
+                Thumbnailator.createThumbnail(inFile, outFile, 200, 200);
+            }
+
+            return imgFilenamePath;
+        }
     }
 }
