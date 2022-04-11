@@ -1,6 +1,7 @@
 package com.bi.barfdog.domain.banner;
 
 import com.bi.barfdog.api.bannerDto.MyPageBannerSaveRequestDto;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,7 +12,7 @@ import javax.persistence.Entity;
 
 @Entity
 @DiscriminatorValue("myPage")
-@Getter @NoArgsConstructor
+@Getter @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MyPageBanner extends Banner{
 
     @Embedded

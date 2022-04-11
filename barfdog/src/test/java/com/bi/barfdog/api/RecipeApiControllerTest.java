@@ -5,6 +5,7 @@ import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.recipe.Leaked;
 import com.bi.barfdog.domain.recipe.Recipe;
+import com.bi.barfdog.domain.recipe.RecipeStatus;
 import com.bi.barfdog.domain.recipe.ThumbnailImage;
 import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.RecipeRepository;
@@ -24,10 +25,12 @@ import java.io.FileInputStream;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
@@ -57,8 +60,9 @@ public class RecipeApiControllerTest extends BaseTest {
         MockMultipartFile file1 = new MockMultipartFile("file1", "file1.jpg", "image/jpg", new FileInputStream("src/test/resources/uploadTest/file1.jpg"));
         MockMultipartFile file2 = new MockMultipartFile("file2", "file2.jpg", "image/jpg", new FileInputStream("src/test/resources/uploadTest/file2.jpg"));
 
+        String name = "스타터 프리미엄";
         RecipeRequestDto requestDto = RecipeRequestDto.builder()
-                .name("스타터 프리미엄")
+                .name(name)
                 .description("스타터 프리미엄 설명")
                 .uiNameKorean("스타터 프리미엄")
                 .uiNameEnglish("STARTER PREMIUM")
@@ -124,6 +128,10 @@ public class RecipeApiControllerTest extends BaseTest {
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
+
+        Recipe findRecipe = recipeRepository.findByName(name).get();
+
+        assertThat(findRecipe.getStatus()).isEqualTo(RecipeStatus.ACTIVE);
     }
 
     @Test
@@ -228,9 +236,11 @@ public class RecipeApiControllerTest extends BaseTest {
     @DisplayName("정상적으로 레시피 리스트 조회 테스트")
     public void query_recipes() throws Exception {
        //given
-        IntStream.range(1,4).forEach(i -> {
+        IntStream.range(1,5).forEach(i -> {
             generateRecipe(i);
         });
+
+        List<Recipe> recipeList = recipeRepository.findByStatus(RecipeStatus.ACTIVE);
 
         //when & then
         mockMvc.perform(get("/api/recipes")
@@ -239,6 +249,7 @@ public class RecipeApiControllerTest extends BaseTest {
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("_embedded.recipeListResponseDtoList", hasSize(recipeList.size())))
                 .andDo(document("query_recipes",
                         links(
                                 linkWithRel("self").description("self 링크"),
@@ -261,7 +272,7 @@ public class RecipeApiControllerTest extends BaseTest {
                                 fieldWithPath("_embedded.recipeListResponseDtoList[0].inStock").description("레시피 재고 유무"),
                                 fieldWithPath("_embedded.recipeListResponseDtoList[0].modifiedDate").description("최종 수정 일자"),
                                 fieldWithPath("_embedded.recipeListResponseDtoList[0]._links.update-recipe.href").description("해당 레시피 수정 링크"),
-                                fieldWithPath("_embedded.recipeListResponseDtoList[0]._links.delete-recipe.href").description("해당 레시피 삭제 링크"),
+                                fieldWithPath("_embedded.recipeListResponseDtoList[0]._links.inactive-recipe.href").description("해당 레시피 비활성화 링크"),
                                 fieldWithPath("_links.self.href").description("self 링크"),
                                 fieldWithPath("_links.create-recipe.href").description("레시피 생성 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
@@ -612,6 +623,7 @@ public class RecipeApiControllerTest extends BaseTest {
                 .andExpect(status().isNotFound());
     }
 
+
     @Test
     @DisplayName("정상적으로 레시피를 비활성화 시키는 테스트")
     public void inactive_recipe() throws Exception {
@@ -625,8 +637,71 @@ public class RecipeApiControllerTest extends BaseTest {
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-        ;
+                .andDo(document("inactive_recipe",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query-recipes").description("레시피 리스트 호출 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("해당 레시피 id")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query-recipes.href").description("레시피 리스트 호출 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        Recipe findRecipe = recipeRepository.findById(recipe.getId()).get();
+
+        assertThat(findRecipe.getStatus()).isEqualTo(RecipeStatus.INACTIVE);
     }
+
+    @Test
+    @DisplayName("비활성화시킬 레시피가 없을 경우 not found 나오는 테스트")
+    public void inactive_recipe_not_found() throws Exception {
+        //given
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/recipes/999999/inactive")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+    
+    @Test
+    @DisplayName("정상적으로 재료 리스트 호출하는 테스트")
+    public void queryIngredients() throws Exception {
+       //given
+       IntStream.range(1,10).forEach(i -> {
+           generateRecipe(i);
+       });
+
+       //when & then
+        mockMvc.perform(get("/api/recipes/ingredients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+        ;
+
+
+      
+    }
+    
+    
+    
 
 
 
@@ -646,12 +721,17 @@ public class RecipeApiControllerTest extends BaseTest {
                 .uiNameEnglish("RECIPE ENGLISH")
                 .pricePerGram(new BigDecimal("48.234"))
                 .gramPerKcal(new BigDecimal("1.23456"))
-                .ingredients("닭,소")
+                .ingredients(i==1?"닭,소":"칠면조,양")
                 .descriptionForSurvey("설문조사용 설명")
                 .thumbnailImage(new ThumbnailImage("http://xxxx.com/recipe", "file1.jpg", "file2.jpg"))
                 .leaked(Leaked.LEAKED)
                 .inStock(false)
+                .status(RecipeStatus.ACTIVE)
                 .build();
+
+        if (i%2 == 0) {
+            recipe.inactive();
+        }
 
         return recipeRepository.save(recipe);
     }

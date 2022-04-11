@@ -1,9 +1,11 @@
 package com.bi.barfdog.domain.dog;
 
+import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.member.Gender;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.recipe.Recipe;
-import lombok.Getter;
+import com.bi.barfdog.domain.subscribe.Subscribe;
+import lombok.*;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -11,9 +13,11 @@ import java.time.LocalDate;
 
 import static javax.persistence.FetchType.*;
 
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder @Getter
 @Entity
-@Getter
-public class Dog {
+public class Dog extends BaseTimeEntity {
 
     @Id
     @GeneratedValue
@@ -33,6 +37,8 @@ public class Dog {
 
     private String birth; // yyyyMM 형식
 
+    private int startAge; // 바프독 시작 나이
+
     private boolean oldDog; // 노령견 여부
 
     private String dogType;
@@ -40,26 +46,31 @@ public class Dog {
     @Enumerated(EnumType.STRING)
     private DogSize dogSize; // [LARGE, MIDDLE, SMALL]
 
-    private double weight;
+    private BigDecimal weight;
 
     private boolean neutralization; // 중성화 여부
 
     @Embedded
-    private DogActivity dogActivity;
+    private DogActivity dogActivity; // 활동량 관련
 
     @Enumerated(EnumType.STRING)
     private DogStatus dogStatus; // [HEALTHY, NEED_DIET, OBESITY, PREGNANT, LACTATING]
 
-    private int snackCountLevel; // 간식 횟수 1~3
+    @Enumerated(EnumType.STRING)
+    private SnackCountLevel snackCountLevel; // [LITTLE, NORMAL, MUCH]
 
     private String inedibleFood;
     private String inedibleFoodEtc; // 못먹는 음식 기타 일 때
 
     @OneToOne(fetch = LAZY)
     @JoinColumn(name = "recipe_id")
-    private Recipe recipe;
+    private Recipe recommendRecipe;
 
     private String caution; // 질병 및 주의사항
+
+    @OneToOne(fetch = LAZY)
+    @JoinColumn(name = "subscribe_id")
+    private Subscribe subscribe;
 
     @Embedded
     private DogProfilePicture dogProfilePicture;

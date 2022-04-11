@@ -1,6 +1,8 @@
 package com.bi.barfdog.service;
 
 import com.bi.barfdog.api.recipeDto.RecipeRequestDto;
+import com.bi.barfdog.api.recipeDto.RecipeSurveyResponseDto;
+import com.bi.barfdog.api.recipeDto.SurveyResponseDto;
 import com.bi.barfdog.domain.banner.ImgFilenamePath;
 import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.recipe.RecipeStatus;
@@ -13,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -67,6 +71,46 @@ public class RecipeService {
 
 
 
+    }
+
+    @Transactional
+    public void inactiveRecipe(Long id) {
+        Recipe recipe = recipeRepository.findById(id).get();
+        recipe.inactive();
+    }
+
+    public List<String> getSurveyResponseDto() {
+
+        List<String> ingredientList = getIngredientList();
+
+        return ingredientList;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    private List<String> getIngredientList() {
+        List<String> results = new ArrayList<>();
+        List<Recipe> recipes = recipeRepository.findByStatus(RecipeStatus.ACTIVE);
+
+        for (Recipe recipe : recipes) {
+            List<String> ingredientList = recipe.getIngredientList();
+            for (String ingredient : ingredientList) {
+                if (!results.contains(ingredient)) {
+                    results.add(ingredient);
+                }
+            }
+        }
+        return results;
     }
 
     private ThumbnailImage saveFilesAndGetInfo(MultipartFile file1, MultipartFile file2) {

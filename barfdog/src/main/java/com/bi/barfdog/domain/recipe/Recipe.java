@@ -2,10 +2,8 @@ package com.bi.barfdog.domain.recipe;
 
 import com.bi.barfdog.api.recipeDto.RecipeRequestDto;
 import com.bi.barfdog.domain.BaseTimeEntity;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.bi.barfdog.domain.subscribeRecipe.SubscribeRecipe;
+import lombok.*;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -14,7 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Entity @Builder
 public class Recipe extends BaseTimeEntity {
@@ -49,6 +47,9 @@ public class Recipe extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     private RecipeStatus status;
+
+    @OneToMany(mappedBy = "recipe")
+    private List<SubscribeRecipe> subscribeRecipes = new ArrayList<>();
 
     public List<String> getIngredientList() {
         if (this.ingredients.length() > 0) {
@@ -89,5 +90,9 @@ public class Recipe extends BaseTimeEntity {
         descriptionForSurvey = requestDto.getDescriptionForSurvey();
         leaked = requestDto.getLeaked();
         inStock = requestDto.isInStock();
+    }
+
+    public void inactive() {
+        status = RecipeStatus.INACTIVE;
     }
 }

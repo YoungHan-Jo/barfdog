@@ -1,6 +1,7 @@
 package com.bi.barfdog.domain.banner;
 
 import com.bi.barfdog.api.bannerDto.TopBannerSaveRequestDto;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +11,7 @@ import javax.persistence.Entity;
 
 @Entity
 @DiscriminatorValue("top")
-@Getter @NoArgsConstructor
+@Getter @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TopBanner extends Banner{
 
     private String backgroundColor;

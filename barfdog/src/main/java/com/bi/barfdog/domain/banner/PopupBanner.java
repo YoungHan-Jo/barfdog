@@ -7,7 +7,7 @@ import javax.persistence.*;
 
 @Entity
 @DiscriminatorValue("popup")
-@Getter @NoArgsConstructor
+@Getter @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PopupBanner extends Banner{
 
     private int leakedOrder;

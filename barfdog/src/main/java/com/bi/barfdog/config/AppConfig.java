@@ -4,7 +4,12 @@ import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.domain.Address;
 import com.bi.barfdog.domain.member.*;
+import com.bi.barfdog.domain.setting.ActivityConstant;
+import com.bi.barfdog.domain.setting.DeliveryConstant;
+import com.bi.barfdog.domain.setting.Setting;
+import com.bi.barfdog.domain.setting.SnackConstant;
 import com.bi.barfdog.repository.MemberRepository;
+import com.bi.barfdog.repository.SettingRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
@@ -12,6 +17,8 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+import java.math.BigDecimal;
 
 @Configuration
 public class AppConfig {
@@ -36,6 +43,8 @@ public class AppConfig {
         return new ApplicationRunner() {
 
             @Autowired MemberRepository memberRepository;
+            @Autowired
+            SettingRepository settingRepository;
 
             @Autowired
             AppProperties appProperties;
@@ -79,6 +88,25 @@ public class AppConfig {
                         .build();
 
                 memberRepository.save(user);
+
+                Setting setting = Setting.builder()
+                        .activityConstant(
+                                new ActivityConstant(
+                                        new BigDecimal("-1.50"),
+                                        new BigDecimal("-0.75"),
+                                        new BigDecimal("0"),
+                                        new BigDecimal("0.75"),
+                                        new BigDecimal("1.50")))
+                        .snackConstant(
+                                new SnackConstant(
+                                        new BigDecimal("1.50"),
+                                        new BigDecimal("0"),
+                                        new BigDecimal("-1.50")))
+                        .deliveryConstant(new DeliveryConstant(3000, 50000))
+                        .build();
+
+                settingRepository.save(setting);
+
             }
         };
     }

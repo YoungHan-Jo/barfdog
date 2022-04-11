@@ -348,3 +348,10 @@ operation::query_recipe[snippets='curl-request,path-parameters,request-headers,r
 `POST` 요청을 사용해서 레시피를 수정 할 수 있다.(파일과 데이터를 동시에 저장하기 때문에 POST 사용)
 
 operation::update_recipe[snippets='curl-request,path-parameters,request-headers,request-body,request-parts,request-part-requestDto-fields,response-headers,response-body,response-fields,links']
+
+[[resources-inactive-recipe]]
+=== 레시피 비활성화 시키기
+
+`PUT` 요청을 사용해서 레시피를 비활성화 시킬 수 있다.
+
+operation::inactive_recipe[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']

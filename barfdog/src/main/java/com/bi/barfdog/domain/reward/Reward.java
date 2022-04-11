@@ -2,17 +2,14 @@ package com.bi.barfdog.domain.reward;
 
 import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.member.Member;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 
 @Entity
 @Getter
 @AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 public class Reward extends BaseTimeEntity {
 

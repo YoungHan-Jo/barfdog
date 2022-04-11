@@ -8,7 +8,8 @@ import javax.persistence.*;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "dtype")
-@Getter @NoArgsConstructor @Setter
+@Getter @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter
 @AllArgsConstructor
 public abstract class Banner extends BaseTimeEntity {
 

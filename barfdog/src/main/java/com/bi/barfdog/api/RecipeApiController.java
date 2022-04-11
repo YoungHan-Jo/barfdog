@@ -6,10 +6,10 @@ import com.bi.barfdog.api.recipeDto.RecipeRequestDto;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.recipe.Recipe;
+import com.bi.barfdog.domain.recipe.RecipeStatus;
 import com.bi.barfdog.repository.RecipeRepository;
 import com.bi.barfdog.service.RecipeService;
 import com.bi.barfdog.validator.CommonValidator;
-import com.bi.barfdog.validator.RecipeValidator;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.hateoas.CollectionModel;
@@ -41,7 +41,6 @@ public class RecipeApiController extends BaseTimeEntity {
 
     private final ModelMapper modelMapper;
 
-    private final RecipeValidator recipeValidator;
     private final CommonValidator commonValidator;
 
     WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
@@ -76,7 +75,7 @@ public class RecipeApiController extends BaseTimeEntity {
     @GetMapping
     public ResponseEntity queryRecipes() {
         List<EntityModel<RecipeListResponseDto>> entityModelList= new ArrayList<>();
-        List<Recipe> recipeList = recipeRepository.findAll();
+        List<Recipe> recipeList = recipeRepository.findByStatus(RecipeStatus.ACTIVE);
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(RecipeApiController.class);
 
@@ -86,7 +85,7 @@ public class RecipeApiController extends BaseTimeEntity {
 
             EntityModel<RecipeListResponseDto> entityModel = EntityModel.of(responseDto,
                     selfLinkBuilder.slash(recipe.getId()).withRel("update-recipe"),
-                    selfLinkBuilder.slash(recipe.getId()).withRel("delete-recipe")
+                    selfLinkBuilder.slash(recipe.getId()).slash("inactive").withRel("inactive-recipe")
             );
             entityModelList.add(entityModel);
         }
@@ -150,24 +149,42 @@ public class RecipeApiController extends BaseTimeEntity {
         return ResponseEntity.ok(representationModel);
     }
 
-    @PutMapping("{id}/hidden")
-    public ResponseEntity hideRecipe(@PathVariable Long id) {
+    @PutMapping("{id}/inactive")
+    public ResponseEntity inactiveRecipe(@PathVariable Long id) {
         Optional<Recipe> optionalRecipe = recipeRepository.findById(id);
         if (!optionalRecipe.isPresent()) {
             return ResponseEntity.notFound().build();
         }
 
-        WebMvcLinkBuilder selfLinkBuilder = linkTo(RecipeApiController.class).slash(id);
+        recipeService.inactiveRecipe(id);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(RecipeApiController.class).slash(id).slash("inactive");
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(
                 selfLinkBuilder.withSelfRel(),
                 linkTo(RecipeApiController.class).withRel("query-recipes"),
-                profileRootUrlBuilder.slash("index.html#resources-update-recipe").withRel("profile")
+                profileRootUrlBuilder.slash("index.html#resources-inactive-recipe").withRel("profile")
         );
 
         return ResponseEntity.ok(representationModel);
     }
+
+    @GetMapping("/ingredients")
+    public ResponseEntity queryIngredients() {
+        List<String> ingredients = recipeService.getSurveyResponseDto();
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(RecipeApiController.class).slash("ingredients");
+
+        CollectionModel<String> collectionModel = CollectionModel.of(ingredients,
+                selfLinkBuilder.withSelfRel(),
+                profileRootUrlBuilder.slash("index.html#resources-query-ingredients").withRel("profile")
+        );
+
+
+        return ResponseEntity.ok(collectionModel);
+    }
+
 
 
     private void validateNotNumber(RecipeRequestDto requestDto, Errors errors) {
@@ -183,5 +200,6 @@ public class RecipeApiController extends BaseTimeEntity {
     private ResponseEntity<EntityModel<Errors>> badRequest(Errors errors) {
         return ResponseEntity.badRequest().body(new ErrorsResource(errors));
     }
+
 
 }

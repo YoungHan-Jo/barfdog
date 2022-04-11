@@ -12,7 +12,7 @@ import javax.persistence.Embeddable;
 @Getter
 public class DogActivity {
 
-    private int activityLevel; // 활동량 1~5
+    private ActivityLevel activityLevel; // [VERY_LITTLE, LITTLE, NORMAL, MUCH, VERY_MUCH]
     private int walkingCountPerWeek; // 산책 회수
     private double walkingTimePerOneTime; // 산책 시간
 
