@@ -37,7 +37,7 @@ public class Dog extends BaseTimeEntity {
 
     private String birth; // yyyyMM 형식
 
-    private int startAge; // 바프독 시작 나이
+    private Long startAge; // 바프독 시작 나이
 
     private boolean oldDog; // 노령견 여부
 

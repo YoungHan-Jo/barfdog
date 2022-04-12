@@ -628,9 +628,9 @@ public class RecipeApiControllerTest extends BaseTest {
     @DisplayName("정상적으로 레시피를 비활성화 시키는 테스트")
     public void inactive_recipe() throws Exception {
        //given
-        Recipe recipe = generateRecipe(1);
+        Recipe recipe = recipeRepository.findByName("스타트").get();
 
-       //when & then
+        //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.put("/api/recipes/{id}/inactive", recipe.getId())
                         .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -683,22 +683,63 @@ public class RecipeApiControllerTest extends BaseTest {
     @Test
     @DisplayName("정상적으로 재료 리스트 호출하는 테스트")
     public void queryIngredients() throws Exception {
-       //given
-       IntStream.range(1,10).forEach(i -> {
-           generateRecipe(i);
-       });
-
        //when & then
         mockMvc.perform(get("/api/recipes/ingredients")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-        ;
-
-
-      
+                .andDo(document("query_ingredients",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_embedded.stringList").description("재료 리스트"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
     }
+
+    @Test
+    @DisplayName("설문조사에 나올 레시피 리스트 조회하는 테스트")
+    public void querySurveyRecipes() throws Exception {
+       //when & then
+        mockMvc.perform(get("/api/recipes/survey")
+                        .accept(MediaTypes.HAL_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("query_recipesForSurvey",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_embedded.recipeSurveyResponseDtoList[0].id").description("레시피 id"),
+                                fieldWithPath("_embedded.recipeSurveyResponseDtoList[0].descriptionForSurvey").description("설문조사용 레시피 설명"),
+                                fieldWithPath("_embedded.recipeSurveyResponseDtoList[0].ingredients").description("재료 리스트"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+    }
+
     
     
     

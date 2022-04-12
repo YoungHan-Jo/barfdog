@@ -667,9 +667,9 @@ public class IndexApiControllerTest extends BaseTest {
     private Member generateSampleMember() {
         Member member = Member.builder()
                 .name("샘플Member")
-                .email("sample4494@gmail.com")
+                .email("jo.younghan8544@gmail.com")
                 .password(bCryptPasswordEncoder.encode("1234"))
-                .phoneNumber("01088881111")
+                .phoneNumber("01099038544")
                 .address(new Address("48060","부산시","해운대구 센텀2로 19","브리티시인터내셔널"))
                 .birthday("20000521")
                 .gender(Gender.FEMALE)

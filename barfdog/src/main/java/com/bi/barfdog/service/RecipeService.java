@@ -2,7 +2,6 @@ package com.bi.barfdog.service;
 
 import com.bi.barfdog.api.recipeDto.RecipeRequestDto;
 import com.bi.barfdog.api.recipeDto.RecipeSurveyResponseDto;
-import com.bi.barfdog.api.recipeDto.SurveyResponseDto;
 import com.bi.barfdog.domain.banner.ImgFilenamePath;
 import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.recipe.RecipeStatus;
@@ -10,6 +9,7 @@ import com.bi.barfdog.domain.recipe.ThumbnailImage;
 import com.bi.barfdog.repository.RecipeRepository;
 import com.bi.barfdog.service.file.StorageService;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,6 +26,8 @@ public class RecipeService {
     private final RecipeRepository recipeRepository;
 
     private final StorageService storageService;
+
+    private final ModelMapper modelMapper;
 
     @Transactional
     public void save(RecipeRequestDto requestDto, MultipartFile file1, MultipartFile file2) {
@@ -79,23 +81,27 @@ public class RecipeService {
         recipe.inactive();
     }
 
-    public List<String> getSurveyResponseDto() {
+    public List<String> getIngredients() {
 
         List<String> ingredientList = getIngredientList();
 
         return ingredientList;
     }
 
+    public List<RecipeSurveyResponseDto> getRecipesForSurvey() {
+        List<RecipeSurveyResponseDto> dtoList = new ArrayList<>();
 
+        List<Recipe> recipes = recipeRepository.findByStatus(RecipeStatus.ACTIVE);
 
+        for (Recipe recipe : recipes) {
+            RecipeSurveyResponseDto responseDto = modelMapper.map(recipe, RecipeSurveyResponseDto.class);
+            responseDto.setIngredients(recipe.getIngredientList());
 
+            dtoList.add(responseDto);
+        }
 
-
-
-
-
-
-
+        return dtoList;
+    }
 
 
     private List<String> getIngredientList() {
@@ -128,4 +134,6 @@ public class RecipeService {
 
         return null;
     }
+
+
 }

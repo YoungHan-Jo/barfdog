@@ -4,11 +4,16 @@ import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.domain.Address;
 import com.bi.barfdog.domain.member.*;
+import com.bi.barfdog.domain.recipe.Leaked;
+import com.bi.barfdog.domain.recipe.Recipe;
+import com.bi.barfdog.domain.recipe.RecipeStatus;
+import com.bi.barfdog.domain.recipe.ThumbnailImage;
 import com.bi.barfdog.domain.setting.ActivityConstant;
 import com.bi.barfdog.domain.setting.DeliveryConstant;
 import com.bi.barfdog.domain.setting.Setting;
 import com.bi.barfdog.domain.setting.SnackConstant;
 import com.bi.barfdog.repository.MemberRepository;
+import com.bi.barfdog.repository.RecipeRepository;
 import com.bi.barfdog.repository.SettingRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +48,10 @@ public class AppConfig {
         return new ApplicationRunner() {
 
             @Autowired MemberRepository memberRepository;
+
+            @Autowired
+            RecipeRepository recipeRepository;
+
             @Autowired
             SettingRepository settingRepository;
 
@@ -106,6 +115,72 @@ public class AppConfig {
                         .build();
 
                 settingRepository.save(setting);
+
+                Recipe recipe1 = Recipe.builder()
+                        .name("스타트")
+                        .description("레시피 설명")
+                        .uiNameKorean("레시피 한글")
+                        .uiNameEnglish("RECIPE ENGLISH")
+                        .pricePerGram(new BigDecimal("48.234"))
+                        .gramPerKcal(new BigDecimal("1.23456"))
+                        .ingredients("닭,칠면조")
+                        .descriptionForSurvey("안정적인 첫 생식 적응")
+                        .thumbnailImage(new ThumbnailImage("http://xxxx.com/recipe", "스타트1.jpg", "스타트2.jpg"))
+                        .leaked(Leaked.LEAKED)
+                        .inStock(true)
+                        .status(RecipeStatus.ACTIVE)
+                        .build();
+
+                Recipe recipe2 = Recipe.builder()
+                        .name("터키비프")
+                        .description("레시피 설명")
+                        .uiNameKorean("레시피 한글")
+                        .uiNameEnglish("RECIPE ENGLISH")
+                        .pricePerGram(new BigDecimal("48.234"))
+                        .gramPerKcal(new BigDecimal("1.23456"))
+                        .ingredients("칠면조,소")
+                        .descriptionForSurvey("피로회복 면역력 향상")
+                        .thumbnailImage(new ThumbnailImage("http://xxxx.com/recipe", "터키비프1.jpg", "터키비프2.jpg"))
+                        .leaked(Leaked.LEAKED)
+                        .inStock(true)
+                        .status(RecipeStatus.ACTIVE)
+                        .build();
+
+                Recipe recipe3 = Recipe.builder()
+                        .name("덕램")
+                        .description("레시피 설명")
+                        .uiNameKorean("레시피 한글")
+                        .uiNameEnglish("RECIPE ENGLISH")
+                        .pricePerGram(new BigDecimal("48.234"))
+                        .gramPerKcal(new BigDecimal("1.23456"))
+                        .ingredients("오리,양")
+                        .descriptionForSurvey("피부와 모질강화 필요")
+                        .thumbnailImage(new ThumbnailImage("http://xxxx.com/recipe", "덕램1.jpg", "덕램2.jpg"))
+                        .leaked(Leaked.LEAKED)
+                        .inStock(true)
+                        .status(RecipeStatus.ACTIVE)
+                        .build();
+
+                Recipe recipe4 = Recipe.builder()
+                        .name("램비프")
+                        .description("레시피 설명")
+                        .uiNameKorean("레시피 한글")
+                        .uiNameEnglish("RECIPE ENGLISH")
+                        .pricePerGram(new BigDecimal("48.234"))
+                        .gramPerKcal(new BigDecimal("1.23456"))
+                        .ingredients("양,소")
+                        .descriptionForSurvey("건강한 성장과 영양보충")
+                        .thumbnailImage(new ThumbnailImage("http://xxxx.com/recipe", "램비프1.jpg", "램비프2.jpg"))
+                        .leaked(Leaked.LEAKED)
+                        .inStock(true)
+                        .status(RecipeStatus.ACTIVE)
+                        .build();
+
+                recipeRepository.save(recipe1);
+                recipeRepository.save(recipe2);
+                recipeRepository.save(recipe3);
+                recipeRepository.save(recipe4);
+
 
             }
         };

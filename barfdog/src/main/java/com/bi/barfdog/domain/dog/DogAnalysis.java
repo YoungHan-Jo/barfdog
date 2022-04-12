@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.Embeddable;
+import java.math.BigDecimal;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -12,8 +13,8 @@ import javax.persistence.Embeddable;
 @Embeddable
 public class DogAnalysis {
 
-    private int oneDayRecommendKcal;
-    private int oneDayRecommendGram;
-    private int oneMealRecommendGram;
+    private BigDecimal oneDayRecommendKcal;
+    private BigDecimal oneDayRecommendGram;
+    private BigDecimal oneMealRecommendGram;
 
 }

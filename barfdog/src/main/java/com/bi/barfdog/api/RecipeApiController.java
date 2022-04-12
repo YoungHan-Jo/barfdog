@@ -3,6 +3,7 @@ package com.bi.barfdog.api;
 import com.bi.barfdog.api.recipeDto.RecipeListResponseDto;
 import com.bi.barfdog.api.recipeDto.RecipeResponseDto;
 import com.bi.barfdog.api.recipeDto.RecipeRequestDto;
+import com.bi.barfdog.api.recipeDto.RecipeSurveyResponseDto;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.recipe.Recipe;
@@ -172,7 +173,7 @@ public class RecipeApiController extends BaseTimeEntity {
 
     @GetMapping("/ingredients")
     public ResponseEntity queryIngredients() {
-        List<String> ingredients = recipeService.getSurveyResponseDto();
+        List<String> ingredients = recipeService.getIngredients();
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(RecipeApiController.class).slash("ingredients");
 
@@ -181,6 +182,21 @@ public class RecipeApiController extends BaseTimeEntity {
                 profileRootUrlBuilder.slash("index.html#resources-query-ingredients").withRel("profile")
         );
 
+
+        return ResponseEntity.ok(collectionModel);
+    }
+
+    @GetMapping("/survey")
+    public ResponseEntity queryRecipesForSurvey() {
+
+        List<RecipeSurveyResponseDto> responseDtoList = recipeService.getRecipesForSurvey();
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(RecipeApiController.class).slash("survey");
+
+        CollectionModel<RecipeSurveyResponseDto> collectionModel = CollectionModel.of(responseDtoList,
+                selfLinkBuilder.withSelfRel(),
+                profileRootUrlBuilder.slash("index.html#resources-query-recipesForSurvey").withRel("profile")
+        );
 
         return ResponseEntity.ok(collectionModel);
     }
