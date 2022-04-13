@@ -82,31 +82,31 @@ public class DogApiControllerTest extends BaseTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isCreated())
-                .andDo(document("create_dog",
-                        links(
-                                linkWithRel("self").description("self 링크"),
-                                linkWithRel("survey-report").description("설문조사 결과"),
-                                linkWithRel("profile").description("해당 API 관련 문서 링크")
-                        ),
-                        requestHeaders(
-                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
-                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
-                        ),
-                        requestParameters(
-                                parameterWithName("name").description("이름"),
-                                parameterWithName("phoneNumber").description("휴대폰 번호 '010xxxxxxxx' -없는 문자열")
-                        ),
-                        responseHeaders(
-                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
-                        ),
-                        responseFields(
-                                fieldWithPath("email").description("회원 이메일"),
-                                fieldWithPath("provider").description("sns 로그인 제공사 / 없으면 Null"),
-                                fieldWithPath("_links.self.href").description("self 링크"),
-                                fieldWithPath("_links.login.href").description("로그인 요청 링크"),
-                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
-                        )
-                ));
+//                .andDo(document("create_dog",
+//                        links(
+//                                linkWithRel("self").description("self 링크"),
+//                                linkWithRel("survey-report").description("설문조사 결과"),
+//                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+//                        ),
+//                        requestHeaders(
+//                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+//                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+//                        ),
+//                        requestParameters(
+//                                parameterWithName("name").description("이름"),
+//                                parameterWithName("phoneNumber").description("휴대폰 번호 '010xxxxxxxx' -없는 문자열")
+//                        ),
+//                        responseHeaders(
+//                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+//                        ),
+//                        responseFields(
+//                                fieldWithPath("email").description("회원 이메일"),
+//                                fieldWithPath("provider").description("sns 로그인 제공사 / 없으면 Null"),
+//                                fieldWithPath("_links.self.href").description("self 링크"),
+//                                fieldWithPath("_links.login.href").description("로그인 요청 링크"),
+//                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+//                        )
+//                ));
         ;
       
     }

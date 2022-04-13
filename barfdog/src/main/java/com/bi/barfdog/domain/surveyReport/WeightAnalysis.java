@@ -19,6 +19,6 @@ public class WeightAnalysis {
     private int weightGroupThreeCount;
     private int weightGroupFourCount;
     private int weightGroupFiveCount;
-    private String myWeightGroup;
+    private int myWeightGroup;
 
 }

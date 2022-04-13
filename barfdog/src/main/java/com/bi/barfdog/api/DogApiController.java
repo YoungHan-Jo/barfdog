@@ -2,7 +2,6 @@ package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
 import com.bi.barfdog.auth.CurrentUser;
-import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.dog.Dog;
@@ -49,7 +48,7 @@ public class DogApiController extends BaseTimeEntity {
             return notFound();
         }
 
-        Dog dog = dogService.createDog(requestDto, member);
+        Dog dog = dogService.createDogAndSurveyReport(requestDto, member);
 
         EntityModel<Dog> entityModel = EntityModel.of(dog);
 

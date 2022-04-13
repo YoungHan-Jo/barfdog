@@ -20,6 +20,6 @@ public class ActivityAnalysis {
     private int activityGroupThreeCount;
     private int activityGroupFourCount;
     private int activityGroupFiveCount;
-    private String myActivityGroup;
+    private int myActivityGroup;
 
 }

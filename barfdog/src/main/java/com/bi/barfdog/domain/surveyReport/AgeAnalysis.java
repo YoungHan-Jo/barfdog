@@ -13,12 +13,12 @@ import javax.persistence.Embeddable;
 @Embeddable
 public class AgeAnalysis {
 
-    private double avgAge;
+    private int avgAgeMonth;
     private int ageGroupOneCount;
     private int ageGroupTwoCount;
     private int ageGroupThreeCount;
     private int ageGroupFourCount;
     private int ageGroupFiveCount;
-    private String myAgeGroup;
+    private int myAgeGroup;
 
 }

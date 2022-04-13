@@ -12,6 +12,7 @@ import com.bi.barfdog.domain.subscribe.SubscribeStatus;
 import com.bi.barfdog.domain.surveyReport.AgeAnalysis;
 import com.bi.barfdog.domain.surveyReport.FoodAnalysis;
 import com.bi.barfdog.domain.surveyReport.SurveyReport;
+import com.bi.barfdog.domain.surveyReport.WeightAnalysis;
 import com.bi.barfdog.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -38,7 +39,7 @@ public class DogService {
 
 
     @Transactional
-    public Dog createDog(DogSaveRequestDto requestDto, Member member) {
+    public Dog createDogAndSurveyReport(DogSaveRequestDto requestDto, Member member) {
 
         List<Dog> dogs = dogRepository.findByMember(member);
         Recipe recipe = recipeRepository.findById(requestDto.getRecommendRecipeId()).get();
@@ -58,7 +59,6 @@ public class DogService {
         SnackCountLevel snackCountLevel = requestDto.getSnackCountLevel();
         BigDecimal weight = new BigDecimal(requestDto.getWeight());
 
-        FoodAnalysis foodAnalysis = getDogAnalysis(requestDto, recipe, dogSize, startAgeMonth, oldDog, neutralization, dogStatus, requestDto.getActivityLevel(), snackCountLevel);
 
         Dog dog = Dog.builder()
                 .member(member)
@@ -81,14 +81,25 @@ public class DogService {
                 .caution(requestDto.getCaution())
                 .subscribe(subscribe)
                 .build();
-
         dogRepository.save(dog);
 
+        AgeAnalysis ageAnalysis = getAgeAnalysis(startAgeMonth);
+        WeightAnalysis weightAnalysis = getWeightAnalysis(dogSize, weight);
+
+
+
+        List<String> activityGroup = dogRepository.findActivityGroupByDogSize(dogSize);
+
+        for (String s : activityGroup) {
+
+        }
+
+
+        FoodAnalysis foodAnalysis = getDogAnalysis(requestDto, recipe, dogSize, startAgeMonth, oldDog, neutralization, dogStatus, requestDto.getActivityLevel(), snackCountLevel);
         SurveyReport surveyReport = SurveyReport.builder()
                 .dog(dog)
-                .ageAnalysis(
-                        AgeAnalysis.builder()
-                        .build())
+                .ageAnalysis(ageAnalysis)
+                .weightAnalysis(weightAnalysis)
                 .foodAnalysis(foodAnalysis)
                 .build();
 
@@ -98,6 +109,147 @@ public class DogService {
 
 
         return dog;
+    }
+
+    private WeightAnalysis getWeightAnalysis(DogSize dogSize, BigDecimal weight) {
+        double avgWeightByDogSize = dogRepository.findAvgWeightByDogSize(dogSize);
+
+        double avgWeight = Math.round(avgWeightByDogSize * 10.0) / 10.0;
+
+        double fattestWeightByDogSize = dogRepository.findFattestWeightByDogSize(dogSize);
+        double lightestWeight = dogRepository.findLightestWeightByDogSize(dogSize);
+
+        double weightRange = Math.round(((fattestWeightByDogSize-lightestWeight)/5.0) * 10.0) / 10.0;
+
+        List<String> weightGroup = dogRepository.findWeightGroupByDogSize(dogSize, lightestWeight, weightRange);
+
+        int weightGroupOneCount = 0;
+        int weightGroupTwoCount = 0;
+        int weightGroupThreeCount = 0;
+        int weightGroupFourCount = 0;
+        int weightGroupFiveCount = 0;
+
+        for (String s : weightGroup) {
+            switch (s) {
+                case "1": weightGroupOneCount++;
+                    break;
+                case "2": weightGroupTwoCount++;
+                    break;
+                case "3": weightGroupThreeCount++;
+                    break;
+                case "4": weightGroupFourCount++;
+                    break;
+                case "5": weightGroupFiveCount++;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        int myWeightGroup = getMyWeightGroup(weight, lightestWeight, weightRange);
+
+        WeightAnalysis weightAnalysis = WeightAnalysis.builder()
+                .avgWeight(avgWeight)
+                .weightGroupOneCount(weightGroupOneCount)
+                .weightGroupTwoCount(weightGroupTwoCount)
+                .weightGroupThreeCount(weightGroupThreeCount)
+                .weightGroupFourCount(weightGroupFourCount)
+                .weightGroupFiveCount(weightGroupFiveCount)
+                .myWeightGroup(myWeightGroup)
+                .build();
+
+        return weightAnalysis;
+    }
+
+    private int getMyWeightGroup(BigDecimal weight, double lightestWeight, double weightRange) {
+        int myWeightGroup;
+
+        if (includedInRange(weight, lightestWeight + weightRange)) {
+            myWeightGroup = 1;
+        } else if(includedInRange(weight, lightestWeight + weightRange * 2.0)) {
+            myWeightGroup = 2;
+        } else if(includedInRange(weight, lightestWeight + weightRange * 3.0)) {
+            myWeightGroup = 3;
+        } else if (includedInRange(weight, lightestWeight + weightRange * 4.0)) {
+            myWeightGroup = 4;
+        } else {
+            myWeightGroup = 5;
+        }
+        return myWeightGroup;
+    }
+
+    private boolean includedInRange(BigDecimal weight, double weightRange) {
+        int compare = weight.compareTo(BigDecimal.valueOf(weightRange));
+
+        if (compare <= 0) {
+            return true;
+        }
+        return false;
+    }
+
+    private AgeAnalysis getAgeAnalysis(Long startAgeMonth) {
+        double avgAgeMonth = dogRepository.findAvgStartAgeMonth();
+
+        int oldestMonth = dogRepository.findOldestMonth();
+
+        long monthRange = Math.round(oldestMonth / 5.0);
+
+        int avgMonth = (int) Math.round(avgAgeMonth);
+
+        List<String> ageGroup = dogRepository.findAgeGroup(monthRange);
+
+        int ageGroupOneCount = 0;
+        int ageGroupTwoCount = 0;
+        int ageGroupThreeCount = 0;
+        int ageGroupFourCount = 0;
+        int ageGroupFiveCount = 0;
+
+        for (String s : ageGroup) {
+            switch (s) {
+                case "1": ageGroupOneCount++;
+                    break;
+                case "2": ageGroupTwoCount++;
+                    break;
+                case "3": ageGroupThreeCount++;
+                    break;
+                case "4": ageGroupFourCount++;
+                    break;
+                case "5": ageGroupFiveCount++;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        int myAgeGroup = getMyAgeGroup(startAgeMonth, monthRange);
+
+        AgeAnalysis ageAnalysis = AgeAnalysis.builder()
+                .avgAgeMonth(avgMonth)
+                .ageGroupOneCount(ageGroupOneCount)
+                .ageGroupTwoCount(ageGroupTwoCount)
+                .ageGroupThreeCount(ageGroupThreeCount)
+                .ageGroupFourCount(ageGroupFourCount)
+                .ageGroupFiveCount(ageGroupFiveCount)
+                .myAgeGroup(myAgeGroup)
+                .build();
+        return ageAnalysis;
+    }
+
+    private int getMyAgeGroup(Long startAgeMonth, long monthRange) {
+        int myAgeGroup;
+
+        if (startAgeMonth < monthRange) {
+            myAgeGroup = 1;
+        } else if (startAgeMonth < monthRange * 2) {
+            myAgeGroup = 2;
+        } else if (startAgeMonth < monthRange * 3) {
+            myAgeGroup = 3;
+        } else if (startAgeMonth < monthRange * 4) {
+            myAgeGroup = 4;
+        } else {
+            myAgeGroup = 5;
+        }
+        return myAgeGroup;
     }
 
     private DogActivity getDogActivity(DogSaveRequestDto requestDto) {
