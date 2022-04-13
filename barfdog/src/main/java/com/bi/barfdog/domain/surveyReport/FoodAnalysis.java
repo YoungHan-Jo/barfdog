@@ -1,4 +1,4 @@
-package com.bi.barfdog.domain.dog;
+package com.bi.barfdog.domain.surveyReport;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Getter
 @Embeddable
-public class DogAnalysis {
+public class FoodAnalysis {
 
     private BigDecimal oneDayRecommendKcal;
     private BigDecimal oneDayRecommendGram;

@@ -1,7 +1,6 @@
 package com.bi.barfdog.service;
 
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
-import com.bi.barfdog.common.StandardVar;
 import com.bi.barfdog.domain.dog.*;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.recipe.Recipe;
@@ -10,10 +9,10 @@ import com.bi.barfdog.domain.setting.Setting;
 import com.bi.barfdog.domain.setting.SnackConstant;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.domain.subscribe.SubscribeStatus;
-import com.bi.barfdog.repository.DogRepository;
-import com.bi.barfdog.repository.RecipeRepository;
-import com.bi.barfdog.repository.SettingRepository;
-import com.bi.barfdog.repository.SubscribeRepository;
+import com.bi.barfdog.domain.surveyReport.AgeAnalysis;
+import com.bi.barfdog.domain.surveyReport.FoodAnalysis;
+import com.bi.barfdog.domain.surveyReport.SurveyReport;
+import com.bi.barfdog.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +23,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-import static com.bi.barfdog.common.StandardVar.*;
+import static com.bi.barfdog.config.StandardVar.*;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -35,6 +34,7 @@ public class DogService {
     private final RecipeRepository recipeRepository;
     private final SubscribeRepository subscribeRepository;
     private final SettingRepository settingRepository;
+    private final SurveyReportRepository surveyReportRepository;
 
 
     @Transactional
@@ -51,14 +51,14 @@ public class DogService {
         subscribeRepository.save(subscribe);
 
         DogSize dogSize = requestDto.getDogSize();
-        Long startAge = getTerm(birth + "01");
+        Long startAgeMonth = getTerm(birth + "01");
         boolean oldDog = requestDto.isOldDog();
         boolean neutralization = requestDto.isNeutralization();
         DogStatus dogStatus = requestDto.getDogStatus();
         SnackCountLevel snackCountLevel = requestDto.getSnackCountLevel();
         BigDecimal weight = new BigDecimal(requestDto.getWeight());
 
-        DogAnalysis dogAnalysis = getDogAnalysis(requestDto, recipe, dogSize, startAge, oldDog, neutralization, dogStatus, requestDto.getActivityLevel(), snackCountLevel);
+        FoodAnalysis foodAnalysis = getDogAnalysis(requestDto, recipe, dogSize, startAgeMonth, oldDog, neutralization, dogStatus, requestDto.getActivityLevel(), snackCountLevel);
 
         Dog dog = Dog.builder()
                 .member(member)
@@ -66,7 +66,7 @@ public class DogService {
                 .name(requestDto.getName())
                 .gender(requestDto.getGender())
                 .birth(birth)
-                .startAge(startAge)
+                .startAgeMonth(startAgeMonth)
                 .oldDog(oldDog)
                 .dogType(requestDto.getDogType())
                 .dogSize(dogSize)
@@ -80,10 +80,22 @@ public class DogService {
                 .recommendRecipe(recipe)
                 .caution(requestDto.getCaution())
                 .subscribe(subscribe)
-                .dogAnalysis(dogAnalysis)
                 .build();
 
         dogRepository.save(dog);
+
+        SurveyReport surveyReport = SurveyReport.builder()
+                .dog(dog)
+                .ageAnalysis(
+                        AgeAnalysis.builder()
+                        .build())
+                .foodAnalysis(foodAnalysis)
+                .build();
+
+        surveyReportRepository.save(surveyReport);
+
+        dog.setSurveyReport(surveyReport);
+
 
         return dog;
     }
@@ -92,7 +104,7 @@ public class DogService {
         return new DogActivity(requestDto.getActivityLevel(), Integer.valueOf(requestDto.getWalkingCountPerWeek()), Double.valueOf(requestDto.getWalkingTimePerOneTime()));
     }
 
-    private DogAnalysis getDogAnalysis(DogSaveRequestDto requestDto, Recipe recipe, DogSize dogSize, Long startAge, boolean oldDog, boolean neutralization, DogStatus dogStatus, ActivityLevel activityLevel, SnackCountLevel snackCountLevel) {
+    private FoodAnalysis getDogAnalysis(DogSaveRequestDto requestDto, Recipe recipe, DogSize dogSize, Long startAge, boolean oldDog, boolean neutralization, DogStatus dogStatus, ActivityLevel activityLevel, SnackCountLevel snackCountLevel) {
         BigDecimal rootVar = BigDecimal.valueOf(70.0);
         BigDecimal standardVar = getStandardVar(dogSize, startAge, oldDog, neutralization, dogStatus);
 
@@ -115,8 +127,8 @@ public class DogService {
 
         BigDecimal oneMealRecommendGram = oneDayRecommendGram.divide(BigDecimal.valueOf(2)).setScale(0,BigDecimal.ROUND_HALF_UP);
 
-        DogAnalysis dogAnalysis = new DogAnalysis(recommendKcal, oneDayRecommendGram, oneMealRecommendGram);
-        return dogAnalysis;
+        FoodAnalysis foodAnalysis = new FoodAnalysis(recommendKcal, oneDayRecommendGram, oneMealRecommendGram);
+        return foodAnalysis;
     }
 
     private BigDecimal getSnackVar(SnackCountLevel snackCountLevel, SnackConstant snackConstant) {

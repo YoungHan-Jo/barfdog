@@ -3,7 +3,6 @@ package com.bi.barfdog.api;
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
-import com.bi.barfdog.config.AppConfig;
 import com.bi.barfdog.domain.dog.ActivityLevel;
 import com.bi.barfdog.domain.dog.DogSize;
 import com.bi.barfdog.domain.dog.DogStatus;
@@ -22,10 +21,17 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.nio.charset.Charset;
 
-import static org.junit.Assert.*;
+import static org.springframework.restdocs.headers.HeaderDocumentation.*;
+import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
+import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
+import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -47,7 +53,6 @@ public class DogApiControllerTest extends BaseTest {
     public void create_dog() throws Exception {
         //Given
         Recipe recipe = recipeRepository.findByName("스타트").get();
-
 
         DogSaveRequestDto requestDto = DogSaveRequestDto.builder()
                 .name("김바프")
@@ -77,6 +82,31 @@ public class DogApiControllerTest extends BaseTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isCreated())
+                .andDo(document("create_dog",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("survey-report").description("설문조사 결과"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        requestParameters(
+                                parameterWithName("name").description("이름"),
+                                parameterWithName("phoneNumber").description("휴대폰 번호 '010xxxxxxxx' -없는 문자열")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("email").description("회원 이메일"),
+                                fieldWithPath("provider").description("sns 로그인 제공사 / 없으면 Null"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.login.href").description("로그인 요청 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
         ;
       
     }
@@ -107,7 +137,6 @@ public class DogApiControllerTest extends BaseTest {
     public void create_dog_not_number() throws Exception {
         //Given
         Recipe recipe = recipeRepository.findByName("스타트").get();
-
 
         DogSaveRequestDto requestDto = DogSaveRequestDto.builder()
                 .name("김바프")
@@ -140,18 +169,7 @@ public class DogApiControllerTest extends BaseTest {
         ;
 
     }
-    
-    @Test
-    public void pow() throws Exception {
-       //given
 
-        BigDecimal add = BigDecimal.valueOf(100.0).subtract(BigDecimal.valueOf(1.50));
-        System.out.println("add = " + add);
-
-
-        //when & then
-      
-    }
     
 
 

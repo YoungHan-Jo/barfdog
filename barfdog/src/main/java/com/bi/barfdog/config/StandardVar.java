@@ -1,4 +1,4 @@
-package com.bi.barfdog.common;
+package com.bi.barfdog.config;
 
 public interface StandardVar {
     double YOUNG_DOG = 1.425;

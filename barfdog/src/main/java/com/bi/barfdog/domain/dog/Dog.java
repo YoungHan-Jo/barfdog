@@ -5,11 +5,12 @@ import com.bi.barfdog.domain.member.Gender;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.subscribe.Subscribe;
+import com.bi.barfdog.domain.surveyReport.FoodAnalysis;
+import com.bi.barfdog.domain.surveyReport.SurveyReport;
 import lombok.*;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
 import static javax.persistence.FetchType.*;
 
@@ -37,7 +38,7 @@ public class Dog extends BaseTimeEntity {
 
     private String birth; // yyyyMM 형식
 
-    private Long startAge; // 바프독 시작 나이
+    private Long startAgeMonth; // 바프독 시작 나이(개월)
 
     private boolean oldDog; // 노령견 여부
 
@@ -72,12 +73,15 @@ public class Dog extends BaseTimeEntity {
     @JoinColumn(name = "subscribe_id")
     private Subscribe subscribe;
 
+    @OneToOne(fetch = LAZY)
+    @JoinColumn(name = "survey_report_id")
+    private SurveyReport surveyReport;
+
     @Embedded
     private DogProfilePicture dogProfilePicture;
 
-    @Embedded
-    private DogAnalysis dogAnalysis;
 
-
-
+    public void setSurveyReport(SurveyReport surveyReport) {
+        this.surveyReport = surveyReport;
+    }
 }
