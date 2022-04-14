@@ -35,8 +35,6 @@ public class MemberApiController {
     private final ModelMapper modelMapper;
     private final MemberValidator memberValidator;
 
-
-
     WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
 
 

@@ -3,6 +3,8 @@ package com.bi.barfdog.repository;
 import com.bi.barfdog.domain.dog.ActivityLevel;
 import com.bi.barfdog.domain.dog.DogSize;
 import com.bi.barfdog.domain.dog.QDog;
+import com.bi.barfdog.domain.dog.SnackCountLevel;
+import com.bi.barfdog.domain.member.QMember;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 import static com.bi.barfdog.domain.dog.QDog.dog;
+import static com.bi.barfdog.domain.member.QMember.*;
 
 
 @RequiredArgsConstructor
@@ -71,6 +74,64 @@ public class DogRepositoryImpl implements DogRepositoryCustom{
                 .where(dog.dogSize.eq(dogSize))
                 .fetch();
 
+        return results;
+    }
+
+    @Override
+    public double findAvgTotalWalkingTimeByCity(String city) {
+        Double result = queryFactory
+                .select(dog.dogActivity.walkingTimePerOneTime.multiply(dog.dogActivity.walkingCountPerWeek).avg())
+                .from(dog)
+                .join(dog.member, member)
+                .where(member.address.city.eq(city))
+                .fetchOne();
+
+        return result;
+    }
+
+    @Override
+    public double findAvgTotalWalkingTimeByAge(double age) {
+        Double result = queryFactory
+                .select(dog.dogActivity.walkingTimePerOneTime.multiply(dog.dogActivity.walkingCountPerWeek).avg())
+                .from(dog)
+                .where(dog.startAgeMonth.divide(12).floor().eq((long) age))
+                .fetchOne();
+
+        return result;
+    }
+
+    @Override
+    public double findAvgTotalWalkingTimeByDogSize(DogSize dogSize) {
+        Double result = queryFactory
+                .select(dog.dogActivity.walkingTimePerOneTime.multiply(dog.dogActivity.walkingCountPerWeek).avg())
+                .from(dog)
+                .where(dog.dogSize.eq(dogSize))
+                .fetchOne();
+        return result;
+    }
+
+    @Override
+    public List<Long> findRanksById(Long id) {
+        List<Long> results = queryFactory
+                .select(dog.id)
+                .from(dog)
+                .orderBy((dog.dogActivity.walkingCountPerWeek.multiply(dog.dogActivity.walkingTimePerOneTime)).desc())
+                .fetch();
+
+        return results;
+    }
+
+    @Override
+    public List<String> findSnackGroupByDogSize(DogSize dogSize) {
+        List<String> results = queryFactory
+                .select(new CaseBuilder()
+                        .when(dog.snackCountLevel.eq(SnackCountLevel.LITTLE)).then("1")
+                        .when(dog.snackCountLevel.eq(SnackCountLevel.NORMAL)).then("2")
+                        .otherwise("3")
+                )
+                .from(dog)
+                .where(dog.dogSize.eq(dogSize))
+                .fetch();
         return results;
     }
 

@@ -9,10 +9,7 @@ import com.bi.barfdog.domain.setting.Setting;
 import com.bi.barfdog.domain.setting.SnackConstant;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.domain.subscribe.SubscribeStatus;
-import com.bi.barfdog.domain.surveyReport.AgeAnalysis;
-import com.bi.barfdog.domain.surveyReport.FoodAnalysis;
-import com.bi.barfdog.domain.surveyReport.SurveyReport;
-import com.bi.barfdog.domain.surveyReport.WeightAnalysis;
+import com.bi.barfdog.domain.surveyReport.*;
 import com.bi.barfdog.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -39,7 +36,7 @@ public class DogService {
 
 
     @Transactional
-    public Dog createDogAndSurveyReport(DogSaveRequestDto requestDto, Member member) {
+    public void createDogAndSurveyReport(DogSaveRequestDto requestDto, Member member) {
 
         List<Dog> dogs = dogRepository.findByMember(member);
         Recipe recipe = recipeRepository.findById(requestDto.getRecommendRecipeId()).get();
@@ -83,32 +80,178 @@ public class DogService {
                 .build();
         dogRepository.save(dog);
 
-        AgeAnalysis ageAnalysis = getAgeAnalysis(startAgeMonth);
-        WeightAnalysis weightAnalysis = getWeightAnalysis(dogSize, weight);
-
-
-
-        List<String> activityGroup = dogRepository.findActivityGroupByDogSize(dogSize);
-
-        for (String s : activityGroup) {
-
-        }
-
-
-        FoodAnalysis foodAnalysis = getDogAnalysis(requestDto, recipe, dogSize, startAgeMonth, oldDog, neutralization, dogStatus, requestDto.getActivityLevel(), snackCountLevel);
         SurveyReport surveyReport = SurveyReport.builder()
                 .dog(dog)
-                .ageAnalysis(ageAnalysis)
-                .weightAnalysis(weightAnalysis)
-                .foodAnalysis(foodAnalysis)
+                .ageAnalysis(getAgeAnalysis(startAgeMonth))
+                .weightAnalysis(getWeightAnalysis(dogSize, weight))
+                .activityAnalysis(getActivityAnalysis(dogSize, dog))
+                .walkingAnalysis(getWalkingAnalysis(member, dog))
+                .foodAnalysis(getDogAnalysis(requestDto, recipe, dogSize, startAgeMonth, oldDog, neutralization, dogStatus, requestDto.getActivityLevel(), snackCountLevel))
+                .snackAnalysis(getSnackAnalysis(dog))
                 .build();
 
         surveyReportRepository.save(surveyReport);
 
         dog.setSurveyReport(surveyReport);
 
+    }
 
-        return dog;
+    private SnackAnalysis getSnackAnalysis(Dog dog) {
+        double avgSnackCountInLargeDog = getAvgSnackByDogSize(DogSize.LARGE);
+        double avgSnackCountInMiddleDog = getAvgSnackByDogSize(DogSize.MIDDLE);
+        double avgSnackCountInSmallDog = getAvgSnackByDogSize(DogSize.SMALL);
+
+        int mySnackCount = getMySnackCount(dog);
+
+        SnackAnalysis snackAnalysis = SnackAnalysis.builder()
+                .avgSnackCountInLargeDog(avgSnackCountInLargeDog)
+                .avgSnackCountInMiddleDog(avgSnackCountInMiddleDog)
+                .avgSnackCountInSmallDog(avgSnackCountInSmallDog)
+                .mySnackCount(mySnackCount)
+                .build();
+        return snackAnalysis;
+    }
+
+    private int getMySnackCount(Dog dog) {
+        int mySnackCount;
+
+        switch (dog.getSnackCountLevel()) {
+            case LITTLE: mySnackCount = 1;
+                break;
+            case NORMAL: mySnackCount = 2;
+                break;
+            default: mySnackCount = 3;
+                break;
+        }
+
+        return mySnackCount;
+    }
+
+    private double getAvgSnackByDogSize(DogSize dogSize) {
+        List<String> snackGroupByDogSize = dogRepository.findSnackGroupByDogSize(dogSize);
+
+        double sum = 0.0;
+
+        for (String s : snackGroupByDogSize) {
+            double d = Double.valueOf(s);
+            sum += d;
+        }
+        return Math.round(sum / snackGroupByDogSize.size() * 10.0) / 10.0;
+    }
+
+    private WalkingAnalysis getWalkingAnalysis(Member member, Dog dog) {
+        List<Long> ranks = dogRepository.findRanksById(dog.getId());
+        int rank = 1;
+        for (Long id : ranks) {
+            if (id == dog.getId()) {
+                break;
+            }
+            rank++;
+        }
+
+        double highRankPercent = Math.round((double) rank / ranks.size() * 1000.0) / 10.0;
+
+        double totalWalkingTime = dog.getDogActivity().getWalkingTimePerOneTime() * dog.getDogActivity().getWalkingCountPerWeek();
+        double avgWalkingTimeInCity = dogRepository.findAvgTotalWalkingTimeByCity(member.getAddress().getCity());
+        double avgTotalWalkingTimeByAge = dogRepository.findAvgTotalWalkingTimeByAge(Math.floor(dog.getStartAgeMonth() / 12));
+        double avgWalkingTimeInDogSize = dogRepository.findAvgTotalWalkingTimeByDogSize(dog.getDogSize());
+
+        WalkingAnalysis walkingAnalysis = WalkingAnalysis.builder()
+                .highRankPercent(highRankPercent)
+                .walkingCountPerWeek(dog.getDogActivity().getWalkingCountPerWeek())
+                .totalWalingTime(Math.round(totalWalkingTime * 10.0) / 10.0)
+                .avgWalkingTimeInCity(Math.round(avgWalkingTimeInCity * 10.0) / 10.0)
+                .avgWalkingTimeInAge(Math.round(avgTotalWalkingTimeByAge * 10.0) / 10.0)
+                .avgWalkingTimeInDogSize(Math.round(avgWalkingTimeInDogSize * 10.0) / 10.0)
+                .build();
+        return walkingAnalysis;
+    }
+
+    private ActivityAnalysis getActivityAnalysis(DogSize dogSize, Dog dog) {
+        List<String> activityGroup = dogRepository.findActivityGroupByDogSize(dogSize);
+
+        int activityGroupOneCount = 0;
+        int activityGroupTwoCount = 0;
+        int activityGroupThreeCount = 0;
+        int activityGroupFourCount = 0;
+        int activityGroupFiveCount = 0;
+
+        double sum = 0.0;
+
+        for (String s : activityGroup) {
+            switch (s) {
+                case "1": activityGroupOneCount++;
+                    break;
+                case "2": activityGroupTwoCount++;
+                    break;
+                case "3": activityGroupThreeCount++;
+                    break;
+                case "4": activityGroupFourCount++;
+                    break;
+                case "5": activityGroupFiveCount++;
+                    break;
+                default:
+                    break;
+            }
+            sum += Double.valueOf(s);
+        }
+
+        ActivityLevel avgActivityLevel = getAvgActivityLevel(activityGroup, sum);
+
+        int myActivityGroup = getMyActivityGroup(dog);
+
+        ActivityAnalysis activityAnalysis = ActivityAnalysis.builder()
+                .avgActivityLevel(avgActivityLevel)
+                .activityGroupOneCount(activityGroupOneCount)
+                .activityGroupTwoCount(activityGroupTwoCount)
+                .activityGroupThreeCount(activityGroupThreeCount)
+                .activityGroupFourCount(activityGroupFourCount)
+                .activityGroupFiveCount(activityGroupFiveCount)
+                .myActivityGroup(myActivityGroup)
+                .build();
+        return activityAnalysis;
+    }
+
+    private ActivityLevel getAvgActivityLevel(List<String> activityGroup, double sum) {
+        ActivityLevel avgActivityLevel;
+
+        int round = (int) Math.round(sum / activityGroup.size());
+        switch (round) {
+            case 1:
+                avgActivityLevel = ActivityLevel.VERY_LITTLE;
+                break;
+            case 2:
+                avgActivityLevel = ActivityLevel.LITTLE;
+                break;
+            case 3:
+                avgActivityLevel = ActivityLevel.NORMAL;
+                break;
+            case 4:
+                avgActivityLevel = ActivityLevel.MUCH;
+                break;
+            default:
+                avgActivityLevel = ActivityLevel.VERY_MUCH;
+                break;
+        }
+        return avgActivityLevel;
+    }
+
+    private int getMyActivityGroup(Dog dog) {
+        int myActivityGroup;
+
+        switch (dog.getDogActivity().getActivityLevel()) {
+            case VERY_LITTLE: myActivityGroup = 1;
+                break;
+            case LITTLE: myActivityGroup = 2;
+                break;
+            case NORMAL: myActivityGroup = 3;
+                break;
+            case MUCH: myActivityGroup = 4;
+                break;
+            default: myActivityGroup = 5;
+                break;
+        }
+        return myActivityGroup;
     }
 
     private WeightAnalysis getWeightAnalysis(DogSize dogSize, BigDecimal weight) {

@@ -14,10 +14,11 @@ import javax.persistence.Embeddable;
 public class WalkingAnalysis {
 
     private double highRankPercent;
+    private int walkingCountPerWeek;
     private double totalWalingTime;
 
     private double avgWalkingTimeInCity;
     private double avgWalkingTimeInAge;
-    private double aveWalkingTimeInDogSize;
+    private double avgWalkingTimeInDogSize;
 
 }

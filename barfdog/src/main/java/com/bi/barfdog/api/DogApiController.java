@@ -7,12 +7,16 @@ import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.dog.Dog;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.recipe.Recipe;
+import com.bi.barfdog.domain.surveyReport.SurveyReport;
+import com.bi.barfdog.repository.DogRepository;
 import com.bi.barfdog.repository.RecipeRepository;
 import com.bi.barfdog.service.DogService;
 import com.bi.barfdog.validator.CommonValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.MediaTypes;
+import org.springframework.hateoas.RepresentationModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
@@ -21,17 +25,25 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.persistence.EntityManager;
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Optional;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
 @RequiredArgsConstructor
 @RequestMapping(value = "/api/dogs", produces = MediaTypes.HAL_JSON_VALUE)
 @RestController
 public class DogApiController extends BaseTimeEntity {
 
-    private final CommonValidator commonValidator;
-    private final RecipeRepository recipeRepository;
     private final DogService dogService;
+    private final DogRepository dogRepository;
+    private final RecipeRepository recipeRepository;
+
+    private final CommonValidator commonValidator;
+
+    WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
 
     @PostMapping
     public ResponseEntity createDog(@RequestBody @Valid DogSaveRequestDto requestDto,
@@ -48,12 +60,16 @@ public class DogApiController extends BaseTimeEntity {
             return notFound();
         }
 
-        Dog dog = dogService.createDogAndSurveyReport(requestDto, member);
+        dogService.createDogAndSurveyReport(requestDto, member);
 
-        EntityModel<Dog> entityModel = EntityModel.of(dog);
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(DogApiController.class);
 
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(selfLinkBuilder.slash("surveyReport").withRel("query-surveyReport"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-create-dog").withRel("profile"));
 
-        return ResponseEntity.ok(entityModel);
+        return ResponseEntity.created(linkTo(DogApiController.class).slash("surveyReport").toUri()).body(representationModel);
     }
 
 

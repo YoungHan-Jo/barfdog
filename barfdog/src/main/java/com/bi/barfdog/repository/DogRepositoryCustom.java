@@ -13,4 +13,13 @@ public interface DogRepositoryCustom {
 
     List<String> findActivityGroupByDogSize(DogSize dogSize);
 
+    double findAvgTotalWalkingTimeByCity(String city);
+
+    double findAvgTotalWalkingTimeByAge(double floor);
+
+    double findAvgTotalWalkingTimeByDogSize(DogSize dogSize);
+
+    List<Long> findRanksById(Long id);
+
+    List<String> findSnackGroupByDogSize(DogSize dogSize);
 }

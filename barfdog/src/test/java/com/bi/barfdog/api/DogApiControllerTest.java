@@ -23,14 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.Charset;
 
-import static org.springframework.restdocs.headers.HeaderDocumentation.*;
-import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
-import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
-import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -61,13 +56,13 @@ public class DogApiControllerTest extends BaseTest {
                 .oldDog(false)
                 .dogType("포메라니안")
                 .dogSize(DogSize.SMALL)
-                .weight("5.4")
-                .neutralization(false)
-                .activityLevel(ActivityLevel.LITTLE)
-                .walkingCountPerWeek("5")
-                .walkingTimePerOneTime("0.5")
+                .weight("3.5")
+                .neutralization(true)
+                .activityLevel(ActivityLevel.NORMAL)
+                .walkingCountPerWeek("10")
+                .walkingTimePerOneTime("1.1")
                 .dogStatus(DogStatus.HEALTHY)
-                .snackCountLevel(SnackCountLevel.MUCH)
+                .snackCountLevel(SnackCountLevel.NORMAL)
                 .inedibleFood("NONE")
                 .inedibleFoodEtc("NONE")
                 .recommendRecipeId(recipe.getId())
@@ -169,11 +164,6 @@ public class DogApiControllerTest extends BaseTest {
         ;
 
     }
-
-    
-
-
-
 
 
     private String getAdminToken() throws Exception {
