@@ -34,8 +34,6 @@ public class Subscribe extends BaseTimeEntity {
     private int nextPaymentPrice;
     private LocalDate nextDeliveryDate;
 
-    // 쿠폰
-
 
 
     /*

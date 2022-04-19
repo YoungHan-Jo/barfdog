@@ -1,5 +1,7 @@
 package com.bi.barfdog.api;
 
+import com.bi.barfdog.auth.CurrentUser;
+import com.bi.barfdog.domain.member.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrderApiController {
 
     @GetMapping("/sheet/subscribe")
-    public void queryOrderSheetSubscribe() {
+    public void queryOrderSheetSubscribe(@CurrentUser Member member) {
+
 
     }
 
