@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.Embeddable;
+import java.math.BigDecimal;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,5 +21,6 @@ public class WeightAnalysis {
     private int weightGroupFourCount;
     private int weightGroupFiveCount;
     private int myWeightGroup;
+    private BigDecimal weightInLastReport;
 
 }

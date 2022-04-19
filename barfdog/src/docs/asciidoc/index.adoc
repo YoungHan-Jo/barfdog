@@ -369,3 +369,35 @@ operation::query_ingredients[snippets='curl-request,request-headers,request-body
 `GET` 요청을 사용해서 설문조사에 특별히챙겨주고싶은 부분 리스트를 조회할 수 있다.
 
 operation::query_recipesForSurvey[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+
+[[resources-dog-info]]
+== 강아지
+
+강아지 관련 리소스.
+
+[[resources-create-dog]]
+=== 강아지 등록
+
+`POST` 요청을 사용해서 설문조사 후 새로운 강아지를 등록 할 수 있다.
+
+operation::create_dog[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-surveyReport-info]]
+== 설문조사
+
+강아지 관련 리소스.
+
+[[resources-query-surveyReport]]
+=== 설문조사 리포트 조회
+
+`GET` 요청을 사용해서 설문조사 분석 리포트를 조회 할 수 있다.
+
+operation::query_surveyReport[snippets='curl-request,path-parameters,request-headers,response-headers,response-body,response-fields,links']
+
+[[resources-query-surveyResult]]
+=== 설문조사 리포트 레시피 추천 결과 조회
+
+`GET` 요청을 사용해서 설문조사 분석 리포트를 조회 할 수 있다.
+
+operation::query_surveyResult[snippets='curl-request,path-parameters,request-headers,response-headers,response-body,response-fields,links']

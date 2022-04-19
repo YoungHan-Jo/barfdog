@@ -116,12 +116,19 @@ querydsl {
 sourceSets {
 	main.java.srcDir querydslDir
 }
-configurations {
-	querydsl.extendsFrom compileClasspath
-}
+
 compileQuerydsl {
 	options.annotationProcessorPath = configurations.querydsl
 }
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+	querydsl.extendsFrom compileClasspath
+}
+//configurations {
+//	querydsl.extendsFrom compileClasspath
+//}
 //querydsl 추가 끝
 
 

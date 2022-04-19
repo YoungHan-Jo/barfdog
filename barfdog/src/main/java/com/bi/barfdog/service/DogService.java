@@ -36,7 +36,7 @@ public class DogService {
 
 
     @Transactional
-    public void createDogAndSurveyReport(DogSaveRequestDto requestDto, Member member) {
+    public SurveyReport createDogAndGetSurveyReport(DogSaveRequestDto requestDto, Member member) {
 
         List<Dog> dogs = dogRepository.findByMember(member);
         Recipe recipe = recipeRepository.findById(requestDto.getRecommendRecipeId()).get();
@@ -94,6 +94,7 @@ public class DogService {
 
         dog.setSurveyReport(surveyReport);
 
+        return surveyReport;
     }
 
     private SnackAnalysis getSnackAnalysis(Dog dog) {
@@ -299,6 +300,7 @@ public class DogService {
                 .weightGroupFourCount(weightGroupFourCount)
                 .weightGroupFiveCount(weightGroupFiveCount)
                 .myWeightGroup(myWeightGroup)
+                .weightInLastReport(weight)
                 .build();
 
         return weightAnalysis;
@@ -374,6 +376,7 @@ public class DogService {
                 .ageGroupFourCount(ageGroupFourCount)
                 .ageGroupFiveCount(ageGroupFiveCount)
                 .myAgeGroup(myAgeGroup)
+                .myStartAgeMonth(startAgeMonth)
                 .build();
         return ageAnalysis;
     }

@@ -23,12 +23,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.Charset;
 
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.restdocs.headers.HeaderDocumentation.*;
+import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
-import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.request.RequestDocumentation.*;
+import static org.springframework.restdocs.request.RequestDocumentation.partWithName;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Transactional
@@ -77,33 +82,46 @@ public class DogApiControllerTest extends BaseTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isCreated())
-//                .andDo(document("create_dog",
-//                        links(
-//                                linkWithRel("self").description("self 링크"),
-//                                linkWithRel("survey-report").description("설문조사 결과"),
-//                                linkWithRel("profile").description("해당 API 관련 문서 링크")
-//                        ),
-//                        requestHeaders(
-//                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
-//                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
-//                        ),
-//                        requestParameters(
-//                                parameterWithName("name").description("이름"),
-//                                parameterWithName("phoneNumber").description("휴대폰 번호 '010xxxxxxxx' -없는 문자열")
-//                        ),
-//                        responseHeaders(
-//                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
-//                        ),
-//                        responseFields(
-//                                fieldWithPath("email").description("회원 이메일"),
-//                                fieldWithPath("provider").description("sns 로그인 제공사 / 없으면 Null"),
-//                                fieldWithPath("_links.self.href").description("self 링크"),
-//                                fieldWithPath("_links.login.href").description("로그인 요청 링크"),
-//                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
-//                        )
-//                ));
-        ;
-      
+                .andDo(document("create_dog",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query-surveyReport").description("설문조사 레포트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer jwt 토큰")
+                        ),
+                        requestFields(
+                                fieldWithPath("name").description("강아지 이름"),
+                                fieldWithPath("gender").description("강아지 성별 [MALE, FEMALE]"),
+                                fieldWithPath("birth").description("강아지 생월 'yyyyMM'"),
+                                fieldWithPath("oldDog").description("노견 여부 true/false"),
+                                fieldWithPath("dogType").description("강아지 종"),
+                                fieldWithPath("dogSize").description("강아지 체급 [LARGE, MIDDLE, SMALL]"),
+                                fieldWithPath("weight").description("강아지 몸무게"),
+                                fieldWithPath("neutralization").description("중성화 여부 true/false"),
+                                fieldWithPath("activityLevel").description("활동량 레벨 [VERY_LITTLE, LITTLE, NORMAL, MUCH, VERY_MUCH]"),
+                                fieldWithPath("walkingCountPerWeek").description("주 당 산책 횟수"),
+                                fieldWithPath("walkingTimePerOneTime").description("한 번 산책 할 때 산책 시간"),
+                                fieldWithPath("dogStatus").description("강아지 상태 [HEALTHY, NEED_DIET, OBESITY, PREGNANT, LACTATING]"),
+                                fieldWithPath("snackCountLevel").description("간식 먹는 정도 [LITTLE, NORMAL, MUCH]"),
+                                fieldWithPath("inedibleFood").description("못 먹는 음식 [없으면 'NONE', 기타일 경우 'ETC']"),
+                                fieldWithPath("inedibleFoodEtc").description("기타('ETC') 일 경우 못 먹는 음식 입력 [없으면 'NONE']"),
+                                fieldWithPath("recommendRecipeId").description("특별히 챙겨주고싶은 부분에 해당하는 레시피 id"),
+                                fieldWithPath("caution").description("기타 특이사항 [없으면 'NONE']")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.LOCATION).description("location header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query-surveyReport.href").description("설문조사 레포트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
     }
 
     @Test
@@ -124,7 +142,6 @@ public class DogApiControllerTest extends BaseTest {
                 .andDo(print())
                 .andExpect(status().isBadRequest())
         ;
-
     }
 
     @Test
@@ -161,6 +178,7 @@ public class DogApiControllerTest extends BaseTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("errors",hasSize(3)))
         ;
 
     }

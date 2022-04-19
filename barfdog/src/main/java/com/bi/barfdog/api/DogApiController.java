@@ -3,8 +3,6 @@ package com.bi.barfdog.api;
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
 import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
-import com.bi.barfdog.domain.BaseTimeEntity;
-import com.bi.barfdog.domain.dog.Dog;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.surveyReport.SurveyReport;
@@ -25,9 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.persistence.EntityManager;
 import javax.validation.Valid;
-import java.util.List;
 import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -35,7 +31,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 @RequiredArgsConstructor
 @RequestMapping(value = "/api/dogs", produces = MediaTypes.HAL_JSON_VALUE)
 @RestController
-public class DogApiController extends BaseTimeEntity {
+public class DogApiController {
 
     private final DogService dogService;
     private final DogRepository dogRepository;
@@ -60,16 +56,17 @@ public class DogApiController extends BaseTimeEntity {
             return notFound();
         }
 
-        dogService.createDogAndSurveyReport(requestDto, member);
+        SurveyReport surveyReport = dogService.createDogAndGetSurveyReport(requestDto, member);
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(DogApiController.class);
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(selfLinkBuilder.withSelfRel());
-        representationModel.add(selfLinkBuilder.slash("surveyReport").withRel("query-surveyReport"));
+        WebMvcLinkBuilder querySurveyReportLinkBuilder = linkTo(SurveyReportApiController.class).slash(surveyReport.getId());
+        representationModel.add(querySurveyReportLinkBuilder.withRel("query-surveyReport"));
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-create-dog").withRel("profile"));
 
-        return ResponseEntity.created(linkTo(DogApiController.class).slash("surveyReport").toUri()).body(representationModel);
+        return ResponseEntity.created(querySurveyReportLinkBuilder.toUri()).body(representationModel);
     }
 
 

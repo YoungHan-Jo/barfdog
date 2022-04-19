@@ -20,5 +20,6 @@ public class AgeAnalysis {
     private int ageGroupFourCount;
     private int ageGroupFiveCount;
     private int myAgeGroup;
+    private Long myStartAgeMonth;
 
 }

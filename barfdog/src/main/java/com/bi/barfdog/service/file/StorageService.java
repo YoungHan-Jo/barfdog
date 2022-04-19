@@ -1,5 +1,6 @@
 package com.bi.barfdog.service.file;
 
+
 import com.bi.barfdog.domain.banner.ImgFilenamePath;
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
@@ -12,14 +13,16 @@ public interface StorageService {
     void init(String fileType);
 
     ImgFilenamePath storeBannerImg(MultipartFile file);
+
     ImgFilenamePath storeDogProfilePic(MultipartFile file);
+
     ImgFilenamePath storeRecipeImg(MultipartFile file);
 
     Stream<Path> loadAll();
 
-    Path load(String filename);
+    Path load(String category, String filename);
 
-    Resource loadAsResource(String filename);
+    Resource loadAsResource(String category, String filename);
 
     void deleteAll();
 }

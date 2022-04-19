@@ -1,5 +1,6 @@
 package com.bi.barfdog.config;
 
+import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.domain.Address;
@@ -13,10 +14,12 @@ import com.bi.barfdog.domain.setting.ActivityConstant;
 import com.bi.barfdog.domain.setting.DeliveryConstant;
 import com.bi.barfdog.domain.setting.Setting;
 import com.bi.barfdog.domain.setting.SnackConstant;
+import com.bi.barfdog.domain.surveyReport.SurveyReport;
 import com.bi.barfdog.repository.DogRepository;
 import com.bi.barfdog.repository.MemberRepository;
 import com.bi.barfdog.repository.RecipeRepository;
 import com.bi.barfdog.repository.SettingRepository;
+import com.bi.barfdog.service.DogService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
@@ -59,6 +62,8 @@ public class AppConfig {
             RecipeRepository recipeRepository;
             @Autowired
             DogRepository dogRepository;
+            @Autowired
+            DogService dogService;
 
 
             @Autowired
@@ -75,7 +80,7 @@ public class AppConfig {
 
                 makeSetting();
 
-                makeRecipe("스타트", "닭,칠면조", "안정적인 첫 생식 적응", "스타트1.jpg", "스타트2.jpg");
+                Recipe recipe = makeRecipe("스타트", "닭,칠면조", "안정적인 첫 생식 적응", "스타트1.jpg", "스타트2.jpg");
                 makeRecipe("터키비프", "칠면조,소", "피로회복 면역력 향상", "터키비프1.jpg", "터키비프2.jpg");
                 makeRecipe("덕램", "오리,양", "피부와 모질강화 필요", "덕램1.jpg", "덕램2.jpg");
                 makeRecipe("램비프", "양,소", "건강한 성장과 영양보충", "램비프1.jpg", "램비프2.jpg");
@@ -97,6 +102,27 @@ public class AppConfig {
                 makeDog(admin, 56L, DogSize.SMALL, "5.5", ActivityLevel.VERY_LITTLE, 4, 1.3, SnackCountLevel.MUCH);
                 makeDog(admin, 46L, DogSize.SMALL, "8.2", ActivityLevel.MUCH, 5, 0.5, SnackCountLevel.LITTLE);
                 makeDog(admin, 36L, DogSize.SMALL, "8.2", ActivityLevel.MUCH, 4, 2, SnackCountLevel.NORMAL);
+
+                DogSaveRequestDto requestDto = DogSaveRequestDto.builder()
+                        .name("김바프")
+                        .gender(Gender.MALE)
+                        .birth("202102")
+                        .oldDog(false)
+                        .dogType("포메라니안")
+                        .dogSize(DogSize.SMALL)
+                        .weight("3.5")
+                        .neutralization(true)
+                        .activityLevel(ActivityLevel.NORMAL)
+                        .walkingCountPerWeek("10")
+                        .walkingTimePerOneTime("1.1")
+                        .dogStatus(DogStatus.HEALTHY)
+                        .snackCountLevel(SnackCountLevel.NORMAL)
+                        .inedibleFood("NONE")
+                        .inedibleFoodEtc("NONE")
+                        .recommendRecipeId(recipe.getId())
+                        .caution("NONE")
+                        .build();
+                dogService.createDogAndGetSurveyReport(requestDto, admin);
 
 
             }
@@ -141,7 +167,7 @@ public class AppConfig {
                 settingRepository.save(setting);
             }
 
-            private void makeRecipe(String 램비프, String ingredients, String 건강한_성장과_영양보충, String filename1, String filename2) {
+            private Recipe makeRecipe(String 램비프, String ingredients, String 건강한_성장과_영양보충, String filename1, String filename2) {
                 Recipe recipe = Recipe.builder()
                         .name(램비프)
                         .description("레시피 설명")
@@ -156,10 +182,10 @@ public class AppConfig {
                         .inStock(true)
                         .status(RecipeStatus.ACTIVE)
                         .build();
-                recipeRepository.save(recipe);
+                return recipeRepository.save(recipe);
             }
 
-            private void makeDog(Member admin, long startAgeMonth, DogSize dogSize, String weight, ActivityLevel activitylevel, int walkingCountPerWeek, double walkingTimePerOneTime, SnackCountLevel snackCountLevel) {
+            private Dog makeDog(Member admin, long startAgeMonth, DogSize dogSize, String weight, ActivityLevel activitylevel, int walkingCountPerWeek, double walkingTimePerOneTime, SnackCountLevel snackCountLevel) {
                 Dog dog = Dog.builder()
                         .member(admin)
                         .name("샘플독")
@@ -172,7 +198,7 @@ public class AppConfig {
                         .dogStatus(DogStatus.HEALTHY)
                         .snackCountLevel(snackCountLevel)
                         .build();
-                dogRepository.save(dog);
+                return dogRepository.save(dog);
             }
         };
     }

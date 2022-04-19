@@ -11,10 +11,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 
@@ -47,10 +44,12 @@ public class InfoController {
         return new ResponseEntity<>("", HttpStatus.OK);
     }
 
-    @GetMapping("/download")
-    public ResponseEntity<Resource> serveFile(@RequestParam(value="filename") String filename) {
+    @GetMapping("/download/{category}")
+    public ResponseEntity<Resource> serveFile(
+            @PathVariable String category,
+            @RequestParam(value="filename") String filename) {
 
-        Resource file = storageService.loadAsResource(filename);
+        Resource file = storageService.loadAsResource(category, filename);
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
                 "attachment; filename=\"" + file.getFilename() + "\"").body(file);
     }
@@ -61,7 +60,34 @@ public class InfoController {
         String path = uploadRootPath;
         String folder = "/banners/";
 
-        Resource resource = storageService.loadAsResource(filename);
+
+        Resource resource = storageService.loadAsResource("banners",filename);
+
+        if (!resource.exists()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        HttpHeaders header = new HttpHeaders();
+        Path filePath = null;
+
+        try {
+            filePath = Paths.get(path + folder + filename);
+            header.add("Content-type", Files.probeContentType(filePath));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new ResponseEntity<>(resource, header, HttpStatus.OK);
+    }
+
+    @GetMapping("/display/{category}")
+    public ResponseEntity<Resource> displayByCategory(@PathVariable String category,
+                                            @RequestParam(value = "filename") String filename) {
+
+        String path = uploadRootPath;
+        String folder = "/" + category + "/";
+
+        Resource resource = storageService.loadAsResource(category, filename);
 
         if (!resource.exists()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

@@ -54,7 +54,7 @@ public class FileSystemStorageService implements StorageService {
             if (file.isEmpty()) {
                 throw new Exception("ERROR : File is empty.");
             }
-            String fileType = "dogProfile";
+            String fileType = "dogProfiles";
             return getImgFilenamePath(fileType, file);
         } catch (Exception e) {
             throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
@@ -67,7 +67,7 @@ public class FileSystemStorageService implements StorageService {
             if (file.isEmpty()) {
                 throw new Exception("ERROR : File is empty.");
             }
-            String fileType = "recipe";
+            String fileType = "recipes";
             return getImgFilenamePath(fileType, file);
         } catch (Exception e) {
             throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
@@ -89,15 +89,15 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    public Path load(String filename) {
-        return Paths.get(uploadRootPath+ "/banners").resolve(filename);
+    public Path load(String category, String filename) {
+        return Paths.get(uploadRootPath+ "/"+category).resolve(filename);
     }
 
 
     @Override
-    public Resource loadAsResource(String filename) {
+    public Resource loadAsResource(String category, String filename) {
         try {
-            Path file = load(filename);
+            Path file = load(category, filename);
             Resource resource = new UrlResource(file.toUri());
             if (resource.exists() || resource.isReadable()) {
                 return resource;
