@@ -2,6 +2,7 @@ package com.bi.barfdog.api.couponDto;
 
 import com.bi.barfdog.domain.coupon.CouponTarget;
 import com.bi.barfdog.domain.coupon.CouponType;
+import com.bi.barfdog.domain.coupon.DiscountType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,23 +22,26 @@ public class CouponSaveRequestDto {
     private String name;
 
     private String code;
+
     @NotEmpty
     private String description;
-    @NotEmpty
-    private int amount;
-    @NotEmpty
-    private int life;
+
     @NotNull
-    private CouponType couponType;
-    @NotEmpty
+    private int amount;
+
+    @NotNull
+    private DiscountType discountType; // 할인 타입 [ FIXED_RATE, FLAT_RATE ]
+
+    @NotNull
     private int discountDegree;
-    @NotEmpty
-    private int availableMaxDiscountAmount;
-    @NotEmpty
-    private int availableMinPrice;
+
+    @NotNull
+    private int availableMaxDiscount; // 적용가능 최대 할인금액
+
+    @NotNull
+    private int availableMinPrice; // 사용가능한 최소 금액
+
     @NotNull
     private CouponTarget couponTarget;
-    @NotEmpty
-    private int remaining;
 
 }

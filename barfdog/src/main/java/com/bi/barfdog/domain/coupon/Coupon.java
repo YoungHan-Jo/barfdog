@@ -21,17 +21,15 @@ public class Coupon extends BaseTimeEntity {
 
     private String name;
 
+    @Enumerated(EnumType.STRING)
+    private CouponType couponType; // 쿠폰 타입 [AUTO_PUBLISHED, ADMIN_PUBLISHED, CODE_PUBLISHED]
+
     @Column(length = 15)
     private String code; // 쿠폰 코드
 
     private String description; // 설명
 
     private int amount; // 수량
-
-    private int life; // 쿠폰 수명
-
-    @Enumerated(EnumType.STRING)
-    private CouponType couponType; // 쿠폰 타입 [AUTO_PUBLISHED, ADMIN_PUBLISHED, CODE_PUBLISHED]
 
     @Enumerated(EnumType.STRING)
     private DiscountType discountType; // 할인 타입 [ FIXED_RATE, FLAT_RATE ]
@@ -44,4 +42,8 @@ public class Coupon extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     private CouponTarget couponTarget; // 사용 가능 품목 대상 [ALL, GENERAL, SUBSCRIBE]
+
+    @Enumerated(EnumType.STRING)
+    private CouponStatus status; // [ACTIVE,INACTIVE]
+
 }
