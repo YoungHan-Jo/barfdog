@@ -8,8 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.*;
 import java.time.LocalDate;
 
 @Data
@@ -27,21 +26,24 @@ public class CouponSaveRequestDto {
     private String description;
 
     @NotNull
+    @Positive
     private int amount;
 
     @NotNull
-    private DiscountType discountType; // 할인 타입 [ FIXED_RATE, FLAT_RATE ]
+    private DiscountType discountType; // 할인 타입 [FIXED_RATE, FLAT_RATE]
 
     @NotNull
+    @Positive
     private int discountDegree;
 
     @NotNull
     private int availableMaxDiscount; // 적용가능 최대 할인금액
 
     @NotNull
+    @PositiveOrZero
     private int availableMinPrice; // 사용가능한 최소 금액
 
     @NotNull
-    private CouponTarget couponTarget;
+    private CouponTarget couponTarget; // [ALL, GENERAL, SUBSCRIBE]
 
 }

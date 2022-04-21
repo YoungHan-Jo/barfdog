@@ -386,7 +386,7 @@ operation::create_dog[snippets='curl-request,request-headers,request-body,reques
 [[resources-surveyReport-info]]
 == 설문조사
 
-강아지 관련 리소스.
+설문조사 관련 리소스.
 
 [[resources-query-surveyReport]]
 === 설문조사 리포트 조회
@@ -401,3 +401,16 @@ operation::query_surveyReport[snippets='curl-request,path-parameters,request-hea
 `GET` 요청을 사용해서 설문조사 분석 리포트를 조회 할 수 있다.
 
 operation::query_surveyResult[snippets='curl-request,path-parameters,request-headers,response-headers,response-body,response-fields,links']
+
+
+[[resources-coupon-info]]
+== 쿠폰
+
+쿠폰 관련 리소스.
+
+[[resources-create-coupon]]
+=== 쿠폰 등록
+
+`POST` 요청을 사용해서 새로운 쿠폰을 등록 할 수 있다.
+
+operation::create_coupon[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
