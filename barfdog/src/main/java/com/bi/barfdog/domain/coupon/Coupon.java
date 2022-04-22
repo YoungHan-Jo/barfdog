@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,6 +30,8 @@ public class Coupon extends BaseTimeEntity {
 
     private String description; // 설명
 
+    private LocalDateTime expiredDate; // 마지막으로 발행된 쿠폰 유효기간
+
     private int amount; // 수량
 
     @Enumerated(EnumType.STRING)
@@ -46,4 +49,10 @@ public class Coupon extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private CouponStatus status; // [ACTIVE,INACTIVE]
 
+    /*
+    * 비지니스 로직
+    * */
+    public void inactive() {
+        status = CouponStatus.INACTIVE;
+    }
 }

@@ -8,4 +8,6 @@ import java.util.List;
 public interface CouponRepositoryCustom {
 
     List<CouponListResponseDto> findRedirectCouponsByKeyword(String keyword);
+
+    List<CouponListResponseDto> findAutoCouponsByKeyword(String keyword);
 }

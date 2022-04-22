@@ -53,4 +53,10 @@ public class CouponService {
 
         couponRepository.save(coupon);
     }
+
+    public void inactiveCoupon(Long id) {
+        Coupon coupon = couponRepository.findById(id).get();
+
+        coupon.inactive();
+    }
 }

@@ -10,7 +10,7 @@ plugins {
 	id 'org.asciidoctor.jvm.convert' version '3.3.2' // asciidoctor plugin
 	id 'com.ewerk.gradle.plugins.querydsl' version '1.0.10'
 	id 'java'
-	id 'war'
+//	id 'war'
 }
 
 group = 'com.bi'
@@ -44,7 +44,16 @@ asciidoctor.doFirst {
 	delete file('src/main/resources/static/docs')
 }
 
-bootWar {
+//bootWar { // war 설정
+//	dependsOn asciidoctor
+//	copy {
+//		from "${asciidoctor.outputDir}"
+//		into 'src/main/resources/static/docs'
+//	}
+//	finalizedBy 'copyDocument'
+//}
+
+bootJar { // jar 설정
 	dependsOn asciidoctor
 	copy {
 		from "${asciidoctor.outputDir}"
@@ -55,7 +64,8 @@ bootWar {
 
 task copyDocument(type: Copy) { // 생성된 docs 파일을 build시 static 아래에 docs로 복사!
 	dependsOn asciidoctor
-	from file("build/docs/asciidoc/")
+//	from file("build/docs/asciidoc/") // war 설정
+	from file("src/docs/asciidoc") // jar 설정
 	into file("src/main/resources/static/docs")
 }
 

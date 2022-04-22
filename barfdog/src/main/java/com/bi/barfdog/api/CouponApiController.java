@@ -3,6 +3,8 @@ package com.bi.barfdog.api;
 import com.bi.barfdog.api.couponDto.CouponListResponseDto;
 import com.bi.barfdog.api.couponDto.CouponSaveRequestDto;
 import com.bi.barfdog.common.ErrorsResource;
+import com.bi.barfdog.domain.coupon.Coupon;
+import com.bi.barfdog.domain.coupon.CouponType;
 import com.bi.barfdog.repository.CouponRepository;
 import com.bi.barfdog.service.CouponService;
 import com.bi.barfdog.validator.CouponValidator;
@@ -18,9 +20,9 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
@@ -68,16 +70,69 @@ public class CouponApiController {
         for (CouponListResponseDto responseDto : responseDtoList) {
 
             EntityModel<CouponListResponseDto> entityModel = EntityModel.of(responseDto,
-                    selfLinkBuilder.withSelfRel(),
-                    linkTo(CouponApiController.class).slash(responseDto.getId()).withRel("update-coupon"),
-                    profileRootUrlBuilder.slash("index.html#resources-query-direct-coupon").withRel("profile")
+                    linkTo(CouponApiController.class).slash(responseDto.getId()).slash("inactive").withRel("inactive-coupon")
                     );
+
+            entityModel.add();
+
+            entityModelList.add(entityModel);
         }
 
 
-        CollectionModel<EntityModel> collectionModel = CollectionModel.of(entityModelList);
+        CollectionModel<EntityModel> collectionModel = CollectionModel.of(entityModelList,
+                selfLinkBuilder.withSelfRel(),
+                linkTo(CouponApiController.class).slash("auto?keyword= ").withRel("query-auto-coupons"),
+                profileRootUrlBuilder.slash("index.html#resources-query-direct-coupons").withRel("profile")
+                );
 
         return ResponseEntity.ok(collectionModel);
+    }
+
+    @GetMapping("/auto")
+    public ResponseEntity queryCouponsAuto(@RequestParam String keyword) {
+        List<CouponListResponseDto> responseDtoList = couponRepository.findAutoCouponsByKeyword(keyword);
+
+        List<EntityModel> entityModelList = new ArrayList<>();
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(CouponApiController.class).slash("auto");
+
+        for (CouponListResponseDto responseDto : responseDtoList) {
+
+            EntityModel<CouponListResponseDto> entityModel = EntityModel.of(responseDto);
+
+            entityModelList.add(entityModel);
+        }
+
+        CollectionModel<EntityModel> collectionModel = CollectionModel.of(entityModelList,
+                selfLinkBuilder.withSelfRel(),
+                linkTo(CouponApiController.class).slash("direct?keyword= ").withRel("query-direct-coupons"),
+                profileRootUrlBuilder.slash("index.html#resources-query-auto-coupons").withRel("profile")
+        );
+
+        return ResponseEntity.ok(collectionModel);
+    }
+
+    @PutMapping("/{id}/inactive")
+    public ResponseEntity inactiveCoupon(@PathVariable Long id) {
+        Optional<Coupon> optionalCoupon = couponRepository.findById(id);
+        if (!optionalCoupon.isPresent()) return notFound();
+
+        Coupon coupon = optionalCoupon.get();
+        CouponType couponType = coupon.getCouponType();
+        if (couponType == CouponType.AUTO_PUBLISHED) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
+        couponService.inactiveCoupon(id);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(CouponApiController.class).slash(id).slash("inactive");
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(CouponApiController.class).slash("direct?keyword= ").withRel("query-direct-coupons"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-coupon-inactive").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
     }
 
 

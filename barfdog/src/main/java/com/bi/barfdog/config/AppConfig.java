@@ -4,6 +4,7 @@ import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.domain.Address;
+import com.bi.barfdog.domain.coupon.*;
 import com.bi.barfdog.domain.dog.*;
 import com.bi.barfdog.domain.member.*;
 import com.bi.barfdog.domain.recipe.Leaked;
@@ -14,11 +15,7 @@ import com.bi.barfdog.domain.setting.ActivityConstant;
 import com.bi.barfdog.domain.setting.DeliveryConstant;
 import com.bi.barfdog.domain.setting.Setting;
 import com.bi.barfdog.domain.setting.SnackConstant;
-import com.bi.barfdog.domain.surveyReport.SurveyReport;
-import com.bi.barfdog.repository.DogRepository;
-import com.bi.barfdog.repository.MemberRepository;
-import com.bi.barfdog.repository.RecipeRepository;
-import com.bi.barfdog.repository.SettingRepository;
+import com.bi.barfdog.repository.*;
 import com.bi.barfdog.service.DogService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +25,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import javax.persistence.EntityManager;
 import java.math.BigDecimal;
 
 @Configuration
@@ -64,6 +60,8 @@ public class AppConfig {
             DogRepository dogRepository;
             @Autowired
             DogService dogService;
+            @Autowired
+            CouponRepository couponRepository;
 
 
             @Autowired
@@ -103,6 +101,17 @@ public class AppConfig {
                 makeDog(admin, 46L, DogSize.SMALL, "8.2", ActivityLevel.MUCH, 5, 0.5, SnackCountLevel.LITTLE);
                 makeDog(admin, 36L, DogSize.SMALL, "8.2", ActivityLevel.MUCH, 4, 2, SnackCountLevel.NORMAL);
 
+                makeAutoCoupon("정기구독 할인 쿠폰","정기구독 할인 쿠폰", DiscountType.FIXED_RATE, 50,40000, CouponTarget.SUBSCRIBE);
+                makeAutoCoupon("반려견 생일 쿠폰","반려견 생일 쿠폰", DiscountType.FIXED_RATE, 10,40000, CouponTarget.ALL);
+                makeAutoCoupon("견주 생일 쿠폰","견주 생일 쿠폰", DiscountType.FIXED_RATE, 15,40000, CouponTarget.ALL);
+
+                makeAutoCoupon("실버 쿠폰","실버 쿠폰", DiscountType.FLAT_RATE,1000,20000, CouponTarget.ALL);
+                makeAutoCoupon("골드 쿠폰","골드 쿠폰", DiscountType.FLAT_RATE,2000,30000, CouponTarget.ALL);
+                makeAutoCoupon("플래티넘 쿠폰","플래티넘 쿠폰", DiscountType.FLAT_RATE,2500,30000, CouponTarget.ALL);
+                makeAutoCoupon("다이아 쿠폰","다이아 쿠폰", DiscountType.FLAT_RATE,3000,40000, CouponTarget.ALL);
+                makeAutoCoupon("더바프 쿠폰","더바프 쿠폰", DiscountType.FLAT_RATE,4000,50000, CouponTarget.ALL);
+
+
                 DogSaveRequestDto requestDto = DogSaveRequestDto.builder()
                         .name("김바프")
                         .gender(Gender.MALE)
@@ -125,6 +134,24 @@ public class AppConfig {
                 dogService.createDogAndGetSurveyReport(requestDto, admin);
 
 
+            }
+
+            private void makeAutoCoupon(String name, String description, DiscountType discountType, int discountDegree, int availableMinPrice, CouponTarget couponTarget) {
+                Coupon coupon = Coupon.builder()
+                        .name(name)
+                        .couponType(CouponType.AUTO_PUBLISHED)
+                        .code("")
+                        .description(description)
+                        .amount(1)
+                        .discountType(discountType)
+                        .discountDegree(discountDegree)
+                        .availableMaxDiscount(100000)
+                        .availableMinPrice(availableMinPrice)
+                        .couponTarget(couponTarget)
+                        .status(CouponStatus.ACTIVE)
+                        .build();
+
+                couponRepository.save(coupon);
             }
 
             private Member makeMember(String appProperties, String 김회원, String appProperties1, String phoneNumber, Gender male, Grade bronze, int reward, boolean recommend, String USER) {

@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -25,5 +27,7 @@ public class CouponListResponseDto {
     private CouponTarget couponTarget;
 
     private int amount;
+
+    private LocalDateTime expiredDate;
 
 }

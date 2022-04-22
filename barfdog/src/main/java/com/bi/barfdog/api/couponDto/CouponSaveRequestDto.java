@@ -1,15 +1,16 @@
 package com.bi.barfdog.api.couponDto;
 
 import com.bi.barfdog.domain.coupon.CouponTarget;
-import com.bi.barfdog.domain.coupon.CouponType;
 import com.bi.barfdog.domain.coupon.DiscountType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.*;
-import java.time.LocalDate;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 
 @Data
 @AllArgsConstructor
