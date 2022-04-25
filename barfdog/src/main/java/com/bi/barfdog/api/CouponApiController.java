@@ -2,6 +2,7 @@ package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.couponDto.CouponListResponseDto;
 import com.bi.barfdog.api.couponDto.CouponSaveRequestDto;
+import com.bi.barfdog.api.couponDto.PublicationCouponDto;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.coupon.Coupon;
 import com.bi.barfdog.domain.coupon.CouponType;
@@ -135,11 +136,46 @@ public class CouponApiController {
         return ResponseEntity.ok(representationModel);
     }
 
+    @GetMapping("/publication/general")
+    public ResponseEntity queryGeneralCouponsWhenPublication() {
+
+        List<PublicationCouponDto> responseDtoList = couponRepository.findPublicationCouponDtosByCouponType(CouponType.ADMIN_PUBLISHED);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(CouponApiController.class).slash("publication").slash("general");
+
+        CollectionModel<PublicationCouponDto> collectionModel = CollectionModel.of(responseDtoList,
+                selfLinkBuilder.withSelfRel(),
+                profileRootUrlBuilder.slash("index.html#resources-query-general-coupons-in-publication").withRel("profile")
+        );
+
+        return ResponseEntity.ok(collectionModel);
+    }
+
+    @GetMapping("/publication/code")
+    public ResponseEntity queryCodeCouponsWhenPublication() {
+
+        List<PublicationCouponDto> responseDtoList = couponRepository.findPublicationCouponDtosByCouponType(CouponType.CODE_PUBLISHED);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(CouponApiController.class).slash("publication").slash("code");
+
+        CollectionModel<PublicationCouponDto> collectionModel = CollectionModel.of(responseDtoList,
+                selfLinkBuilder.withSelfRel(),
+                profileRootUrlBuilder.slash("index.html#resources-query-code-coupons-in-publication").withRel("profile")
+        );
+
+        return ResponseEntity.ok(collectionModel);
+    }
+
+
+
+
+
 
 
 
 
     private ResponseEntity<Object> notFound() {
+
         return ResponseEntity.notFound().build();
     }
 

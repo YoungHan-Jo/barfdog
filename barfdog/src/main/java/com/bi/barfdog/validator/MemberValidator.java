@@ -1,5 +1,6 @@
 package com.bi.barfdog.validator;
 
+import com.bi.barfdog.api.memberDto.MemberConditionPublishCoupon;
 import com.bi.barfdog.api.memberDto.MemberSaveRequestDto;
 import com.bi.barfdog.api.memberDto.MemberUpdateRequestDto;
 import com.bi.barfdog.api.memberDto.UpdatePasswordRequestDto;
@@ -11,6 +12,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
 import java.util.Optional;
+
+import static org.springframework.util.StringUtils.hasText;
 
 @RequiredArgsConstructor
 @Component
@@ -67,6 +70,12 @@ public class MemberValidator {
     public void validatePassword(Member member, UpdatePasswordRequestDto requestDto, Errors errors) {
         if (!bCryptPasswordEncoder.matches(requestDto.getPassword(), member.getPassword())) {
             errors.reject("Wrong Password","잘못된 비밀번호 입니다.");
+        }
+    }
+
+    public void validateConditionInPublication(MemberConditionPublishCoupon condition, Errors errors) {
+        if (!hasText(condition.getEmail()) && !hasText(condition.getName())) {
+            errors.reject("Both conditions can't be empty ","모든 조건이 빈 값일 수 없습니다.");
         }
     }
 }

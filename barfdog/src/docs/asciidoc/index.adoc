@@ -435,3 +435,17 @@ operation::query_auto_coupons[snippets='curl-request,request-headers,request-par
 `PUT` 요청을 사용해서 쿠폰을 비활성(삭제) 시킬 수 있다.
 
 operation::update_coupon_inactive[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-query-general-coupons-in-publication]]
+=== 쿠폰 발행 시 선택할 일반 쿠폰 리스트
+
+`GET` 요청을 사용해서 일반 발행 쿠폰 리스트를 조회할 수 있다.
+
+operation::query_general_coupons_in_publication[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-query-code-coupons-in-publication]]
+=== 쿠폰 발행 시 선택할 코드 쿠폰 리스트
+
+`GET` 요청을 사용해서 코드 발행 쿠폰 리스트를 조회할 수 있다.
+
+operation::query_code_coupons_in_publication[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']

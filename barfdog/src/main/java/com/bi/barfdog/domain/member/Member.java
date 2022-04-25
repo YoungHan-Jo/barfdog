@@ -52,6 +52,8 @@ public class Member extends BaseTimeEntity {
     private Grade grade; // [BRONZE, SILVER, GOLD, PLATINUM, DIAMOND, BARF]
 
     private int reward;
+    
+    private int accumulatedAmount; // 누적 금액
 
     @Embedded
     private FirstReward firstReward;

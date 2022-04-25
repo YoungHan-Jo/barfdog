@@ -1,8 +1,6 @@
 package com.bi.barfdog.service;
 
-import com.bi.barfdog.api.memberDto.FindPasswordRequestDto;
-import com.bi.barfdog.api.memberDto.MemberSaveRequestDto;
-import com.bi.barfdog.api.memberDto.MemberUpdateRequestDto;
+import com.bi.barfdog.api.memberDto.*;
 import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.domain.reward.*;
 import com.bi.barfdog.directsend.DirectSendResponseDto;
@@ -19,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -49,6 +48,7 @@ public class MemberService {
                 .myRecommendationCode(BarfUtils.generateRandomCode())
                 .grade(Grade.BRONZE)
                 .reward(0)
+                .accumulatedAmount(0)
                 .firstReward(new FirstReward(false,false))
                 .roles("USER")
                 .build();
@@ -140,4 +140,6 @@ public class MemberService {
 
         return responseDto;
     }
+
+
 }

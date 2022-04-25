@@ -122,7 +122,7 @@ public class CouponApiControllerTest extends BaseTest {
         assertThat(coupon.getAvailableMaxDiscount()).isEqualTo(availableMaxDiscount);
         assertThat(coupon.getAvailableMinPrice()).isEqualTo(availableMinPrice);
         assertThat(coupon.getCouponTarget()).isEqualTo(CouponTarget.ALL);
-        assertThat(coupon.getStatus()).isEqualTo(CouponStatus.ACTIVE);
+        assertThat(coupon.getCouponStatus()).isEqualTo(CouponStatus.ACTIVE);
     }
 
     @Test
@@ -171,7 +171,7 @@ public class CouponApiControllerTest extends BaseTest {
         assertThat(coupon.getAvailableMaxDiscount()).isEqualTo(availableMaxDiscount);
         assertThat(coupon.getAvailableMinPrice()).isEqualTo(availableMinPrice);
         assertThat(coupon.getCouponTarget()).isEqualTo(CouponTarget.SUBSCRIBE);
-        assertThat(coupon.getStatus()).isEqualTo(CouponStatus.ACTIVE);
+        assertThat(coupon.getCouponStatus()).isEqualTo(CouponStatus.ACTIVE);
     }
 
     @Test
@@ -592,7 +592,7 @@ public class CouponApiControllerTest extends BaseTest {
 
         Coupon coupon = couponRepository.findById(findCoupon.getId()).get();
 
-        assertThat(coupon.getStatus()).isEqualTo(CouponStatus.INACTIVE);
+        assertThat(coupon.getCouponStatus()).isEqualTo(CouponStatus.INACTIVE);
 
     }
 
@@ -629,6 +629,96 @@ public class CouponApiControllerTest extends BaseTest {
 
     }
 
+    @Test
+    @DisplayName("발행시 필요한 일반형 쿠폰 리스트 조회하는 테스트")
+    public void queryCoupons_Admin() throws Exception {
+       //given
+
+        IntStream.range(1, 4).forEach(i ->{
+            generateAdminCoupon(i);
+        });
+
+        IntStream.range(1, 5).forEach(i ->{
+            generateCodeCoupon(i);
+        });
+
+       //when & then
+        mockMvc.perform(get("/api/coupons/publication/general")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("_embedded.publicationCouponDtoList",hasSize(3)))
+                .andDo(document("query_general_coupons_in_publication",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer jwt 토큰")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_embedded.publicationCouponDtoList[0].couponId").description("쿠폰 id"),
+                                fieldWithPath("_embedded.publicationCouponDtoList[0].name").description("쿠폰 이름"),
+                                fieldWithPath("_embedded.publicationCouponDtoList[0].discount").description("할인 ( % / 원)"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ))
+        ;
+    }
+
+    @Test
+    @DisplayName("발행시 필요한 코드형 쿠폰 리스트 조회하는 테스트")
+    public void queryCoupons_code() throws Exception {
+        //given
+        IntStream.range(1, 4).forEach(i ->{
+            generateAdminCoupon(i);
+        });
+
+        IntStream.range(1, 5).forEach(i ->{
+            generateCodeCoupon(i);
+        });
+
+        //when & then
+        mockMvc.perform(get("/api/coupons/publication/code")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("_embedded.publicationCouponDtoList",hasSize(4)))
+                .andDo(document("query_code_coupons_in_publication",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer jwt 토큰")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_embedded.publicationCouponDtoList[0].couponId").description("쿠폰 id"),
+                                fieldWithPath("_embedded.publicationCouponDtoList[0].name").description("쿠폰 이름"),
+                                fieldWithPath("_embedded.publicationCouponDtoList[0].discount").description("할인 ( % / 원)"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ))
+        ;
+    }
+
+
 
 
 
@@ -664,7 +754,25 @@ public class CouponApiControllerTest extends BaseTest {
                 .availableMaxDiscount(10000)
                 .availableMinPrice(5000)
                 .couponTarget(CouponTarget.ALL)
-                .status(CouponStatus.ACTIVE)
+                .couponStatus(CouponStatus.ACTIVE)
+                .build();
+
+        return couponRepository.save(coupon);
+    }
+
+    private Coupon generateCodeCoupon(int i) {
+        Coupon coupon = Coupon.builder()
+                .name("코드 발행 쿠폰" + i)
+                .couponType(CouponType.CODE_PUBLISHED)
+                .code("Barf100"+i)
+                .description("설명")
+                .amount(1)
+                .discountType(DiscountType.FLAT_RATE)
+                .discountDegree(5000)
+                .availableMaxDiscount(10000)
+                .availableMinPrice(5000)
+                .couponTarget(CouponTarget.ALL)
+                .couponStatus(CouponStatus.ACTIVE)
                 .build();
 
         return couponRepository.save(coupon);

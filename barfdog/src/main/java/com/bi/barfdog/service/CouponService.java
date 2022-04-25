@@ -32,7 +32,7 @@ public class CouponService {
                     .availableMaxDiscount(requestDto.getAvailableMaxDiscount())
                     .availableMinPrice(requestDto.getAvailableMinPrice())
                     .couponTarget(requestDto.getCouponTarget())
-                    .status(CouponStatus.ACTIVE)
+                    .couponStatus(CouponStatus.ACTIVE)
                     .build();
 
         } else { // 코드 발행
@@ -47,7 +47,7 @@ public class CouponService {
                     .availableMaxDiscount(requestDto.getAvailableMaxDiscount())
                     .availableMinPrice(requestDto.getAvailableMinPrice())
                     .couponTarget(requestDto.getCouponTarget())
-                    .status(CouponStatus.ACTIVE)
+                    .couponStatus(CouponStatus.ACTIVE)
                     .build();
         }
 

@@ -1,7 +1,9 @@
 package com.bi.barfdog.repository;
 
 import com.bi.barfdog.api.couponDto.CouponListResponseDto;
+import com.bi.barfdog.api.couponDto.PublicationCouponDto;
 import com.bi.barfdog.domain.coupon.*;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -36,7 +38,7 @@ public class CouponRepositoryImpl implements CouponRepositoryCustom{
                         ),
                         coupon.couponTarget,
                         coupon.amount,
-                        coupon.expiredDate
+                        coupon.lastExpiredDate
                 ))
                 .from(coupon)
                 .where(isDirectCoupon(keyword))
@@ -60,13 +62,37 @@ public class CouponRepositoryImpl implements CouponRepositoryCustom{
                         ),
                         coupon.couponTarget,
                         coupon.amount,
-                        coupon.expiredDate
+                        coupon.lastExpiredDate
                 ))
                 .from(coupon)
                 .where(isAutoCoupon(keyword))
                 .fetch();
 
         return result;
+    }
+
+    @Override
+    public List<PublicationCouponDto> findPublicationCouponDtosByCouponType(CouponType couponType) {
+
+        List<PublicationCouponDto> result = queryFactory
+                .select(Projections.constructor(PublicationCouponDto.class,
+                        coupon.id,
+                        coupon.name,
+                        coupon.discountDegree.stringValue().concat(
+                                coupon.discountType
+                                        .when(DiscountType.FLAT_RATE).then("원")
+                                        .otherwise("%")
+                        )
+                ))
+                .from(coupon)
+                .where(statusEqActive().and(couponTypeEq(couponType)))
+                .fetch();
+
+        return result;
+    }
+
+    private BooleanExpression couponTypeEq(CouponType couponType) {
+        return coupon.couponType.eq(couponType);
     }
 
 
@@ -87,7 +113,7 @@ public class CouponRepositoryImpl implements CouponRepositoryCustom{
     }
 
     private BooleanExpression statusEqActive() {
-        return coupon.status.eq(CouponStatus.ACTIVE);
+        return coupon.couponStatus.eq(CouponStatus.ACTIVE);
     }
 
     private BooleanExpression nameLike(String keyword) {

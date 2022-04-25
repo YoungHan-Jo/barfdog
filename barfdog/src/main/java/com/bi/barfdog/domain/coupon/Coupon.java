@@ -30,7 +30,7 @@ public class Coupon extends BaseTimeEntity {
 
     private String description; // 설명
 
-    private LocalDateTime expiredDate; // 마지막으로 발행된 쿠폰 유효기간
+    private LocalDateTime lastExpiredDate; // 마지막 만료 날짜
 
     private int amount; // 수량
 
@@ -47,12 +47,12 @@ public class Coupon extends BaseTimeEntity {
     private CouponTarget couponTarget; // 사용 가능 품목 대상 [ALL, GENERAL, SUBSCRIBE]
 
     @Enumerated(EnumType.STRING)
-    private CouponStatus status; // [ACTIVE,INACTIVE]
+    private CouponStatus couponStatus; // [ACTIVE,INACTIVE]
 
     /*
     * 비지니스 로직
     * */
     public void inactive() {
-        status = CouponStatus.INACTIVE;
+        couponStatus = CouponStatus.INACTIVE;
     }
 }

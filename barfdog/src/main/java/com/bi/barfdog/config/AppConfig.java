@@ -148,7 +148,7 @@ public class AppConfig {
                         .availableMaxDiscount(100000)
                         .availableMinPrice(availableMinPrice)
                         .couponTarget(couponTarget)
-                        .status(CouponStatus.ACTIVE)
+                        .couponStatus(CouponStatus.ACTIVE)
                         .build();
 
                 couponRepository.save(coupon);
@@ -167,6 +167,7 @@ public class AppConfig {
                         .myRecommendationCode(BarfUtils.generateRandomCode())
                         .grade(bronze)
                         .reward(reward)
+                        .accumulatedAmount(0)
                         .firstReward(new FirstReward(recommend, recommend))
                         .roles(USER)
                         .build();

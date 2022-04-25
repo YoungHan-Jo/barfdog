@@ -1,5 +1,6 @@
 package com.bi.barfdog.api;
 
+import com.bi.barfdog.api.memberDto.MemberConditionPublishCoupon;
 import com.bi.barfdog.api.memberDto.MemberUpdateRequestDto;
 import com.bi.barfdog.api.memberDto.UpdatePasswordRequestDto;
 import com.bi.barfdog.common.AppProperties;
@@ -50,7 +51,7 @@ public class MemberApiControllerTest extends BaseTest {
 
        //when & then
         mockMvc.perform(get("/api/members")
-                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
                         .accept(MediaTypes.HAL_JSON)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -122,7 +123,7 @@ public class MemberApiControllerTest extends BaseTest {
                 .build();
         //when & then
         mockMvc.perform(put("/api/members")
-                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -177,7 +178,7 @@ public class MemberApiControllerTest extends BaseTest {
                 .build();
         //when & then
         mockMvc.perform(put("/api/members")
-                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -201,7 +202,7 @@ public class MemberApiControllerTest extends BaseTest {
                 .build();
         //when & then
         mockMvc.perform(put("/api/members")
-                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -225,7 +226,7 @@ public class MemberApiControllerTest extends BaseTest {
                 .build();
         //when & then
         mockMvc.perform(put("/api/members")
-                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -245,7 +246,7 @@ public class MemberApiControllerTest extends BaseTest {
                 .build();
         //when & then
         mockMvc.perform(put("/api/members/password")
-                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -285,7 +286,7 @@ public class MemberApiControllerTest extends BaseTest {
                 .build();
         //when & then
         mockMvc.perform(put("/api/members/password")
-                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -305,7 +306,7 @@ public class MemberApiControllerTest extends BaseTest {
                 .build();
         //when & then
         mockMvc.perform(put("/api/members/password")
-                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -325,7 +326,7 @@ public class MemberApiControllerTest extends BaseTest {
                 .build();
         //when & then
         mockMvc.perform(put("/api/members/password")
-                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -333,7 +334,64 @@ public class MemberApiControllerTest extends BaseTest {
                 .andExpect(status().isBadRequest())
         ;
     }
-    
+
+    @Test
+    @DisplayName("쿠폰 발행 시 검색한 유저 조회하는 테스트")
+    public void queryMembersInPublishCoupon() throws Exception {
+       //given
+        MemberConditionPublishCoupon condition = MemberConditionPublishCoupon.builder()
+                .email(appProperties.getUserEmail())
+                .build();
+
+        //when & then
+        mockMvc.perform(get("/api/members/publicationCoupon")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(condition)))
+                .andDo(print())
+                .andExpect(status().isOk())
+        ;
+    }
+
+    @Test
+    @DisplayName("일반 유저가 쿠폰 발행 시 검색한 유저 조회하면 forbidden 나오는 테스트")
+    public void queryMembersInPublishCoupon_forbidden() throws Exception {
+        //given
+        MemberConditionPublishCoupon condition = MemberConditionPublishCoupon.builder()
+                .email(appProperties.getUserEmail())
+                .build();
+
+        //when & then
+        mockMvc.perform(get("/api/members/publicationCoupon")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(condition)))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+        ;
+    }
+
+    @Test
+    @DisplayName("검색조건이 하나도 없으면 bad request 나오는 테스트")
+    public void queryMembersInPublishCoupon_emptyCondition() throws Exception {
+        //given
+        MemberConditionPublishCoupon condition = MemberConditionPublishCoupon.builder()
+                .email("")
+                .name("")
+                .build();
+
+        //when & then
+        mockMvc.perform(get("/api/members/publicationCoupon")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(condition)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+        ;
+    }
 
 
 
@@ -341,10 +399,20 @@ public class MemberApiControllerTest extends BaseTest {
 
 
 
-    private String getBearerToken() throws Exception {
+
+
+    private String getAdminToken() throws Exception {
+        return getBearerToken(appProperties.getAdminEmail(), appProperties.getAdminPassword());
+    }
+
+    private String getUserToken() throws Exception {
+        return getBearerToken(appProperties.getUserEmail(), appProperties.getUserPassword());
+    }
+
+    private String getBearerToken(String appProperties, String appProperties1) throws Exception {
         JwtLoginDto requestDto = JwtLoginDto.builder()
-                .username(appProperties.getUserEmail())
-                .password(appProperties.getUserPassword())
+                .username(appProperties)
+                .password(appProperties1)
                 .build();
 
         //when & then

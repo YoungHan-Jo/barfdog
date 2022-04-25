@@ -1,8 +1,6 @@
 package com.bi.barfdog.api;
 
-import com.bi.barfdog.api.memberDto.MemberInfoResponseDto;
-import com.bi.barfdog.api.memberDto.MemberUpdateRequestDto;
-import com.bi.barfdog.api.memberDto.UpdatePasswordRequestDto;
+import com.bi.barfdog.api.memberDto.*;
 import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.member.Member;
@@ -11,18 +9,24 @@ import com.bi.barfdog.service.MemberService;
 import com.bi.barfdog.validator.MemberValidator;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
+import java.util.List;
+
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.util.StringUtils.*;
 
 @RequiredArgsConstructor
 @RequestMapping(value = "/api/members", produces = MediaTypes.HAL_JSON_VALUE)
@@ -113,6 +117,20 @@ public class MemberApiController {
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-password").withRel("profile"));
 
         return ResponseEntity.ok(representationModel);
+    }
+
+    @GetMapping("/publicationCoupon")
+    public ResponseEntity queryMemberDtosInPublication(@RequestBody @Valid MemberConditionPublishCoupon condition, Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+        memberValidator.validateConditionInPublication(condition, errors);
+        if (errors.hasErrors()) return badRequest(errors);
+
+        List<MemberPublishCouponResponseDto> responseDto = memberRepository.searchMemberDtosInPublication(condition);
+
+        CollectionModel<MemberPublishCouponResponseDto> collectionModel = CollectionModel.of(responseDto);
+
+
+        return ResponseEntity.ok(collectionModel);
     }
 
 

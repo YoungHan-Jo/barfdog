@@ -32,12 +32,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .httpBasic().disable() // httpbasic 암호화 방식 사용 x
                 .addFilter(new JwtAuthenticationFilter(authenticationManager()))
                 .addFilter(new JwtAuthorizationFilter(authenticationManager(),memberRepository))
+                // ==== 권한 설정 ====
                 .authorizeRequests()
                 .antMatchers("/api/banners/**")
                 .access("hasRole('ROLE_ADMIN')")
+
+                .antMatchers("/api/members/publicationCoupon")
+                .access("hasRole('ROLE_ADMIN')")
                 .antMatchers("/api/members/**")
                 .access("hasRole('ROLE_USER') or hasRole('ROLE_SUBSCRIBER') or hasRole('ROLE_ADMIN')")
+
                 .anyRequest().permitAll()
+
                 .and()
                 .logout()
                 .logoutSuccessUrl("/") // 로그아웃 시 이동하는 주소
