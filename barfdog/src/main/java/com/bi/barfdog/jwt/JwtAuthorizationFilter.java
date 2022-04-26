@@ -37,6 +37,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
         // header 가 있는지 확인
         if (jwtHeader == null || !jwtHeader.startsWith(JwtProperties.TOKEN_PREFIX)) {
+//            response.setStatus(401);
             chain.doFilter(request, response);
             return;
         }

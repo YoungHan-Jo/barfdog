@@ -2,6 +2,7 @@ package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.couponDto.CouponListResponseDto;
 import com.bi.barfdog.api.couponDto.CouponSaveRequestDto;
+import com.bi.barfdog.api.couponDto.PersonalPublishRequestDto;
 import com.bi.barfdog.api.couponDto.PublicationCouponDto;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.coupon.Coupon;
@@ -139,7 +140,7 @@ public class CouponApiController {
     @GetMapping("/publication/general")
     public ResponseEntity queryGeneralCouponsWhenPublication() {
 
-        List<PublicationCouponDto> responseDtoList = couponRepository.findPublicationCouponDtosByCouponType(CouponType.ADMIN_PUBLISHED);
+        List<PublicationCouponDto> responseDtoList = couponRepository.findPublicationCouponDtosByCouponType(CouponType.GENERAL_PUBLISHED);
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(CouponApiController.class).slash("publication").slash("general");
 
@@ -165,6 +166,26 @@ public class CouponApiController {
 
         return ResponseEntity.ok(collectionModel);
     }
+
+    @PostMapping("/personal")
+    public ResponseEntity publishCouponsPersonal(@RequestBody @Valid PersonalPublishRequestDto requestDto,
+                                                 Errors errors) {
+        if(errors.hasErrors()) return badRequest(errors);
+        Optional<Coupon> optionalCoupon = couponRepository.findById(requestDto.getCouponId());
+        if (!optionalCoupon.isPresent()) return notFound();
+
+        couponValidator.validateCouponType(requestDto, errors);
+        if(errors.hasErrors()) return badRequest(errors);
+
+        couponService.publishCouponsToPersonal(requestDto);
+
+
+
+
+        return ResponseEntity.created(null).body(null);
+    }
+
+
 
 
 

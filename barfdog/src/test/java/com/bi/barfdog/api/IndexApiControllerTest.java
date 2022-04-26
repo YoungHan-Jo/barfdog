@@ -144,6 +144,7 @@ public class IndexApiControllerTest extends BaseTest {
                                 fieldWithPath("myRecommendationCode").description("내 추천 코드"),
                                 fieldWithPath("grade").description("등급"),
                                 fieldWithPath("reward").description("적립금"),
+                                fieldWithPath("accumulatedAmount").description("구매 누적금액"),
                                 fieldWithPath("firstReward.recommend").description("추천인 적립금 받았는 지 여부"),
                                 fieldWithPath("firstReward.receiveAgree").description("수신 동의 적립금 받았는 지 여부"),
                                 fieldWithPath("lastLoginDate").description("마지막 로그인 날짜시간"),
@@ -455,12 +456,12 @@ public class IndexApiControllerTest extends BaseTest {
         System.out.println("findMember = " + findMember.getEmail());
 
         JwtLoginDto requestDto = JwtLoginDto.builder()
-                .username(member.getEmail())
+                .email(member.getEmail())
                 .password("1234")
                 .build();
 
         //when & then
-        mockMvc.perform(post("/login")
+        mockMvc.perform(post("/api/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -473,7 +474,7 @@ public class IndexApiControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
                         ),
                         requestFields(
-                                fieldWithPath("username").description("회원 이메일(로그인 ID)"),
+                                fieldWithPath("email").description("회원 이메일(로그인 ID)"),
                                 fieldWithPath("password").description("회원 비밀번호")
                         ),
                         responseHeaders(
@@ -493,12 +494,12 @@ public class IndexApiControllerTest extends BaseTest {
         System.out.println("findMember = " + findMember.getEmail());
 
         JwtLoginDto requestDto = JwtLoginDto.builder()
-                .username(member.getEmail())
+                .email(member.getEmail())
                 .password("5678")
                 .build();
 
         //when & then
-        mockMvc.perform(post("/login")
+        mockMvc.perform(post("/api/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))

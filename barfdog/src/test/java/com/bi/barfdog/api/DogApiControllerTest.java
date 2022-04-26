@@ -194,12 +194,12 @@ public class DogApiControllerTest extends BaseTest {
 
     private String getBearerToken(String appProperties, String appProperties1) throws Exception {
         JwtLoginDto requestDto = JwtLoginDto.builder()
-                .username(appProperties)
+                .email(appProperties)
                 .password(appProperties1)
                 .build();
 
         //when & then
-        ResultActions perform = mockMvc.perform(post("/login")
+        ResultActions perform = mockMvc.perform(post("/api/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaTypes.HAL_JSON)
                 .content(objectMapper.writeValueAsString(requestDto)));

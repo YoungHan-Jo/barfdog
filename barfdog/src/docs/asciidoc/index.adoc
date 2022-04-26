@@ -449,3 +449,11 @@ operation::query_general_coupons_in_publication[snippets='curl-request,request-h
 `GET` 요청을 사용해서 코드 발행 쿠폰 리스트를 조회할 수 있다.
 
 operation::query_code_coupons_in_publication[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-query-members-in-publishCoupon]]
+=== 개인 쿠폰 발행 시 유저 검색
+
+`GET` 요청을 사용해서 개인 쿠폰 발행할 유저를 검색할 수 있다.
+
+operation::query_members_in_publishCoupon[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+

@@ -1,13 +1,18 @@
 package com.bi.barfdog.service;
 
 import com.bi.barfdog.api.couponDto.CouponSaveRequestDto;
+import com.bi.barfdog.api.couponDto.PersonalPublishRequestDto;
 import com.bi.barfdog.domain.coupon.Coupon;
 import com.bi.barfdog.domain.coupon.CouponStatus;
 import com.bi.barfdog.domain.coupon.CouponType;
+import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.repository.CouponRepository;
+import com.bi.barfdog.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -15,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class CouponService {
 
     private final CouponRepository couponRepository;
+    private final MemberRepository memberRepository;
+    private final EntityManager em;
 
     @Transactional
     public void createCoupon(CouponSaveRequestDto requestDto) {
@@ -24,7 +31,7 @@ public class CouponService {
             coupon = Coupon.builder()
                     .name(requestDto.getName())
                     .code("")
-                    .couponType(CouponType.ADMIN_PUBLISHED)
+                    .couponType(CouponType.GENERAL_PUBLISHED)
                     .description(requestDto.getDescription())
                     .amount(requestDto.getAmount())
                     .discountType(requestDto.getDiscountType())
@@ -54,9 +61,22 @@ public class CouponService {
         couponRepository.save(coupon);
     }
 
+    @Transactional
     public void inactiveCoupon(Long id) {
         Coupon coupon = couponRepository.findById(id).get();
 
         coupon.inactive();
+    }
+
+    @Transactional
+    public void publishCouponsToPersonal(PersonalPublishRequestDto requestDto) {
+
+        em.flush();
+        em.clear();
+
+//        MemberCoupon.builder()
+//                .member()
+//                .build();
+
     }
 }

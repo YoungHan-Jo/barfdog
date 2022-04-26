@@ -4,6 +4,7 @@ import com.bi.barfdog.domain.coupon.Coupon;
 import com.bi.barfdog.domain.coupon.CouponStatus;
 import com.bi.barfdog.domain.member.Member;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -15,7 +16,7 @@ import static javax.persistence.FetchType.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
+@Getter @Builder
 @Entity
 public class MemberCoupon {
 

@@ -1,6 +1,7 @@
 package com.bi.barfdog.validator;
 
 import com.bi.barfdog.api.couponDto.CouponSaveRequestDto;
+import com.bi.barfdog.api.couponDto.PersonalPublishRequestDto;
 import com.bi.barfdog.domain.coupon.Coupon;
 import com.bi.barfdog.domain.coupon.DiscountType;
 import com.bi.barfdog.repository.CouponRepository;
@@ -36,6 +37,13 @@ public class CouponValidator {
             if (optionalCoupon.isPresent()) {
                 errors.reject("duplicate code","이미 존재하는 쿠폰 코드입니다.");
             }
+        }
+    }
+
+    public void validateCouponType(PersonalPublishRequestDto requestDto, Errors errors) {
+        Coupon findCoupon = couponRepository.findById(requestDto.getCouponId()).get();
+        if (findCoupon.getCouponType() != requestDto.getCouponType()) {
+            errors.reject("wrong couponType","쿠폰타입과 선택한 쿠폰의 쿠폰타입이 일치하지 않습니다.");
         }
     }
 }

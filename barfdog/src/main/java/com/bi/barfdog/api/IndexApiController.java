@@ -2,11 +2,14 @@ package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.memberDto.FindEmailResponseDto;
 import com.bi.barfdog.api.memberDto.FindPasswordRequestDto;
+import com.bi.barfdog.api.memberDto.LoginDto;
 import com.bi.barfdog.api.memberDto.MemberSaveRequestDto;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.directsend.PhoneAuthRequestDto;
 import com.bi.barfdog.directsend.DirectSendResponseDto;
 import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.jwt.JwtProperties;
+import com.bi.barfdog.jwt.JwtTokenProvider;
 import com.bi.barfdog.repository.MemberRepository;
 import com.bi.barfdog.service.MemberService;
 import com.bi.barfdog.validator.MemberValidator;
@@ -17,9 +20,11 @@ import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import java.io.IOException;
@@ -36,6 +41,9 @@ public class IndexApiController {
     private final MemberService memberService;
     private final MemberValidator memberValidator;
     private final MemberRepository memberRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final JwtTokenProvider jwtTokenProvider;
+
 
     WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
 
@@ -145,6 +153,20 @@ public class IndexApiController {
 
         return ResponseEntity.ok(entityModel);
     }
+
+    @PostMapping("/api/login")
+    public ResponseEntity login(@RequestBody LoginDto loginDto, HttpServletResponse response) {
+        Member member = memberRepository.findByEmail(loginDto.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("가입되지 않은 E-MAIL 입니다."));
+        if (!bCryptPasswordEncoder.matches(loginDto.getPassword(), member.getPassword())) {
+            return ResponseEntity.status(401).body(null);
+        }
+        String jwtToken = JwtProperties.TOKEN_PREFIX + jwtTokenProvider.createToken(member.getName(), member.getEmail());
+        response.addHeader(JwtProperties.HEADER_STRING, jwtToken);
+        EntityModel<String> entityModel = EntityModel.of(jwtToken);
+        return ResponseEntity.ok(jwtToken);
+    }
+
 
 
 

@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @Getter @Builder
 public class JwtLoginDto {
 
-    private String username;
+    private String email;
     private String password;
 }

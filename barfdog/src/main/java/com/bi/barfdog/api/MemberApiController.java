@@ -127,7 +127,13 @@ public class MemberApiController {
 
         List<MemberPublishCouponResponseDto> responseDto = memberRepository.searchMemberDtosInPublication(condition);
 
-        CollectionModel<MemberPublishCouponResponseDto> collectionModel = CollectionModel.of(responseDto);
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(MemberApiController.class).slash("publicationCoupon");
+
+        CollectionModel<MemberPublishCouponResponseDto> collectionModel = CollectionModel.of(responseDto,
+                selfLinkBuilder.withSelfRel(),
+                linkTo(CouponApiController.class).slash("personal").withRel("publish-coupon-personal"),
+                profileRootUrlBuilder.slash("index.html#resources-query-members-in-publishCoupon").withRel("profile")
+                );
 
 
         return ResponseEntity.ok(collectionModel);

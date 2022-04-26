@@ -1,12 +1,14 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.couponDto.CouponSaveRequestDto;
+import com.bi.barfdog.api.couponDto.PersonalPublishRequestDto;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.coupon.*;
+import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.CouponRepository;
-import org.assertj.core.api.Assertions;
+import com.bi.barfdog.repository.MemberRepository;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,8 @@ import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,6 +45,9 @@ public class CouponApiControllerTest extends BaseTest {
 
     @Autowired
     CouponRepository couponRepository;
+
+    @Autowired
+    MemberRepository memberRepository;
 
     @Autowired
     AppProperties appProperties;
@@ -114,7 +121,7 @@ public class CouponApiControllerTest extends BaseTest {
 
         assertThat(coupon.getName()).isEqualTo(name);
         assertThat(coupon.getCode()).isEqualTo("");
-        assertThat(coupon.getCouponType()).isEqualTo(CouponType.ADMIN_PUBLISHED);
+        assertThat(coupon.getCouponType()).isEqualTo(CouponType.GENERAL_PUBLISHED);
         assertThat(coupon.getDescription()).isEqualTo(description);
         assertThat(coupon.getAmount()).isEqualTo(amount);
         assertThat(coupon.getDiscountType()).isEqualTo(fixedRate);
@@ -718,6 +725,103 @@ public class CouponApiControllerTest extends BaseTest {
         ;
     }
 
+    @Test
+    @DisplayName("정상적으로 쿠폰 개인 발행하는 테스트")
+    public void publishCoupon_personal() throws Exception {
+       //given
+        Coupon coupon = generateAdminCoupon(1);
+
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+        Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        List<Long> memberIdList = new ArrayList<>();
+        memberIdList.add(admin.getId());
+        memberIdList.add(user.getId());
+
+        PersonalPublishRequestDto requestDto = PersonalPublishRequestDto.builder()
+                .memberIdList(memberIdList)
+                .couponLife(31)
+                .couponType(CouponType.GENERAL_PUBLISHED)
+                .couponId(coupon.getId())
+                .alimTalk(false)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/coupons/personal")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isCreated())
+        ;
+    }
+
+    @Test
+    @DisplayName("쿠폰 개인 발행시 존재하지 않는 쿠폰일 경우 not found 나오는 테스트")
+    public void publishCoupon_personal_coupon_notFound() throws Exception {
+        //given
+        Coupon coupon = generateAdminCoupon(1);
+
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+        Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        List<Long> memberIdList = new ArrayList<>();
+        memberIdList.add(admin.getId());
+        memberIdList.add(user.getId());
+
+        PersonalPublishRequestDto requestDto = PersonalPublishRequestDto.builder()
+                .memberIdList(memberIdList)
+                .couponLife(31)
+                .couponType(CouponType.CODE_PUBLISHED)
+                .couponId(999999L)
+                .alimTalk(false)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/coupons/personal")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+        ;
+    }
+
+    @Test
+    @DisplayName("쿠폰 개인 발행시 쿠폰과 쿠폰타입이 일치하지 않을 경우 bad request 나오는 테스트")
+    public void publishCoupon_personal_wrongCouponType() throws Exception {
+        //given
+        Coupon coupon = generateAdminCoupon(1);
+
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+        Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        List<Long> memberIdList = new ArrayList<>();
+        memberIdList.add(admin.getId());
+        memberIdList.add(user.getId());
+
+        PersonalPublishRequestDto requestDto = PersonalPublishRequestDto.builder()
+                .memberIdList(memberIdList)
+                .couponLife(31)
+                .couponType(CouponType.CODE_PUBLISHED)
+                .couponId(coupon.getId())
+                .alimTalk(false)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/coupons/personal")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+        ;
+    }
+
+
 
 
 
@@ -745,7 +849,7 @@ public class CouponApiControllerTest extends BaseTest {
     private Coupon generateAdminCoupon(int i) {
         Coupon coupon = Coupon.builder()
                 .name("관리자 직접 발행 쿠폰" + i)
-                .couponType(CouponType.ADMIN_PUBLISHED)
+                .couponType(CouponType.GENERAL_PUBLISHED)
                 .code("")
                 .description("설명")
                 .amount(1)
@@ -789,12 +893,12 @@ public class CouponApiControllerTest extends BaseTest {
 
     private String getBearerToken(String appProperties, String appProperties1) throws Exception {
         JwtLoginDto requestDto = JwtLoginDto.builder()
-                .username(appProperties)
+                .email(appProperties)
                 .password(appProperties1)
                 .build();
 
         //when & then
-        ResultActions perform = mockMvc.perform(post("/login")
+        ResultActions perform = mockMvc.perform(post("/api/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaTypes.HAL_JSON)
                 .content(objectMapper.writeValueAsString(requestDto)));

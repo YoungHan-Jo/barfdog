@@ -779,12 +779,12 @@ public class RecipeApiControllerTest extends BaseTest {
 
     private String getBearerToken() throws Exception {
         JwtLoginDto requestDto = JwtLoginDto.builder()
-                .username(appProperties.getAdminEmail())
+                .email(appProperties.getAdminEmail())
                 .password(appProperties.getAdminPassword())
                 .build();
 
         //when & then
-        ResultActions perform = mockMvc.perform(post("/login")
+        ResultActions perform = mockMvc.perform(post("/api/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaTypes.HAL_JSON)
                 .content(objectMapper.writeValueAsString(requestDto)));

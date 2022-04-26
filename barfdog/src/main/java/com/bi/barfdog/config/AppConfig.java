@@ -83,6 +83,7 @@ public class AppConfig {
                 makeRecipe("덕램", "오리,양", "피부와 모질강화 필요", "덕램1.jpg", "덕램2.jpg");
                 makeRecipe("램비프", "양,소", "건강한 성장과 영양보충", "램비프1.jpg", "램비프2.jpg");
 
+                makeRepresentativeDog(admin, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
                 makeDog(admin, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
                 makeDog(admin, 42L, DogSize.LARGE, "14.5", ActivityLevel.MUCH, 2, 0.5, SnackCountLevel.LITTLE);
                 makeDog(admin, 46L, DogSize.LARGE, "13.4", ActivityLevel.VERY_MUCH, 3, 1, SnackCountLevel.NORMAL);
@@ -211,6 +212,23 @@ public class AppConfig {
                         .status(RecipeStatus.ACTIVE)
                         .build();
                 return recipeRepository.save(recipe);
+            }
+
+            private Dog makeRepresentativeDog(Member admin, long startAgeMonth, DogSize dogSize, String weight, ActivityLevel activitylevel, int walkingCountPerWeek, double walkingTimePerOneTime, SnackCountLevel snackCountLevel) {
+                Dog dog = Dog.builder()
+                        .member(admin)
+                        .name("대표견")
+                        .representative(true)
+                        .startAgeMonth(startAgeMonth)
+                        .gender(Gender.MALE)
+                        .oldDog(false)
+                        .dogSize(dogSize)
+                        .weight(new BigDecimal(weight))
+                        .dogActivity(new DogActivity(activitylevel, walkingCountPerWeek, walkingTimePerOneTime))
+                        .dogStatus(DogStatus.HEALTHY)
+                        .snackCountLevel(snackCountLevel)
+                        .build();
+                return dogRepository.save(dog);
             }
 
             private Dog makeDog(Member admin, long startAgeMonth, DogSize dogSize, String weight, ActivityLevel activitylevel, int walkingCountPerWeek, double walkingTimePerOneTime, SnackCountLevel snackCountLevel) {

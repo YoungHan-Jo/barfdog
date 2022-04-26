@@ -26,15 +26,15 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     private final AuthenticationManager authenticationManager;
 
+
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            ServletInputStream inputStream = request.getInputStream();
             JwtLoginDto jwtMemberDto = objectMapper.readValue(request.getInputStream(), JwtLoginDto.class); // json 파싱
 
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(jwtMemberDto.getUsername(), jwtMemberDto.getPassword());
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(jwtMemberDto.getEmail(), jwtMemberDto.getPassword());
 
             // PrincipalDetails의 loadUserByUsernamer() 메소드가 실행된 후 정상이면 authentication을 리턴함
             // DB에 있는 username 과 password 가 일치한다.(인증완료)
