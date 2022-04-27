@@ -93,7 +93,7 @@ public class RecipeApiControllerTest extends BaseTest {
                 .andDo(document("create_recipe",
                         links(
                                 linkWithRel("self").description("self 링크"),
-                                linkWithRel("query-recipes").description("레시피 리스트 호출 링크"),
+                                linkWithRel("query_recipes").description("레시피 리스트 호출 링크"),
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
                         ),
                         requestHeaders(
@@ -124,7 +124,7 @@ public class RecipeApiControllerTest extends BaseTest {
                         ),
                         responseFields(
                                 fieldWithPath("_links.self.href").description("self 링크"),
-                                fieldWithPath("_links.query-recipes.href").description("레시피 리스트 호출 링크"),
+                                fieldWithPath("_links.query_recipes.href").description("레시피 리스트 호출 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
@@ -253,7 +253,7 @@ public class RecipeApiControllerTest extends BaseTest {
                 .andDo(document("query_recipes",
                         links(
                                 linkWithRel("self").description("self 링크"),
-                                linkWithRel("create-recipe").description("레시피 생성 링크"),
+                                linkWithRel("create_recipe").description("레시피 생성 링크"),
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
                         ),
                         requestHeaders(
@@ -271,10 +271,10 @@ public class RecipeApiControllerTest extends BaseTest {
                                 fieldWithPath("_embedded.recipeListResponseDtoList[0].leaked").description("레시피 노출 상태 [LEAKED/HIDDEN]"),
                                 fieldWithPath("_embedded.recipeListResponseDtoList[0].inStock").description("레시피 재고 유무"),
                                 fieldWithPath("_embedded.recipeListResponseDtoList[0].modifiedDate").description("최종 수정 일자"),
-                                fieldWithPath("_embedded.recipeListResponseDtoList[0]._links.update-recipe.href").description("해당 레시피 수정 링크"),
-                                fieldWithPath("_embedded.recipeListResponseDtoList[0]._links.inactive-recipe.href").description("해당 레시피 비활성화 링크"),
+                                fieldWithPath("_embedded.recipeListResponseDtoList[0]._links.update_recipe.href").description("해당 레시피 수정 링크"),
+                                fieldWithPath("_embedded.recipeListResponseDtoList[0]._links.inactive_recipe.href").description("해당 레시피 비활성화 링크"),
                                 fieldWithPath("_links.self.href").description("self 링크"),
-                                fieldWithPath("_links.create-recipe.href").description("레시피 생성 링크"),
+                                fieldWithPath("_links.create_recipe.href").description("레시피 생성 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
@@ -296,7 +296,7 @@ public class RecipeApiControllerTest extends BaseTest {
                 .andDo(document("query_recipe",
                         links(
                                 linkWithRel("self").description("self 링크"),
-                                linkWithRel("update-recipe").description("레시피 수정 링크"),
+                                linkWithRel("update_recipe").description("레시피 수정 링크"),
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
                         ),
                         requestHeaders(
@@ -325,7 +325,7 @@ public class RecipeApiControllerTest extends BaseTest {
                                 fieldWithPath("leaked").description("레시피 노출 상태 [LEAKED/HIDDEN]"),
                                 fieldWithPath("inStock").description("재고 여부 true/false"),
                                 fieldWithPath("_links.self.href").description("self 링크"),
-                                fieldWithPath("_links.update-recipe.href").description("레시피 수정 링크"),
+                                fieldWithPath("_links.update_recipe.href").description("레시피 수정 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
@@ -396,7 +396,7 @@ public class RecipeApiControllerTest extends BaseTest {
                 .andDo(document("update_recipe",
                         links(
                                 linkWithRel("self").description("self 링크"),
-                                linkWithRel("query-recipes").description("레시피 리스트 호출 링크"),
+                                linkWithRel("query_recipes").description("레시피 리스트 호출 링크"),
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
                         ),
                         requestHeaders(
@@ -429,7 +429,7 @@ public class RecipeApiControllerTest extends BaseTest {
                         ),
                         responseFields(
                                 fieldWithPath("_links.self.href").description("self 링크"),
-                                fieldWithPath("_links.query-recipes.href").description("레시피 리스트 호출 링크"),
+                                fieldWithPath("_links.query_recipes.href").description("레시피 리스트 호출 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
@@ -640,7 +640,7 @@ public class RecipeApiControllerTest extends BaseTest {
                 .andDo(document("inactive_recipe",
                         links(
                                 linkWithRel("self").description("self 링크"),
-                                linkWithRel("query-recipes").description("레시피 리스트 호출 링크"),
+                                linkWithRel("query_recipes").description("레시피 리스트 호출 링크"),
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
                         ),
                         requestHeaders(
@@ -656,7 +656,7 @@ public class RecipeApiControllerTest extends BaseTest {
                         ),
                         responseFields(
                                 fieldWithPath("_links.self.href").description("self 링크"),
-                                fieldWithPath("_links.query-recipes.href").description("레시피 리스트 호출 링크"),
+                                fieldWithPath("_links.query_recipes.href").description("레시피 리스트 호출 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));

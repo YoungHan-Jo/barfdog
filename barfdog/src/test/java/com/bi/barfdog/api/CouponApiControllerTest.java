@@ -86,7 +86,7 @@ public class CouponApiControllerTest extends BaseTest {
                 .andDo(document("create_coupon",
                         links(
                                 linkWithRel("self").description("self 링크"),
-                                linkWithRel("query-direct-coupons").description("직접 만든 쿠폰 리스트 조회하는 링크"),
+                                linkWithRel("query_direct_coupons").description("직접 만든 쿠폰 리스트 조회하는 링크"),
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
                         ),
                         requestHeaders(
@@ -111,7 +111,7 @@ public class CouponApiControllerTest extends BaseTest {
                         ),
                         responseFields(
                                 fieldWithPath("_links.self.href").description("self 링크"),
-                                fieldWithPath("_links.query-direct-coupons.href").description("직접 만든 쿠폰 리스트 조회하는 링크"),
+                                fieldWithPath("_links.query_direct_coupons.href").description("직접 만든 쿠폰 리스트 조회하는 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ))
@@ -408,7 +408,7 @@ public class CouponApiControllerTest extends BaseTest {
                 .andDo(document("query_direct_coupons",
                         links(
                                 linkWithRel("self").description("self 링크"),
-                                linkWithRel("query-auto-coupons").description("자동 발행 쿠폰 리스트 조회하는 링크"),
+                                linkWithRel("query_auto_coupons").description("자동 발행 쿠폰 리스트 조회하는 링크"),
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
                         ),
                         requestHeaders(
@@ -431,9 +431,9 @@ public class CouponApiControllerTest extends BaseTest {
                                 fieldWithPath("_embedded.couponListResponseDtoList[0].couponTarget").description("사용처"),
                                 fieldWithPath("_embedded.couponListResponseDtoList[0].amount").description("쿠폰 사용 한도 회수"),
                                 fieldWithPath("_embedded.couponListResponseDtoList[0].expiredDate").description("발급 이력 중 가장 긴 유효기간 날짜"),
-                                fieldWithPath("_embedded.couponListResponseDtoList[0]._links.inactive-coupon.href").description("쿠폰 삭제(비활성화) 링크 [유효기간이 지난 쿠폰일 경우에만 링크가 나타남]"),
+                                fieldWithPath("_embedded.couponListResponseDtoList[0]._links.inactive_coupon.href").description("쿠폰 삭제(비활성화) 링크 [유효기간이 지난 쿠폰일 경우에만 링크가 나타남]"),
                                 fieldWithPath("_links.self.href").description("self 링크"),
-                                fieldWithPath("_links.query-auto-coupons.href").description("자동 발행 쿠폰 리스트 조회하는 링크"),
+                                fieldWithPath("_links.query_auto_coupons.href").description("자동 발행 쿠폰 리스트 조회하는 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ))
@@ -505,7 +505,7 @@ public class CouponApiControllerTest extends BaseTest {
                 .andDo(document("query_auto_coupons",
                         links(
                                 linkWithRel("self").description("self 링크"),
-                                linkWithRel("query-direct-coupons").description("직접 발행 쿠폰 리스트 조회하는 링크"),
+                                linkWithRel("query_direct_coupons").description("직접 발행 쿠폰 리스트 조회하는 링크"),
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
                         ),
                         requestHeaders(
@@ -529,7 +529,7 @@ public class CouponApiControllerTest extends BaseTest {
                                 fieldWithPath("_embedded.couponListResponseDtoList[0].amount").description("쿠폰 사용 한도 회수"),
                                 fieldWithPath("_embedded.couponListResponseDtoList[0].expiredDate").description("발급 이력 중 가장 긴 유효기간 날짜"),
                                 fieldWithPath("_links.self.href").description("self 링크"),
-                                fieldWithPath("_links.query-direct-coupons.href").description("직접 발행 쿠폰 리스트 조회하는 링크"),
+                                fieldWithPath("_links.query_direct_coupons.href").description("직접 발행 쿠폰 리스트 조회하는 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ))
@@ -572,7 +572,7 @@ public class CouponApiControllerTest extends BaseTest {
                 .andDo(document("update_coupon_inactive",
                         links(
                                 linkWithRel("self").description("self 링크"),
-                                linkWithRel("query-direct-coupons").description("직접 발행 쿠폰 리스트 조회하는 링크"),
+                                linkWithRel("query_direct_coupons").description("직접 발행 쿠폰 리스트 조회하는 링크"),
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
                         ),
                         requestHeaders(
@@ -588,7 +588,7 @@ public class CouponApiControllerTest extends BaseTest {
                         ),
                         responseFields(
                                 fieldWithPath("_links.self.href").description("self 링크"),
-                                fieldWithPath("_links.query-direct-coupons.href").description("직접 발행 쿠폰 리스트 조회하는 링크"),
+                                fieldWithPath("_links.query_direct_coupons.href").description("직접 발행 쿠폰 리스트 조회하는 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ))

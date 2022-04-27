@@ -63,7 +63,7 @@ public class DogApiController {
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(selfLinkBuilder.withSelfRel());
         WebMvcLinkBuilder querySurveyReportLinkBuilder = linkTo(SurveyReportApiController.class).slash(surveyReport.getId());
-        representationModel.add(querySurveyReportLinkBuilder.withRel("query-surveyReport"));
+        representationModel.add(querySurveyReportLinkBuilder.withRel("query_surveyReport"));
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-create-dog").withRel("profile"));
 
         return ResponseEntity.created(querySurveyReportLinkBuilder.toUri()).body(representationModel);

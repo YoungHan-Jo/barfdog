@@ -1,9 +1,6 @@
 package com.bi.barfdog.api;
 
-import com.bi.barfdog.api.bannerDto.MainBannerSaveRequestDto;
-import com.bi.barfdog.api.bannerDto.MyPageBannerSaveRequestDto;
-import com.bi.barfdog.api.bannerDto.PopupBannerSaveRequestDto;
-import com.bi.barfdog.api.bannerDto.TopBannerSaveRequestDto;
+import com.bi.barfdog.api.bannerDto.*;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.banner.*;
 import com.bi.barfdog.repository.BannerRepository;
@@ -15,6 +12,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
@@ -59,14 +57,14 @@ public class BannerApiController {
         WebMvcLinkBuilder selfLinkBuilder = linkTo(BannerApiController.class).slash("main");
         URI createBannerUri = selfLinkBuilder.toUri();
 
-        EntityModel<Banner> bannerEntityModel = EntityModel.of(banner,
-                selfLinkBuilder.withSelfRel(),
-                linkTo(BannerApiController.class).slash("main").withRel("query-mainBanners"),
-                linkTo(BannerApiController.class).slash("main").slash(banner.getId()).withRel("update-banner"),
-                profileRootUrlBuilder.slash("index.html#resources-create-mainBanner").withRel("profile")
-        );
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(BannerApiController.class).slash("main").withRel("query_mainBanners"));
+        representationModel.add(linkTo(BannerApiController.class).slash("main").slash(banner.getId()).withRel("query_mainBanner"));
+        representationModel.add(linkTo(BannerApiController.class).slash("main").slash(banner.getId()).withRel("update_banner"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-create-mainBanner").withRel("profile"));
 
-        return ResponseEntity.created(createBannerUri).body(bannerEntityModel);
+        return ResponseEntity.created(createBannerUri).body(representationModel);
     }
 
     @PostMapping("/myPage")
@@ -83,6 +81,11 @@ public class BannerApiController {
             return badRequest(errors);
         }
 
+        List<MyPageBanner> myPageBanners = bannerRepository.findMyPageBanners();
+        if (myPageBanners.size() > 0) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+        }
+
         System.out.println("requestDto.toString() = " + requestDto.toString());
 
         Banner banner = bannerService.saveMyPageBanner(requestDto, pcFile, mobileFile);
@@ -92,8 +95,8 @@ public class BannerApiController {
 
         EntityModel<Banner> bannerEntityModel = EntityModel.of(banner,
                 selfLinkBuilder.withSelfRel(),
-                linkTo(BannerApiController.class).slash("myPage").withRel("query-myPageBanner"),
-                linkTo(BannerApiController.class).slash("myPage").slash(banner.getId()).withRel("update-banner"),
+                linkTo(BannerApiController.class).slash("myPage").withRel("query_myPageBanner"),
+                linkTo(BannerApiController.class).slash("myPage").slash(banner.getId()).withRel("update_banner"),
                 profileRootUrlBuilder.slash("index.html#resources-create-myPageBanner").withRel("profile")
         );
 
@@ -118,14 +121,13 @@ public class BannerApiController {
         WebMvcLinkBuilder selfLinkBuilder = linkTo(BannerApiController.class).slash("popup");
         URI createBannerUri = selfLinkBuilder.toUri();
 
-        EntityModel<Banner> bannerEntityModel = EntityModel.of(banner,
-                selfLinkBuilder.withSelfRel(),
-                linkTo(BannerApiController.class).slash("popup").withRel("query-popupBanners"),
-                linkTo(BannerApiController.class).slash("popup").slash(banner.getId()).withRel("update-banner"),
-                profileRootUrlBuilder.slash("index.html#resources-create-popupBanner").withRel("profile")
-        );
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(BannerApiController.class).slash("popup").withRel("query_popupBanners"));
+        representationModel.add(linkTo(BannerApiController.class).slash("popup").slash(banner.getId()).withRel("update_banner"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-create-popupBanner").withRel("profile"));
 
-        return ResponseEntity.created(createBannerUri).body(bannerEntityModel);
+        return ResponseEntity.created(createBannerUri).body(representationModel);
     }
 
     @PostMapping("/top")
@@ -142,8 +144,8 @@ public class BannerApiController {
 
         EntityModel<Banner> entityModel = EntityModel.of(banner,
                 selfLinkBuilder.withSelfRel(),
-                linkTo(BannerApiController.class).slash("top").withRel("query-topBanner"),
-                linkTo(BannerApiController.class).slash("top").slash(banner.getId()).withRel("update-banner"),
+                linkTo(BannerApiController.class).slash("top").withRel("query_topBanner"),
+                linkTo(BannerApiController.class).slash("top").slash(banner.getId()).withRel("update_banner"),
                 profileRootUrlBuilder.slash("index.html#resources-create-topBanner").withRel("profile")
         );
 
@@ -152,15 +154,20 @@ public class BannerApiController {
 
     @GetMapping("/myPage")
     public ResponseEntity queryMyPageBanner() {
-        List<MyPageBanner> results = bannerRepository.findMyPageBanners();
 
-        MyPageBanner myPageBanner = results.get(0);
+        Optional<MyPageBannerResponseDto> optional = bannerRepository.findFirstMyPageBanner();
+        if (!optional.isPresent()) {
+            return notFound();
+        }
+        MyPageBannerResponseDto responseDto = optional.get();
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(BannerApiController.class).slash("myPage");
 
-        EntityModel<MyPageBanner> entityModel = EntityModel.of(myPageBanner,
+        EntityModel<MyPageBannerResponseDto> entityModel = EntityModel.of(responseDto,
+                linkTo(InfoController.class).slash("display").slash("banners?filename=s_" + responseDto.getFilenamePc()).withRel("thumbnail_pc"),
+                linkTo(InfoController.class).slash("display").slash("banners?filename=s_" + responseDto.getFilenameMobile()).withRel("thumbnail_mobile"),
                 selfLinkBuilder.withSelfRel(),
-                selfLinkBuilder.slash(myPageBanner.getId()).withRel("update-banner"),
+                selfLinkBuilder.slash(responseDto.getId()).withRel("update_banner"),
                 profileRootUrlBuilder.slash("index.html#resources-query-myPageBanner").withRel("profile")
         );
 
@@ -186,29 +193,32 @@ public class BannerApiController {
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(BannerApiController.class).slash("myPage").slash(id);
 
-        EntityModel<MyPageBanner> entityModel = EntityModel.of(myPageBanner,
-                selfLinkBuilder.withSelfRel(),
-                linkTo(BannerApiController.class).slash("myPage").withRel("query-myPageBanner"),
-                profileRootUrlBuilder.slash("index.html#resources-update-myPageBanner").withRel("profile")
-                );
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(BannerApiController.class).slash("myPage").withRel("query_myPageBanner"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-myPageBanner").withRel("profile"));
 
-        return ResponseEntity.ok(entityModel);
+
+        return ResponseEntity.ok(representationModel);
     }
 
     @GetMapping("/top")
     public ResponseEntity getTopBanner() {
 
-        List<TopBanner> results = bannerRepository.findTopBanners();
+        Optional<TopBannerResponseDto> optional = bannerRepository.findFirstTopBannerDto();
+        if (!optional.isPresent()) {
+            return notFound();
+        }
 
-        TopBanner banner = results.get(0);
+        TopBannerResponseDto responseDto = optional.get();
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(BannerApiController.class).slash("top");
 
-        EntityModel<TopBanner> entityModel = EntityModel.of(banner,
+        EntityModel<TopBannerResponseDto> entityModel = EntityModel.of(responseDto,
                 selfLinkBuilder.withSelfRel(),
-                selfLinkBuilder.slash(banner.getId()).withRel("update-banner"),
+                selfLinkBuilder.slash(responseDto.getId()).withRel("update_banner"),
                 profileRootUrlBuilder.slash("index.html#resources-query-topBanner").withRel("profile")
-                );
+        );
 
         return ResponseEntity.ok(entityModel);
     }
@@ -231,32 +241,42 @@ public class BannerApiController {
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(BannerApiController.class).slash("top").slash(banner.getId());
 
-        EntityModel<TopBanner> entityModel = EntityModel.of(banner,
-                selfLinkBuilder.withSelfRel(),
-                linkTo(BannerApiController.class).slash("top").withRel("query-topBanner"),
-                profileRootUrlBuilder.slash("index.html#resources-update-topBanner").withRel("profile")
-        );
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(BannerApiController.class).slash("top").withRel("query_topBanner"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-topBanner").withRel("profile"));
 
-        return ResponseEntity.ok(entityModel);
+
+        return ResponseEntity.ok(representationModel);
     }
 
     @GetMapping("/main")
     public ResponseEntity queryMainBanners() {
-        List<EntityModel<MainBanner>> entityModelList = new ArrayList<>();
-        List<MainBanner> mainBanners = bannerRepository.findMainBanners();
+
+        List<MainBannerListResponseDto> responseDtoList = bannerRepository.findMainBannersDtos();
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(BannerApiController.class).slash("main");
 
-        for (MainBanner mainBanner : mainBanners) {
-            EntityModel<MainBanner> entityModel = EntityModel.of(mainBanner,
-                    selfLinkBuilder.slash(mainBanner.getId()).withSelfRel()
+        List<EntityModel<MainBannerListResponseDto>> entityModelList = new ArrayList<>();
+
+        for (MainBannerListResponseDto responseDto : responseDtoList) {
+            EntityModel<MainBannerListResponseDto> entityModel = EntityModel.of(responseDto,
+                    linkTo(InfoController.class).slash("display").slash("banners?filename=s_" + responseDto.getFilenamePc()).withRel("thumbnail_pc"),
+                    linkTo(InfoController.class).slash("display").slash("banners?filename=s_" + responseDto.getFilenameMobile()).withRel("thumbnail_mobile"),
+                    selfLinkBuilder.slash("main").slash(responseDto.getId()).withRel("query_banner"),
+                    selfLinkBuilder.slash(responseDto.getId()).withRel("update_banner"),
+                    selfLinkBuilder.slash(responseDto.getId()).withRel("delete_banner"),
+                    selfLinkBuilder.slash(responseDto.getId()).slash("up").withRel("mainBanner_leakedOrder_up"),
+                    selfLinkBuilder.slash(responseDto.getId()).slash("down").withRel("mainBanner_leakedOrder_down")
             );
+
             entityModelList.add(entityModel);
         }
 
-        CollectionModel<EntityModel<MainBanner>> collectionModel = CollectionModel.of(entityModelList,
+
+        CollectionModel<EntityModel<MainBannerListResponseDto>> collectionModel = CollectionModel.of(entityModelList,
                 selfLinkBuilder.withSelfRel(),
-                selfLinkBuilder.withRel("create-banner"),
+                selfLinkBuilder.withRel("create_banner"),
                 profileRootUrlBuilder.slash("index.html#resources-query-mainBanners").withRel("profile")
         );
 
@@ -265,17 +285,21 @@ public class BannerApiController {
 
     @GetMapping("/main/{id}")
     public ResponseEntity queryMainBanner(@PathVariable Long id) {
-        Optional<Banner> optionalBanner = bannerRepository.findById(id);
-        if (!optionalBanner.isPresent()) {
+
+        Optional<MainBannerResponseDto> optionalResponseDto = bannerRepository.findMainBannerDtoById(id);
+        if (!optionalResponseDto.isPresent()) {
             return notFound();
         }
-        Banner banner = optionalBanner.get();
 
-        WebMvcLinkBuilder selfLinkBuilder = linkTo(BannerApiController.class).slash("/main").slash(banner.getId());
+        MainBannerResponseDto responseDto = optionalResponseDto.get();
 
-        EntityModel<Banner> entityModel = EntityModel.of(banner,
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(BannerApiController.class).slash("/main").slash(responseDto.getId());
+
+        EntityModel<MainBannerResponseDto> entityModel = EntityModel.of(responseDto,
+                linkTo(InfoController.class).slash("display").slash("banners?filename=s_" + responseDto.getFilenamePc()).withRel("thumbnail_pc"),
+                linkTo(InfoController.class).slash("display").slash("banners?filename=s_" + responseDto.getFilenameMobile()).withRel("thumbnail_mobile"),
                 selfLinkBuilder.withSelfRel(),
-                selfLinkBuilder.withRel("update-banner"),
+                selfLinkBuilder.withRel("update_banner"),
                 profileRootUrlBuilder.slash("index.html#resources-query-mainBanner").withRel("profile")
         );
 
@@ -301,14 +325,14 @@ public class BannerApiController {
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(BannerApiController.class).slash("main").slash(id);
 
-        EntityModel<MainBanner> entityModel = EntityModel.of(mainBanner,
-                selfLinkBuilder.withSelfRel(),
-                selfLinkBuilder.withRel("query-banner"),
-                linkTo(BannerApiController.class).slash("main").withRel("query-mainBanners"),
-                profileRootUrlBuilder.slash("index.html#resources-update-mainBanner").withRel("profile")
-        );
+        RepresentationModel representationModel = new RepresentationModel();
 
-        return ResponseEntity.ok(entityModel);
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(selfLinkBuilder.withRel("query_banner"));
+        representationModel.add(linkTo(BannerApiController.class).slash("main").withRel("query_mainBanners"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-mainBanner").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
     }
 
 
@@ -328,13 +352,12 @@ public class BannerApiController {
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(BannerApiController.class).slash(id).slash("up");
 
-        EntityModel<Banner> entityModel = EntityModel.of(banner,
-                selfLinkBuilder.withSelfRel(),
-                linkTo(BannerApiController.class).slash("main").withRel("query-mainBanners"),
-                profileRootUrlBuilder.slash("index.html#resources-update-mainBanner-leakedOrder-up").withRel("profile")
-        );
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(BannerApiController.class).slash("main").withRel("query_mainBanners"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-mainBanner-leakedOrder-up").withRel("profile"));
 
-        return ResponseEntity.ok(entityModel);
+        return ResponseEntity.ok(representationModel);
     }
 
     @PutMapping("/main/{id}/down")
@@ -355,13 +378,12 @@ public class BannerApiController {
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(BannerApiController.class).slash(id).slash("down");
 
-        EntityModel<Banner> entityModel = EntityModel.of(banner,
-                selfLinkBuilder.withSelfRel(),
-                linkTo(BannerApiController.class).slash("main").withRel("query-mainBanners"),
-                profileRootUrlBuilder.slash("index.html#resources-update-mainBanner-leakedOrder-down").withRel("profile")
-        );
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(BannerApiController.class).slash("main").withRel("query_mainBanners"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-mainBanner-leakedOrder-down").withRel("profile"));
 
-        return ResponseEntity.ok(entityModel);
+        return ResponseEntity.ok(representationModel);
     }
 
     @DeleteMapping("/main/{id}")
@@ -377,8 +399,8 @@ public class BannerApiController {
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(selfLinkBuilder.withSelfRel());
-        representationModel.add(selfLinkBuilder.withRel("query-mainBanners"));
-        representationModel.add(selfLinkBuilder.withRel("create-banner"));
+        representationModel.add(selfLinkBuilder.withRel("query_mainBanners"));
+        representationModel.add(selfLinkBuilder.withRel("create_banner"));
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-delete-mainBanner").withRel("profile"));
 
         return ResponseEntity.ok(representationModel);
@@ -386,24 +408,26 @@ public class BannerApiController {
 
     @GetMapping("/popup")
     public ResponseEntity queryPopupBanners() {
-        List<EntityModel<PopupBanner>> entityModelList = new ArrayList<>();
-        List<PopupBanner> popupBanners = bannerRepository.findPopupBanners();
+        List<EntityModel<PopupBannerListResponseDto>> entityModelList = new ArrayList<>();
+        List<PopupBannerListResponseDto> responseDtoList = bannerRepository.findPopupBannerDtos();
 
-        for (PopupBanner popupBanner : popupBanners) {
-            EntityModel<PopupBanner> entityModel = EntityModel.of(popupBanner,
-                    linkTo(BannerApiController.class).slash("popup").slash(popupBanner.getId()).withSelfRel(),
-                    linkTo(BannerApiController.class).slash("popup").slash(popupBanner.getId()).withRel("delete-popupBanner"),
-                    linkTo(BannerApiController.class).slash("popup").slash(popupBanner.getId()).withRel("update-popupBanner"),
-                    linkTo(BannerApiController.class).slash("popup").slash(popupBanner.getId()).slash("up").withRel("update-popupBanner-order-up"),
-                    linkTo(BannerApiController.class).slash("popup").slash(popupBanner.getId()).slash("down").withRel("update-popupBanner-order-down")
+        for (PopupBannerListResponseDto responseDto : responseDtoList) {
+            EntityModel<PopupBannerListResponseDto> entityModel = EntityModel.of(responseDto,
+                    linkTo(InfoController.class).slash("display").slash("banners?filename=s_" + responseDto.getFilenamePc()).withRel("thumbnail_pc"),
+                    linkTo(InfoController.class).slash("display").slash("banners?filename=s_" + responseDto.getFilenameMobile()).withRel("thumbnail_mobile"),
+                    linkTo(BannerApiController.class).slash("popup").slash(responseDto.getId()).withRel("query_popupBanner"),
+                    linkTo(BannerApiController.class).slash("popup").slash(responseDto.getId()).withRel("update_popupBanner"),
+                    linkTo(BannerApiController.class).slash("popup").slash(responseDto.getId()).withRel("delete_popupBanner"),
+                    linkTo(BannerApiController.class).slash("popup").slash(responseDto.getId()).slash("up").withRel("update_popupBanner_order_up"),
+                    linkTo(BannerApiController.class).slash("popup").slash(responseDto.getId()).slash("down").withRel("update_popupBanner_order_down")
             );
             entityModelList.add(entityModel);
         }
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(BannerApiController.class).slash("popup");
-        CollectionModel<EntityModel<PopupBanner>> collectionModel = CollectionModel.of(entityModelList,
+        CollectionModel<EntityModel<PopupBannerListResponseDto>> collectionModel = CollectionModel.of(entityModelList,
                 selfLinkBuilder.withSelfRel(),
-                selfLinkBuilder.withRel("create-banner"),
+                selfLinkBuilder.withRel("create_banner"),
                 profileRootUrlBuilder.slash("index.html#resources-query-popupBanners").withRel("profile")
         );
 
@@ -412,19 +436,23 @@ public class BannerApiController {
 
     @GetMapping("/popup/{id}")
     public ResponseEntity queryPopupBanner(@PathVariable Long id) {
-        Optional<Banner> optionalBanner = bannerRepository.findById(id);
-        if (!optionalBanner.isPresent()) {
+
+        Optional<PopupBannerResponseDto> optional = bannerRepository.findPopupBannerDtoById(id);
+        if (!optional.isPresent()) {
             return notFound();
         }
-        Banner banner = optionalBanner.get();
+
+        PopupBannerResponseDto responseDto = optional.get();
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(BannerApiController.class).slash("popup").slash(id);
 
-        EntityModel<Banner> entityModel = EntityModel.of(banner,
+        EntityModel<PopupBannerResponseDto> entityModel = EntityModel.of(responseDto,
+                linkTo(InfoController.class).slash("display").slash("banners?filename=s_" + responseDto.getFilenamePc()).withRel("thumbnail_pc"),
+                linkTo(InfoController.class).slash("display").slash("banners?filename=s_" + responseDto.getFilenameMobile()).withRel("thumbnail_mobile"),
                 selfLinkBuilder.withSelfRel(),
-                selfLinkBuilder.withRel("update-banner"),
+                selfLinkBuilder.withRel("update_banner"),
                 profileRootUrlBuilder.slash("index.html#resources-query-popupBanner").withRel("profile")
-                );
+        );
 
         return ResponseEntity.ok(entityModel);
     }
@@ -447,15 +475,14 @@ public class BannerApiController {
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(BannerApiController.class).slash("popup").slash(id);
 
-        EntityModel<PopupBanner> entityModel = EntityModel.of(banner,
-                selfLinkBuilder.withSelfRel(),
-                selfLinkBuilder.withRel("query-banner"),
-                linkTo(BannerApiController.class).slash("popup").withRel("query-popupBanners"),
-                profileRootUrlBuilder.slash("index.html#resources-update-popupBanner").withRel("profile")
-        );
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(selfLinkBuilder.withRel("query_banner"));
+        representationModel.add(linkTo(BannerApiController.class).slash("popup").withRel("query_popupBanners"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-popupBanner").withRel("profile"));
 
 
-        return ResponseEntity.ok(entityModel);
+        return ResponseEntity.ok(representationModel);
     }
 
     @PutMapping("/popup/{id}/up")
@@ -474,13 +501,12 @@ public class BannerApiController {
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(BannerApiController.class).slash("popup").slash(id).slash("up");
 
-        EntityModel<Banner> entityModel = EntityModel.of(banner,
-                selfLinkBuilder.withSelfRel(),
-                linkTo(BannerApiController.class).slash("popup").withRel("query-popupBanners"),
-                profileRootUrlBuilder.slash("index.html#resources-update-popupBanner-leakedOrder-up").withRel("profile")
-        );
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(BannerApiController.class).slash("popup").withRel("query_popupBanners"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-popupBanner-leakedOrder-up").withRel("profile"));
 
-        return ResponseEntity.ok(entityModel);
+        return ResponseEntity.ok(representationModel);
     }
 
     @PutMapping("/popup/{id}/down")
@@ -500,13 +526,13 @@ public class BannerApiController {
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(BannerApiController.class).slash("popup").slash(id).slash("down");
 
-        EntityModel<Banner> entityModel = EntityModel.of(banner,
-                selfLinkBuilder.withSelfRel(),
-                linkTo(BannerApiController.class).slash("popup").withRel("query-popupBanners"),
-                profileRootUrlBuilder.slash("index.html#resources-update-popupBanner-leakedOrder-down").withRel("profile")
-        );
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(BannerApiController.class).slash("popup").withRel("query_popupBanners"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-popupBanner-leakedOrder-down").withRel("profile"));
 
-        return ResponseEntity.ok(entityModel);
+
+        return ResponseEntity.ok(representationModel);
     }
 
     @DeleteMapping("/popup/{id}")
@@ -522,8 +548,8 @@ public class BannerApiController {
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(selfLinkBuilder.withSelfRel());
-        representationModel.add(selfLinkBuilder.withRel("query-popupBanners"));
-        representationModel.add(selfLinkBuilder.withRel("create-banner"));
+        representationModel.add(selfLinkBuilder.withRel("query_popupBanners"));
+        representationModel.add(selfLinkBuilder.withRel("create_banner"));
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-delete-popupBanner").withRel("profile"));
 
         return ResponseEntity.ok(representationModel);

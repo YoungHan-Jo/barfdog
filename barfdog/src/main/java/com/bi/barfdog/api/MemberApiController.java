@@ -51,7 +51,7 @@ public class MemberApiController {
 
         EntityModel<MemberInfoResponseDto> entityModel = EntityModel.of(responseDto,
                 selfLinkBuilder.withSelfRel(),
-                selfLinkBuilder.withRel("update-member"),
+                selfLinkBuilder.withRel("update_member"),
                 profileRootUrlBuilder.slash("index.html#resources-query-member").withRel("profile")
         );
 
@@ -87,7 +87,7 @@ public class MemberApiController {
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(selfLinkBuilder.withSelfRel());
-        representationModel.add(selfLinkBuilder.withRel("query-member"));
+        representationModel.add(selfLinkBuilder.withRel("query_member"));
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-member").withRel("profile"));
 
 
@@ -131,7 +131,7 @@ public class MemberApiController {
 
         CollectionModel<MemberPublishCouponResponseDto> collectionModel = CollectionModel.of(responseDto,
                 selfLinkBuilder.withSelfRel(),
-                linkTo(CouponApiController.class).slash("personal").withRel("publish-coupon-personal"),
+                linkTo(CouponApiController.class).slash("personal").withRel("publish_coupon_personal"),
                 profileRootUrlBuilder.slash("index.html#resources-query-members-in-publishCoupon").withRel("profile")
                 );
 

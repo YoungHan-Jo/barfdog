@@ -60,7 +60,7 @@ public class MemberApiControllerTest extends BaseTest {
                 .andDo(document("query_member",
                         links(
                                 linkWithRel("self").description("self 링크"),
-                                linkWithRel("update-member").description("회원정보 수정 요청 링크"),
+                                linkWithRel("update_member").description("회원정보 수정 요청 링크"),
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
                         ),
                         requestHeaders(
@@ -86,7 +86,7 @@ public class MemberApiControllerTest extends BaseTest {
                                 fieldWithPath("receiveSms").description("sms 수신 여부"),
                                 fieldWithPath("receiveEmail").description("email 수신 여부"),
                                 fieldWithPath("_links.self.href").description("self 링크"),
-                                fieldWithPath("_links.update-member.href").description("회원정보 수정 링크"),
+                                fieldWithPath("_links.update_member.href").description("회원정보 수정 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
@@ -133,7 +133,7 @@ public class MemberApiControllerTest extends BaseTest {
                 .andDo(document("update_member",
                         links(
                                 linkWithRel("self").description("self 링크"),
-                                linkWithRel("query-member").description("회원 정보 조회 링크"),
+                                linkWithRel("query_member").description("회원 정보 조회 링크"),
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
                         ),
                         requestHeaders(
@@ -159,7 +159,7 @@ public class MemberApiControllerTest extends BaseTest {
                         ),
                         responseFields(
                                 fieldWithPath("_links.self.href").description("self 링크"),
-                                fieldWithPath("_links.query-member.href").description("회원 정보 조회 링크"),
+                                fieldWithPath("_links.query_member.href").description("회원 정보 조회 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
@@ -356,7 +356,7 @@ public class MemberApiControllerTest extends BaseTest {
                 .andDo(document("query_members_in_publishCoupon",
                         links(
                                 linkWithRel("self").description("self 링크"),
-                                linkWithRel("publish-coupon-personal").description("개인 쿠폰 발행 링크"),
+                                linkWithRel("publish_coupon_personal").description("개인 쿠폰 발행 링크"),
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
                         ),
                         requestHeaders(
@@ -381,7 +381,7 @@ public class MemberApiControllerTest extends BaseTest {
                                 fieldWithPath("_embedded.memberPublishCouponResponseDtoList[0].accumulatedAmount").description("구매 누적 금액"),
                                 fieldWithPath("_embedded.memberPublishCouponResponseDtoList[0].subscribe").description("구독 여부"),
                                 fieldWithPath("_links.self.href").description("self 링크"),
-                                fieldWithPath("_links.publish-coupon-personal.href").description("개인 쿠폰 발행 링크"),
+                                fieldWithPath("_links.publish_coupon_personal.href").description("개인 쿠폰 발행 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));

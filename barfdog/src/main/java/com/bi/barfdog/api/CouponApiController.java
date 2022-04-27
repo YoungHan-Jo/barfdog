@@ -55,7 +55,7 @@ public class CouponApiController {
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(selfLinkBuilder.withSelfRel());
-        representationModel.add(locationLinkBuilder.withRel("query-direct-coupons"));
+        representationModel.add(locationLinkBuilder.withRel("query_direct_coupons"));
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-create-coupon").withRel("profile"));
 
         return ResponseEntity.created(locationLinkBuilder.toUri()).body(representationModel);
@@ -72,7 +72,7 @@ public class CouponApiController {
         for (CouponListResponseDto responseDto : responseDtoList) {
 
             EntityModel<CouponListResponseDto> entityModel = EntityModel.of(responseDto,
-                    linkTo(CouponApiController.class).slash(responseDto.getId()).slash("inactive").withRel("inactive-coupon")
+                    linkTo(CouponApiController.class).slash(responseDto.getId()).slash("inactive").withRel("inactive_coupon")
                     );
 
             entityModel.add();
@@ -83,7 +83,7 @@ public class CouponApiController {
 
         CollectionModel<EntityModel> collectionModel = CollectionModel.of(entityModelList,
                 selfLinkBuilder.withSelfRel(),
-                linkTo(CouponApiController.class).slash("auto?keyword= ").withRel("query-auto-coupons"),
+                linkTo(CouponApiController.class).slash("auto?keyword= ").withRel("query_auto_coupons"),
                 profileRootUrlBuilder.slash("index.html#resources-query-direct-coupons").withRel("profile")
                 );
 
@@ -107,7 +107,7 @@ public class CouponApiController {
 
         CollectionModel<EntityModel> collectionModel = CollectionModel.of(entityModelList,
                 selfLinkBuilder.withSelfRel(),
-                linkTo(CouponApiController.class).slash("direct?keyword= ").withRel("query-direct-coupons"),
+                linkTo(CouponApiController.class).slash("direct?keyword= ").withRel("query_direct_coupons"),
                 profileRootUrlBuilder.slash("index.html#resources-query-auto-coupons").withRel("profile")
         );
 
@@ -131,7 +131,7 @@ public class CouponApiController {
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(selfLinkBuilder.withSelfRel());
-        representationModel.add(linkTo(CouponApiController.class).slash("direct?keyword= ").withRel("query-direct-coupons"));
+        representationModel.add(linkTo(CouponApiController.class).slash("direct?keyword= ").withRel("query_direct_coupons"));
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-coupon-inactive").withRel("profile"));
 
         return ResponseEntity.ok(representationModel);

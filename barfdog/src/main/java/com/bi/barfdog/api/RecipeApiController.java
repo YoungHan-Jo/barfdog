@@ -65,7 +65,7 @@ public class RecipeApiController extends BaseTimeEntity {
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(selfLinkBuilder.withSelfRel());
-        representationModel.add(selfLinkBuilder.slash("admin").withRel("query-recipes"));
+        representationModel.add(selfLinkBuilder.slash("admin").withRel("query_recipes"));
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-create-recipe").withRel("profile"));
 
         return ResponseEntity.created(selfLinkBuilder.toUri()).body(representationModel);
@@ -85,15 +85,15 @@ public class RecipeApiController extends BaseTimeEntity {
             responseDto.setModifiedDate(recipe.getModifiedDate().toLocalDate());
 
             EntityModel<RecipeListResponseDto> entityModel = EntityModel.of(responseDto,
-                    selfLinkBuilder.slash(recipe.getId()).withRel("update-recipe"),
-                    selfLinkBuilder.slash(recipe.getId()).slash("inactive").withRel("inactive-recipe")
+                    selfLinkBuilder.slash(recipe.getId()).withRel("update_recipe"),
+                    selfLinkBuilder.slash(recipe.getId()).slash("inactive").withRel("inactive_recipe")
             );
             entityModelList.add(entityModel);
         }
 
         CollectionModel<EntityModel<RecipeListResponseDto>> collectionModel = CollectionModel.of(entityModelList,
                 selfLinkBuilder.withSelfRel(),
-                selfLinkBuilder.withRel("create-recipe"),
+                selfLinkBuilder.withRel("create_recipe"),
                 profileRootUrlBuilder.slash("index.html#resources-query-recipes").withRel("profile")
         );
 
@@ -116,7 +116,7 @@ public class RecipeApiController extends BaseTimeEntity {
 
         EntityModel<RecipeResponseDto> entityModel = EntityModel.of(responseDto,
                 selfLinkBuilder.withSelfRel(),
-                selfLinkBuilder.withRel("update-recipe"),
+                selfLinkBuilder.withRel("update_recipe"),
                 profileRootUrlBuilder.slash("index.html#resources-query-recipe").withRel("profile")
                 );
 
@@ -143,7 +143,7 @@ public class RecipeApiController extends BaseTimeEntity {
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(
                 selfLinkBuilder.withSelfRel(),
-                linkTo(RecipeApiController.class).withRel("query-recipes"),
+                linkTo(RecipeApiController.class).withRel("query_recipes"),
                 profileRootUrlBuilder.slash("index.html#resources-update-recipe").withRel("profile")
                 );
 
@@ -164,7 +164,7 @@ public class RecipeApiController extends BaseTimeEntity {
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(
                 selfLinkBuilder.withSelfRel(),
-                linkTo(RecipeApiController.class).withRel("query-recipes"),
+                linkTo(RecipeApiController.class).withRel("query_recipes"),
                 profileRootUrlBuilder.slash("index.html#resources-inactive-recipe").withRel("profile")
         );
 

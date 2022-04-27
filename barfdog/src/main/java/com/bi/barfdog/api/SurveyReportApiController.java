@@ -46,7 +46,7 @@ public class SurveyReportApiController {
         WebMvcLinkBuilder selfLinkBuilder = linkTo(SurveyReportApiController.class).slash(id);
         EntityModel<SurveyReportResponseDto> entityModel = EntityModel.of(responseDto,
                 selfLinkBuilder.withSelfRel(),
-                selfLinkBuilder.slash("result").withRel("surveyReport-result"),
+                selfLinkBuilder.slash("result").withRel("surveyReport_result"),
                 profileRootUrlBuilder.slash("index.html#resources-query-surveyReport").withRel("profile")
         );
 
@@ -66,7 +66,7 @@ public class SurveyReportApiController {
 
         EntityModel<SurveyResultResponseDto> entityModel = EntityModel.of(responseDto,
                 selfLinkBuilder.withSelfRel(),
-                linkTo(OrderApiController.class).slash("sheet").slash("subscribe").withRel("query-orderSheet-subscribe"),
+                linkTo(OrderApiController.class).slash("sheet").slash("subscribe").withRel("query_orderSheet_subscribe"),
                 profileRootUrlBuilder.slash("index.html#resources-query-surveyResult").withRel("profile"));
 
         return ResponseEntity.ok(entityModel);

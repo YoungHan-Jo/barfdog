@@ -85,7 +85,7 @@ public class DogApiControllerTest extends BaseTest {
                 .andDo(document("create_dog",
                         links(
                                 linkWithRel("self").description("self 링크"),
-                                linkWithRel("query-surveyReport").description("설문조사 레포트 조회 링크"),
+                                linkWithRel("query_surveyReport").description("설문조사 레포트 조회 링크"),
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
                         ),
                         requestHeaders(
@@ -118,7 +118,7 @@ public class DogApiControllerTest extends BaseTest {
                         ),
                         responseFields(
                                 fieldWithPath("_links.self.href").description("self 링크"),
-                                fieldWithPath("_links.query-surveyReport.href").description("설문조사 레포트 조회 링크"),
+                                fieldWithPath("_links.query_surveyReport.href").description("설문조사 레포트 조회 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));

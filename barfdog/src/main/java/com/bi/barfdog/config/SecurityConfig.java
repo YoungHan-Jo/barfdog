@@ -34,7 +34,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf().disable();
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS) // 세션 사용x
                 .and()
-                .addFilter(corsFilter) // 모든 요청은 이 필터를 거친다.
+                .addFilter(corsFilter) // cors 설정 필터
                 .formLogin().disable() // 폼 로그인 사용 x
                 .httpBasic().disable() // httpbasic 암호화 방식 사용 x
 //                .addFilter(new JwtAuthenticationFilter(authenticationManager()))
@@ -75,4 +75,5 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //        source.registerCorsConfiguration("/**", config);
 //        return source;
 //    }
+
 }

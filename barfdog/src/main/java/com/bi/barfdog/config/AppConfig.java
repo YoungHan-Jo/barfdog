@@ -1,9 +1,13 @@
 package com.bi.barfdog.config;
 
+import com.bi.barfdog.api.bannerDto.MyPageBannerSaveRequestDto;
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.domain.Address;
+import com.bi.barfdog.domain.banner.BannerStatus;
+import com.bi.barfdog.domain.banner.MainBanner;
+import com.bi.barfdog.domain.banner.MyPageBanner;
 import com.bi.barfdog.domain.coupon.*;
 import com.bi.barfdog.domain.dog.*;
 import com.bi.barfdog.domain.member.*;
@@ -25,6 +29,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.io.FileInputStream;
 import java.math.BigDecimal;
 
 @Configuration
@@ -51,6 +56,9 @@ public class AppConfig {
 
             @Autowired
             MemberRepository memberRepository;
+
+            @Autowired
+            BannerRepository bannerRepository;
 
             @Autowired
             SettingRepository settingRepository;

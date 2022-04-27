@@ -55,7 +55,7 @@ public class SurveyReportApiControllerTest extends BaseTest {
                 .andDo(document("query_surveyReport",
                         links(
                                 linkWithRel("self").description("self 링크"),
-                                linkWithRel("surveyReport-result").description("설문조사 리포트 결과 화면 조회 링크"),
+                                linkWithRel("surveyReport_result").description("설문조사 리포트 결과 화면 조회 링크"),
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
                         ),
                         requestHeaders(
@@ -109,7 +109,7 @@ public class SurveyReportApiControllerTest extends BaseTest {
                                 fieldWithPath("foodAnalysis.oneDayRecommendGram").description("하루 권장 식사랑"),
                                 fieldWithPath("foodAnalysis.oneMealRecommendGram").description("한끼 권장 식사량"),
                                 fieldWithPath("_links.self.href").description("self 링크"),
-                                fieldWithPath("_links.surveyReport-result.href").description("설문조사 리포트 결과 화면 조회 링크"),
+                                fieldWithPath("_links.surveyReport_result.href").description("설문조사 리포트 결과 화면 조회 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
@@ -144,7 +144,7 @@ public class SurveyReportApiControllerTest extends BaseTest {
                 .andDo(document("query_surveyResult",
                         links(
                                 linkWithRel("self").description("self 링크"),
-                                linkWithRel("query-orderSheet-subscribe").description("주문서 작성에 필요한 값 조회하는 링크"),
+                                linkWithRel("query_orderSheet_subscribe").description("주문서 작성에 필요한 값 조회하는 링크"),
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
                         ),
                         requestHeaders(
@@ -177,7 +177,7 @@ public class SurveyReportApiControllerTest extends BaseTest {
                                 fieldWithPath("recipeDtoList[0].inStock").description("재고 여부 true/false"),
                                 fieldWithPath("recipeDtoList[0].imgUrl").description("썸네일 url"),
                                 fieldWithPath("_links.self.href").description("self 링크"),
-                                fieldWithPath("_links.query-orderSheet-subscribe.href").description("주문서 작성에 필요한 값 조회하는 링크"),
+                                fieldWithPath("_links.query_orderSheet_subscribe.href").description("주문서 작성에 필요한 값 조회하는 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
