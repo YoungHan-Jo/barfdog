@@ -22,6 +22,7 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -169,7 +170,7 @@ public class CouponApiController {
 
     @PostMapping("/personal")
     public ResponseEntity publishCouponsPersonal(@RequestBody @Valid PersonalPublishRequestDto requestDto,
-                                                 Errors errors) {
+                                                 Errors errors) throws IOException {
         if(errors.hasErrors()) return badRequest(errors);
         Optional<Coupon> optionalCoupon = couponRepository.findById(requestDto.getCouponId());
         if (!optionalCoupon.isPresent()) return notFound();

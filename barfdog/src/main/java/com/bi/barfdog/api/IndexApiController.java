@@ -1,5 +1,7 @@
 package com.bi.barfdog.api;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.bi.barfdog.api.memberDto.FindEmailResponseDto;
 import com.bi.barfdog.api.memberDto.FindPasswordRequestDto;
 import com.bi.barfdog.api.memberDto.LoginDto;
@@ -29,6 +31,7 @@ import javax.validation.Valid;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Date;
 import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -156,15 +159,25 @@ public class IndexApiController {
 
     @PostMapping("/api/login")
     public ResponseEntity login(@RequestBody LoginDto loginDto, HttpServletResponse response) {
-        Member member = memberRepository.findByEmail(loginDto.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("가입되지 않은 E-MAIL 입니다."));
+        Optional<Member> optional = memberRepository.findByEmail(loginDto.getEmail());
+        if (!optional.isPresent()) return ResponseEntity.notFound().build();
+
+        Member member = optional.get();
+
         if (!bCryptPasswordEncoder.matches(loginDto.getPassword(), member.getPassword())) {
             return ResponseEntity.status(401).body(null);
         }
-        String jwtToken = JwtProperties.TOKEN_PREFIX + jwtTokenProvider.createToken(member.getName(), member.getEmail());
+//        String jwtToken = JwtProperties.TOKEN_PREFIX + jwtTokenProvider.createToken(member.getName(), member.getEmail());
+
+        String jwtToken = JwtProperties.TOKEN_PREFIX + JWT.create()
+                .withSubject("토큰 이름")
+                .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperties.EXPIRATION_TIME))
+                .withClaim("email", member.getEmail())
+                .withClaim("id", member.getId())
+                .sign(Algorithm.HMAC512(JwtProperties.SECRET));
+
         response.addHeader(JwtProperties.HEADER_STRING, jwtToken);
-        EntityModel<String> entityModel = EntityModel.of(jwtToken);
-        return ResponseEntity.ok(jwtToken);
+        return ResponseEntity.ok(null);
     }
 
 

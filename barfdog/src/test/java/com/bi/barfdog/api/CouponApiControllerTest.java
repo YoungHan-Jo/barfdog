@@ -3,11 +3,15 @@ package com.bi.barfdog.api;
 import com.bi.barfdog.api.couponDto.CouponSaveRequestDto;
 import com.bi.barfdog.api.couponDto.PersonalPublishRequestDto;
 import com.bi.barfdog.common.AppProperties;
+import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.common.BaseTest;
+import com.bi.barfdog.domain.Address;
 import com.bi.barfdog.domain.coupon.*;
-import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.domain.member.*;
+import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.CouponRepository;
+import com.bi.barfdog.repository.MemberCouponRepository;
 import com.bi.barfdog.repository.MemberRepository;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -48,6 +52,9 @@ public class CouponApiControllerTest extends BaseTest {
 
     @Autowired
     MemberRepository memberRepository;
+
+    @Autowired
+    MemberCouponRepository memberCouponRepository;
 
     @Autowired
     AppProperties appProperties;
@@ -734,9 +741,27 @@ public class CouponApiControllerTest extends BaseTest {
         Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
         Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
+        Member member = Member.builder()
+                .email("jyh@gmail.com")
+                .name("조영한")
+                .phoneNumber("01099038544")
+                .address(new Address("12345","부산광역시","부산광역시 해운대구 센텀2로 19","106호"))
+                .birthday("19991201")
+                .gender(Gender.MALE)
+                .agreement(new Agreement(true,true,true,true,true))
+                .myRecommendationCode(BarfUtils.generateRandomCode())
+                .grade(Grade.BRONZE)
+                .reward(0)
+                .accumulatedAmount(0)
+                .firstReward(new FirstReward(false, false))
+                .roles("USER")
+                .build();
+        memberRepository.save(member);
+
         List<Long> memberIdList = new ArrayList<>();
         memberIdList.add(admin.getId());
         memberIdList.add(user.getId());
+        memberIdList.add(member.getId());
 
         PersonalPublishRequestDto requestDto = PersonalPublishRequestDto.builder()
                 .memberIdList(memberIdList)
@@ -755,6 +780,11 @@ public class CouponApiControllerTest extends BaseTest {
                 .andDo(print())
                 .andExpect(status().isCreated())
         ;
+
+        List<MemberCoupon> all = memberCouponRepository.findAll();
+        assertThat(all.size()).isEqualTo(3);
+
+
     }
 
     @Test
@@ -819,6 +849,55 @@ public class CouponApiControllerTest extends BaseTest {
                 .andDo(print())
                 .andExpect(status().isBadRequest())
         ;
+    }
+
+    @Test
+    @DisplayName("정상적으로 쿠폰 개인 발행하는 테스트")
+    public void publishCoupon_personal_Code_Alim() throws Exception {
+        //given
+        Coupon coupon = generateCodeCoupon(1);
+
+        Member member = Member.builder()
+                .email("jyh@gmail.com")
+                .name("조영한")
+                .phoneNumber("01099038544")
+                .address(new Address("12345","부산광역시","부산광역시 해운대구 센텀2로 19","106호"))
+                .birthday("19991201")
+                .gender(Gender.MALE)
+                .agreement(new Agreement(true,true,true,true,true))
+                .myRecommendationCode(BarfUtils.generateRandomCode())
+                .grade(Grade.BRONZE)
+                .reward(0)
+                .accumulatedAmount(0)
+                .firstReward(new FirstReward(false, false))
+                .roles("USER")
+                .build();
+        memberRepository.save(member);
+
+        List<Long> memberIdList = new ArrayList<>();
+        memberIdList.add(member.getId());
+
+        PersonalPublishRequestDto requestDto = PersonalPublishRequestDto.builder()
+                .memberIdList(memberIdList)
+                .couponLife(30)
+                .couponType(CouponType.CODE_PUBLISHED)
+                .couponId(coupon.getId())
+                .alimTalk(true)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/coupons/personal")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isCreated())
+        ;
+
+        List<MemberCoupon> all = memberCouponRepository.findAll();
+        assertThat(all.size()).isEqualTo(1);
+
     }
 
 

@@ -7,6 +7,7 @@ import com.bi.barfdog.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -41,11 +42,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilter(new JwtAuthorizationFilter(authenticationManager(),memberRepository))
                 // ==== 권한 설정 ====
                 .authorizeRequests()
-                .antMatchers("/api/banners/**")
-                .access("hasRole('ROLE_ADMIN')")
+                .antMatchers(HttpMethod.POST,"/api/login","/join").permitAll()
+                .antMatchers("/api/banners/**").access("hasRole('ROLE_ADMIN')")
 
-                .antMatchers("/api/members/publicationCoupon")
-                .access("hasRole('ROLE_ADMIN')")
+                .antMatchers("/api/members/publicationCoupon").access("hasRole('ROLE_ADMIN')")
                 .antMatchers("/api/members/**")
                 .access("hasRole('ROLE_USER') or hasRole('ROLE_SUBSCRIBER') or hasRole('ROLE_ADMIN')")
 

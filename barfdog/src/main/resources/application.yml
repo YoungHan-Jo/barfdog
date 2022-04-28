@@ -17,6 +17,8 @@ spring:
         format_sql: true
         default_batch_fetch_size: 500
         jdbc.lob.non_contextual_creation: true
+        jdbc:
+          batch_size: 1000
 
   security:
     oauth2:

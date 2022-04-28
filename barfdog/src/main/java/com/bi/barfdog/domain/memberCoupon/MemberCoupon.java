@@ -20,7 +20,7 @@ import static javax.persistence.FetchType.*;
 @Entity
 public class MemberCoupon {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "member_coupon_id")
     private Long id;
 

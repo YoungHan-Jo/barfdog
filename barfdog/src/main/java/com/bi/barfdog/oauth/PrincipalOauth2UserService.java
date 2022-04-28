@@ -44,9 +44,6 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
         }
 
 
-
-
-
         String email = oAuth2UserInfo.getEmail();
 
         Optional<Member> optionalMember = memberRepository.findByEmail(email);

@@ -3,6 +3,7 @@ package com.bi.barfdog.repository;
 import com.bi.barfdog.api.memberDto.MemberConditionPublishCoupon;
 import com.bi.barfdog.api.memberDto.MemberPublishCouponResponseDto;
 import com.bi.barfdog.domain.dog.QDog;
+import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.member.QMember;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
@@ -54,6 +55,14 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
                 .fetch();
 
         return result;
+    }
+
+    @Override
+    public List<Member> findByIdList(List<Long> memberIdList) {
+        return queryFactory
+                .selectFrom(member)
+                .where(member.id.in(memberIdList))
+                .fetch();
     }
 
     private BooleanExpression nameEq(String name) {

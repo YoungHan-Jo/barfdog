@@ -29,15 +29,18 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         this.memberRepository = memberRepository;
     }
 
+
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
         System.out.println("인증이나 권한이 필요한 주소 요청을 받음");
 
         String jwtHeader = request.getHeader(JwtProperties.HEADER_STRING);
 
+        System.out.println("jwtHeader = " + jwtHeader);
+
         // header 가 있는지 확인
         if (jwtHeader == null || !jwtHeader.startsWith(JwtProperties.TOKEN_PREFIX)) {
-//            response.setStatus(401);
             chain.doFilter(request, response);
             return;
         }
@@ -45,6 +48,8 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         String jwtToken = jwtHeader.replace(JwtProperties.TOKEN_PREFIX, "");
 
         String email = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET)).build().verify(jwtToken).getClaim("email").asString();
+
+        System.out.println("email = " + email);
 
         // 서명이 정상적으로 됨
         if (email != null) {

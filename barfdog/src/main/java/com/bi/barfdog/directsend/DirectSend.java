@@ -5,4 +5,6 @@ public interface DirectSend {
     String USERNAME = "oilmanj";
     String API_KEY = "HrgHhRBDF7it2Vq";
     String KAKAO_PLUS_ID = "바프독";
+
+    String CODE_PUBLISH_TEMPLATE = "1";
 }
