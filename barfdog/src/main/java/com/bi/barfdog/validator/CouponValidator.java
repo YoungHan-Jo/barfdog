@@ -1,7 +1,9 @@
 package com.bi.barfdog.validator;
 
 import com.bi.barfdog.api.couponDto.CouponSaveRequestDto;
+import com.bi.barfdog.api.couponDto.GroupPublishRequestDto;
 import com.bi.barfdog.api.couponDto.PersonalPublishRequestDto;
+import com.bi.barfdog.api.couponDto.PublishRequestDto;
 import com.bi.barfdog.domain.coupon.Coupon;
 import com.bi.barfdog.domain.coupon.DiscountType;
 import com.bi.barfdog.repository.CouponRepository;
@@ -9,6 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -44,6 +49,30 @@ public class CouponValidator {
         Coupon findCoupon = couponRepository.findById(requestDto.getCouponId()).get();
         if (findCoupon.getCouponType() != requestDto.getCouponType()) {
             errors.reject("wrong couponType","쿠폰타입과 선택한 쿠폰의 쿠폰타입이 일치하지 않습니다.");
+        }
+    }
+
+    public void validateCouponType(GroupPublishRequestDto requestDto, Errors errors) {
+        Coupon findCoupon = couponRepository.findById(requestDto.getCouponId()).get();
+        if (findCoupon.getCouponType() != requestDto.getCouponType()) {
+            errors.reject("wrong couponType","쿠폰타입과 선택한 쿠폰의 쿠폰타입이 일치하지 않습니다.");
+        }
+    }
+
+    public void validateBirthYear(GroupPublishRequestDto requestDto, Errors errors) {
+        Integer from = Integer.valueOf(requestDto.getBirthYearFrom());
+        Integer to = Integer.valueOf(requestDto.getBirthYearTo());
+        if (from > to) {
+            errors.reject("birthYear is Wrong","생년 범위의 순서가 잘못 되었습니다.");
+        }
+    }
+
+    public void validateExpiredDate(GroupPublishRequestDto requestDto, Errors errors) {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate expiredDate = LocalDate.parse(requestDto.getExpiredDate(), dateTimeFormatter);
+
+        if (expiredDate.isBefore(LocalDate.now())) {
+            errors.reject("expiredDate is passed","지정할 수 없는 유효기간 날짜입니다.");
         }
     }
 }

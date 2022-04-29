@@ -36,7 +36,7 @@ public class Member extends BaseTimeEntity {
     private Address address;
 
     @Column(length = 8)
-    private String birthday;
+    private String birthday; // 'yyyyMMdd'
 
     @Enumerated(EnumType.STRING)
     private Gender gender; // [MALE, FEMALE, NONE]

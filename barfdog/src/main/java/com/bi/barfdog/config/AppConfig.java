@@ -163,7 +163,7 @@ public class AppConfig {
                 couponRepository.save(coupon);
             }
 
-            private Member makeMember(String appProperties, String 김회원, String appProperties1, String phoneNumber, Gender male, Grade bronze, int reward, boolean recommend, String USER) {
+            private Member makeMember(String appProperties, String 김회원, String appProperties1, String phoneNumber, Gender male, Grade grade, int reward, boolean recommend, String USER) {
                 Member member = Member.builder()
                         .email(appProperties)
                         .name(김회원)
@@ -174,7 +174,7 @@ public class AppConfig {
                         .gender(male)
                         .agreement(new Agreement(true,true,true,true,true))
                         .myRecommendationCode(BarfUtils.generateRandomCode())
-                        .grade(bronze)
+                        .grade(grade)
                         .reward(reward)
                         .accumulatedAmount(0)
                         .firstReward(new FirstReward(recommend, recommend))

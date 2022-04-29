@@ -457,3 +457,9 @@ operation::query_code_coupons_in_publication[snippets='curl-request,request-head
 
 operation::query_members_in_publishCoupon[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
+[[resources-publish-coupon-personal]]
+=== 개인 쿠폰 발행하기
+
+`POST` 요청을 사용해서 선택한 개개인 유저에게 쿠폰을 발행할 수 있다.
+
+operation::publish_coupon_personal[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']

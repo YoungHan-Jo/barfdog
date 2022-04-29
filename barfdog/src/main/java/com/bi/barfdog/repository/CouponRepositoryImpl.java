@@ -42,6 +42,7 @@ public class CouponRepositoryImpl implements CouponRepositoryCustom{
                 ))
                 .from(coupon)
                 .where(isDirectCoupon(keyword))
+                .orderBy(coupon.id.desc())
                 .fetch();
 
         return result;
@@ -66,6 +67,7 @@ public class CouponRepositoryImpl implements CouponRepositoryCustom{
                 ))
                 .from(coupon)
                 .where(isAutoCoupon(keyword))
+                .orderBy(coupon.id.desc())
                 .fetch();
 
         return result;
@@ -86,6 +88,7 @@ public class CouponRepositoryImpl implements CouponRepositoryCustom{
                 ))
                 .from(coupon)
                 .where(statusEqActive().and(couponTypeEq(couponType)))
+                .orderBy(coupon.id.desc())
                 .fetch();
 
         return result;

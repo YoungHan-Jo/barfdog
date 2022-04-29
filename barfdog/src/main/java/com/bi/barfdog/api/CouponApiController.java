@@ -1,9 +1,6 @@
 package com.bi.barfdog.api;
 
-import com.bi.barfdog.api.couponDto.CouponListResponseDto;
-import com.bi.barfdog.api.couponDto.CouponSaveRequestDto;
-import com.bi.barfdog.api.couponDto.PersonalPublishRequestDto;
-import com.bi.barfdog.api.couponDto.PublicationCouponDto;
+import com.bi.barfdog.api.couponDto.*;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.coupon.Coupon;
 import com.bi.barfdog.domain.coupon.CouponType;
@@ -180,24 +177,44 @@ public class CouponApiController {
 
         couponService.publishCouponsToPersonal(requestDto);
 
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(CouponApiController.class).slash("personal");
+        WebMvcLinkBuilder locationUrlBuilder = linkTo(CouponApiController.class).slash("direct?keyword= ");
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(locationUrlBuilder.withRel("query_direct_coupons"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-publish-coupon-personal").withRel("profile"));
+
+        return ResponseEntity.created(locationUrlBuilder.toUri()).body(representationModel);
+    }
+
+    @PostMapping("/group")
+    public ResponseEntity publishCouponsGroup(@RequestBody @Valid GroupPublishRequestDto requestDto,
+                                              Errors errors) throws IOException {
+        if (errors.hasErrors()) return badRequest(errors);
+        Optional<Coupon> optionalCoupon = couponRepository.findById(requestDto.getCouponId());
+        if (!optionalCoupon.isPresent()) return notFound();
+        couponValidator.validateCouponType(requestDto, errors);
+        couponValidator.validateBirthYear(requestDto, errors);
+        couponValidator.validateExpiredDate(requestDto, errors);
+        if(errors.hasErrors()) return badRequest(errors);
+
+        couponService.publishCouponsToGroup(requestDto);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(CouponApiController.class).slash("group");
+        WebMvcLinkBuilder locationUrlBuilder = linkTo(CouponApiController.class).slash("direct?keyword= ");
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(locationUrlBuilder.withRel("query_direct_coupons"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-publish-coupon-group").withRel("profile"));
 
 
-
-        return ResponseEntity.created(null).body(null);
+        return ResponseEntity.created(locationUrlBuilder.toUri()).body(representationModel);
     }
 
 
-
-
-
-
-
-
-
-
-
     private ResponseEntity<Object> notFound() {
-
         return ResponseEntity.notFound().build();
     }
 

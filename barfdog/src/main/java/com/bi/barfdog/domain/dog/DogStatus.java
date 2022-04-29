@@ -7,7 +7,7 @@ public enum DogStatus {
     HEALTHY, NEED_DIET, OBESITY, PREGNANT, LACTATING;
 
     @JsonCreator
-    public static DogStatus from(String str){
+    public static DogStatus from(String str) {
         return DogStatus.valueOf(str.toUpperCase());
     }
 

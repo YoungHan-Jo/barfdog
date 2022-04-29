@@ -55,4 +55,9 @@ public class Coupon extends BaseTimeEntity {
     public void inactive() {
         couponStatus = CouponStatus.INACTIVE;
     }
+
+
+    public void publish(LocalDateTime expiredDate) {
+        lastExpiredDate = expiredDate;
+    }
 }

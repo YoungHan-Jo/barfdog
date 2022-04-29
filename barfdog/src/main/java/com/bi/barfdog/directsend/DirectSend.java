@@ -7,4 +7,5 @@ public interface DirectSend {
     String KAKAO_PLUS_ID = "바프독";
 
     String CODE_PUBLISH_TEMPLATE = "1";
+    String GENERAL_PUBLISH_TEMPLATE = "4";
 }

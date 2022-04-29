@@ -1,6 +1,8 @@
 package com.bi.barfdog.api;
 
+import com.bi.barfdog.api.couponDto.AREA;
 import com.bi.barfdog.api.couponDto.CouponSaveRequestDto;
+import com.bi.barfdog.api.couponDto.GroupPublishRequestDto;
 import com.bi.barfdog.api.couponDto.PersonalPublishRequestDto;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BarfUtils;
@@ -13,6 +15,7 @@ import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.CouponRepository;
 import com.bi.barfdog.repository.MemberCouponRepository;
 import com.bi.barfdog.repository.MemberRepository;
+import com.sun.xml.internal.messaging.saaj.util.transform.EfficientStreamingTransformer;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +27,7 @@ import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -399,7 +403,7 @@ public class CouponApiControllerTest extends BaseTest {
        //given
         int count = 3;
         IntStream.range(1,1+count).forEach(i ->{
-            generateAdminCoupon(i);
+            generateGeneralCoupon(i);
         });
 
         String keyword = "1";
@@ -453,7 +457,7 @@ public class CouponApiControllerTest extends BaseTest {
         //given
         int count = 3;
         IntStream.range(1,1+count).forEach(i ->{
-            generateAdminCoupon(i);
+            generateGeneralCoupon(i);
         });
 
         String keyword = null;
@@ -476,7 +480,7 @@ public class CouponApiControllerTest extends BaseTest {
         //given
         int count = 3;
         IntStream.range(1,1+count).forEach(i ->{
-            generateAdminCoupon(i);
+            generateGeneralCoupon(i);
         });
 
         String keyword = "";
@@ -567,7 +571,7 @@ public class CouponApiControllerTest extends BaseTest {
     public void inactive_coupon() throws Exception {
        //given
 
-        Coupon findCoupon = generateAdminCoupon(1);
+        Coupon findCoupon = generateGeneralCoupon(1);
 
         //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.put("/api/coupons/{id}/inactive", findCoupon.getId())
@@ -649,7 +653,7 @@ public class CouponApiControllerTest extends BaseTest {
        //given
 
         IntStream.range(1, 4).forEach(i ->{
-            generateAdminCoupon(i);
+            generateGeneralCoupon(i);
         });
 
         IntStream.range(1, 5).forEach(i ->{
@@ -693,7 +697,7 @@ public class CouponApiControllerTest extends BaseTest {
     public void queryCoupons_code() throws Exception {
         //given
         IntStream.range(1, 4).forEach(i ->{
-            generateAdminCoupon(i);
+            generateGeneralCoupon(i);
         });
 
         IntStream.range(1, 5).forEach(i ->{
@@ -733,13 +737,13 @@ public class CouponApiControllerTest extends BaseTest {
     }
 
     @Test
-    @DisplayName("정상적으로 쿠폰 개인 발행하는 테스트")
+    @DisplayName("정상적으로 일반쿠폰 개인 발행하는 테스트")
     public void publishCoupon_personal() throws Exception {
        //given
-        Coupon coupon = generateAdminCoupon(1);
+        Coupon coupon = generateGeneralCoupon(1);
 
-        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
-        Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+//        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+//        Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
         Member member = Member.builder()
                 .email("jyh@gmail.com")
@@ -759,13 +763,13 @@ public class CouponApiControllerTest extends BaseTest {
         memberRepository.save(member);
 
         List<Long> memberIdList = new ArrayList<>();
-        memberIdList.add(admin.getId());
-        memberIdList.add(user.getId());
+//        memberIdList.add(admin.getId());
+//        memberIdList.add(user.getId());
         memberIdList.add(member.getId());
 
         PersonalPublishRequestDto requestDto = PersonalPublishRequestDto.builder()
                 .memberIdList(memberIdList)
-                .couponLife(31)
+                .expiredDate("2022-05-31")
                 .couponType(CouponType.GENERAL_PUBLISHED)
                 .couponId(coupon.getId())
                 .alimTalk(false)
@@ -779,80 +783,42 @@ public class CouponApiControllerTest extends BaseTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isCreated())
+                .andDo(document("publish_coupon_personal",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_direct_coupons").description("직접 발행 쿠폰 리스트 조회하는 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer jwt 토큰")
+                        ),
+                        requestFields(
+                                fieldWithPath("memberIdList").description("회원 id(인덱스) 리스트 ex [ 3, 24, 32 ,...]"),
+                                fieldWithPath("expiredDate").description("발행할 쿠폰의 만료 기간 설정 'yyyy-MM-dd' String 형식"),
+                                fieldWithPath("couponType").description("쿠폰 타입(일반,코드) [GENERAL_PUBLISHED, CODE_PUBLISHED]"),
+                                fieldWithPath("couponId").description("쿠폰 id(인덱스)"),
+                                fieldWithPath("alimTalk").description("알림톡 전송 여부 [true/false]")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.LOCATION).description("Location 리다이렉트 링크")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_direct_coupons.href").description("직접 발행 쿠폰 리스트 조회하는 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ))
         ;
 
         List<MemberCoupon> all = memberCouponRepository.findAll();
-        assertThat(all.size()).isEqualTo(3);
-
-
+        assertThat(all.size()).isEqualTo(1);
     }
 
     @Test
-    @DisplayName("쿠폰 개인 발행시 존재하지 않는 쿠폰일 경우 not found 나오는 테스트")
-    public void publishCoupon_personal_coupon_notFound() throws Exception {
-        //given
-        Coupon coupon = generateAdminCoupon(1);
-
-        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
-        Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
-
-        List<Long> memberIdList = new ArrayList<>();
-        memberIdList.add(admin.getId());
-        memberIdList.add(user.getId());
-
-        PersonalPublishRequestDto requestDto = PersonalPublishRequestDto.builder()
-                .memberIdList(memberIdList)
-                .couponLife(31)
-                .couponType(CouponType.CODE_PUBLISHED)
-                .couponId(999999L)
-                .alimTalk(false)
-                .build();
-
-        //when & then
-        mockMvc.perform(post("/api/coupons/personal")
-                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaTypes.HAL_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
-                .andDo(print())
-                .andExpect(status().isNotFound())
-        ;
-    }
-
-    @Test
-    @DisplayName("쿠폰 개인 발행시 쿠폰과 쿠폰타입이 일치하지 않을 경우 bad request 나오는 테스트")
-    public void publishCoupon_personal_wrongCouponType() throws Exception {
-        //given
-        Coupon coupon = generateAdminCoupon(1);
-
-        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
-        Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
-
-        List<Long> memberIdList = new ArrayList<>();
-        memberIdList.add(admin.getId());
-        memberIdList.add(user.getId());
-
-        PersonalPublishRequestDto requestDto = PersonalPublishRequestDto.builder()
-                .memberIdList(memberIdList)
-                .couponLife(31)
-                .couponType(CouponType.CODE_PUBLISHED)
-                .couponId(coupon.getId())
-                .alimTalk(false)
-                .build();
-
-        //when & then
-        mockMvc.perform(post("/api/coupons/personal")
-                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaTypes.HAL_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-        ;
-    }
-
-    @Test
-    @DisplayName("정상적으로 쿠폰 개인 발행하는 테스트")
+    @DisplayName("정상적으로 코드 쿠폰 개인 발행하는 테스트")
     public void publishCoupon_personal_Code_Alim() throws Exception {
         //given
         Coupon coupon = generateCodeCoupon(1);
@@ -879,10 +845,10 @@ public class CouponApiControllerTest extends BaseTest {
 
         PersonalPublishRequestDto requestDto = PersonalPublishRequestDto.builder()
                 .memberIdList(memberIdList)
-                .couponLife(30)
+                .expiredDate("2022-05-31")
                 .couponType(CouponType.CODE_PUBLISHED)
                 .couponId(coupon.getId())
-                .alimTalk(true)
+                .alimTalk(false)
                 .build();
 
         //when & then
@@ -898,9 +864,333 @@ public class CouponApiControllerTest extends BaseTest {
         List<MemberCoupon> all = memberCouponRepository.findAll();
         assertThat(all.size()).isEqualTo(1);
 
+        em.clear();
+        em.flush();
+
+        Coupon findCoupon = couponRepository.findById(coupon.getId()).get();
+
+        assertThat(findCoupon.getLastExpiredDate()).isEqualTo(LocalDateTime.of(2022, 5, 31, 23, 59, 59));
+
+    }
+
+    @Test
+    @DisplayName("정상적으로 1000명에게 코드 쿠폰 개인 발행하는 테스트")
+    public void publishCoupon_personal_Code_Alim_1000() throws Exception {
+        //given
+        Coupon coupon = generateCodeCoupon(1);
+
+        List<Long> memberIdList = new ArrayList<>();
+
+        IntStream.range(1, 1001).forEach(i ->{
+            Member member = generateMember(i);
+            memberIdList.add(member.getId());
+        });
+
+
+        PersonalPublishRequestDto requestDto = PersonalPublishRequestDto.builder()
+                .memberIdList(memberIdList)
+                .expiredDate("2022-05-31")
+                .couponType(CouponType.CODE_PUBLISHED)
+                .couponId(coupon.getId())
+                .alimTalk(false)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/coupons/personal")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isCreated())
+        ;
+        em.clear();
+        em.flush();
+
+        List<MemberCoupon> all = memberCouponRepository.findAll();
+        assertThat(all.size()).isEqualTo(1000);
+
+
+        Coupon findCoupon = couponRepository.findById(coupon.getId()).get();
+
+        assertThat(findCoupon.getLastExpiredDate()).isEqualTo(LocalDateTime.of(2022, 5, 31, 23, 59, 59));
+
+    }
+
+    private Member generateMember(int i) {
+        Member member = Member.builder()
+                .email("jyh@gmail.com" + i)
+                .name("회원" + i)
+                .phoneNumber("0109903" + i)
+                .address(new Address("12345","부산광역시","부산광역시 해운대구 센텀2로 19","106호"))
+                .birthday("19991201")
+                .gender(Gender.MALE)
+                .agreement(new Agreement(true,true,true,true,true))
+                .myRecommendationCode(BarfUtils.generateRandomCode())
+                .grade(Grade.BRONZE)
+                .reward(0)
+                .accumulatedAmount(0)
+                .firstReward(new FirstReward(false, false))
+                .roles("USER")
+                .build();
+        memberRepository.save(member);
+        return member;
+    }
+
+    @Test
+    @DisplayName("쿠폰 개인 발행시 존재하지 않는 쿠폰일 경우 not found 나오는 테스트")
+    public void publishCoupon_personal_coupon_notFound() throws Exception {
+        //given
+        Coupon coupon = generateGeneralCoupon(1);
+
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+        Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        List<Long> memberIdList = new ArrayList<>();
+        memberIdList.add(admin.getId());
+        memberIdList.add(user.getId());
+
+        PersonalPublishRequestDto requestDto = PersonalPublishRequestDto.builder()
+                .memberIdList(memberIdList)
+                .expiredDate("2022-05-31")
+                .couponType(CouponType.CODE_PUBLISHED)
+                .couponId(999999L)
+                .alimTalk(false)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/coupons/personal")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+        ;
+    }
+
+    @Test
+    @DisplayName("쿠폰 개인 발행시 쿠폰과 쿠폰타입이 일치하지 않을 경우 bad request 나오는 테스트")
+    public void publishCoupon_personal_wrongCouponType() throws Exception {
+        //given
+        Coupon coupon = generateGeneralCoupon(1);
+
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+        Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        List<Long> memberIdList = new ArrayList<>();
+        memberIdList.add(admin.getId());
+        memberIdList.add(user.getId());
+
+        PersonalPublishRequestDto requestDto = PersonalPublishRequestDto.builder()
+                .memberIdList(memberIdList)
+                .expiredDate("2022-05-31")
+                .couponType(CouponType.CODE_PUBLISHED)
+                .couponId(coupon.getId())
+                .alimTalk(false)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/coupons/personal")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+        ;
+    }
+
+    @Test
+    @DisplayName("정상적으로 해당 그룹에게 일반 발행 쿠폰을 발행하는 테스트")
+    public void publish_coupons_group() throws Exception {
+       //given
+        Coupon coupon = generateGeneralCoupon(1);
+
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+        Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        List<Grade> gradeList = new ArrayList<>();
+        gradeList.add(Grade.BRONZE);
+        gradeList.add(Grade.SILVER);
+
+        GroupPublishRequestDto requestDto = GroupPublishRequestDto.builder()
+                .subscribe(false)
+                .longUnconnected(false)
+                .gradeList(gradeList)
+                .area(AREA.ALL)
+                .birthYearFrom("1990")
+                .birthYearTo("1999")
+                .expiredDate("2022-05-31")
+                .couponType(coupon.getCouponType())
+                .couponId(coupon.getId())
+                .alimTalk(false)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/coupons/group")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isCreated())
+        ;
+
+        List<MemberCoupon> all = memberCouponRepository.findAll();
+        assertThat(all.size()).isEqualTo(1);
+
+    }
+
+    @Test
+    @DisplayName("선택한 등급이 없을 경우 bad reqeust")
+    public void publish_coupons_group_grade_0() throws Exception {
+        //given
+        Coupon coupon = generateGeneralCoupon(1);
+
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+        Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        List<Grade> gradeList = new ArrayList<>();
+
+        GroupPublishRequestDto requestDto = GroupPublishRequestDto.builder()
+                .subscribe(false)
+                .longUnconnected(false)
+                .gradeList(gradeList)
+                .area(AREA.ALL)
+                .birthYearFrom("1990")
+                .birthYearTo("1999")
+                .expiredDate("2022-05-31")
+                .couponType(coupon.getCouponType())
+                .couponId(coupon.getId())
+                .alimTalk(false)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/coupons/group")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+        ;
+
+    }
+
+    @Test
+    @DisplayName("년생 입력정보 순서가 잘못 되었을 경우 bad request")
+    public void publish_coupons_group_birth_wrong() throws Exception {
+        //given
+        Coupon coupon = generateGeneralCoupon(1);
+
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+        Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        List<Grade> gradeList = new ArrayList<>();
+        gradeList.add(Grade.BRONZE);
+
+        GroupPublishRequestDto requestDto = GroupPublishRequestDto.builder()
+                .subscribe(false)
+                .longUnconnected(false)
+                .gradeList(gradeList)
+                .area(AREA.ALL)
+                .birthYearFrom("1998")
+                .birthYearTo("1997")
+                .expiredDate("2022-05-31")
+                .couponType(coupon.getCouponType())
+                .couponId(coupon.getId())
+                .alimTalk(false)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/coupons/group")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+        ;
+
+    }
+
+    @Test
+    @DisplayName("유효기간이 이미 지난 날짜일 경우 bad request")
+    public void publish_coupons_group_expiredDate_wrong() throws Exception {
+        //given
+        Coupon coupon = generateGeneralCoupon(1);
+
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+        Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        List<Grade> gradeList = new ArrayList<>();
+        gradeList.add(Grade.BRONZE);
+
+        GroupPublishRequestDto requestDto = GroupPublishRequestDto.builder()
+                .subscribe(false)
+                .longUnconnected(false)
+                .gradeList(gradeList)
+                .area(AREA.ALL)
+                .birthYearFrom("1990")
+                .birthYearTo("1997")
+                .expiredDate("2022-04-28")
+                .couponType(coupon.getCouponType())
+                .couponId(coupon.getId())
+                .alimTalk(false)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/coupons/group")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+        ;
+
+    }
+
+    @Test
+    @DisplayName("발급할 쿠폰이 없을 경우 not found")
+    public void publish_coupons_group_empty_coupon_notfound() throws Exception {
+        //given
+        Coupon coupon = generateGeneralCoupon(1);
+
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+        Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        List<Grade> gradeList = new ArrayList<>();
+        gradeList.add(Grade.BRONZE);
+
+        GroupPublishRequestDto requestDto = GroupPublishRequestDto.builder()
+                .subscribe(false)
+                .longUnconnected(false)
+                .gradeList(gradeList)
+                .area(AREA.ALL)
+                .birthYearFrom("1990")
+                .birthYearTo("1997")
+                .expiredDate("2022-04-28")
+                .couponType(coupon.getCouponType())
+                .couponId(9999L)
+                .alimTalk(false)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/coupons/group")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+        ;
+
     }
 
 
+    
 
 
 
@@ -925,7 +1215,9 @@ public class CouponApiControllerTest extends BaseTest {
 
 
 
-    private Coupon generateAdminCoupon(int i) {
+
+
+    private Coupon generateGeneralCoupon(int i) {
         Coupon coupon = Coupon.builder()
                 .name("관리자 직접 발행 쿠폰" + i)
                 .couponType(CouponType.GENERAL_PUBLISHED)
