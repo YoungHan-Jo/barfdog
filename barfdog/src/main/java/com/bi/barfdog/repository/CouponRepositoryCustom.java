@@ -1,5 +1,6 @@
 package com.bi.barfdog.repository;
 
+import com.bi.barfdog.api.couponDto.AutoCouponsForUpdateDto;
 import com.bi.barfdog.api.couponDto.CouponListResponseDto;
 import com.bi.barfdog.api.couponDto.PublicationCouponDto;
 import com.bi.barfdog.domain.coupon.Coupon;
@@ -14,4 +15,6 @@ public interface CouponRepositoryCustom {
     List<CouponListResponseDto> findAutoCouponsByKeyword(String keyword);
 
     List<PublicationCouponDto> findPublicationCouponDtosByCouponType(CouponType adminPublished);
+
+    List<AutoCouponsForUpdateDto> findAutoCouponDtosForUpdate();
 }

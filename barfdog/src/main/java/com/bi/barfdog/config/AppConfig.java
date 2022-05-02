@@ -32,6 +32,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import java.io.FileInputStream;
 import java.math.BigDecimal;
 
+import static com.bi.barfdog.config.finalVariable.AutoCoupon.*;
+
 @Configuration
 public class AppConfig {
 
@@ -110,15 +112,15 @@ public class AppConfig {
                 makeDog(admin, 46L, DogSize.SMALL, "8.2", ActivityLevel.MUCH, 5, 0.5, SnackCountLevel.LITTLE);
                 makeDog(admin, 36L, DogSize.SMALL, "8.2", ActivityLevel.MUCH, 4, 2, SnackCountLevel.NORMAL);
 
-                makeAutoCoupon("정기구독 할인 쿠폰","정기구독 할인 쿠폰", DiscountType.FIXED_RATE, 50,40000, CouponTarget.SUBSCRIBE);
-                makeAutoCoupon("반려견 생일 쿠폰","반려견 생일 쿠폰", DiscountType.FIXED_RATE, 10,40000, CouponTarget.ALL);
-                makeAutoCoupon("견주 생일 쿠폰","견주 생일 쿠폰", DiscountType.FIXED_RATE, 15,40000, CouponTarget.ALL);
+                makeAutoCoupon(SUBSCRIBE_COUPON,"정기구독 할인 쿠폰", DiscountType.FIXED_RATE, 50,0, CouponTarget.SUBSCRIBE);
+                makeAutoCoupon(DOG_BIRTH_COUPON,"반려견 생일 쿠폰", DiscountType.FIXED_RATE, 10,0, CouponTarget.ALL);
+                makeAutoCoupon(MEMBER_BIRTH_COUPON,"견주 생일 쿠폰", DiscountType.FIXED_RATE, 15,0, CouponTarget.ALL);
 
-                makeAutoCoupon("실버 쿠폰","실버 쿠폰", DiscountType.FLAT_RATE,1000,20000, CouponTarget.ALL);
-                makeAutoCoupon("골드 쿠폰","골드 쿠폰", DiscountType.FLAT_RATE,2000,30000, CouponTarget.ALL);
-                makeAutoCoupon("플래티넘 쿠폰","플래티넘 쿠폰", DiscountType.FLAT_RATE,2500,30000, CouponTarget.ALL);
-                makeAutoCoupon("다이아 쿠폰","다이아 쿠폰", DiscountType.FLAT_RATE,3000,40000, CouponTarget.ALL);
-                makeAutoCoupon("더바프 쿠폰","더바프 쿠폰", DiscountType.FLAT_RATE,4000,50000, CouponTarget.ALL);
+                makeAutoCoupon(SILVER_COUPON,"실버 쿠폰", DiscountType.FLAT_RATE,1000,20000, CouponTarget.ALL);
+                makeAutoCoupon(GOLD_COUPON,"골드 쿠폰", DiscountType.FLAT_RATE,2000,30000, CouponTarget.ALL);
+                makeAutoCoupon(PLATINUM_COUPON,"플래티넘 쿠폰", DiscountType.FLAT_RATE,2500,30000, CouponTarget.ALL);
+                makeAutoCoupon(DIAMOND_COUPON,"다이아 쿠폰", DiscountType.FLAT_RATE,3000,40000, CouponTarget.ALL);
+                makeAutoCoupon(BARF_COUPON,"더바프 쿠폰", DiscountType.FLAT_RATE,4000,50000, CouponTarget.ALL);
 
 
                 DogSaveRequestDto requestDto = DogSaveRequestDto.builder()

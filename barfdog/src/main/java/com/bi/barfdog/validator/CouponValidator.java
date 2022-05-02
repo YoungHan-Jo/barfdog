@@ -3,8 +3,9 @@ package com.bi.barfdog.validator;
 import com.bi.barfdog.api.couponDto.CouponSaveRequestDto;
 import com.bi.barfdog.api.couponDto.GroupPublishRequestDto;
 import com.bi.barfdog.api.couponDto.PersonalPublishRequestDto;
-import com.bi.barfdog.api.couponDto.PublishRequestDto;
 import com.bi.barfdog.domain.coupon.Coupon;
+import com.bi.barfdog.domain.coupon.CouponStatus;
+import com.bi.barfdog.domain.coupon.CouponType;
 import com.bi.barfdog.domain.coupon.DiscountType;
 import com.bi.barfdog.repository.CouponRepository;
 import lombok.RequiredArgsConstructor;
@@ -52,9 +53,9 @@ public class CouponValidator {
         }
     }
 
-    public void validateCouponType(GroupPublishRequestDto requestDto, Errors errors) {
-        Coupon findCoupon = couponRepository.findById(requestDto.getCouponId()).get();
-        if (findCoupon.getCouponType() != requestDto.getCouponType()) {
+    public void validateCouponType(Long couponId, CouponType couponType, Errors errors) {
+        Coupon findCoupon = couponRepository.findById(couponId).get();
+        if (findCoupon.getCouponType() != couponType) {
             errors.reject("wrong couponType","쿠폰타입과 선택한 쿠폰의 쿠폰타입이 일치하지 않습니다.");
         }
     }
@@ -67,12 +68,21 @@ public class CouponValidator {
         }
     }
 
-    public void validateExpiredDate(GroupPublishRequestDto requestDto, Errors errors) {
+    public void validateExpiredDate(String expiredDateStr, Errors errors) {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate expiredDate = LocalDate.parse(requestDto.getExpiredDate(), dateTimeFormatter);
+        LocalDate expiredDate = LocalDate.parse(expiredDateStr, dateTimeFormatter);
 
         if (expiredDate.isBefore(LocalDate.now())) {
             errors.reject("expiredDate is passed","지정할 수 없는 유효기간 날짜입니다.");
         }
     }
+
+    public void validateCouponStatus(Long couponId, Errors errors) {
+        Coupon coupon = couponRepository.findById(couponId).get();
+        if (coupon.getCouponStatus() == CouponStatus.INACTIVE) {
+            errors.reject("coupon is inactive","삭제(비활성화)되어 발행할 수 없는 쿠폰입니다.");
+        }
+    }
+
+
 }

@@ -460,6 +460,35 @@ operation::query_members_in_publishCoupon[snippets='curl-request,request-headers
 [[resources-publish-coupon-personal]]
 === 개인 쿠폰 발행하기
 
-`POST` 요청을 사용해서 선택한 개개인 유저에게 쿠폰을 발행할 수 있다.
+`POST` 요청을 사용해서 선택한 개인 유저들에게 쿠폰을 발행할 수 있다.
 
 operation::publish_coupon_personal[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-publish-coupon-group]]
+=== 그룹 쿠폰 발행하기
+
+`POST` 요청을 사용해서 해당 그룹에게 쿠폰을 발행할 수 있다.
+
+operation::publish_coupon_group[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-publish-coupon-all]]
+=== 모든유저에게 쿠폰 발행하기
+
+`POST` 요청을 사용해서 모든 유저에게 쿠폰을 발행할 수 있다.
+
+operation::publish_coupon_all[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+[[resources-query-auto-coupons-modification]]
+=== 수정할 자동발행 쿠폰 리스트 조회하기
+
+`GET` 요청을 사용해서 수정할 자동발행 쿠폰 리스트를 조회할 수 있다.
+
+operation::query_auto_coupons_modification[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-resources-update-auto-coupons]]
+=== 자동 발행 쿠폰 수정하기
+
+`PUT` 요청을 사용해서 자동발행 쿠폰을 수정할 수 있다.
+
+operation::update_auto_coupons[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']

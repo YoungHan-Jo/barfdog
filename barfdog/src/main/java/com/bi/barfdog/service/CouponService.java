@@ -1,8 +1,6 @@
 package com.bi.barfdog.service;
 
-import com.bi.barfdog.api.couponDto.CouponSaveRequestDto;
-import com.bi.barfdog.api.couponDto.GroupPublishRequestDto;
-import com.bi.barfdog.api.couponDto.PersonalPublishRequestDto;
+import com.bi.barfdog.api.couponDto.*;
 import com.bi.barfdog.directsend.DirectSendUtils;
 import com.bi.barfdog.domain.coupon.Coupon;
 import com.bi.barfdog.domain.coupon.CouponStatus;
@@ -22,6 +20,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.bi.barfdog.api.couponDto.UpdateAutoCouponRequest.*;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -87,10 +87,7 @@ public class CouponService {
         List<Member> memberList = memberRepository.findByIdList(memberIdList);
         CouponType couponType = requestDto.getCouponType();
 
-        String dateStr = requestDto.getExpiredDate();
-        dateStr += " 23:59:59";
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LocalDateTime expiredDate = LocalDateTime.parse(dateStr, formatter);
+        LocalDateTime expiredDate = getExpiredDate(requestDto.getExpiredDate());
 
         coupon.publish(expiredDate);
 
@@ -125,10 +122,7 @@ public class CouponService {
         List<Member> memberList = memberRepository.findMembersByGroupCouponCond(requestDto);
         CouponType couponType = requestDto.getCouponType();
 
-        String dateStr = requestDto.getExpiredDate();
-        dateStr += " 23:59:59";
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LocalDateTime expiredDate = LocalDateTime.parse(dateStr, formatter);
+        LocalDateTime expiredDate = getExpiredDate(requestDto.getExpiredDate());
 
         coupon.publish(expiredDate);
 
@@ -152,6 +146,54 @@ public class CouponService {
             DirectSendUtils.sendCouponAlim(memberCouponList);
         }
 
+    }
+
+    @Transactional
+    public void publishCouponsToAll(AllPublishRequestDto requestDto) throws IOException {
+        List<MemberCoupon> memberCouponList = new ArrayList<>();
+        Coupon coupon = couponRepository.findById(requestDto.getCouponId()).get();
+        List<Member> memberList = memberRepository.findAll();
+        CouponType couponType = requestDto.getCouponType();
+
+        LocalDateTime expiredDate = getExpiredDate(requestDto.getExpiredDate());
+        coupon.publish(expiredDate);
+
+        if (couponType == CouponType.CODE_PUBLISHED) { // 코드 발행 쿠폰
+            for (Member member : memberList) {
+                addMemberCouponInList(member, coupon, expiredDate, CouponStatus.INACTIVE, memberCouponList);
+            }
+        } else if (couponType == CouponType.GENERAL_PUBLISHED) { // 일반 발행 쿠폰
+            for (Member member : memberList) {
+                addMemberCouponInList(member, coupon, expiredDate, CouponStatus.ACTIVE, memberCouponList);
+            }
+        }
+
+        memberCouponRepository.saveAll(memberCouponList);
+
+        em.flush(); // 벌크 쿼리라서 플러시 해줘야함
+        em.clear();
+
+        // 알림톡 보내기
+        if (requestDto.isAlimTalk()) {
+            DirectSendUtils.sendCouponAlim(memberCouponList);
+        }
+    }
+
+    @Transactional
+    public void updateAutoCoupons(UpdateAutoCouponRequest requestDto) {
+        List<UpdateAutoCouponRequestDto> dtoList = requestDto.getUpdateAutoCouponRequestDtoList();
+        for (UpdateAutoCouponRequestDto dto : dtoList) {
+            Coupon coupon = couponRepository.findById(dto.getId()).get();
+            coupon.updateAutoCoupon(dto);
+        }
+    }
+
+    private LocalDateTime getExpiredDate(String requestDto) {
+        String dateStr = requestDto;
+        dateStr += " 23:59:59";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime expiredDate = LocalDateTime.parse(dateStr, formatter);
+        return expiredDate;
     }
 
     private void addMemberCouponInList(Member member, Coupon coupon, LocalDateTime expiredDate, CouponStatus inactive, List<MemberCoupon> memberCouponList) {

@@ -76,7 +76,7 @@ public class IndexApiControllerTest extends BaseTest {
                 .build();
 
         //when & then
-        mockMvc.perform(post("/join")
+        mockMvc.perform(post("/api/join")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -189,7 +189,7 @@ public class IndexApiControllerTest extends BaseTest {
                 .build();
 
         //when & then
-        mockMvc.perform(post("/join")
+        mockMvc.perform(post("/api/join")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -230,7 +230,7 @@ public class IndexApiControllerTest extends BaseTest {
                 .build();
 
         //when & then
-        mockMvc.perform(post("/join")
+        mockMvc.perform(post("/api/join")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -260,7 +260,7 @@ public class IndexApiControllerTest extends BaseTest {
                 .build();
 
         //when & then
-        mockMvc.perform(post("/join")
+        mockMvc.perform(post("/api/join")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -280,7 +280,7 @@ public class IndexApiControllerTest extends BaseTest {
         MemberSaveRequestDto requestDto = MemberSaveRequestDto.builder().build();
 
         //when & then
-        mockMvc.perform(post("/join")
+        mockMvc.perform(post("/api/join")
                         .accept(MediaTypes.HAL_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -305,7 +305,7 @@ public class IndexApiControllerTest extends BaseTest {
                 .build();
 
         //when & then
-        mockMvc.perform(post("/join")
+        mockMvc.perform(post("/api/join")
                         .accept(MediaTypes.HAL_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -332,7 +332,7 @@ public class IndexApiControllerTest extends BaseTest {
                 .build();
 
         //when & then
-        mockMvc.perform(post("/join")
+        mockMvc.perform(post("/api/join")
                         .accept(MediaTypes.HAL_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -359,7 +359,7 @@ public class IndexApiControllerTest extends BaseTest {
                 .build();
 
         //when & then
-        mockMvc.perform(post("/join")
+        mockMvc.perform(post("/api/join")
                         .accept(MediaTypes.HAL_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -376,7 +376,7 @@ public class IndexApiControllerTest extends BaseTest {
                 .build();
 
         //when & then
-        mockMvc.perform(post("/join/phoneAuth")
+        mockMvc.perform(post("/api/join/phoneAuth")
                         .accept(MediaTypes.HAL_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -419,7 +419,7 @@ public class IndexApiControllerTest extends BaseTest {
                 .build();
 
         //when & then
-        mockMvc.perform(post("/join/phoneAuth")
+        mockMvc.perform(post("/api/join/phoneAuth")
                         .accept(MediaTypes.HAL_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -520,7 +520,7 @@ public class IndexApiControllerTest extends BaseTest {
         params.add("phoneNumber", sampleMember.getPhoneNumber());
 
         //when & then
-        mockMvc.perform(get("/email")
+        mockMvc.perform(get("/api/email")
                         .params(params)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
@@ -566,7 +566,7 @@ public class IndexApiControllerTest extends BaseTest {
         params.add("phoneNumber", sampleMember.getPhoneNumber());
 
         //when & then
-        mockMvc.perform(get("/email")
+        mockMvc.perform(get("/api/email")
                         .params(params)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
@@ -587,7 +587,7 @@ public class IndexApiControllerTest extends BaseTest {
                 .build();
 
         //when & then
-        mockMvc.perform(put("/temporaryPassword")
+        mockMvc.perform(put("/api/temporaryPassword")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -629,7 +629,7 @@ public class IndexApiControllerTest extends BaseTest {
         FindPasswordRequestDto requestDto = FindPasswordRequestDto.builder().build();
 
         //when & then
-        mockMvc.perform(put("/temporaryPassword")
+        mockMvc.perform(put("/api/temporaryPassword")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -650,7 +650,7 @@ public class IndexApiControllerTest extends BaseTest {
                 .build();
 
         //when & then
-        mockMvc.perform(put("/temporaryPassword")
+        mockMvc.perform(put("/api/temporaryPassword")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))

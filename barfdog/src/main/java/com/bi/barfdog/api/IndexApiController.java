@@ -57,7 +57,7 @@ public class IndexApiController {
         return index;
     }
 
-    @PostMapping("/join")
+    @PostMapping("/api/join")
     public ResponseEntity join(@RequestBody @Valid MemberSaveRequestDto requestDto, Errors errors) {
         if (errors.hasErrors()) {
             return badRequest(errors);
@@ -87,7 +87,7 @@ public class IndexApiController {
         return ResponseEntity.created(createUri).body(entityModel);
     }
 
-    @PostMapping("/join/phoneAuth")
+    @PostMapping("/api/join/phoneAuth")
     public ResponseEntity phoneAuth(@RequestBody @Valid PhoneAuthRequestDto phoneAuthDto, Errors errors) throws IOException {
         if (errors.hasErrors()) {
             return badRequest(errors);
@@ -114,7 +114,7 @@ public class IndexApiController {
     }
 
 
-    @GetMapping("/email")
+    @GetMapping("/api/email")
     public ResponseEntity findEmail(@RequestParam String name, @RequestParam String phoneNumber) {
         Optional<FindEmailResponseDto> optionalFindEmailResponseDto = memberRepository.findByNameAndPhoneNumber(name, phoneNumber);
         if (!optionalFindEmailResponseDto.isPresent()) {
@@ -134,7 +134,7 @@ public class IndexApiController {
         return ResponseEntity.ok(entityModel);
     }
 
-    @PutMapping("/temporaryPassword")
+    @PutMapping("/api/temporaryPassword")
     public ResponseEntity sendTemporaryPassword(@RequestBody @Valid FindPasswordRequestDto requestDto, Errors errors) throws IOException {
         if (errors.hasErrors()) {
             return badRequest(errors);
@@ -167,7 +167,6 @@ public class IndexApiController {
         if (!bCryptPasswordEncoder.matches(loginDto.getPassword(), member.getPassword())) {
             return ResponseEntity.status(401).body(null);
         }
-//        String jwtToken = JwtProperties.TOKEN_PREFIX + jwtTokenProvider.createToken(member.getName(), member.getEmail());
 
         String jwtToken = JwtProperties.TOKEN_PREFIX + JWT.create()
                 .withSubject("토큰 이름")

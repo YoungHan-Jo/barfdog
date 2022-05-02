@@ -1,5 +1,6 @@
 package com.bi.barfdog.domain.coupon;
 
+import com.bi.barfdog.api.couponDto.UpdateAutoCouponRequest;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +10,8 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+import static com.bi.barfdog.api.couponDto.UpdateAutoCouponRequest.*;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -58,6 +61,17 @@ public class Coupon extends BaseTimeEntity {
 
 
     public void publish(LocalDateTime expiredDate) {
-        lastExpiredDate = expiredDate;
+        if (lastExpiredDate == null) {
+            lastExpiredDate = expiredDate;
+        }else {
+            if (lastExpiredDate.isBefore(expiredDate)) {
+                lastExpiredDate = expiredDate;
+            }
+        }
+    }
+
+    public void updateAutoCoupon(UpdateAutoCouponRequestDto dto) {
+        this.discountDegree = dto.getDiscountDegree();
+        this.availableMinPrice = dto.getAvailableMinPrice();
     }
 }

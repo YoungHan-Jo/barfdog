@@ -1,4 +1,4 @@
-package com.bi.barfdog.config;
+package com.bi.barfdog.config.finalVariable;
 
 public interface BarfCity {
     String SEOUL = "서울특별시";

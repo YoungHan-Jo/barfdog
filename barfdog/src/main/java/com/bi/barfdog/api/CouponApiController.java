@@ -171,8 +171,9 @@ public class CouponApiController {
         if(errors.hasErrors()) return badRequest(errors);
         Optional<Coupon> optionalCoupon = couponRepository.findById(requestDto.getCouponId());
         if (!optionalCoupon.isPresent()) return notFound();
-
-        couponValidator.validateCouponType(requestDto, errors);
+        couponValidator.validateCouponType(requestDto.getCouponId(), requestDto.getCouponType(), errors);
+        couponValidator.validateExpiredDate(requestDto.getExpiredDate(), errors);
+        couponValidator.validateCouponStatus(requestDto.getCouponId(), errors);
         if(errors.hasErrors()) return badRequest(errors);
 
         couponService.publishCouponsToPersonal(requestDto);
@@ -194,9 +195,10 @@ public class CouponApiController {
         if (errors.hasErrors()) return badRequest(errors);
         Optional<Coupon> optionalCoupon = couponRepository.findById(requestDto.getCouponId());
         if (!optionalCoupon.isPresent()) return notFound();
-        couponValidator.validateCouponType(requestDto, errors);
         couponValidator.validateBirthYear(requestDto, errors);
-        couponValidator.validateExpiredDate(requestDto, errors);
+        couponValidator.validateCouponType(requestDto.getCouponId(), requestDto.getCouponType(), errors);
+        couponValidator.validateCouponStatus(requestDto.getCouponId(), errors);
+        couponValidator.validateExpiredDate(requestDto.getExpiredDate(), errors);
         if(errors.hasErrors()) return badRequest(errors);
 
         couponService.publishCouponsToGroup(requestDto);
@@ -209,15 +211,69 @@ public class CouponApiController {
         representationModel.add(locationUrlBuilder.withRel("query_direct_coupons"));
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-publish-coupon-group").withRel("profile"));
 
+        return ResponseEntity.created(locationUrlBuilder.toUri()).body(representationModel);
+    }
+
+    @PostMapping("/all")
+    public ResponseEntity publishCouponsAll(@RequestBody @Valid AllPublishRequestDto requestDto,
+                                            Errors errors) throws IOException {
+        if (errors.hasErrors()) return badRequest(errors);
+        Optional<Coupon> optionalCoupon = couponRepository.findById(requestDto.getCouponId());
+        if (!optionalCoupon.isPresent()) return notFound();
+        couponValidator.validateCouponType(requestDto.getCouponId(), requestDto.getCouponType(), errors);
+        couponValidator.validateExpiredDate(requestDto.getExpiredDate(), errors);
+        couponValidator.validateCouponStatus(requestDto.getCouponId(), errors);
+        if (errors.hasErrors()) return badRequest(errors);
+
+        couponService.publishCouponsToAll(requestDto);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(CouponApiController.class).slash("all");
+        WebMvcLinkBuilder locationUrlBuilder = linkTo(CouponApiController.class).slash("direct?keyword= ");
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(locationUrlBuilder.withRel("query_direct_coupons"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-publish-coupon-all").withRel("profile"));
 
         return ResponseEntity.created(locationUrlBuilder.toUri()).body(representationModel);
+    }
+
+    @GetMapping("/auto/modification")
+    public ResponseEntity queryAutoCouponsForUpdate() {
+        List<AutoCouponsForUpdateDto> responseDto = couponRepository.findAutoCouponDtosForUpdate();
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(CouponApiController.class).slash("auto").slash("modification");
+
+        CollectionModel<AutoCouponsForUpdateDto> collectionModel = CollectionModel.of(responseDto,
+                selfLinkBuilder.withSelfRel(),
+                selfLinkBuilder.withRel("update_auto_coupons"),
+                profileRootUrlBuilder.slash("index.html#resources-query-auto-coupons-modification").withRel("profile")
+        );
+
+        return ResponseEntity.ok(collectionModel);
+    }
+
+    @PutMapping("/auto/modification")
+    public ResponseEntity updateAutoCoupons(@RequestBody @Valid UpdateAutoCouponRequest requestDto,
+                                            Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+
+        couponService.updateAutoCoupons(requestDto);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(CouponApiController.class).slash("auto").slash("modification");
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(selfLinkBuilder.withRel("query_auto_coupons_modification"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-auto-coupons").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
     }
 
 
     private ResponseEntity<Object> notFound() {
         return ResponseEntity.notFound().build();
     }
-
 
     private ResponseEntity<EntityModel<Errors>> badRequest(Errors errors) {
         return ResponseEntity.badRequest().body(new ErrorsResource(errors));
@@ -226,5 +282,4 @@ public class CouponApiController {
     private ResponseEntity<EntityModel<Errors>> conflict(Errors errors) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorsResource(errors));
     }
-
 }

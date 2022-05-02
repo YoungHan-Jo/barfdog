@@ -1,7 +1,9 @@
 package com.bi.barfdog.repository;
 
+import com.bi.barfdog.api.couponDto.AutoCouponsForUpdateDto;
 import com.bi.barfdog.api.couponDto.CouponListResponseDto;
 import com.bi.barfdog.api.couponDto.PublicationCouponDto;
+import com.bi.barfdog.config.finalVariable.AutoCoupon;
 import com.bi.barfdog.domain.coupon.*;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
@@ -93,6 +95,23 @@ public class CouponRepositoryImpl implements CouponRepositoryCustom{
 
         return result;
     }
+
+    @Override
+    public List<AutoCouponsForUpdateDto> findAutoCouponDtosForUpdate() {
+        return queryFactory
+                .select(Projections.constructor(AutoCouponsForUpdateDto.class,
+                        coupon.id,
+                        coupon.name,
+                        coupon.discountType,
+                        coupon.discountDegree,
+                        coupon.availableMinPrice
+                ))
+                .from(coupon)
+                .orderBy(coupon.id.asc())
+                .fetch();
+    }
+
+
 
     private BooleanExpression couponTypeEq(CouponType couponType) {
         return coupon.couponType.eq(couponType);

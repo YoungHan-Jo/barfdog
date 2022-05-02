@@ -1,10 +1,10 @@
 package com.bi.barfdog.repository;
 
-import com.bi.barfdog.api.couponDto.AREA;
+import com.bi.barfdog.api.couponDto.Area;
 import com.bi.barfdog.api.couponDto.GroupPublishRequestDto;
 import com.bi.barfdog.api.memberDto.MemberConditionPublishCoupon;
 import com.bi.barfdog.api.memberDto.MemberPublishCouponResponseDto;
-import com.bi.barfdog.config.BarfCity;
+import com.bi.barfdog.config.finalVariable.BarfCity;
 import com.bi.barfdog.domain.member.Grade;
 import com.bi.barfdog.domain.member.Member;
 import com.querydsl.core.types.Projections;
@@ -14,7 +14,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -86,11 +85,11 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
         return member.birthday.between(from,to);
     }
 
-    private BooleanExpression areaEq(AREA area) {
+    private BooleanExpression areaEq(Area area) {
         String[] metro = {BarfCity.GYEONGGI, BarfCity.INCHEON, BarfCity.SEOUL};
-        if (area == AREA.METRO) {
+        if (area == Area.METRO) {
             return member.address.city.in(metro);
-        } else if (area == AREA.NON_METRO){
+        } else if (area == Area.NON_METRO){
             return member.address.city.in(metro).not();
         }else {
             return null;

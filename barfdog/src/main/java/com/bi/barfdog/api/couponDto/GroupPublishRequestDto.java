@@ -26,10 +26,10 @@ public class GroupPublishRequestDto {
 
     @NotNull
     @Size(min = 1)
-    private List<Grade> gradeList = new ArrayList<>();
+    private List<Grade> gradeList = new ArrayList<>(); // [BRONZE, SILVER, GOLD, PLATINUM, DIAMOND, BARF]
 
     @NotNull
-    private AREA area; // [ALL, METRO, NON_METRO]
+    private Area area; // [ALL, METRO, NON_METRO]
 
     @NotEmpty
     private String birthYearFrom;

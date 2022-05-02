@@ -21,7 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-import static com.bi.barfdog.config.StandardVar.*;
+import static com.bi.barfdog.config.finalVariable.StandardVar.*;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
