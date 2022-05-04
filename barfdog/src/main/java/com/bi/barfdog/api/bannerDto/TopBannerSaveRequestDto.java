@@ -4,6 +4,7 @@ import com.bi.barfdog.domain.banner.BannerStatus;
 import lombok.*;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 @Getter
 @NoArgsConstructor
@@ -22,9 +23,9 @@ public class TopBannerSaveRequestDto {
     @Builder.Default
     private String fontColor = "#fff";
 
-    @NotEmpty
+    @NotNull
     private String pcLinkUrl;
 
-    @NotEmpty
+    @NotNull
     private String mobileLinkUrl;
 }

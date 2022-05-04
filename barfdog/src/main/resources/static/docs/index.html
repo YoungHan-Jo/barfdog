@@ -458,17 +458,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#resources">리소스</a>
 <ul class="sectlevel1">
-<li><a href="#resources-index">인덱스</a>
-<ul class="sectlevel2">
-<li><a href="#resources-index-access">인덱스 조회</a>
-<ul class="sectlevel3">
-<li><a href="#resources-index-access_response_body">Response body</a></li>
-<li><a href="#resources-index-access_http_response">Example response</a></li>
-<li><a href="#resources-index-access_links">Links</a></li>
-</ul>
-</li>
-</ul>
-</li>
 <li><a href="#resources-banners">배너</a>
 <ul class="sectlevel2">
 <li><a href="#resources-query-mainBanners">메인배너 목록 조회</a>
@@ -1210,38 +1199,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <h1 id="resources" class="sect0"><a class="link" href="#resources">리소스</a></h1>
 <div class="sect1">
-<h2 id="resources-index"><a class="link" href="#resources-index">인덱스</a></h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>인덱스는 서비스 진입점을 제공한다.</p>
-</div>
-<div class="sect2">
-<h3 id="resources-index-access"><a class="link" href="#resources-index-access">인덱스 조회</a></h3>
-<div class="paragraph">
-<p><code>GET</code> 요청을 사용하여 인덱스에 접근할 수 있다.</p>
-</div>
-<div class="sect3">
-<h4 id="resources-index-access_response_body"><a class="link" href="#resources-index-access_response_body">Response body</a></h4>
-<div class="paragraph">
-<p>Snippet response-body not found for operation::index</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="resources-index-access_http_response"><a class="link" href="#resources-index-access_http_response">Example response</a></h4>
-<div class="paragraph">
-<p>Snippet http-response not found for operation::index</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="resources-index-access_links"><a class="link" href="#resources-index-access_links">Links</a></h4>
-<div class="paragraph">
-<p>Snippet links not found for operation::index</p>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
 <h2 id="resources-banners"><a class="link" href="#resources-banners">배너</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -1258,7 +1215,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/main' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTQ4MzYzNywiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.O_MfmsuwNY1viVlhoOEwr0KPkSy2QDg2eG5VlgIs6q8XiYbEf5FS0cITjczPhBJTQN4LUSnv3oFfyHN1bzc8yA' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTU1NjIyNywiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.p2Jb2EyGyhoNabizTJedE8cCaIFy7vsLWz0ShMq2FJRntt3ELa1fXmPpBcGOJpkTBMlhoJTiP0fGJ9wV2HJD7Q' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -1307,12 +1264,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "_embedded" : {
     "mainBannerListResponseDtoList" : [ {
-      "id" : 85,
+      "id" : 73,
       "leakedOrder" : 1,
       "name" : "메인배너1",
       "targets" : "ALL",
-      "createdDate" : "2022-05-02T17:27:17.716",
-      "modifiedDate" : "2022-05-02T17:27:17.716",
+      "createdDate" : "2022-05-03T13:37:07.4",
+      "modifiedDate" : "2022-05-03T13:37:07.4",
       "filenamePc" : "filenamePc.jpg",
       "filenameMobile" : "filenameMobile.jpg",
       "_links" : {
@@ -1323,28 +1280,28 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
           "href" : "http://localhost:8080/display/banners?filename=s_filenameMobile.jpg"
         },
         "query_banner" : {
-          "href" : "http://localhost:8080/api/banners/main/main/85"
+          "href" : "http://localhost:8080/api/banners/main/main/73"
         },
         "update_banner" : {
-          "href" : "http://localhost:8080/api/banners/main/85"
+          "href" : "http://localhost:8080/api/banners/main/73"
         },
         "delete_banner" : {
-          "href" : "http://localhost:8080/api/banners/main/85"
+          "href" : "http://localhost:8080/api/banners/main/73"
         },
         "mainBanner_leakedOrder_up" : {
-          "href" : "http://localhost:8080/api/banners/main/85/up"
+          "href" : "http://localhost:8080/api/banners/main/73/up"
         },
         "mainBanner_leakedOrder_down" : {
-          "href" : "http://localhost:8080/api/banners/main/85/down"
+          "href" : "http://localhost:8080/api/banners/main/73/down"
         }
       }
     }, {
-      "id" : 86,
+      "id" : 74,
       "leakedOrder" : 2,
       "name" : "메인배너2",
       "targets" : "ALL",
-      "createdDate" : "2022-05-02T17:27:17.716",
-      "modifiedDate" : "2022-05-02T17:27:17.716",
+      "createdDate" : "2022-05-03T13:37:07.401",
+      "modifiedDate" : "2022-05-03T13:37:07.401",
       "filenamePc" : "filenamePc.jpg",
       "filenameMobile" : "filenameMobile.jpg",
       "_links" : {
@@ -1355,28 +1312,28 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
           "href" : "http://localhost:8080/display/banners?filename=s_filenameMobile.jpg"
         },
         "query_banner" : {
-          "href" : "http://localhost:8080/api/banners/main/main/86"
+          "href" : "http://localhost:8080/api/banners/main/main/74"
         },
         "update_banner" : {
-          "href" : "http://localhost:8080/api/banners/main/86"
+          "href" : "http://localhost:8080/api/banners/main/74"
         },
         "delete_banner" : {
-          "href" : "http://localhost:8080/api/banners/main/86"
+          "href" : "http://localhost:8080/api/banners/main/74"
         },
         "mainBanner_leakedOrder_up" : {
-          "href" : "http://localhost:8080/api/banners/main/86/up"
+          "href" : "http://localhost:8080/api/banners/main/74/up"
         },
         "mainBanner_leakedOrder_down" : {
-          "href" : "http://localhost:8080/api/banners/main/86/down"
+          "href" : "http://localhost:8080/api/banners/main/74/down"
         }
       }
     }, {
-      "id" : 87,
+      "id" : 75,
       "leakedOrder" : 3,
       "name" : "메인배너3",
       "targets" : "ALL",
-      "createdDate" : "2022-05-02T17:27:17.716",
-      "modifiedDate" : "2022-05-02T17:27:17.716",
+      "createdDate" : "2022-05-03T13:37:07.401",
+      "modifiedDate" : "2022-05-03T13:37:07.401",
       "filenamePc" : "filenamePc.jpg",
       "filenameMobile" : "filenameMobile.jpg",
       "_links" : {
@@ -1387,19 +1344,19 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
           "href" : "http://localhost:8080/display/banners?filename=s_filenameMobile.jpg"
         },
         "query_banner" : {
-          "href" : "http://localhost:8080/api/banners/main/main/87"
+          "href" : "http://localhost:8080/api/banners/main/main/75"
         },
         "update_banner" : {
-          "href" : "http://localhost:8080/api/banners/main/87"
+          "href" : "http://localhost:8080/api/banners/main/75"
         },
         "delete_banner" : {
-          "href" : "http://localhost:8080/api/banners/main/87"
+          "href" : "http://localhost:8080/api/banners/main/75"
         },
         "mainBanner_leakedOrder_up" : {
-          "href" : "http://localhost:8080/api/banners/main/87/up"
+          "href" : "http://localhost:8080/api/banners/main/75/up"
         },
         "mainBanner_leakedOrder_down" : {
-          "href" : "http://localhost:8080/api/banners/main/87/down"
+          "href" : "http://localhost:8080/api/banners/main/75/down"
         }
       }
     } ]
@@ -1590,7 +1547,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/main' -i -X POST \
     -H 'Content-Type: multipart/form-data;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTQ4MzY0MSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.61vqNLZ0OoU6cTnw6qOdsa71nG_jlYPU9JNpTiieC8Slk1KAkw2LL9XQr5I1H4K_Q6NhyMh0DFKR-qeHUxZY5w' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTU1NjIzMSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.HuLkgMZ5QLYu3wnU-BSiDs0oBKTy4aCiKNbNrpetSWnvr8_EBiXABJBSFEcbITAkyLn6z4_pXEDXB3HA8vh3OA' \
     -H 'Accept: application/hal+json' \
     -F 'pcFile=@file1.jpg;type=image/jpg' \
     -F 'mobileFile=@file2.jpg;type=image/jpg' \
@@ -1698,12 +1655,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>pcLinkUrl</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">pc 배너 클릭 시 이동할 url 주소</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">pc 배너 클릭 시 이동할 url 주소 [없을 시 '' 빈 문자열 입력]</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>mobileLinkUrl</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">모바일 배너 클릭 시 이동할 url 주소</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">모바일 배너 클릭 시 이동할 url 주소 [없을 시 '' 빈 문자열 입력]</p></td>
 </tr>
 </tbody>
 </table>
@@ -1721,10 +1678,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
       "href" : "http://localhost:8080/api/banners/main"
     },
     "query_mainBanner" : {
-      "href" : "http://localhost:8080/api/banners/main/159"
+      "href" : "http://localhost:8080/api/banners/main/151"
     },
     "update_banner" : {
-      "href" : "http://localhost:8080/api/banners/main/159"
+      "href" : "http://localhost:8080/api/banners/main/151"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-create-mainBanner"
@@ -1850,9 +1807,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="resources-query-mainBanner_curl_request"><a class="link" href="#resources-query-mainBanner_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/main/157' -i -X GET \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/main/148' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTQ4MzY0MSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.61vqNLZ0OoU6cTnw6qOdsa71nG_jlYPU9JNpTiieC8Slk1KAkw2LL9XQr5I1H4K_Q6NhyMh0DFKR-qeHUxZY5w' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTU1NjIzMSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.HuLkgMZ5QLYu3wnU-BSiDs0oBKTy4aCiKNbNrpetSWnvr8_EBiXABJBSFEcbITAkyLn6z4_pXEDXB3HA8vh3OA' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -1921,7 +1878,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "id" : 157,
+  "id" : 148,
   "name" : "메인배너1",
   "targets" : "ALL",
   "status" : "LEAKED",
@@ -1937,10 +1894,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
       "href" : "http://localhost:8080/display/banners?filename=s_filenameMobile.jpg"
     },
     "self" : {
-      "href" : "http://localhost:8080/api/banners/main/157"
+      "href" : "http://localhost:8080/api/banners/main/148"
     },
     "update_banner" : {
-      "href" : "http://localhost:8080/api/banners/main/157"
+      "href" : "http://localhost:8080/api/banners/main/148"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-query-mainBanner"
@@ -2102,9 +2059,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="resources-update-mainBanner_curl_request"><a class="link" href="#resources-update-mainBanner_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/main/75' -i -X POST \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/main/63' -i -X POST \
     -H 'Content-Type: multipart/form-data;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTQ4MzYzNywiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.O_MfmsuwNY1viVlhoOEwr0KPkSy2QDg2eG5VlgIs6q8XiYbEf5FS0cITjczPhBJTQN4LUSnv3oFfyHN1bzc8yA' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTU1NjIyNywiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.p2Jb2EyGyhoNabizTJedE8cCaIFy7vsLWz0ShMq2FJRntt3ELa1fXmPpBcGOJpkTBMlhoJTiP0fGJ9wV2HJD7Q' \
     -H 'Accept: application/hal+json' \
     -F 'pcFile=@file1.jpg;type=image/jpg' \
     -F 'mobileFile=@file2.jpg;type=image/jpg' \
@@ -2251,10 +2208,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/banners/main/75"
+      "href" : "http://localhost:8080/api/banners/main/63"
     },
     "query_banner" : {
-      "href" : "http://localhost:8080/api/banners/main/75"
+      "href" : "http://localhost:8080/api/banners/main/63"
     },
     "query_mainBanners" : {
       "href" : "http://localhost:8080/api/banners/main"
@@ -2370,9 +2327,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="resources-update-mainBanner-leakedOrder-up_curl_request"><a class="link" href="#resources-update-mainBanner-leakedOrder-up_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/main/126/up' -i -X PUT \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/main/116/up' -i -X PUT \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTQ4MzYzOSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.Uoiab2uHZbHmDGqDia6_H4aMR3izMDaoR5u464rFN4Y9MEHRDIeQQ_DBFJmKiNZNbjcjZxKqtBR8koAE7mrWKQ' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTU1NjIyOSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.Gd8BTuPaUXF1nxafsa-WzTZ-XeefNMEyQ4kPE2mPUiqasvJWn1hQGAjuyxG9_D9AS6SZkr17LWTttRTwkwiIMA' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -2443,7 +2400,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/banners/126/up"
+      "href" : "http://localhost:8080/api/banners/116/up"
     },
     "query_mainBanners" : {
       "href" : "http://localhost:8080/api/banners/main"
@@ -2550,9 +2507,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="resources-update-mainBanner-leakedOrder-down_curl_request"><a class="link" href="#resources-update-mainBanner-leakedOrder-down_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/main/53/down' -i -X PUT \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/main/41/down' -i -X PUT \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTQ4MzYzNiwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.AVgFWd38wLnb6Ds2NTdWaQly4gkWycUfVioAy_iUHjDtycsD4zwkK_OSTA04GGUoKSwLESH7WTtJqd_WOsVieA' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTU1NjIyNSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.TWJs5RzoLFQ2gJZgoe6JBHqLAGanjNC96m5M1LaFBREJKP4IApRtFRaWmNWPyUuC0Bd3DThiY5yp5i5GJbMS0Q' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -2623,7 +2580,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/banners/53/down"
+      "href" : "http://localhost:8080/api/banners/41/down"
     },
     "query_mainBanners" : {
       "href" : "http://localhost:8080/api/banners/main"
@@ -2730,9 +2687,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="resources-delete-mainBanner_curl_request"><a class="link" href="#resources-delete-mainBanner_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/main/72' -i -X DELETE \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/main/60' -i -X DELETE \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTQ4MzYzNywiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.O_MfmsuwNY1viVlhoOEwr0KPkSy2QDg2eG5VlgIs6q8XiYbEf5FS0cITjczPhBJTQN4LUSnv3oFfyHN1bzc8yA' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTU1NjIyNywiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.p2Jb2EyGyhoNabizTJedE8cCaIFy7vsLWz0ShMq2FJRntt3ELa1fXmPpBcGOJpkTBMlhoJTiP0fGJ9wV2HJD7Q' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -2803,13 +2760,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/banners/main/72"
+      "href" : "http://localhost:8080/api/banners/main/60"
     },
     "query_mainBanners" : {
-      "href" : "http://localhost:8080/api/banners/main/72"
+      "href" : "http://localhost:8080/api/banners/main/60"
     },
     "create_banner" : {
-      "href" : "http://localhost:8080/api/banners/main/72"
+      "href" : "http://localhost:8080/api/banners/main/60"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-delete-mainBanner"
@@ -2924,7 +2881,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/popup' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTQ4MzYzOCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.M203Bl9uUkhNzRoG9HLimorFXPAHLJNCnhnACZkbs5H0dneq067EWngKDM9tI3Q5Uv9qQebnwsoEWFWtrucfNw' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTU1NjIyOCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.SkqmuGsE5iSv1y3D5Q_ivKf-ggp8fj48uT9OvaK5_bn36gDqh1cx7hEsY-3Fi7ajD-Zw3EYTPXrhZZ26NeUgdw' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -2973,12 +2930,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "_embedded" : {
     "popupBannerListResponseDtoList" : [ {
-      "id" : 105,
+      "id" : 93,
       "leakedOrder" : 1,
       "position" : "LEFT",
       "name" : "팝업배너1",
-      "createdDate" : "2022-05-02T17:27:18.68",
-      "modifiedDate" : "2022-05-02T17:27:18.68",
+      "createdDate" : "2022-05-03T13:37:08.429",
+      "modifiedDate" : "2022-05-03T13:37:08.429",
       "filenamePc" : "filenamePc.jpg",
       "filenameMobile" : "filenameMobile.jpg",
       "_links" : {
@@ -2989,28 +2946,28 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
           "href" : "http://localhost:8080/display/banners?filename=s_filenameMobile.jpg"
         },
         "query_popupBanner" : {
-          "href" : "http://localhost:8080/api/banners/popup/105"
+          "href" : "http://localhost:8080/api/banners/popup/93"
         },
         "update_popupBanner" : {
-          "href" : "http://localhost:8080/api/banners/popup/105"
+          "href" : "http://localhost:8080/api/banners/popup/93"
         },
         "delete_popupBanner" : {
-          "href" : "http://localhost:8080/api/banners/popup/105"
+          "href" : "http://localhost:8080/api/banners/popup/93"
         },
         "update_popupBanner_order_up" : {
-          "href" : "http://localhost:8080/api/banners/popup/105/up"
+          "href" : "http://localhost:8080/api/banners/popup/93/up"
         },
         "update_popupBanner_order_down" : {
-          "href" : "http://localhost:8080/api/banners/popup/105/down"
+          "href" : "http://localhost:8080/api/banners/popup/93/down"
         }
       }
     }, {
-      "id" : 106,
+      "id" : 94,
       "leakedOrder" : 2,
       "position" : "LEFT",
       "name" : "팝업배너2",
-      "createdDate" : "2022-05-02T17:27:18.68",
-      "modifiedDate" : "2022-05-02T17:27:18.68",
+      "createdDate" : "2022-05-03T13:37:08.43",
+      "modifiedDate" : "2022-05-03T13:37:08.43",
       "filenamePc" : "filenamePc.jpg",
       "filenameMobile" : "filenameMobile.jpg",
       "_links" : {
@@ -3021,28 +2978,28 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
           "href" : "http://localhost:8080/display/banners?filename=s_filenameMobile.jpg"
         },
         "query_popupBanner" : {
-          "href" : "http://localhost:8080/api/banners/popup/106"
+          "href" : "http://localhost:8080/api/banners/popup/94"
         },
         "update_popupBanner" : {
-          "href" : "http://localhost:8080/api/banners/popup/106"
+          "href" : "http://localhost:8080/api/banners/popup/94"
         },
         "delete_popupBanner" : {
-          "href" : "http://localhost:8080/api/banners/popup/106"
+          "href" : "http://localhost:8080/api/banners/popup/94"
         },
         "update_popupBanner_order_up" : {
-          "href" : "http://localhost:8080/api/banners/popup/106/up"
+          "href" : "http://localhost:8080/api/banners/popup/94/up"
         },
         "update_popupBanner_order_down" : {
-          "href" : "http://localhost:8080/api/banners/popup/106/down"
+          "href" : "http://localhost:8080/api/banners/popup/94/down"
         }
       }
     }, {
-      "id" : 107,
+      "id" : 95,
       "leakedOrder" : 3,
       "position" : "LEFT",
       "name" : "팝업배너3",
-      "createdDate" : "2022-05-02T17:27:18.68",
-      "modifiedDate" : "2022-05-02T17:27:18.68",
+      "createdDate" : "2022-05-03T13:37:08.43",
+      "modifiedDate" : "2022-05-03T13:37:08.43",
       "filenamePc" : "filenamePc.jpg",
       "filenameMobile" : "filenameMobile.jpg",
       "_links" : {
@@ -3053,28 +3010,28 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
           "href" : "http://localhost:8080/display/banners?filename=s_filenameMobile.jpg"
         },
         "query_popupBanner" : {
-          "href" : "http://localhost:8080/api/banners/popup/107"
+          "href" : "http://localhost:8080/api/banners/popup/95"
         },
         "update_popupBanner" : {
-          "href" : "http://localhost:8080/api/banners/popup/107"
+          "href" : "http://localhost:8080/api/banners/popup/95"
         },
         "delete_popupBanner" : {
-          "href" : "http://localhost:8080/api/banners/popup/107"
+          "href" : "http://localhost:8080/api/banners/popup/95"
         },
         "update_popupBanner_order_up" : {
-          "href" : "http://localhost:8080/api/banners/popup/107/up"
+          "href" : "http://localhost:8080/api/banners/popup/95/up"
         },
         "update_popupBanner_order_down" : {
-          "href" : "http://localhost:8080/api/banners/popup/107/down"
+          "href" : "http://localhost:8080/api/banners/popup/95/down"
         }
       }
     }, {
-      "id" : 108,
+      "id" : 96,
       "leakedOrder" : 4,
       "position" : "LEFT",
       "name" : "팝업배너4",
-      "createdDate" : "2022-05-02T17:27:18.68",
-      "modifiedDate" : "2022-05-02T17:27:18.68",
+      "createdDate" : "2022-05-03T13:37:08.43",
+      "modifiedDate" : "2022-05-03T13:37:08.43",
       "filenamePc" : "filenamePc.jpg",
       "filenameMobile" : "filenameMobile.jpg",
       "_links" : {
@@ -3085,28 +3042,28 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
           "href" : "http://localhost:8080/display/banners?filename=s_filenameMobile.jpg"
         },
         "query_popupBanner" : {
-          "href" : "http://localhost:8080/api/banners/popup/108"
+          "href" : "http://localhost:8080/api/banners/popup/96"
         },
         "update_popupBanner" : {
-          "href" : "http://localhost:8080/api/banners/popup/108"
+          "href" : "http://localhost:8080/api/banners/popup/96"
         },
         "delete_popupBanner" : {
-          "href" : "http://localhost:8080/api/banners/popup/108"
+          "href" : "http://localhost:8080/api/banners/popup/96"
         },
         "update_popupBanner_order_up" : {
-          "href" : "http://localhost:8080/api/banners/popup/108/up"
+          "href" : "http://localhost:8080/api/banners/popup/96/up"
         },
         "update_popupBanner_order_down" : {
-          "href" : "http://localhost:8080/api/banners/popup/108/down"
+          "href" : "http://localhost:8080/api/banners/popup/96/down"
         }
       }
     }, {
-      "id" : 109,
+      "id" : 97,
       "leakedOrder" : 5,
       "position" : "LEFT",
       "name" : "팝업배너5",
-      "createdDate" : "2022-05-02T17:27:18.68",
-      "modifiedDate" : "2022-05-02T17:27:18.68",
+      "createdDate" : "2022-05-03T13:37:08.431",
+      "modifiedDate" : "2022-05-03T13:37:08.431",
       "filenamePc" : "filenamePc.jpg",
       "filenameMobile" : "filenameMobile.jpg",
       "_links" : {
@@ -3117,19 +3074,19 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
           "href" : "http://localhost:8080/display/banners?filename=s_filenameMobile.jpg"
         },
         "query_popupBanner" : {
-          "href" : "http://localhost:8080/api/banners/popup/109"
+          "href" : "http://localhost:8080/api/banners/popup/97"
         },
         "update_popupBanner" : {
-          "href" : "http://localhost:8080/api/banners/popup/109"
+          "href" : "http://localhost:8080/api/banners/popup/97"
         },
         "delete_popupBanner" : {
-          "href" : "http://localhost:8080/api/banners/popup/109"
+          "href" : "http://localhost:8080/api/banners/popup/97"
         },
         "update_popupBanner_order_up" : {
-          "href" : "http://localhost:8080/api/banners/popup/109/up"
+          "href" : "http://localhost:8080/api/banners/popup/97/up"
         },
         "update_popupBanner_order_down" : {
-          "href" : "http://localhost:8080/api/banners/popup/109/down"
+          "href" : "http://localhost:8080/api/banners/popup/97/down"
         }
       }
     } ]
@@ -3320,7 +3277,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/popup' -i -X POST \
     -H 'Content-Type: multipart/form-data;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTQ4MzY0MCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.zPRlRhXVEmge8NYTyXlbgX_VXFW5YFhnx7SLyziLe5Ylb8vDFTKLisEXbIUc6k-sRbcssCgYK6ge914prcVzDw' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTU1NjIzMCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.40Iu-kQu51ERrDk4rct3YOLvm3z-1u69LVVey_J_cArB_-4fGpoXWomU2p0zEnR7waul3TryT8AeHZduzNfamA' \
     -H 'Accept: application/hal+json' \
     -F 'pcFile=@file1.jpg;type=image/jpg' \
     -F 'mobileFile=@file2.jpg;type=image/jpg' \
@@ -3428,12 +3385,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>pcLinkUrl</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">pc 배너 클릭 시 이동할 url 주소</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">pc 배너 클릭 시 이동할 url 주소 [없을 시 '' 빈 문자열 입력]</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>mobileLinkUrl</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">모바일 배너 클릭 시 이동할 url 주소</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">모바일 배너 클릭 시 이동할 url 주소 [없을 시 '' 빈 문자열 입력]</p></td>
 </tr>
 </tbody>
 </table>
@@ -3451,7 +3408,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
       "href" : "http://localhost:8080/api/banners/popup"
     },
     "update_banner" : {
-      "href" : "http://localhost:8080/api/banners/popup/155"
+      "href" : "http://localhost:8080/api/banners/popup/146"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-create-popupBanner"
@@ -3568,9 +3525,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="resources-query-popupBanner_curl_request"><a class="link" href="#resources-query-popupBanner_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/popup/130' -i -X GET \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/popup/120' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTQ4MzYzOSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.Uoiab2uHZbHmDGqDia6_H4aMR3izMDaoR5u464rFN4Y9MEHRDIeQQ_DBFJmKiNZNbjcjZxKqtBR8koAE7mrWKQ' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTU1NjIyOSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.Gd8BTuPaUXF1nxafsa-WzTZ-XeefNMEyQ4kPE2mPUiqasvJWn1hQGAjuyxG9_D9AS6SZkr17LWTttRTwkwiIMA' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -3639,7 +3596,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "id" : 130,
+  "id" : 120,
   "name" : "팝업배너1",
   "status" : "LEAKED",
   "position" : "LEFT",
@@ -3653,10 +3610,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
       "href" : "http://localhost:8080/display/banners?filename=s_filenameMobile.jpg"
     },
     "self" : {
-      "href" : "http://localhost:8080/api/banners/popup/130"
+      "href" : "http://localhost:8080/api/banners/popup/120"
     },
     "update_banner" : {
-      "href" : "http://localhost:8080/api/banners/popup/130"
+      "href" : "http://localhost:8080/api/banners/popup/120"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-query-popupBanner"
@@ -3808,9 +3765,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="resources-update-popupBanner_curl_request"><a class="link" href="#resources-update-popupBanner_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/popup/97' -i -X POST \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/popup/85' -i -X POST \
     -H 'Content-Type: multipart/form-data;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTQ4MzYzOCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.M203Bl9uUkhNzRoG9HLimorFXPAHLJNCnhnACZkbs5H0dneq067EWngKDM9tI3Q5Uv9qQebnwsoEWFWtrucfNw' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTU1NjIyNywiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.p2Jb2EyGyhoNabizTJedE8cCaIFy7vsLWz0ShMq2FJRntt3ELa1fXmPpBcGOJpkTBMlhoJTiP0fGJ9wV2HJD7Q' \
     -H 'Accept: application/hal+json' \
     -F 'pcFile=@file1.jpg;type=image/jpg' \
     -F 'mobileFile=@file2.jpg;type=image/jpg' \
@@ -3957,10 +3914,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/banners/popup/97"
+      "href" : "http://localhost:8080/api/banners/popup/85"
     },
     "query_banner" : {
-      "href" : "http://localhost:8080/api/banners/popup/97"
+      "href" : "http://localhost:8080/api/banners/popup/85"
     },
     "query_popupBanners" : {
       "href" : "http://localhost:8080/api/banners/popup"
@@ -4076,9 +4033,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="resources-update-popupBanner-leakedOrder-up_curl_request"><a class="link" href="#resources-update-popupBanner-leakedOrder-up_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/popup/118/up' -i -X PUT \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/popup/108/up' -i -X PUT \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTQ4MzYzOSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.Uoiab2uHZbHmDGqDia6_H4aMR3izMDaoR5u464rFN4Y9MEHRDIeQQ_DBFJmKiNZNbjcjZxKqtBR8koAE7mrWKQ' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTU1NjIyOSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.Gd8BTuPaUXF1nxafsa-WzTZ-XeefNMEyQ4kPE2mPUiqasvJWn1hQGAjuyxG9_D9AS6SZkr17LWTttRTwkwiIMA' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -4149,7 +4106,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/banners/popup/118/up"
+      "href" : "http://localhost:8080/api/banners/popup/108/up"
     },
     "query_popupBanners" : {
       "href" : "http://localhost:8080/api/banners/popup"
@@ -4256,9 +4213,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="resources-update-popupBanner-leakedOrder-down_curl_request"><a class="link" href="#resources-update-popupBanner-leakedOrder-down_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/popup/92/down' -i -X PUT \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/popup/80/down' -i -X PUT \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTQ4MzYzNywiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.O_MfmsuwNY1viVlhoOEwr0KPkSy2QDg2eG5VlgIs6q8XiYbEf5FS0cITjczPhBJTQN4LUSnv3oFfyHN1bzc8yA' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTU1NjIyNywiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.p2Jb2EyGyhoNabizTJedE8cCaIFy7vsLWz0ShMq2FJRntt3ELa1fXmPpBcGOJpkTBMlhoJTiP0fGJ9wV2HJD7Q' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -4329,7 +4286,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/banners/popup/92/down"
+      "href" : "http://localhost:8080/api/banners/popup/80/down"
     },
     "query_popupBanners" : {
       "href" : "http://localhost:8080/api/banners/popup"
@@ -4436,9 +4393,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="resources-delete-popupBanner_curl_request"><a class="link" href="#resources-delete-popupBanner_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/popup/147' -i -X DELETE \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/popup/137' -i -X DELETE \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTQ4MzY0MCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.zPRlRhXVEmge8NYTyXlbgX_VXFW5YFhnx7SLyziLe5Ylb8vDFTKLisEXbIUc6k-sRbcssCgYK6ge914prcVzDw' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTU1NjIzMCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.40Iu-kQu51ERrDk4rct3YOLvm3z-1u69LVVey_J_cArB_-4fGpoXWomU2p0zEnR7waul3TryT8AeHZduzNfamA' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -4509,13 +4466,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/banners/popup/147"
+      "href" : "http://localhost:8080/api/banners/popup/137"
     },
     "query_popupBanners" : {
-      "href" : "http://localhost:8080/api/banners/popup/147"
+      "href" : "http://localhost:8080/api/banners/popup/137"
     },
     "create_banner" : {
-      "href" : "http://localhost:8080/api/banners/popup/147"
+      "href" : "http://localhost:8080/api/banners/popup/137"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-delete-popupBanner"
@@ -4630,7 +4587,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/myPage' -i -X POST \
     -H 'Content-Type: multipart/form-data;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTQ4MzYzOCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.M203Bl9uUkhNzRoG9HLimorFXPAHLJNCnhnACZkbs5H0dneq067EWngKDM9tI3Q5Uv9qQebnwsoEWFWtrucfNw' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTU1NjIyNywiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.p2Jb2EyGyhoNabizTJedE8cCaIFy7vsLWz0ShMq2FJRntt3ELa1fXmPpBcGOJpkTBMlhoJTiP0fGJ9wV2HJD7Q' \
     -H 'Accept: application/hal+json' \
     -F 'pcFile=@file1.jpg;type=image/jpg' \
     -F 'mobileFile=@file2.jpg;type=image/jpg' \
@@ -4733,12 +4690,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>pcLinkUrl</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">pc 배너 클릭 시 이동할 url 주소</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">pc 배너 클릭 시 이동할 url 주소 [없을 시 '' 빈 문자열 입력]</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>mobileLinkUrl</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">모바일 배너 클릭 시 이동할 url 주소</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">모바일 배너 클릭 시 이동할 url 주소 [없을 시 '' 빈 문자열 입력]</p></td>
 </tr>
 </tbody>
 </table>
@@ -4748,17 +4705,17 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "createdDate" : "2022-05-02T17:27:18.282",
-  "modifiedDate" : "2022-05-02T17:27:18.282",
-  "id" : 98,
+  "createdDate" : "2022-05-03T13:37:08.019",
+  "modifiedDate" : "2022-05-03T13:37:08.019",
+  "id" : 86,
   "name" : "마이페이지 배너",
   "pcLinkUrl" : "pc url",
   "mobileLinkUrl" : "mobile url",
   "status" : "LEAKED",
   "imgFile" : {
     "folder" : "C:/upload/banners",
-    "filenamePc" : "11fc279e-d2a0-4409-a98f-13be6a2c94d0_file1.jpg",
-    "filenameMobile" : "28804fa6-d664-4220-9ea0-4ce091992147_file2.jpg"
+    "filenamePc" : "e0b5128e-40e6-4c8f-b44b-1a3e1f0ecb07_file1.jpg",
+    "filenameMobile" : "f559a8fd-4ab2-4232-adfc-e28f71ead8ba_file2.jpg"
   },
   "_links" : {
     "self" : {
@@ -4768,7 +4725,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
       "href" : "http://localhost:8080/api/banners/myPage"
     },
     "update_banner" : {
-      "href" : "http://localhost:8080/api/banners/myPage/98"
+      "href" : "http://localhost:8080/api/banners/myPage/86"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-create-myPageBanner"
@@ -4937,7 +4894,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/myPage' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTQ4MzYzOCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.M203Bl9uUkhNzRoG9HLimorFXPAHLJNCnhnACZkbs5H0dneq067EWngKDM9tI3Q5Uv9qQebnwsoEWFWtrucfNw' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTU1NjIyOCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.SkqmuGsE5iSv1y3D5Q_ivKf-ggp8fj48uT9OvaK5_bn36gDqh1cx7hEsY-3Fi7ajD-Zw3EYTPXrhZZ26NeUgdw' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -4984,7 +4941,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "id" : 100,
+  "id" : 88,
   "name" : "마이페이지 배너1",
   "status" : "LEAKED",
   "filenamePc" : "filenamePc.jpg",
@@ -5002,7 +4959,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
       "href" : "http://localhost:8080/api/banners/myPage"
     },
     "update_banner" : {
-      "href" : "http://localhost:8080/api/banners/myPage/100"
+      "href" : "http://localhost:8080/api/banners/myPage/88"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-query-myPageBanner"
@@ -5161,7 +5118,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/myPage' -i -X POST \
     -H 'Content-Type: multipart/form-data;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTQ4MzYzOCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.M203Bl9uUkhNzRoG9HLimorFXPAHLJNCnhnACZkbs5H0dneq067EWngKDM9tI3Q5Uv9qQebnwsoEWFWtrucfNw' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTU1NjIyNywiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.p2Jb2EyGyhoNabizTJedE8cCaIFy7vsLWz0ShMq2FJRntt3ELa1fXmPpBcGOJpkTBMlhoJTiP0fGJ9wV2HJD7Q' \
     -H 'Accept: application/hal+json' \
     -F 'pcFile=@file1.jpg;type=image/jpg' \
     -F 'mobileFile=@file2.jpg;type=image/jpg' \
@@ -5264,12 +5221,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>pcLinkUrl</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">pc 배너 클릭 시 이동할 url 주소</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">pc 배너 클릭 시 이동할 url 주소 [없을 시 '' 빈 문자열 입력]</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>mobileLinkUrl</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">모바일 배너 클릭 시 이동할 url 주소</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">모바일 배너 클릭 시 이동할 url 주소 [없을 시 '' 빈 문자열 입력]</p></td>
 </tr>
 </tbody>
 </table>
@@ -5279,17 +5236,17 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "createdDate" : "2022-05-02T17:27:18.282",
-  "modifiedDate" : "2022-05-02T17:27:18.282",
-  "id" : 98,
+  "createdDate" : "2022-05-03T13:37:08.019",
+  "modifiedDate" : "2022-05-03T13:37:08.019",
+  "id" : 86,
   "name" : "마이페이지 배너",
   "pcLinkUrl" : "pc url",
   "mobileLinkUrl" : "mobile url",
   "status" : "LEAKED",
   "imgFile" : {
     "folder" : "C:/upload/banners",
-    "filenamePc" : "11fc279e-d2a0-4409-a98f-13be6a2c94d0_file1.jpg",
-    "filenameMobile" : "28804fa6-d664-4220-9ea0-4ce091992147_file2.jpg"
+    "filenamePc" : "e0b5128e-40e6-4c8f-b44b-1a3e1f0ecb07_file1.jpg",
+    "filenameMobile" : "f559a8fd-4ab2-4232-adfc-e28f71ead8ba_file2.jpg"
   },
   "_links" : {
     "self" : {
@@ -5299,7 +5256,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
       "href" : "http://localhost:8080/api/banners/myPage"
     },
     "update_banner" : {
-      "href" : "http://localhost:8080/api/banners/myPage/98"
+      "href" : "http://localhost:8080/api/banners/myPage/86"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-create-myPageBanner"
@@ -5468,7 +5425,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/top' -i -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTQ4MzY0MSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.61vqNLZ0OoU6cTnw6qOdsa71nG_jlYPU9JNpTiieC8Slk1KAkw2LL9XQr5I1H4K_Q6NhyMh0DFKR-qeHUxZY5w' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTU1NjIzMSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.HuLkgMZ5QLYu3wnU-BSiDs0oBKTy4aCiKNbNrpetSWnvr8_EBiXABJBSFEcbITAkyLn6z4_pXEDXB3HA8vh3OA' \
     -H 'Accept: application/hal+json' \
     -d '{
   "name" : "친구 초대하면 2천원 적립금!",
@@ -5530,9 +5487,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "createdDate" : "2022-05-02T17:27:21.728",
-  "modifiedDate" : "2022-05-02T17:27:21.728",
-  "id" : 160,
+  "createdDate" : "2022-05-03T13:37:11.927",
+  "modifiedDate" : "2022-05-03T13:37:11.927",
+  "id" : 152,
   "name" : "친구 초대하면 2천원 적립금!",
   "pcLinkUrl" : "pc link",
   "mobileLinkUrl" : "mobile link",
@@ -5547,7 +5504,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
       "href" : "http://localhost:8080/api/banners/top"
     },
     "update_banner" : {
-      "href" : "http://localhost:8080/api/banners/top/160"
+      "href" : "http://localhost:8080/api/banners/top/152"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-create-topBanner"
@@ -5711,7 +5668,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/top' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTQ4MzYzOCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.M203Bl9uUkhNzRoG9HLimorFXPAHLJNCnhnACZkbs5H0dneq067EWngKDM9tI3Q5Uv9qQebnwsoEWFWtrucfNw' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTU1NjIyOCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.SkqmuGsE5iSv1y3D5Q_ivKf-ggp8fj48uT9OvaK5_bn36gDqh1cx7hEsY-3Fi7ajD-Zw3EYTPXrhZZ26NeUgdw' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -5758,7 +5715,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "id" : 104,
+  "id" : 92,
   "name" : "친구 초대하면 2천원 적립금!1",
   "status" : "LEAKED",
   "backgroundColor" : "black",
@@ -5770,7 +5727,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
       "href" : "http://localhost:8080/api/banners/top"
     },
     "update_banner" : {
-      "href" : "http://localhost:8080/api/banners/top/104"
+      "href" : "http://localhost:8080/api/banners/top/92"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-query-topBanner"
@@ -5909,9 +5866,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="resources-update-topBanner_curl_request"><a class="link" href="#resources-update-topBanner_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/top/154' -i -X PUT \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/banners/top/144' -i -X PUT \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTQ4MzY0MCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.zPRlRhXVEmge8NYTyXlbgX_VXFW5YFhnx7SLyziLe5Ylb8vDFTKLisEXbIUc6k-sRbcssCgYK6ge914prcVzDw' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEsImV4cCI6MTY1MTU1NjIzMCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.40Iu-kQu51ERrDk4rct3YOLvm3z-1u69LVVey_J_cArB_-4fGpoXWomU2p0zEnR7waul3TryT8AeHZduzNfamA' \
     -H 'Accept: application/hal+json' \
     -d '{
   "name" : "수정된 상단 띠 배너 제목",
@@ -6046,7 +6003,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/banners/top/154"
+      "href" : "http://localhost:8080/api/banners/top/144"
     },
     "query_topBanner" : {
       "href" : "http://localhost:8080/api/banners/top"
@@ -13386,7 +13343,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="footer">
 <div id="footer-text">
 Version 0.0.1-SNAPSHOT<br>
-Last updated 2022-05-02 17:25:00 +0900
+Last updated 2022-05-03 13:40:55 +0900
 </div>
 </div>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css">

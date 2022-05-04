@@ -4,6 +4,7 @@ import com.bi.barfdog.domain.banner.BannerStatus;
 import lombok.*;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 @Getter
 @NoArgsConstructor
@@ -17,10 +18,10 @@ public class MyPageBannerSaveRequestDto {
     @Builder.Default
     private BannerStatus status = BannerStatus.LEAKED;
 
-    @NotEmpty
+    @NotNull
     private String pcLinkUrl;
 
-    @NotEmpty
+    @NotNull
     private String mobileLinkUrl;
 
 }

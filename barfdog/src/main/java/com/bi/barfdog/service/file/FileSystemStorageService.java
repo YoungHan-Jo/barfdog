@@ -139,7 +139,7 @@ public class FileSystemStorageService implements StorageService {
                 File inFile = new File(uploadPath, uuid.toString() + "_" + file.getOriginalFilename());
                 File outFile = new File(uploadPath, "s_" + filename);
 
-                Thumbnailator.createThumbnail(inFile, outFile, 200, 200);
+                Thumbnailator.createThumbnail(inFile, outFile, 400, 400);
             }
 
             return imgFilenamePath;

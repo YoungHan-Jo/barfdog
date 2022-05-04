@@ -207,6 +207,14 @@ public class BannerRepositoryImpl implements BannerRepositoryCustom{
     }
 
     @Override
+    public List<MainBanner> findMainBannersByName(String name) {
+        return queryFactory
+                .selectFrom(mainBanner)
+                .where(mainBanner.name.eq(name))
+                .fetch();
+    }
+
+    @Override
     public List<MyPageBanner> findMyPageBanners() {
 
         return queryFactory

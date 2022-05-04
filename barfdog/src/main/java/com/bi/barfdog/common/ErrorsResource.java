@@ -13,6 +13,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class ErrorsResource extends EntityModel<Errors> {
     public ErrorsResource(Errors content, Link... links) {
         super(content, Arrays.asList(links));
-        add(linkTo(methodOn(IndexApiController.class).index()).withRel("index"));
+        add(linkTo(IndexApiController.class).slash("docs").slash("index.html").withRel("API 문서 링크"));
     }
 }

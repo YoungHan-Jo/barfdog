@@ -1,13 +1,12 @@
 package com.bi.barfdog.config;
 
-import com.bi.barfdog.api.bannerDto.MyPageBannerSaveRequestDto;
+import com.bi.barfdog.api.bannerDto.MainBannerSaveRequestDto;
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.domain.Address;
 import com.bi.barfdog.domain.banner.BannerStatus;
-import com.bi.barfdog.domain.banner.MainBanner;
-import com.bi.barfdog.domain.banner.MyPageBanner;
+import com.bi.barfdog.domain.banner.BannerTargets;
 import com.bi.barfdog.domain.coupon.*;
 import com.bi.barfdog.domain.dog.*;
 import com.bi.barfdog.domain.member.*;
@@ -20,7 +19,11 @@ import com.bi.barfdog.domain.setting.DeliveryConstant;
 import com.bi.barfdog.domain.setting.Setting;
 import com.bi.barfdog.domain.setting.SnackConstant;
 import com.bi.barfdog.repository.*;
+import com.bi.barfdog.service.BannerService;
 import com.bi.barfdog.service.DogService;
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.disk.DiskFileItem;
+import org.apache.commons.io.IOUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
@@ -28,9 +31,13 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
-import java.io.FileInputStream;
+import java.io.*;
 import java.math.BigDecimal;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
 
 import static com.bi.barfdog.config.finalVariable.AutoCoupon.*;
 
@@ -47,17 +54,16 @@ public class AppConfig {
         return new BCryptPasswordEncoder();
     }
 
-//    @Bean
-//    public AuditorAware<String> auditorProvider() {
-//        return () -> Optional.of(SecurityContextHolder.getContext().getAuthentication().getName());
-//    }
 
-    @Bean // 앱이 구동 될때 테스트 계정 하나 만들기
+    @Bean
     public ApplicationRunner applicationRunner() {
         return new ApplicationRunner() {
 
             @Autowired
             MemberRepository memberRepository;
+
+            @Autowired
+            BannerService bannerService;
 
             @Autowired
             BannerRepository bannerRepository;
@@ -82,6 +88,12 @@ public class AppConfig {
 
             @Override
             public void run(ApplicationArguments args) throws Exception {
+
+                for (int i = 1; i <= 4; ++i) {
+                    createMainBanner(i);
+                }
+
+
                 Member admin = makeMember(appProperties.getAdminEmail(), "관리자", appProperties.getAdminPassword(), "01056785678", Gender.FEMALE, Grade.BARF, 100000, true, "ADMIN,USER");
 
                 makeMember(appProperties.getUserEmail(), "김회원", appProperties.getUserPassword(), "01012341234", Gender.MALE, Grade.BRONZE, 0, false, "USER");
@@ -145,6 +157,33 @@ public class AppConfig {
                 dogService.createDogAndGetSurveyReport(requestDto, admin);
 
 
+            }
+
+            private void createMainBanner(int i) throws IOException, URISyntaxException {
+
+                File file = new File("C:/upload/default/mainBanner" + i + ".jpg");
+                FileItem fileItem = new DiskFileItem("originFile", Files.probeContentType(file.toPath()), false, file.getName(), (int) file.length(), file.getParentFile());
+                try {
+                    InputStream input = new FileInputStream(file);
+                    OutputStream os = fileItem.getOutputStream();
+                    IOUtils.copy(input, os);
+                    // Or faster..
+                    // IOUtils.copy(new FileInputStream(file), fileItem.getOutputStream());
+                } catch (IOException ex) {
+                    // do something.
+                }
+                //jpa.png -> multipart 변환
+                MultipartFile mFile = new CommonsMultipartFile(fileItem);
+
+                MainBannerSaveRequestDto requestDto = MainBannerSaveRequestDto.builder()
+                        .name("메인배너" + i)
+                        .targets(BannerTargets.ALL)
+                        .status(BannerStatus.LEAKED)
+                        .pcLinkUrl("")
+                        .mobileLinkUrl("")
+                        .build();
+
+                bannerService.saveMainBanner(requestDto, mFile, mFile);
             }
 
             private void makeAutoCoupon(String name, String description, DiscountType discountType, int discountDegree, int availableMinPrice, CouponTarget couponTarget) {

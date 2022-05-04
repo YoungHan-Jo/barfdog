@@ -26,6 +26,7 @@ import javax.persistence.EntityManager;
 import java.io.FileInputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -111,8 +112,8 @@ public class BannerApiControllerTest extends BaseTest {
                                 fieldWithPath("name").description("배너 이름"),
                                 fieldWithPath("targets").description("배너 대상 [ALL, GUEST, USER, SUBSCRIBER]"),
                                 fieldWithPath("status").description("배너 노출 상태 [LEAKED, HIDDEN]"),
-                                fieldWithPath("pcLinkUrl").description("pc 배너 클릭 시 이동할 url 주소"),
-                                fieldWithPath("mobileLinkUrl").description("모바일 배너 클릭 시 이동할 url 주소")
+                                fieldWithPath("pcLinkUrl").description("pc 배너 클릭 시 이동할 url 주소 [없을 시 '' 빈 문자열 입력]"),
+                                fieldWithPath("mobileLinkUrl").description("모바일 배너 클릭 시 이동할 url 주소 [없을 시 '' 빈 문자열 입력]")
                         ),
                         responseHeaders(
                                 headerWithName(HttpHeaders.LOCATION).description("location header"),
@@ -126,6 +127,45 @@ public class BannerApiControllerTest extends BaseTest {
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("url 링크가 빈 문자열이어도 정상적으로 메인 배너를 생성하는 테스트")
+    public void createMainBanner_linkUrl_notnull() throws Exception {
+        //Given
+        MockMultipartFile pcFile = new MockMultipartFile("pcFile", "file1.jpg", "image/jpg", new FileInputStream("src/test/resources/uploadTest/file1.jpg"));
+        MockMultipartFile mobileFile = new MockMultipartFile("mobileFile", "file2.jpg", "image/jpg", new FileInputStream("src/test/resources/uploadTest/file2.jpg"));
+
+        String name = "메인배너 샘플 테스트 ";
+        MainBannerSaveRequestDto requestDto = MainBannerSaveRequestDto.builder()
+                .name(name)
+                .targets(BannerTargets.ALL)
+                .status(BannerStatus.LEAKED)
+                .pcLinkUrl("")
+                .mobileLinkUrl("")
+                .build();
+
+        String requestDtoJson = objectMapper.writeValueAsString(requestDto);
+        MockMultipartFile request = new MockMultipartFile("requestDto", "requestDto", "application/json", requestDtoJson.getBytes(StandardCharsets.UTF_8));
+
+        //when & then
+        mockMvc.perform(multipart("/api/banners/main")
+                        .file(pcFile)
+                        .file(mobileFile)
+                        .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .accept(MediaTypes.HAL_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(header().exists(HttpHeaders.LOCATION))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, contentType.toString()))
+                ;
+        List<MainBanner> mainBanners = bannerRepository.findMainBannersByName(name);
+        MainBanner findBanner = mainBanners.get(0);
+        assertThat(findBanner.getName()).isEqualTo(name);
     }
 
     @Test
@@ -153,8 +193,7 @@ public class BannerApiControllerTest extends BaseTest {
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("errors[0].code").exists())
-                .andExpect(jsonPath("errors[0].defaultMessage").exists())
-                .andExpect(jsonPath("_links.index").exists());
+                .andExpect(jsonPath("errors[0].defaultMessage").exists());
     }
     
     @Test
@@ -180,8 +219,7 @@ public class BannerApiControllerTest extends BaseTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("errors[0].objectName").exists())
                 .andExpect(jsonPath("errors[0].defaultMessage").exists())
-                .andExpect(jsonPath("errors[0].code").exists())
-                .andExpect(jsonPath("_links.index").exists());
+                .andExpect(jsonPath("errors[0].code").exists());
     }
 
     @Test
@@ -238,8 +276,8 @@ public class BannerApiControllerTest extends BaseTest {
                         requestPartFields("requestDto",
                                 fieldWithPath("name").description("배너 이름"),
                                 fieldWithPath("status").description("배너 노출 상태 [LEAKED, HIDDEN]"),
-                                fieldWithPath("pcLinkUrl").description("pc 배너 클릭 시 이동할 url 주소"),
-                                fieldWithPath("mobileLinkUrl").description("모바일 배너 클릭 시 이동할 url 주소")
+                                fieldWithPath("pcLinkUrl").description("pc 배너 클릭 시 이동할 url 주소 [없을 시 '' 빈 문자열 입력]"),
+                                fieldWithPath("mobileLinkUrl").description("모바일 배너 클릭 시 이동할 url 주소 [없을 시 '' 빈 문자열 입력]")
                         ),
                         responseHeaders(
                                 headerWithName(HttpHeaders.LOCATION).description("location header"),
@@ -262,6 +300,42 @@ public class BannerApiControllerTest extends BaseTest {
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("url link 빈문자열이라도 정상적으로 마이페이지 배너 생성하는 테스트")
+    public void createMyPageBanner_linkUrl_notNull() throws Exception {
+        //Given
+        MockMultipartFile pcFile = new MockMultipartFile("pcFile", "file1.jpg", "image/jpg", new FileInputStream("src/test/resources/uploadTest/file1.jpg"));
+        MockMultipartFile mobileFile = new MockMultipartFile("mobileFile", "file2.jpg", "image/jpg", new FileInputStream("src/test/resources/uploadTest/file2.jpg"));
+
+        MyPageBannerSaveRequestDto requestDto = MyPageBannerSaveRequestDto.builder()
+                .name("마이페이지 배너")
+                .pcLinkUrl("")
+                .status(BannerStatus.LEAKED)
+                .mobileLinkUrl("")
+                .build();
+
+        String requestDtoJson = objectMapper.writeValueAsString(requestDto);
+        MockMultipartFile request = new MockMultipartFile(
+                "requestDto",
+                "requestDto",
+                "application/json",
+                requestDtoJson.getBytes(StandardCharsets.UTF_8));
+
+        //when & then
+        mockMvc.perform(multipart("/api/banners/myPage")
+                        .file(pcFile)
+                        .file(mobileFile)
+                        .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(header().exists(HttpHeaders.LOCATION))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, contentType.toString()));
     }
 
     @Test
@@ -290,8 +364,7 @@ public class BannerApiControllerTest extends BaseTest {
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("errors[0].code").exists())
-                .andExpect(jsonPath("errors[0].defaultMessage").exists())
-                .andExpect(jsonPath("_links.index").exists());
+                .andExpect(jsonPath("errors[0].defaultMessage").exists());
     }
 
     @Test
@@ -320,8 +393,7 @@ public class BannerApiControllerTest extends BaseTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("errors[0].objectName").exists())
                 .andExpect(jsonPath("errors[0].defaultMessage").exists())
-                .andExpect(jsonPath("errors[0].code").exists())
-                .andExpect(jsonPath("_links.index").exists());
+                .andExpect(jsonPath("errors[0].code").exists());
     }
     
     @Test
@@ -420,8 +492,8 @@ public class BannerApiControllerTest extends BaseTest {
                                 fieldWithPath("name").description("배너 이름"),
                                 fieldWithPath("status").description("배너 노출 상태 [LEAKED, HIDDEN]"),
                                 fieldWithPath("position").description("배너 위치 [LEFT, MID, RIGHT]"),
-                                fieldWithPath("pcLinkUrl").description("pc 배너 클릭 시 이동할 url 주소"),
-                                fieldWithPath("mobileLinkUrl").description("모바일 배너 클릭 시 이동할 url 주소")
+                                fieldWithPath("pcLinkUrl").description("pc 배너 클릭 시 이동할 url 주소 [없을 시 '' 빈 문자열 입력]"),
+                                fieldWithPath("mobileLinkUrl").description("모바일 배너 클릭 시 이동할 url 주소 [없을 시 '' 빈 문자열 입력]")
                         ),
                         responseHeaders(
                                 headerWithName(HttpHeaders.LOCATION).description("location header"),
@@ -434,6 +506,74 @@ public class BannerApiControllerTest extends BaseTest {
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("url link 빈문자열이라도 정상적으로 팝업 배너 생성하는 테스트")
+    public void createPopupBanner_urlLink_notNull() throws Exception {
+        //Given
+        MockMultipartFile pcFile = new MockMultipartFile("pcFile", "file1.jpg", "image/jpg", new FileInputStream("src/test/resources/uploadTest/file1.jpg"));
+        MockMultipartFile mobileFile = new MockMultipartFile("mobileFile", "file2.jpg", "image/jpg", new FileInputStream("src/test/resources/uploadTest/file2.jpg"));
+
+        PopupBannerSaveRequestDto requestDto = PopupBannerSaveRequestDto.builder()
+                .name("팝업배너1")
+                .position(PopupBannerPosition.LEFT)
+                .pcLinkUrl("")
+                .mobileLinkUrl("")
+                .build();
+
+        String requestDtoJson = objectMapper.writeValueAsString(requestDto);
+        MockMultipartFile request = new MockMultipartFile(
+                "requestDto",
+                "requestDto",
+                "application/json",
+                requestDtoJson.getBytes(StandardCharsets.UTF_8));
+
+        //when & then
+        mockMvc.perform(multipart("/api/banners/popup")
+                        .file(pcFile)
+                        .file(mobileFile)
+                        .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(header().exists(HttpHeaders.LOCATION))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, contentType.toString()));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("팝업배너 생성 중 url link null 이면 bad request나오는 테스트")
+    public void createPopupBanner_urlLink_nNull() throws Exception {
+        //Given
+        MockMultipartFile pcFile = new MockMultipartFile("pcFile", "file1.jpg", "image/jpg", new FileInputStream("src/test/resources/uploadTest/file1.jpg"));
+        MockMultipartFile mobileFile = new MockMultipartFile("mobileFile", "file2.jpg", "image/jpg", new FileInputStream("src/test/resources/uploadTest/file2.jpg"));
+
+        PopupBannerSaveRequestDto requestDto = PopupBannerSaveRequestDto.builder()
+                .name("팝업배너1")
+                .position(PopupBannerPosition.LEFT)
+                .build();
+
+        String requestDtoJson = objectMapper.writeValueAsString(requestDto);
+        MockMultipartFile request = new MockMultipartFile(
+                "requestDto",
+                "requestDto",
+                "application/json",
+                requestDtoJson.getBytes(StandardCharsets.UTF_8));
+
+        //when & then
+        mockMvc.perform(multipart("/api/banners/popup")
+                        .file(pcFile)
+                        .file(mobileFile)
+                        .file(request)
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -462,8 +602,7 @@ public class BannerApiControllerTest extends BaseTest {
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("errors[0].code").exists())
-                .andExpect(jsonPath("errors[0].defaultMessage").exists())
-                .andExpect(jsonPath("_links.index").exists());
+                .andExpect(jsonPath("errors[0].defaultMessage").exists());
     }
 
     @Test
@@ -492,8 +631,7 @@ public class BannerApiControllerTest extends BaseTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("errors[0].objectName").exists())
                 .andExpect(jsonPath("errors[0].defaultMessage").exists())
-                .andExpect(jsonPath("errors[0].code").exists())
-                .andExpect(jsonPath("_links.index").exists());
+                .andExpect(jsonPath("errors[0].code").exists());
     }
 
     @Test
@@ -535,8 +673,8 @@ public class BannerApiControllerTest extends BaseTest {
                                 fieldWithPath("status").description("배너 노출 상태 [LEAKED, HIDDEN]"),
                                 fieldWithPath("backgroundColor").description("띠 배너 배경 색상 [기본 값 : #CA0101]"),
                                 fieldWithPath("fontColor").description("띠 배너 글자 색상 [기본 값 : #fff]"),
-                                fieldWithPath("pcLinkUrl").description("pc 배너 클릭 시 이동할 url 주소"),
-                                fieldWithPath("mobileLinkUrl").description("모바일 배너 클릭 시 이동할 url 주소")
+                                fieldWithPath("pcLinkUrl").description("pc 배너 클릭 시 이동할 url 주소 [없을 시 '' 빈 문자열 입력]"),
+                                fieldWithPath("mobileLinkUrl").description("모바일 배너 클릭 시 이동할 url 주소 [없을 시 '' 빈 문자열 입력]")
                         ),
                         responseHeaders(
                                 headerWithName(HttpHeaders.LOCATION).description("location header"),
@@ -561,6 +699,50 @@ public class BannerApiControllerTest extends BaseTest {
     }
 
     @Test
+    @Transactional
+    @DisplayName("url link 빈문자열이더라도 정상적으로 상단 띠 배너 생성하는 테스트")
+    public void createTopBanner_urlLink_notNull() throws Exception {
+        //Given
+        TopBannerSaveRequestDto requestDto = TopBannerSaveRequestDto.builder()
+                .name("친구 초대하면 2천원 적립금!")
+                .pcLinkUrl("")
+                .mobileLinkUrl("")
+                .status(BannerStatus.HIDDEN)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/banners/top")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(header().exists(HttpHeaders.LOCATION))
+                .andExpect(header().exists(HttpHeaders.CONTENT_TYPE));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("상단 띠 배너 생성 중 url link null 이면 bad request 나오는 테스트")
+    public void createTopBanner_urlLink_Null() throws Exception {
+        //Given
+        TopBannerSaveRequestDto requestDto = TopBannerSaveRequestDto.builder()
+                .name("친구 초대하면 2천원 적립금!")
+                .status(BannerStatus.HIDDEN)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/banners/top")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     @DisplayName("입력값이 부족할 경우 에러가 발생하는 테스트")
     public void createTopBanner_Bad_Request() throws Exception {
         //Given
@@ -579,8 +761,7 @@ public class BannerApiControllerTest extends BaseTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("errors[0].objectName").exists())
                 .andExpect(jsonPath("errors[0].defaultMessage").exists())
-                .andExpect(jsonPath("errors[0].code").exists())
-                .andExpect(jsonPath("_links.index").exists());
+                .andExpect(jsonPath("errors[0].code").exists());
     }
 
     @Test
@@ -814,8 +995,7 @@ public class BannerApiControllerTest extends BaseTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("errors[0].objectName").exists())
                 .andExpect(jsonPath("errors[0].defaultMessage").exists())
-                .andExpect(jsonPath("errors[0].code").exists())
-                .andExpect(jsonPath("_links.index").exists());
+                .andExpect(jsonPath("errors[0].code").exists());
 
 
     }
@@ -1004,8 +1184,7 @@ public class BannerApiControllerTest extends BaseTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("errors[0].objectName").exists())
                 .andExpect(jsonPath("errors[0].defaultMessage").exists())
-                .andExpect(jsonPath("errors[0].code").exists())
-                .andExpect(jsonPath("_links.index").exists());
+                .andExpect(jsonPath("errors[0].code").exists());
     }
 
     @Test

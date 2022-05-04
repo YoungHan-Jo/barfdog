@@ -41,4 +41,6 @@ public interface BannerRepositoryCustom {
     Optional<MyPageBanner> findMyPageBannerById(Long id);
 
     Optional<TopBanner> findTopBannerById(Long id);
+
+    List<MainBanner> findMainBannersByName(String name);
 }
