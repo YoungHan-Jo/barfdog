@@ -31,18 +31,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-//        http.cors(); // cors 설정 2번째꺼
+        http.cors(); // cors 설정 제일 밑에 있는 @Bean 설정한거
         http.csrf().disable();
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS) // 세션 사용x
                 .and()
-                .addFilter(corsFilter) // cors 설정 필터
+//                .addFilter(corsFilter) // cors 설정 필터
                 .formLogin().disable() // 폼 로그인 사용 x
                 .httpBasic().disable() // httpbasic 암호화 방식 사용 x
-//                .addFilter(new JwtAuthenticationFilter(authenticationManager()))
+                .addFilter(new JwtAuthenticationFilter(authenticationManager()))
                 .addFilter(new JwtAuthorizationFilter(authenticationManager(),memberRepository))
                 // ==== 권한 설정 ====
                 .authorizeRequests()
-                .antMatchers(HttpMethod.POST,"/api/login","/join").permitAll()
+                .antMatchers(HttpMethod.POST,"/api/login","/login","/join").permitAll()
+//                .antMatchers(HttpMethod.PUT,"/api/banners/main/**").permitAll()
                 .antMatchers("/api/banners/**").access("hasRole('ROLE_ADMIN')")
 
                 .antMatchers("/api/members/publicationCoupon").access("hasRole('ROLE_ADMIN')")
@@ -61,19 +62,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         ;
     }
 
-//    @Bean
-//    CorsConfigurationSource corsConfigurationSource() {
-//        CorsConfiguration config = new CorsConfiguration();
-////        config.setAllowedOrigins(Arrays.asList("*"));
-////        config.setAllowedMethods(Arrays.asList("HEAD", "GET", "POST", "PUT"));
-////        config.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
-//        config.addAllowedOriginPattern("*");
-//        config.addAllowedHeader("*"); // 모든 header 에 응답을 허용하겠다.
-//        config.addAllowedMethod("*"); // 모든 post,get,put,delete,patch 요청을 허용하겠다.
-//        config.setAllowCredentials(true);
-//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        source.registerCorsConfiguration("/**", config);
-//        return source;
-//    }
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+//        config.setAllowedOrigins(Arrays.asList("*"));
+        config.setAllowedMethods(Arrays.asList("HEAD", "GET", "POST", "PUT", "DELETE"));
+//        config.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
+        config.addAllowedOriginPattern("*");
+        config.addAllowedHeader("*"); // 모든 header 에 응답을 허용하겠다.
+        config.addAllowedMethod("*"); // 모든 post,get,put,delete,patch 요청을 허용하겠다.
+        config.setAllowCredentials(true);
+        config.addExposedHeader("Authorization");
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
 
 }
