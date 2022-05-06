@@ -240,3 +240,4 @@
 1650966776856|0|rollback|connection 37|url jdbc:h2:mem:testdb||
 1651209229815|0|rollback|connection 37|url jdbc:h2:mem:testdb||
 1651226422070|0|rollback|connection 37|url jdbc:h2:mem:testdb||
+1651815412419|0|rollback|connection 51|url jdbc:mariadb://binter.synology.me:3307/barfdog?characterEncoding=UTF-8&serverTimezone=UTC||

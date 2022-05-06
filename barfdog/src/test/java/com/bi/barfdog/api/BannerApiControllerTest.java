@@ -1246,6 +1246,7 @@ public class BannerApiControllerTest extends BaseTest {
     public void queryMainBanner() throws Exception {
         //Given
         Banner banner = generateMainBanner(1);
+        generateMainBanner(2);
 
         //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.get("/api/banners/main/{id}", banner.getId())

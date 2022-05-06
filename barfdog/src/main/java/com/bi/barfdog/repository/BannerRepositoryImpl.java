@@ -1,7 +1,10 @@
 package com.bi.barfdog.repository;
 
 import com.bi.barfdog.api.bannerDto.*;
-import com.bi.barfdog.domain.banner.*;
+import com.bi.barfdog.domain.banner.MainBanner;
+import com.bi.barfdog.domain.banner.MyPageBanner;
+import com.bi.barfdog.domain.banner.PopupBanner;
+import com.bi.barfdog.domain.banner.TopBanner;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -93,6 +96,7 @@ public class BannerRepositoryImpl implements BannerRepositoryCustom{
                         mainBanner.mobileLinkUrl
                         ))
                 .from(mainBanner)
+                .where(mainBanner.id.eq(id))
                 .fetchOne();
 
         return Optional.ofNullable(result);
@@ -175,6 +179,7 @@ public class BannerRepositoryImpl implements BannerRepositoryCustom{
                         popupBanner.imgFile.filenameMobile
                 ))
                 .from(popupBanner)
+                .where(popupBanner.id.eq(id))
                 .fetchOne();
         return Optional.ofNullable(result);
     }
@@ -182,8 +187,8 @@ public class BannerRepositoryImpl implements BannerRepositoryCustom{
     @Override
     public Optional<PopupBanner> findPopupBannerById(Long id) {
         PopupBanner result = queryFactory
-                .selectFrom(QPopupBanner.popupBanner)
-                .where(QPopupBanner.popupBanner.id.eq(id))
+                .selectFrom(popupBanner)
+                .where(popupBanner.id.eq(id))
                 .fetchOne();
         return Optional.ofNullable(result);
     }
@@ -191,8 +196,8 @@ public class BannerRepositoryImpl implements BannerRepositoryCustom{
     @Override
     public Optional<MyPageBanner> findMyPageBannerById(Long id) {
         MyPageBanner result = queryFactory
-                .selectFrom(QMyPageBanner.myPageBanner)
-                .where(QMyPageBanner.myPageBanner.id.eq(id))
+                .selectFrom(myPageBanner)
+                .where(myPageBanner.id.eq(id))
                 .fetchOne();
         return Optional.ofNullable(result);
     }
