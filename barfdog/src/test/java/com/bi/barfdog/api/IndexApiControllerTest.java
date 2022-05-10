@@ -1,7 +1,9 @@
 package com.bi.barfdog.api;
 
+import com.bi.barfdog.api.memberDto.EmailAuthDto;
 import com.bi.barfdog.api.memberDto.FindPasswordRequestDto;
 import com.bi.barfdog.api.memberDto.MemberSaveRequestDto;
+import com.bi.barfdog.api.memberDto.UpdateAdminPasswordRequestDto;
 import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.directsend.PhoneAuthRequestDto;
@@ -26,6 +28,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 
+import javax.persistence.EntityManager;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Optional;
@@ -45,6 +48,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Transactional
 public class IndexApiControllerTest extends BaseTest {
+
+    @Autowired
+    EntityManager em;
 
     @Autowired
     MemberRepository memberRepository;
@@ -84,10 +90,6 @@ public class IndexApiControllerTest extends BaseTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, contentType.toString()))
                 .andExpect(header().exists(HttpHeaders.LOCATION))
-                .andExpect(jsonPath("reward").value(3000))
-                .andExpect(jsonPath("recommendCode").value(sampleMember.getMyRecommendationCode()))
-                .andExpect(jsonPath("agreement.receiveSms").value(true))
-                .andExpect(jsonPath("agreement.receiveEmail").value(true))
                 .andDo(document("join",
                         links(
                                 linkWithRel("self").description("self 링크"),
@@ -122,36 +124,6 @@ public class IndexApiControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
                         ),
                         responseFields(
-                                fieldWithPath("createdDate").description("회원 생성 날짜"),
-                                fieldWithPath("modifiedDate").description("마지막으로 회원 수정한 날짜"),
-                                fieldWithPath("id").description("회원 id 번호"),
-                                fieldWithPath("name").description("회원 이름"),
-                                fieldWithPath("email").description("회원 이메일(로그인 ID)"),
-                                fieldWithPath("password").description("회원 비밀번호 암호화"),
-                                fieldWithPath("phoneNumber").description("휴대폰 번호"),
-                                fieldWithPath("address.zipcode").description("우편 번호"),
-                                fieldWithPath("address.city").description("시/도"),
-                                fieldWithPath("address.street").description("도로명주소"),
-                                fieldWithPath("address.detailAddress").description("상세주소"),
-                                fieldWithPath("birthday").description("생년월일 'yyyymmdd' 길이 8 문자열 형식"),
-                                fieldWithPath("gender").description("성별"),
-                                fieldWithPath("agreement.servicePolicy").description("이용약관 동의"),
-                                fieldWithPath("agreement.privacyPolicy").description("개인정보 제공 동의"),
-                                fieldWithPath("agreement.receiveSms").description("sms 수신 여부"),
-                                fieldWithPath("agreement.receiveEmail").description("email 수신 여부"),
-                                fieldWithPath("agreement.over14YearsOld").description("14세 이상 여부"),
-                                fieldWithPath("recommendCode").description("내가 추천한 사람 추천코드"),
-                                fieldWithPath("myRecommendationCode").description("내 추천 코드"),
-                                fieldWithPath("grade").description("등급"),
-                                fieldWithPath("reward").description("적립금"),
-                                fieldWithPath("accumulatedAmount").description("구매 누적금액"),
-                                fieldWithPath("firstReward.recommend").description("추천인 적립금 받았는 지 여부"),
-                                fieldWithPath("firstReward.receiveAgree").description("수신 동의 적립금 받았는 지 여부"),
-                                fieldWithPath("lastLoginDate").description("마지막 로그인 날짜시간"),
-                                fieldWithPath("roles").description("유저 권한"),
-                                fieldWithPath("provider").description("sns 로그인 제공사(네이버/카카오)"),
-                                fieldWithPath("providerId").description("sns 로그인 제공사 고유 id"),
-                                fieldWithPath("roleList").description("권한 리스트"),
                                 fieldWithPath("_links.self.href").description("self 링크"),
                                 fieldWithPath("_links.login.href").description("로그인 요청 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
@@ -166,6 +138,10 @@ public class IndexApiControllerTest extends BaseTest {
         assertThat(reward.getTradeReward()).isEqualTo(RewardPoint.RECOMMEND);
         assertThat(reward.getContent()).isEqualTo(RewardContent.RECOMMEND);
         assertThat(findMember.getFirstReward().isRecommend()).isTrue();
+        assertThat(findMember.getReward()).isEqualTo(3000);
+        assertThat(findMember.getRecommendCode()).isEqualTo(sampleMember.getMyRecommendationCode());
+        assertThat(findMember.getAgreement().isReceiveSms()).isTrue();
+        assertThat(findMember.getAgreement().isReceiveEmail()).isTrue();
     }
 
 
@@ -443,6 +419,237 @@ public class IndexApiControllerTest extends BaseTest {
 //                .andDo(print())
 //                .andExpect(status().isInternalServerError());
 //    }
+
+    @Test
+    @DisplayName("정상적으로 이메일 인증보내는 테스트")
+    public void adminPasswordEmailAuth() throws Exception {
+       //given
+
+        String email = "jyh@binter.co.kr";
+        Member member = Member.builder()
+                .name("jyh")
+                .email(email)
+                .agreement(new Agreement())
+                .firstReward(new FirstReward())
+                .roles("ADMIN,USER")
+                .build();
+
+        memberRepository.save(member);
+
+        EmailAuthDto requestDto = EmailAuthDto.builder()
+                .email(email)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/adminPasswordEmailAuth")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("email_auth_admin_password",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("changeAdminPassword").description("관리자 비밀번호 재설정 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        requestFields(
+                                fieldWithPath("email").description("인증번호를 보낼 email 주소")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("authNumber").description("이메일 인증번호"),
+                                fieldWithPath("responseCode").description("응답코드 (200 이외의 값이면 다이렉트센드 내부 에러)"),
+                                fieldWithPath("status").description("다이렉트 센드 상태 코드"),
+                                fieldWithPath("msg").description("다이렉트 센드 상태 메시지"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.changeAdminPassword.href").description("관리자 비밀번호 재설정 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+    }
+
+    @Test
+    @DisplayName("관리자가 아닌 email일 경우 400 나오는 테스트")
+    public void adminPasswordEmailAuth_NotAdmin() throws Exception {
+        //given
+
+        String email = "jyh@binter.co.kr";
+        Member member = Member.builder()
+                .name("jyh")
+                .email(email)
+                .agreement(new Agreement())
+                .firstReward(new FirstReward())
+                .roles("USER")
+                .build();
+
+        memberRepository.save(member);
+
+        EmailAuthDto requestDto = EmailAuthDto.builder()
+                .email(email)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/adminPasswordEmailAuth")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+        ;
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 email일 경우 404 나오는 테스트")
+    public void adminPasswordEmailAuth_not_found() throws Exception {
+        //given
+
+        String email = "jyh@binter.co.kr";
+
+        EmailAuthDto requestDto = EmailAuthDto.builder()
+                .email(email)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/adminPasswordEmailAuth")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+        ;
+    }
+
+    @Test
+    @DisplayName("정상적으로 관리자 비밀번호 재설정하는 테스트")
+    public void updateAdminPassword() throws Exception {
+       //given
+
+        String password = "admin1234";
+        String email = "admin@gmail.com";
+        UpdateAdminPasswordRequestDto requestDto = UpdateAdminPasswordRequestDto.builder()
+                .email(email)
+                .password(password)
+                .passwordConfirm(password)
+                .build();
+
+        //when & then
+        mockMvc.perform(put("/api/admin/password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("change_admin_password",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("login").description("login 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        requestFields(
+                                fieldWithPath("email").description("비밀번호를 변경할 관리자 이메일 주소"),
+                                fieldWithPath("password").description("새 비밀번호"),
+                                fieldWithPath("passwordConfirm").description("새 비밀번호 확인")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.login.href").description("login 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+        ;
+
+        em.flush();
+        em.clear();
+
+        Member findMember = memberRepository.findByEmail(email).get();
+        assertThat(bCryptPasswordEncoder.matches(password, findMember.getPassword())).isTrue();
+
+
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 이메일일 경우 404")
+    public void updateAdminPassword_not_found() throws Exception {
+        //given
+        String password = "admin1234";
+        String email = "admin1234@gmail.com";
+        UpdateAdminPasswordRequestDto requestDto = UpdateAdminPasswordRequestDto.builder()
+                .email(email)
+                .password(password)
+                .passwordConfirm(password)
+                .build();
+
+        //when & then
+        mockMvc.perform(put("/api/admin/password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+        ;
+    }
+
+    @Test
+    @DisplayName("관리자가 아닌 이메일일 경우 bad request")
+    public void updateAdminPassword_not_admin() throws Exception {
+        //given
+
+        String password = "user1234";
+        String email = "user@gmail.com";
+        UpdateAdminPasswordRequestDto requestDto = UpdateAdminPasswordRequestDto.builder()
+                .email(email)
+                .password(password)
+                .passwordConfirm(password)
+                .build();
+
+        //when & then
+        mockMvc.perform(put("/api/admin/password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+        ;
+    }
+
+    @Test
+    @DisplayName("비밀번호 확인 다를 경우 400")
+    public void updateAdminPassword_bad_request_passwordConfirm() throws Exception {
+        //given
+
+        String password = "admin1234";
+        String email = "admin@gmail.com";
+        UpdateAdminPasswordRequestDto requestDto = UpdateAdminPasswordRequestDto.builder()
+                .email(email)
+                .password(password)
+                .passwordConfirm(password+1234)
+                .build();
+
+        //when & then
+        mockMvc.perform(put("/api/admin/password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+        ;
+    }
+
+
 
 
     @Test

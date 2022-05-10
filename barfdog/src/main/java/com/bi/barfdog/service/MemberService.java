@@ -5,7 +5,7 @@ import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.domain.reward.*;
 import com.bi.barfdog.directsend.DirectSendResponseDto;
 import com.bi.barfdog.directsend.DirectSendUtils;
-import com.bi.barfdog.directsend.PhoneAuthResponseDto;
+import com.bi.barfdog.directsend.AuthResponseDto;
 import com.bi.barfdog.domain.member.FirstReward;
 import com.bi.barfdog.domain.member.Grade;
 import com.bi.barfdog.domain.member.Member;
@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -106,9 +105,31 @@ public class MemberService {
 
         System.out.println("temporaryPassword = " + rawPassword);
 
-        member.temporaryPassword(hashPassword);
+        member.changePassword(hashPassword);
 
         return responseDto;
+    }
+
+    public DirectSendResponseDto sendAdminPasswordEmailAuth(EmailAuthDto requestDto) throws Exception {
+
+        String authNumber = BarfUtils.generate4Number();
+
+        String title = "바프독 이메일 인증";
+        String contents = "인증 번호는 " + "[" + authNumber + "] 입니다.";
+
+        DirectSendResponseDto directSendResponseDto = DirectSendUtils.sendEmailDirect(title, contents, requestDto.getEmail());
+
+        DirectSendResponseDto responseDto = new AuthResponseDto(directSendResponseDto.getResponseCode(),
+                directSendResponseDto.getStatus(), directSendResponseDto.getMsg(), authNumber);
+
+        return responseDto;
+    }
+
+    @Transactional
+    public void updateAdminPassword(UpdateAdminPasswordRequestDto requestDto) {
+        Member findMember = memberRepository.findByEmail(requestDto.getEmail()).get();
+        String hashPassword = bCryptPasswordEncoder.encode(requestDto.getPassword());
+        findMember.changePassword(hashPassword);
     }
 
     @Transactional
@@ -122,9 +143,6 @@ public class MemberService {
 
     }
 
-
-
-
     private DirectSendResponseDto sendSmsAndGetPhoneAuthResponseDto(String phoneNumber) throws IOException {
 
         String authNumber = BarfUtils.generate4Number();
@@ -132,14 +150,11 @@ public class MemberService {
         String title = "바프독 본인 인증";
         String message = "휴대폰 인증 번호는 " + "[" + authNumber + "] 입니다.";
 
-
         DirectSendResponseDto directSendResponseDto = DirectSendUtils.sendSmsDirect(title, message, phoneNumber);
 
-        DirectSendResponseDto responseDto = new PhoneAuthResponseDto(directSendResponseDto.getResponseCode(),
+        DirectSendResponseDto responseDto = new AuthResponseDto(directSendResponseDto.getResponseCode(),
                 directSendResponseDto.getStatus(), directSendResponseDto.getMsg(), authNumber);
 
         return responseDto;
     }
-
-
 }

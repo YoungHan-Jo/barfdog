@@ -55,6 +55,8 @@ public class Member extends BaseTimeEntity {
     
     private int accumulatedAmount; // 누적 금액
 
+    private boolean brochure; // 브로슈어 받은적 있는지 여부
+
     @Embedded
     private FirstReward firstReward;
 
@@ -84,7 +86,7 @@ public class Member extends BaseTimeEntity {
         this.reward -= usedReward;
     }
 
-    public void temporaryPassword(String temporaryPassword) {
+    public void changePassword(String temporaryPassword) {
         password = temporaryPassword;
     }
 

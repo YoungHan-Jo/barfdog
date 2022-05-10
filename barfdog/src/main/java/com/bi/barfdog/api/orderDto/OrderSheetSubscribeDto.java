@@ -16,7 +16,6 @@ import java.util.List;
 @Builder
 public class OrderSheetSubscribeDto {
 
-    private Long memberId;
     private String name;
     private String email;
     private String phoneNumber;
@@ -26,4 +25,6 @@ public class OrderSheetSubscribeDto {
     private List<Coupon> coupons = new ArrayList();
 
     private int reward;
+
+    private boolean brochure;
 }

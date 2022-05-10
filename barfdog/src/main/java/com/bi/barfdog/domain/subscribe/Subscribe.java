@@ -25,7 +25,7 @@ public class Subscribe extends BaseTimeEntity {
     private SubscribeStatus status; // [BEFORE_PAYMENT, SUBSCRIBING, SUBSCRIBE_PENDING]
 
     @Enumerated(EnumType.STRING)
-    private SubscribePlan plan;
+    private SubscribePlan plan; // [FULL, HALF, TOPPING]
 
     @OneToMany(mappedBy = "subscribe")
     private List<SubscribeRecipe> subscribeRecipes = new ArrayList<>();

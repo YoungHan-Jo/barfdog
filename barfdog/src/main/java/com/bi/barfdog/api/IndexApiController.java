@@ -2,10 +2,7 @@ package com.bi.barfdog.api;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.bi.barfdog.api.memberDto.FindEmailResponseDto;
-import com.bi.barfdog.api.memberDto.FindPasswordRequestDto;
-import com.bi.barfdog.api.memberDto.LoginDto;
-import com.bi.barfdog.api.memberDto.MemberSaveRequestDto;
+import com.bi.barfdog.api.memberDto.*;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.directsend.PhoneAuthRequestDto;
 import com.bi.barfdog.directsend.DirectSendResponseDto;
@@ -62,7 +59,7 @@ public class IndexApiController {
         if (errors.hasErrors()) {
             return badRequest(errors);
         }
-        memberValidator.validatePasswordConfirm(requestDto, errors);
+        memberValidator.validatePasswordConfirm(requestDto.getConfirmPassword(), requestDto.getPassword(), errors);
         if (errors.hasErrors()) {
             return badRequest(errors);
         }
@@ -72,19 +69,17 @@ public class IndexApiController {
             return conflict(errors);
         }
 
-        Member member = memberService.join(requestDto);
+        memberService.join(requestDto);
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(IndexApiController.class).slash("join");
         URI createUri = selfLinkBuilder.toUri();
 
-        EntityModel<Member> entityModel = EntityModel.of(member,
-                selfLinkBuilder.withSelfRel(),
-                linkTo(IndexApiController.class).slash("login").withRel("login"),
-                profileRootUrlBuilder.slash("index.html#resources-join").withRel("profile")
-        );
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(IndexApiController.class).slash("login").withRel("login"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-join").withRel("profile"));
 
-
-        return ResponseEntity.created(createUri).body(entityModel);
+        return ResponseEntity.created(createUri).body(representationModel);
     }
 
     @PostMapping("/api/join/phoneAuth")
@@ -155,6 +150,50 @@ public class IndexApiController {
         );
 
         return ResponseEntity.ok(entityModel);
+    }
+
+    @PostMapping("/api/adminPasswordEmailAuth")
+    public ResponseEntity sendAdminPasswordEmailAuth(@RequestBody @Valid EmailAuthDto requestDto, Errors errors) throws Exception {
+        if(errors.hasErrors()) return badRequest(errors);
+        Optional<Member> optionalMember = memberRepository.findByEmail(requestDto.getEmail());
+        if(!optionalMember.isPresent()) return ResponseEntity.notFound().build();
+
+        memberValidator.validateAdmin(optionalMember.get(),errors);
+        if(errors.hasErrors()) return badRequest(errors);
+
+        DirectSendResponseDto responseDto = memberService.sendAdminPasswordEmailAuth(requestDto);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(IndexApiController.class).slash("api").slash("adminPasswordEmailAuth");
+
+        EntityModel<DirectSendResponseDto> entityModel = EntityModel.of(responseDto,
+                selfLinkBuilder.withSelfRel(),
+                linkTo(IndexApiController.class).slash("api/admin/password").withRel("changeAdminPassword"),
+                profileRootUrlBuilder.slash("index.html#resources-admin-password-email-auth").withRel("profile")
+        );
+
+        return ResponseEntity.ok(entityModel);
+    }
+
+    @PutMapping("/api/admin/password")
+    public ResponseEntity updateAdminPassword(@RequestBody @Valid UpdateAdminPasswordRequestDto requestDto,
+                                              Errors errors) {
+        if(errors.hasErrors()) badRequest(errors);
+        Optional<Member> optionalMember = memberRepository.findByEmail(requestDto.getEmail());
+        if(!optionalMember.isPresent()) return ResponseEntity.notFound().build();
+        memberValidator.validateAdmin(optionalMember.get(), errors);
+        memberValidator.validatePasswordConfirm(requestDto.getPassword(), requestDto.getPasswordConfirm(), errors);
+        if (errors.hasErrors()) return badRequest(errors);
+
+        memberService.updateAdminPassword(requestDto);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(IndexApiController.class).slash("api/admin/password");
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(IndexApiController.class).slash("api/login").withRel("login"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-change-admin-password").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
     }
 
     @PostMapping("/api/login")

@@ -22,8 +22,8 @@ public class MemberValidator {
     private final MemberRepository memberRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public void validatePasswordConfirm(MemberSaveRequestDto requestDto, Errors errors) {
-        if (!requestDto.getPassword().equals(requestDto.getConfirmPassword())) {
+    public void validatePasswordConfirm(String password, String confirmPassword, Errors errors) {
+        if (!password.equals(confirmPassword)) {
             errors.reject("Passwords are different each other","비밀번호와 비밀번호확인이 서로 다릅니다.");
         }
     }
@@ -76,6 +76,12 @@ public class MemberValidator {
     public void validateConditionInPublication(MemberConditionPublishCoupon condition, Errors errors) {
         if (!hasText(condition.getEmail()) && !hasText(condition.getName())) {
             errors.reject("Both conditions can't be empty ","모든 조건이 빈 값일 수 없습니다.");
+        }
+    }
+
+    public void validateAdmin(Member member, Errors errors) {
+        if (!member.getRoleList().contains("ADMIN")) {
+            errors.reject("is not admin","관리자 계정이 아닙니다.");
         }
     }
 }

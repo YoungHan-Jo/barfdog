@@ -105,7 +105,7 @@ public class MemberApiController {
         if (errors.hasErrors()) {
             return badRequest(errors);
         }
-        memberValidator.validatePasswordConfirm(requestDto, errors);
+        memberValidator.validatePasswordConfirm(requestDto.getNewPassword(), requestDto.getNewPasswordConfirm(), errors);
         if (errors.hasErrors()) {
             return badRequest(errors);
         }

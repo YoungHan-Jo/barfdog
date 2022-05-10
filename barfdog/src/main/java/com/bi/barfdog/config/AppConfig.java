@@ -95,6 +95,7 @@ public class AppConfig {
 
 
                 Member admin = makeMember(appProperties.getAdminEmail(), "관리자", appProperties.getAdminPassword(), "01056785678", Gender.FEMALE, Grade.BARF, 100000, true, "ADMIN,USER");
+                makeMember("develope07@binter.co.kr", "관리자계정", appProperties.getAdminPassword(), "01056781234", Gender.FEMALE, Grade.BARF, 100000, true, "ADMIN,USER");
 
                 makeMember(appProperties.getUserEmail(), "김회원", appProperties.getUserPassword(), "01012341234", Gender.MALE, Grade.BRONZE, 0, false, "USER");
 
@@ -204,22 +205,22 @@ public class AppConfig {
                 couponRepository.save(coupon);
             }
 
-            private Member makeMember(String appProperties, String 김회원, String appProperties1, String phoneNumber, Gender male, Grade grade, int reward, boolean recommend, String USER) {
+            private Member makeMember(String email, String name, String password, String phoneNumber, Gender gender, Grade grade, int reward, boolean recommend, String roles) {
                 Member member = Member.builder()
-                        .email(appProperties)
-                        .name(김회원)
-                        .password(bCryptPasswordEncoder.encode(appProperties1))
+                        .email(email)
+                        .name(name)
+                        .password(bCryptPasswordEncoder.encode(password))
                         .phoneNumber(phoneNumber)
                         .address(new Address("12345","부산광역시","부산광역시 해운대구 센텀2로 19","106호"))
                         .birthday("19991201")
-                        .gender(male)
+                        .gender(gender)
                         .agreement(new Agreement(true,true,true,true,true))
                         .myRecommendationCode(BarfUtils.generateRandomCode())
                         .grade(grade)
                         .reward(reward)
                         .accumulatedAmount(0)
                         .firstReward(new FirstReward(recommend, recommend))
-                        .roles(USER)
+                        .roles(roles)
                         .build();
 
                 return memberRepository.save(member);
