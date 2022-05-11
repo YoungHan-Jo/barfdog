@@ -53,7 +53,7 @@ public class Coupon extends BaseTimeEntity {
     private CouponStatus couponStatus; // [ACTIVE,INACTIVE]
 
     /*
-    * 비지니스 로직
+    * 비즈니스 로직
     * */
     public void inactive() {
         couponStatus = CouponStatus.INACTIVE;

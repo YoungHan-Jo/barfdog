@@ -10,6 +10,7 @@ import com.bi.barfdog.domain.banner.BannerTargets;
 import com.bi.barfdog.domain.coupon.*;
 import com.bi.barfdog.domain.dog.*;
 import com.bi.barfdog.domain.member.*;
+import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.domain.recipe.Leaked;
 import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.recipe.RecipeStatus;
@@ -38,6 +39,7 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.time.LocalDateTime;
 
 import static com.bi.barfdog.config.finalVariable.AutoCoupon.*;
 
@@ -78,6 +80,8 @@ public class AppConfig {
             DogService dogService;
             @Autowired
             CouponRepository couponRepository;
+            @Autowired
+            MemberCouponRepository memberCouponRepository;
 
 
             @Autowired
@@ -97,7 +101,7 @@ public class AppConfig {
                 Member admin = makeMember(appProperties.getAdminEmail(), "관리자", appProperties.getAdminPassword(), "01056785678", Gender.FEMALE, Grade.BARF, 100000, true, "ADMIN,USER");
                 makeMember("develope07@binter.co.kr", "관리자계정", appProperties.getAdminPassword(), "01056781234", Gender.FEMALE, Grade.BARF, 100000, true, "ADMIN,USER");
 
-                makeMember(appProperties.getUserEmail(), "김회원", appProperties.getUserPassword(), "01012341234", Gender.MALE, Grade.BRONZE, 0, false, "USER");
+                Member member = makeMember(appProperties.getUserEmail(), "김회원", appProperties.getUserPassword(), "01012341234", Gender.MALE, Grade.BRONZE, 0, false, "USER");
 
                 makeSetting();
 
@@ -125,15 +129,20 @@ public class AppConfig {
                 makeDog(admin, 46L, DogSize.SMALL, "8.2", ActivityLevel.MUCH, 5, 0.5, SnackCountLevel.LITTLE);
                 makeDog(admin, 36L, DogSize.SMALL, "8.2", ActivityLevel.MUCH, 4, 2, SnackCountLevel.NORMAL);
 
-                makeAutoCoupon(SUBSCRIBE_COUPON,"정기구독 할인 쿠폰", DiscountType.FIXED_RATE, 50,0, CouponTarget.SUBSCRIBE);
-                makeAutoCoupon(DOG_BIRTH_COUPON,"반려견 생일 쿠폰", DiscountType.FIXED_RATE, 10,0, CouponTarget.ALL);
-                makeAutoCoupon(MEMBER_BIRTH_COUPON,"견주 생일 쿠폰", DiscountType.FIXED_RATE, 15,0, CouponTarget.ALL);
+                Coupon subsCoupon = makeAutoCoupon(SUBSCRIBE_COUPON, "정기구독 할인 쿠폰", DiscountType.FIXED_RATE, 50, 0, CouponTarget.SUBSCRIBE);
+                Coupon dogBirthCoupon = makeAutoCoupon(DOG_BIRTH_COUPON, "반려견 생일 쿠폰", DiscountType.FIXED_RATE, 10, 0, CouponTarget.ALL);
+                Coupon memberBirthCoupon = makeAutoCoupon(MEMBER_BIRTH_COUPON, "견주 생일 쿠폰", DiscountType.FIXED_RATE, 15, 0, CouponTarget.ALL);
 
                 makeAutoCoupon(SILVER_COUPON,"실버 쿠폰", DiscountType.FLAT_RATE,1000,20000, CouponTarget.ALL);
                 makeAutoCoupon(GOLD_COUPON,"골드 쿠폰", DiscountType.FLAT_RATE,2000,30000, CouponTarget.ALL);
                 makeAutoCoupon(PLATINUM_COUPON,"플래티넘 쿠폰", DiscountType.FLAT_RATE,2500,30000, CouponTarget.ALL);
                 makeAutoCoupon(DIAMOND_COUPON,"다이아 쿠폰", DiscountType.FLAT_RATE,3000,40000, CouponTarget.ALL);
                 makeAutoCoupon(BARF_COUPON,"더바프 쿠폰", DiscountType.FLAT_RATE,4000,50000, CouponTarget.ALL);
+
+
+                makeMemberCoupon(member, subsCoupon);
+                makeMemberCoupon(member, dogBirthCoupon);
+                makeMemberCoupon(member, memberBirthCoupon);
 
 
                 DogSaveRequestDto requestDto = DogSaveRequestDto.builder()
@@ -158,6 +167,18 @@ public class AppConfig {
                 dogService.createDogAndGetSurveyReport(requestDto, admin);
 
 
+            }
+
+            private void makeMemberCoupon(Member member, Coupon subsCoupon) {
+                MemberCoupon memberCoupon = MemberCoupon.builder()
+                        .member(member)
+                        .coupon(subsCoupon)
+                        .expiredDate(LocalDateTime.of(2023, 12, 31, 23, 59, 59))
+                        .remaining(3)
+                        .memberCouponStatus(CouponStatus.ACTIVE)
+                        .build();
+
+                memberCouponRepository.save(memberCoupon);
             }
 
             private void createMainBanner(int i) throws IOException, URISyntaxException {
@@ -187,7 +208,7 @@ public class AppConfig {
                 bannerService.saveMainBanner(requestDto, mFile, mFile);
             }
 
-            private void makeAutoCoupon(String name, String description, DiscountType discountType, int discountDegree, int availableMinPrice, CouponTarget couponTarget) {
+            private Coupon makeAutoCoupon(String name, String description, DiscountType discountType, int discountDegree, int availableMinPrice, CouponTarget couponTarget) {
                 Coupon coupon = Coupon.builder()
                         .name(name)
                         .couponType(CouponType.AUTO_PUBLISHED)
@@ -202,7 +223,7 @@ public class AppConfig {
                         .couponStatus(CouponStatus.ACTIVE)
                         .build();
 
-                couponRepository.save(coupon);
+                return couponRepository.save(coupon);
             }
 
             private Member makeMember(String email, String name, String password, String phoneNumber, Gender gender, Grade grade, int reward, boolean recommend, String roles) {

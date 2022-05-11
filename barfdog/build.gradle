@@ -76,6 +76,7 @@ build {
 
 repositories {
 	mavenCentral()
+	maven { url 'https://jitpack.io' } // 아임포트
 }
 
 
@@ -120,6 +121,9 @@ dependencies {
 
 	// https://mvnrepository.com/artifact/commons-io/commons-io
 	implementation 'commons-io:commons-io:2.11.0'
+
+	// 아임포트
+	implementation 'com.github.iamport:iamport-rest-client-java:Tag'
 
 
 }

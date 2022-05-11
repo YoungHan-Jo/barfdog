@@ -1355,7 +1355,7 @@ public class CouponApiControllerTest extends BaseTest {
                 ))
         ;
         List<MemberCoupon> all = memberCouponRepository.findAll();
-        assertThat(all.size()).isEqualTo(2);
+        assertThat(all.size()).isEqualTo(3);
     }
 
     @Test
@@ -1382,7 +1382,7 @@ public class CouponApiControllerTest extends BaseTest {
         ;
 
         List<MemberCoupon> all = memberCouponRepository.findAll();
-        assertThat(all.size()).isEqualTo(2);
+        assertThat(all.size()).isEqualTo(3);
 
     }
 

@@ -95,15 +95,12 @@ public class MemberService {
         Member member = memberRepository.findByEmailAndNameAndPhoneNumber(requestDto.getEmail(), requestDto.getName(), requestDto.getPhoneNumber()).get();
 
         String rawPassword = "Barf" + BarfUtils.generate4Number();
-
         String hashPassword = bCryptPasswordEncoder.encode(rawPassword);
 
         String title = "바프독 임시 비밀번호";
         String message = "임시 비밀번호는 " + "[" + rawPassword + "] 입니다.";
 
         DirectSendResponseDto responseDto = DirectSendUtils.sendSmsDirect(title, message, member.getPhoneNumber());
-
-        System.out.println("temporaryPassword = " + rawPassword);
 
         member.changePassword(hashPassword);
 

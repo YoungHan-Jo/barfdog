@@ -1,7 +1,6 @@
 package com.bi.barfdog.api.orderDto;
 
 import com.bi.barfdog.domain.Address;
-import com.bi.barfdog.domain.coupon.Coupon;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OrderSheetSubscribeDto {
+public class OrderSheetSubscribeResponseDto {
 
     private String name;
     private String email;
@@ -22,7 +21,7 @@ public class OrderSheetSubscribeDto {
 
     private Address address;
 
-    private List<Coupon> coupons = new ArrayList();
+    private List<OrderSheetSubsCouponDto> coupons = new ArrayList();
 
     private int reward;
 
