@@ -1,5 +1,6 @@
 package com.bi.barfdog.config;
 
+import com.bi.barfdog.api.IndexApiController;
 import com.bi.barfdog.jwt.JwtAuthenticationFilter;
 import com.bi.barfdog.jwt.JwtAuthorizationFilter;
 import com.bi.barfdog.oauth.PrincipalOauth2UserService;
@@ -8,16 +9,25 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.Arrays;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
 
 @RequiredArgsConstructor
@@ -45,6 +55,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST,"/api/login","/login","/join").permitAll()
 //                .antMatchers(HttpMethod.PUT,"/api/banners/main/**").permitAll()
                 .antMatchers("/api/banners/**").access("hasRole('ROLE_ADMIN')")
+                .antMatchers("/api/coupons/**").access("hasRole('ROLE_ADMIN')")
 
                 .antMatchers("/api/members/publicationCoupon").access("hasRole('ROLE_ADMIN')")
                 .antMatchers("/api/members/**")
@@ -58,8 +69,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .oauth2Login()
                 .userInfoEndpoint()
-                .userService(principalOauth2UserService)
-        ;
+                .userService(principalOauth2UserService);
+        http.exceptionHandling()
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.sendError(HttpStatus.UNAUTHORIZED.value(),ErrorMessage.UNAUTHORIZED);
+                })
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.sendError(HttpStatus.FORBIDDEN.value(),ErrorMessage.FORBIDDEN);
+                })
+                ;
     }
 
     @Bean

@@ -54,6 +54,16 @@ public class IndexApiController {
         return index;
     }
 
+    @GetMapping("/api/unauthorized")
+    public ResponseEntity unauthorized() {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
+    @GetMapping("/api/forbidden")
+    public ResponseEntity forbidden() {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
     @PostMapping("/api/join")
     public ResponseEntity join(@RequestBody @Valid MemberSaveRequestDto requestDto, Errors errors) {
         if (errors.hasErrors()) {

@@ -769,9 +769,8 @@ public class BannerApiControllerTest extends BaseTest {
     @DisplayName("마이페이지 배너를 정상적으로 호출하는 테스트")
     public void queryMyPageBanner() throws Exception {
        //Given
+
         Banner banner1 = generateMyPageBanner(1);
-        Banner banner2 = generateMyPageBanner(2);
-        Banner banner3 = generateMyPageBanner(3);
 
 
         //when & then
@@ -783,8 +782,6 @@ public class BannerApiControllerTest extends BaseTest {
                 .andExpect(status().isOk())
                 .andExpect(header().exists(HttpHeaders.CONTENT_TYPE))
                 .andExpect(jsonPath("id").exists())
-                .andExpect(jsonPath("id").value(banner1.getId()))
-                .andExpect(jsonPath("name").value(banner1.getName()))
                 .andDo(document("query_myPageBanner",
                         links(
                                 linkWithRel("thumbnail_pc").description("pc 썸네일 링크"),

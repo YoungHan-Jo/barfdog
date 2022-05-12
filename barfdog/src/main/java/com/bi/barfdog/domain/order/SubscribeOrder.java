@@ -1,12 +1,13 @@
 package com.bi.barfdog.domain.order;
 
+import com.bi.barfdog.domain.subscribe.Subscribe;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
+import javax.persistence.*;
 
+import static javax.persistence.FetchType.*;
 
 
 @Getter
@@ -15,7 +16,9 @@ import javax.persistence.Entity;
 @Entity
 public class SubscribeOrder extends Order{
 
-
+    @OneToOne(fetch = LAZY)
+    @JoinColumn(name = "subscribe_id")
+    private Subscribe subscribe;
 
 
 }

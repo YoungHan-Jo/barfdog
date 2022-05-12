@@ -2,7 +2,6 @@ package com.bi.barfdog.api;
 
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
-import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.jwt.JwtLoginDto;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -15,12 +14,11 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
-import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -84,25 +82,22 @@ public class OrderApiControllerTest extends BaseTest {
         ;
     }
 
-    @Test
-    public void validateOrderSheetSubscribe() throws Exception {
-       //given
-
-
-
-
-       //when & then
-        mockMvc.perform(get("/api/orders/sheet/subscribe/validate")
-                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaTypes.HAL_JSON)
-                        .content(objectMapper.writeValueAsString()))
-                .andDo(print())
-                .andExpect(status().isOk())
-        ;
-
-
-    }
+//    @Test
+//    public void validateOrderSheetSubscribe() throws Exception {
+//       //given
+//
+//       //when & then
+//        mockMvc.perform(get("/api/orders/sheet/subscribe/validate")
+//                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .accept(MediaTypes.HAL_JSON)
+//                        .content(objectMapper.writeValueAsString(null)))
+//                .andDo(print())
+//                .andExpect(status().isOk())
+//        ;
+//
+//
+//    }
 
 
 

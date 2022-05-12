@@ -1,6 +1,7 @@
 package com.bi.barfdog.config;
 
 import com.bi.barfdog.api.bannerDto.MainBannerSaveRequestDto;
+import com.bi.barfdog.api.bannerDto.MyPageBannerSaveRequestDto;
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BarfUtils;
@@ -96,6 +97,7 @@ public class AppConfig {
                 for (int i = 1; i <= 4; ++i) {
                     createMainBanner(i);
                 }
+                createMyPageBanner();
 
 
                 Member admin = makeMember(appProperties.getAdminEmail(), "관리자", appProperties.getAdminPassword(), "01056785678", Gender.FEMALE, Grade.BARF, 100000, true, "ADMIN,USER");
@@ -183,19 +185,7 @@ public class AppConfig {
 
             private void createMainBanner(int i) throws IOException, URISyntaxException {
 
-                File file = new File("C:/upload/default/mainBanner" + i + ".jpg");
-                FileItem fileItem = new DiskFileItem("originFile", Files.probeContentType(file.toPath()), false, file.getName(), (int) file.length(), file.getParentFile());
-                try {
-                    InputStream input = new FileInputStream(file);
-                    OutputStream os = fileItem.getOutputStream();
-                    IOUtils.copy(input, os);
-                    // Or faster..
-                    // IOUtils.copy(new FileInputStream(file), fileItem.getOutputStream());
-                } catch (IOException ex) {
-                    // do something.
-                }
-                //jpa.png -> multipart 변환
-                MultipartFile mFile = new CommonsMultipartFile(fileItem);
+                MultipartFile mFilePc = getMultipartFile("C:/upload/default/mainBanner" + i + ".jpg");
 
                 MainBannerSaveRequestDto requestDto = MainBannerSaveRequestDto.builder()
                         .name("메인배너" + i)
@@ -205,7 +195,22 @@ public class AppConfig {
                         .mobileLinkUrl("")
                         .build();
 
-                bannerService.saveMainBanner(requestDto, mFile, mFile);
+                bannerService.saveMainBanner(requestDto, mFilePc, mFilePc);
+            }
+
+            private void createMyPageBanner() throws IOException, URISyntaxException {
+
+                MultipartFile mFilePc = getMultipartFile("C:/upload/default/mypageBanner_pc.png");
+
+                MultipartFile mFileMobile = getMultipartFile("C:/upload/default/mypageBanner_mobile.png");
+
+                MyPageBannerSaveRequestDto requestDto = MyPageBannerSaveRequestDto.builder()
+                        .name("마이페이지 배너")
+                        .status(BannerStatus.LEAKED)
+                        .pcLinkUrl("")
+                        .mobileLinkUrl("")
+                        .build();
+                bannerService.saveMyPageBanner(requestDto, mFilePc, mFileMobile);
             }
 
             private Coupon makeAutoCoupon(String name, String description, DiscountType discountType, int discountDegree, int availableMinPrice, CouponTarget couponTarget) {
@@ -318,5 +323,22 @@ public class AppConfig {
                 return dogRepository.save(dog);
             }
         };
+    }
+
+    private MultipartFile getMultipartFile(String pathname) throws IOException {
+        File file = new File(pathname);
+
+        FileItem fileItem = new DiskFileItem("originFile", Files.probeContentType(file.toPath()), false, file.getName(), (int) file.length(), file.getParentFile());
+        try {
+            InputStream input = new FileInputStream(file);
+            OutputStream os = fileItem.getOutputStream();
+            IOUtils.copy(input, os);
+            // Or faster..
+            // IOUtils.copy(new FileInputStream(file), fileItem.getOutputStream());
+        } catch (IOException ex) {
+            // do something.
+        }
+        //jpa.png -> multipart 변환
+        return new CommonsMultipartFile(fileItem);
     }
 }

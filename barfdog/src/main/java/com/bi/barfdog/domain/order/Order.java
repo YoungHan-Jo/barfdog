@@ -22,7 +22,7 @@ public abstract class Order extends BaseTimeEntity {
     @Column(name = "order_id")
     private Long id;
 
-    private String orderNumber;
+    private String orderNumber; // yymmdd + 당일주문 순서(001~999)
 
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;

@@ -14,6 +14,7 @@ import com.bi.barfdog.repository.CouponRepository;
 import com.bi.barfdog.repository.MemberCouponRepository;
 import com.bi.barfdog.repository.MemberRepository;
 import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.MediaTypes;
@@ -60,6 +61,78 @@ public class CouponApiControllerTest extends BaseTest {
 
     @Autowired
     AppProperties appProperties;
+
+    @BeforeEach
+    public void before() {
+        memberCouponRepository.deleteAll();
+    }
+
+    @Test
+    @DisplayName("유저권한이 관리자가 아닐 경우 403 에러")
+    public void queryCoupons_forbidden() throws Exception {
+        //given
+        int count = 3;
+        IntStream.range(1,1+count).forEach(i ->{
+            generateGeneralCoupon(i);
+        });
+
+        String keyword = "1";
+
+        //when & then
+        mockMvc.perform(get("/api/coupons/direct")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("keyword",keyword))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+        ;
+    }
+
+    @Test
+    @DisplayName("만료된 토큰일 경우 401 에러")
+    public void queryCoupons_expired() throws Exception {
+        //given
+        int count = 3;
+        IntStream.range(1,1+count).forEach(i ->{
+            generateGeneralCoupon(i);
+        });
+
+        String keyword = "1";
+
+        String token = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjUsImV4cCI6MTY1MTg5MjU3NiwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.Wycm9ZmiiK-GwtsUkvMCHHeExDBtkveDbhKRealjmd8C4OZMp3SFqGFcFWudXMiL5Mxdj6FcTAV9OVsOYsn_Mw";
+
+        //when & then
+        mockMvc.perform(get("/api/coupons/direct")
+                        .header(HttpHeaders.AUTHORIZATION, token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("keyword",keyword))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+        ;
+    }
+
+    @Test
+    @DisplayName("인증이 되지 않을 경우 401 에러")
+    public void queryCoupons_unauthorized() throws Exception {
+        //given
+        int count = 3;
+        IntStream.range(1,1+count).forEach(i ->{
+            generateGeneralCoupon(i);
+        });
+
+        String keyword = "1";
+
+        //when & then
+        mockMvc.perform(get("/api/coupons/direct")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("keyword",keyword))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+        ;
+    }
 
     @Test
     @DisplayName("정상적으로 관리자발행 쿠폰을 등록하는 테스트")
@@ -1354,8 +1427,6 @@ public class CouponApiControllerTest extends BaseTest {
                         )
                 ))
         ;
-        List<MemberCoupon> all = memberCouponRepository.findAll();
-        assertThat(all.size()).isEqualTo(3);
     }
 
     @Test

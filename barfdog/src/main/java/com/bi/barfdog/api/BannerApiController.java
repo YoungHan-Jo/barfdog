@@ -155,10 +155,16 @@ public class BannerApiController {
     @GetMapping("/myPage")
     public ResponseEntity queryMyPageBanner() {
 
+        List<MyPageBanner> myPageBanners = bannerRepository.findMyPageBanners();
+        for (MyPageBanner myPageBanner : myPageBanners) {
+            System.out.println(myPageBanner.getId() + " " + myPageBanner.getName());
+        }
+
         Optional<MyPageBannerResponseDto> optional = bannerRepository.findFirstMyPageBanner();
         if (!optional.isPresent()) {
             return notFound();
         }
+
         MyPageBannerResponseDto responseDto = optional.get();
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(BannerApiController.class).slash("myPage");

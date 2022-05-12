@@ -93,7 +93,7 @@ public class MemberApiControllerTest extends BaseTest {
     }
 
     @Test
-    @DisplayName("로그인이 되어있지 않을 경우 302 found 나오는 테스트")
+    @DisplayName("토큰이 없을 경우 302 found 나오는 테스트")
     public void queryMember_not_found() throws Exception {
        //Given
 
@@ -102,7 +102,7 @@ public class MemberApiControllerTest extends BaseTest {
                         .accept(MediaTypes.HAL_JSON)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
-                .andExpect(status().isFound())
+                .andExpect(status().isUnauthorized())
         ;
     }
 
