@@ -37,43 +37,28 @@ public class FileSystemStorageService implements StorageService {
 
     @Override
     public ImgFilenamePath storeBannerImg(MultipartFile file) {
-        try {
-            if (file.isEmpty()) {
-                throw new Exception("ERROR : File is empty.");
-            }
-            String fileType = "banners";
-            return getImgFilenamePath(fileType, file);
-        } catch (Exception e) {
-            throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
-        }
+        return getImgFilenamePath(file, "banners");
     }
 
     @Override
     public ImgFilenamePath storeDogProfilePic(MultipartFile file) {
-        try {
-            if (file.isEmpty()) {
-                throw new Exception("ERROR : File is empty.");
-            }
-            String fileType = "dogProfiles";
-            return getImgFilenamePath(fileType, file);
-        } catch (Exception e) {
-            throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
-        }
+        return getImgFilenamePath(file, "dogProfiles");
     }
 
     @Override
     public ImgFilenamePath storeRecipeImg(MultipartFile file) {
-        try {
-            if (file.isEmpty()) {
-                throw new Exception("ERROR : File is empty.");
-            }
-            String fileType = "recipes";
-            return getImgFilenamePath(fileType, file);
-        } catch (Exception e) {
-            throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
-        }
+        return getImgFilenamePath(file, "recipes");
     }
 
+    @Override
+    public ImgFilenamePath storeItemImg(MultipartFile file) {
+        return getImgFilenamePath(file, "items");
+    }
+
+    @Override
+    public ImgFilenamePath storeItemContentImg(MultipartFile file) {
+        return getImgFilenamePath(file, "itemContents");
+    }
 
 
     @Override
@@ -145,4 +130,19 @@ public class FileSystemStorageService implements StorageService {
             return imgFilenamePath;
         }
     }
+
+    private ImgFilenamePath getImgFilenamePath(MultipartFile file, String imageType) {
+        try {
+            if (file.isEmpty()) {
+                throw new Exception("ERROR : File is empty.");
+            }
+            return getImgFilenamePath(imageType, file);
+        } catch (Exception e) {
+            throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
+        }
+    }
+
+
+
+
 }

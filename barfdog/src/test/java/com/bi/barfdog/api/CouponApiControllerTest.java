@@ -13,6 +13,7 @@ import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.CouponRepository;
 import com.bi.barfdog.repository.MemberCouponRepository;
 import com.bi.barfdog.repository.MemberRepository;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -62,8 +63,8 @@ public class CouponApiControllerTest extends BaseTest {
     @Autowired
     AppProperties appProperties;
 
-    @BeforeEach
-    public void before() {
+    @Before
+    public void setUp() {
         memberCouponRepository.deleteAll();
     }
 

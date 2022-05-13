@@ -22,6 +22,9 @@ public class UpdateAutoCouponRequest {
     @Valid
     private List<UpdateAutoCouponRequestDto> updateAutoCouponRequestDtoList;
 
+    /*
+    * 내부 클래스
+    * */
     @Data
     @AllArgsConstructor
     @NoArgsConstructor

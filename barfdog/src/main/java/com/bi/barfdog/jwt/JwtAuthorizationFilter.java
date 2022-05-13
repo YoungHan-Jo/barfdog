@@ -5,7 +5,8 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.bi.barfdog.auth.PrincipalDetails;
-import com.bi.barfdog.config.ErrorMessage;
+import com.bi.barfdog.common.CommonUtils;
+import com.bi.barfdog.config.ErrorReason;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.repository.MemberRepository;
 import org.springframework.http.HttpStatus;
@@ -20,7 +21,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Optional;
 
 
 public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
@@ -31,8 +31,6 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         super(authenticationManager);
         this.memberRepository = memberRepository;
     }
-
-
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
@@ -76,10 +74,8 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
                 chain.doFilter(request, response);
             }
         } catch (TokenExpiredException e) {
-            response.sendError(HttpStatus.UNAUTHORIZED.value(), ErrorMessage.EXPIRED_TOKEN);
+            CommonUtils.sendErrorMessageDto(response, HttpStatus.UNAUTHORIZED, ErrorReason.EXPIRED_TOKEN);
             return;
         }
-
-
     }
 }

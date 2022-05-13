@@ -18,6 +18,10 @@ public interface StorageService {
 
     ImgFilenamePath storeRecipeImg(MultipartFile file);
 
+    ImgFilenamePath storeItemImg(MultipartFile file);
+
+    ImgFilenamePath storeItemContentImg(MultipartFile file);
+
     Stream<Path> loadAll();
 
     Path load(String category, String filename);

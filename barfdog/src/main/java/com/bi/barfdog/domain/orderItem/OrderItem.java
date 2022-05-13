@@ -3,7 +3,6 @@ package com.bi.barfdog.domain.orderItem;
 import com.bi.barfdog.domain.item.Item;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.domain.order.GeneralOrder;
-import com.bi.barfdog.domain.order.Order;
 import lombok.*;
 
 import javax.persistence.*;
@@ -27,16 +26,14 @@ public class OrderItem {
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "item_id")
     private Item item;
-
-    private int amount;
+    private int salePrice; // 판매가격
+    private int amount; // 개수
 
     @OneToOne(fetch = LAZY)
     @JoinColumn(name = "member_coupon_id")
-    private MemberCoupon memberCoupon;
+    private MemberCoupon memberCoupon; // 사용 쿠폰
 
-    private int discount;
-
-    private int price;
+    private int finalPrice;
 
     @Enumerated(EnumType.STRING)
     private OrderItemStatus status;

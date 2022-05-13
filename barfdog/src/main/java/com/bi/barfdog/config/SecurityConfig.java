@@ -1,6 +1,6 @@
 package com.bi.barfdog.config;
 
-import com.bi.barfdog.api.IndexApiController;
+import com.bi.barfdog.common.CommonUtils;
 import com.bi.barfdog.jwt.JwtAuthenticationFilter;
 import com.bi.barfdog.jwt.JwtAuthorizationFilter;
 import com.bi.barfdog.oauth.PrincipalOauth2UserService;
@@ -14,17 +14,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.Arrays;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -72,13 +66,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .userService(principalOauth2UserService);
         http.exceptionHandling()
                 .authenticationEntryPoint((request, response, authException) -> {
-                    response.sendError(HttpStatus.UNAUTHORIZED.value(),ErrorMessage.UNAUTHORIZED);
+                    CommonUtils.sendErrorMessageDto(response, HttpStatus.UNAUTHORIZED, ErrorReason.UNAUTHORIZED);
                 })
                 .accessDeniedHandler((request, response, accessDeniedException) -> {
-                    response.sendError(HttpStatus.FORBIDDEN.value(),ErrorMessage.FORBIDDEN);
+                    CommonUtils.sendErrorMessageDto(response, HttpStatus.FORBIDDEN, ErrorReason.FORBIDDEN);
                 })
                 ;
     }
+
+
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {

@@ -172,14 +172,13 @@ public class IndexApiControllerTest extends BaseTest {
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, contentType.toString()))
-                .andExpect(header().exists(HttpHeaders.LOCATION))
-                .andExpect(jsonPath("reward").value(3000))
-                .andExpect(jsonPath("recommendCode").value(sampleMember.getMyRecommendationCode()))
-                .andExpect(jsonPath("agreement.receiveSms").value(false))
-                .andExpect(jsonPath("agreement.receiveEmail").value(true));
-
+                .andExpect(header().exists(HttpHeaders.LOCATION));
 
         Member findMember = memberRepository.findByEmail("verin4494@gmail.com").get();
+        assertThat(findMember.getReward()).isEqualTo(3000);
+        assertThat(findMember.getRecommendCode()).isEqualTo(sampleMember.getMyRecommendationCode());
+        assertThat(findMember.getAgreement().isReceiveSms()).isFalse();
+        assertThat(findMember.getAgreement().isReceiveEmail()).isTrue();
 
         Reward reward = rewardRepository.findByMember(findMember).get(0);
         assertThat(reward.getRewardType()).isEqualTo(RewardType.RECOMMEND);
@@ -187,6 +186,8 @@ public class IndexApiControllerTest extends BaseTest {
         assertThat(reward.getTradeReward()).isEqualTo(RewardPoint.RECOMMEND);
         assertThat(reward.getContent()).isEqualTo(RewardContent.RECOMMEND);
         assertThat(findMember.getFirstReward().isRecommend()).isTrue();
+
+
     }
 
     @Test
@@ -213,10 +214,12 @@ public class IndexApiControllerTest extends BaseTest {
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, contentType.toString()))
-                .andExpect(header().exists(HttpHeaders.LOCATION))
-                .andExpect(jsonPath("reward").value(0))
-                .andExpect(jsonPath("agreement.receiveSms").value(true))
-                .andExpect(jsonPath("agreement.receiveEmail").value(true));
+                .andExpect(header().exists(HttpHeaders.LOCATION));
+
+        Member findMember = memberRepository.findByEmail("verin4494@gmail.com").get();
+        assertThat(findMember.getReward()).isEqualTo(0);
+        assertThat(findMember.getAgreement().isReceiveSms()).isTrue();
+        assertThat(findMember.getAgreement().isReceiveEmail()).isTrue();
     }
 
     @Test
@@ -243,10 +246,12 @@ public class IndexApiControllerTest extends BaseTest {
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, contentType.toString()))
-                .andExpect(header().exists(HttpHeaders.LOCATION))
-                .andExpect(jsonPath("reward").value(0))
-                .andExpect(jsonPath("agreement.receiveSms").value(false))
-                .andExpect(jsonPath("agreement.receiveEmail").value(false));
+                .andExpect(header().exists(HttpHeaders.LOCATION));
+
+        Member findMember = memberRepository.findByEmail("verin4494@gmail.com").get();
+        assertThat(findMember.getReward()).isEqualTo(0);
+        assertThat(findMember.getAgreement().isReceiveSms()).isFalse();
+        assertThat(findMember.getAgreement().isReceiveEmail()).isFalse();
     }
 
     @Test
