@@ -9,6 +9,7 @@ import com.bi.barfdog.directsend.AuthResponseDto;
 import com.bi.barfdog.domain.member.FirstReward;
 import com.bi.barfdog.domain.member.Grade;
 import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.repository.DogRepository;
 import com.bi.barfdog.repository.MemberRepository;
 import com.bi.barfdog.repository.RewardRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final RewardRepository rewardRepository;
+    private final DogRepository dogRepository;
 
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
@@ -140,6 +142,11 @@ public class MemberService {
 
     }
 
+    @Transactional
+    public void login(Member member) {
+        member.login();
+    }
+
     private DirectSendResponseDto sendSmsAndGetPhoneAuthResponseDto(String phoneNumber) throws IOException {
 
         String authNumber = BarfUtils.generate4Number();
@@ -151,6 +158,14 @@ public class MemberService {
 
         DirectSendResponseDto responseDto = new AuthResponseDto(directSendResponseDto.getResponseCode(),
                 directSendResponseDto.getStatus(), directSendResponseDto.getMsg(), authNumber);
+
+        return responseDto;
+    }
+
+    public QueryMemberDto getMemberDto(Long id) {
+
+        QueryMemberDto responseDto = memberRepository.findMemberDto(id).get();
+
 
         return responseDto;
     }

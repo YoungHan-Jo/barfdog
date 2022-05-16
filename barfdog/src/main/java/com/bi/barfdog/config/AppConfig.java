@@ -101,7 +101,7 @@ public class AppConfig {
 
 
                 Member admin = makeMember(appProperties.getAdminEmail(), "관리자", appProperties.getAdminPassword(), "01056785678", Gender.FEMALE, Grade.BARF, 100000, true, "ADMIN,USER");
-                makeMember("develope07@binter.co.kr", "관리자계정", appProperties.getAdminPassword(), "01056781234", Gender.FEMALE, Grade.BARF, 100000, true, "ADMIN,USER");
+                Member manager = makeMember("develope07@binter.co.kr", "관리자계정", appProperties.getAdminPassword(), "01056781234", Gender.FEMALE, Grade.BARF, 100000, true, "ADMIN,USER");
 
                 Member member = makeMember(appProperties.getUserEmail(), "김회원", appProperties.getUserPassword(), "01012341234", Gender.MALE, Grade.BRONZE, 0, false, "USER");
 
@@ -113,6 +113,8 @@ public class AppConfig {
                 makeRecipe("램비프", "양,소", "건강한 성장과 영양보충", "램비프1.jpg", "램비프2.jpg");
 
                 makeRepresentativeDog(admin, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+                makeRepresentativeDog(manager, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+                makeRepresentativeDog(member, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
                 makeDog(admin, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
                 makeDog(admin, 42L, DogSize.LARGE, "14.5", ActivityLevel.MUCH, 2, 0.5, SnackCountLevel.LITTLE);
                 makeDog(admin, 46L, DogSize.LARGE, "13.4", ActivityLevel.VERY_MUCH, 3, 1, SnackCountLevel.NORMAL);

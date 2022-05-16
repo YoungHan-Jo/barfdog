@@ -55,12 +55,18 @@ public class Member extends BaseTimeEntity {
     
     private int accumulatedAmount; // 누적 금액
 
+    private boolean subscribe; // 정기 구독 여부
+
+    private int accumulatedSubscribe; // 누적 구독 수
+
     private boolean brochure; // 브로슈어 받은적 있는지 여부
 
     @Embedded
     private FirstReward firstReward;
 
     private LocalDateTime lastLoginDate;
+
+    private boolean withdrawal;
 
     private String roles; // USER,ADMIN
 
@@ -73,6 +79,13 @@ public class Member extends BaseTimeEntity {
         }
         return new ArrayList<>();
     }
+
+
+
+
+    /*
+    * 비지니스 로직
+    * */
 
     public void setRecommendCode(String recommendCode) {
         this.recommendCode = recommendCode;
@@ -104,6 +117,10 @@ public class Member extends BaseTimeEntity {
 
     public void getFirstRewardRecommend() {
         firstReward.setRecommend(true);
+    }
+
+    public void login() {
+        lastLoginDate = LocalDateTime.now();
     }
 }
 

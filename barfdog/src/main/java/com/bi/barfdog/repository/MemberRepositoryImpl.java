@@ -2,8 +2,7 @@ package com.bi.barfdog.repository;
 
 import com.bi.barfdog.api.couponDto.Area;
 import com.bi.barfdog.api.couponDto.GroupPublishRequestDto;
-import com.bi.barfdog.api.memberDto.MemberConditionPublishCoupon;
-import com.bi.barfdog.api.memberDto.MemberPublishCouponResponseDto;
+import com.bi.barfdog.api.memberDto.*;
 import com.bi.barfdog.config.finalVariable.BarfCity;
 import com.bi.barfdog.domain.member.Grade;
 import com.bi.barfdog.domain.member.Member;
@@ -12,10 +11,15 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static com.bi.barfdog.domain.dog.QDog.*;
 import static com.bi.barfdog.domain.member.QMember.*;
@@ -78,6 +82,81 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
                 )
                 .fetch();
     }
+
+    @Override
+    public Page<QueryMembersDto> findDtosByCond(Pageable pageable, QueryMembersCond cond) {
+        List<QueryMembersDto> result = queryFactory
+                .select(Projections.constructor(QueryMembersDto.class,
+                        member.id,
+                        member.grade,
+                        member.name,
+                        member.email,
+                        member.phoneNumber,
+                        dog.name,
+                        member.accumulatedAmount,
+                        member.subscribe
+                ))
+                .from(dog)
+                .rightJoin(dog.member, member)
+                .where(
+                        nameEq(cond.getName()),
+                        emailEq(cond.getEmail()),
+                        createdDateBetween(cond)
+                )
+                .groupBy(member.id, dog.name)
+                .having(dog.representative.eq(true).or(dog.representative.isNull()))
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long totalCount = queryFactory
+                .select(member.count())
+                .from(member)
+                .where(
+                        nameEq(cond.getName()),
+                        emailEq(cond.getEmail()),
+                        createdDateBetween(cond)
+                )
+                .fetchOne();
+
+        return new PageImpl<>(result, pageable, totalCount);
+    }
+
+    @Override
+    public Optional<QueryMemberDto> findMemberDto(Long id) {
+
+        QueryMemberDto result = queryFactory
+                .select(Projections.constructor(QueryMemberDto.class,
+                        member.name,
+                        member.email,
+                        member.address,
+                        member.phoneNumber,
+                        member.birthday,
+                        member.accumulatedAmount,
+                        member.grade,
+                        member.subscribe,
+//                        null,
+                        member.accumulatedSubscribe,
+                        member.lastLoginDate,
+                        new CaseBuilder()
+                                .when(member.lastLoginDate.before(LocalDateTime.now().minusYears(1L))).then(true)
+                                .otherwise(false),
+                        member.withdrawal
+                ))
+                .from(member)
+                .where(member.id.eq(id))
+                .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+
+    private BooleanExpression createdDateBetween(QueryMembersCond cond) {
+        LocalDateTime from = cond.getFrom().atTime(0, 0, 0);
+        LocalDateTime to = cond.getTo().atTime(23, 59, 59);
+
+        return member.createdDate.between(from, to);
+    }
+
 
     private BooleanExpression birthBetween(String birthYearFrom, String birthYearTo) {
         String from = birthYearFrom + "01" + "01";

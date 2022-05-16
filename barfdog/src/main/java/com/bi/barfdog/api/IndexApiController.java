@@ -217,6 +217,8 @@ public class IndexApiController {
             return ResponseEntity.status(401).body(null);
         }
 
+        memberService.login(member);
+
         String jwtToken = JwtProperties.TOKEN_PREFIX + JWT.create()
                 .withSubject("토큰 이름")
                 .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperties.EXPIRATION_TIME))
