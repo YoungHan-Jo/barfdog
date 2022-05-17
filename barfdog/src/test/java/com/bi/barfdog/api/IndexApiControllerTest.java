@@ -871,6 +871,18 @@ public class IndexApiControllerTest extends BaseTest {
         ;
     }
 
+    @Test
+    @DisplayName("정상적으로 파일 업로드하는 테스트")
+    public void uploadFile() throws Exception {
+       //given
+
+       //when & then
+
+
+
+    }
+
+
 
 
 

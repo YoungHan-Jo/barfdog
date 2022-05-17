@@ -1,5 +1,6 @@
 package com.bi.barfdog.domain.subscribeRecipe;
 
+import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import lombok.*;
@@ -12,7 +13,7 @@ import static javax.persistence.FetchType.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder @Getter
 @Entity
-public class SubscribeRecipe {
+public class SubscribeRecipe extends BaseTimeEntity {
 
     @Id @GeneratedValue
     @Column(name = "subscribe_recipe_id")

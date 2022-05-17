@@ -22,4 +22,6 @@ public interface DogRepositoryCustom {
     List<Long> findRanksById(Long id);
 
     List<String> findSnackGroupByDogSize(DogSize dogSize);
+
+    List<String> findDogNamesByMemberId(Long memberId);
 }

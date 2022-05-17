@@ -1,5 +1,6 @@
 package com.bi.barfdog.domain.orderItem;
 
+import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.item.Item;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.domain.order.GeneralOrder;
@@ -13,7 +14,7 @@ import static javax.persistence.FetchType.LAZY;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder @Getter
 @Entity
-public class OrderItem {
+public class OrderItem extends BaseTimeEntity {
 
     @Id @GeneratedValue
     @Column(name = "order_item_id")

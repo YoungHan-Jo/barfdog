@@ -1,5 +1,6 @@
 package com.bi.barfdog.domain.item;
 
+import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.coupon.DiscountType;
 import lombok.*;
 
@@ -12,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder @Getter
 @Entity
-public class Item {
+public class Item extends BaseTimeEntity {
 
     @Id @GeneratedValue
     @Column(name = "item_id")

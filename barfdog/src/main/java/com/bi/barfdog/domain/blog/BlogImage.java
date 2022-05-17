@@ -1,4 +1,4 @@
-package com.bi.barfdog.domain.item;
+package com.bi.barfdog.domain.blog;
 
 import com.bi.barfdog.domain.BaseTimeEntity;
 import lombok.AllArgsConstructor;
@@ -8,23 +8,22 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
-import static javax.persistence.FetchType.LAZY;
+import static javax.persistence.FetchType.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder @Getter
 @Entity
-public class ItemImage extends BaseTimeEntity {
+public class BlogImage extends BaseTimeEntity {
 
     @Id @GeneratedValue
-    @Column(name = "item_image_id")
+    @Column(name = "blog_image_id")
     private Long id;
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "item_id")
-    private Item item;
+    @JoinColumn(name = "blog_id")
+    private Blog blog;
 
-    private int leakedOrder;
     private String folder;
     private String filename;
 

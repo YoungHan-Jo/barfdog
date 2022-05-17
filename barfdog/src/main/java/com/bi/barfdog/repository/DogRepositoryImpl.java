@@ -5,11 +5,15 @@ import com.bi.barfdog.domain.dog.DogSize;
 import com.bi.barfdog.domain.dog.QDog;
 import com.bi.barfdog.domain.dog.SnackCountLevel;
 import com.bi.barfdog.domain.member.QMember;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.bi.barfdog.domain.dog.QDog.dog;
@@ -132,6 +136,24 @@ public class DogRepositoryImpl implements DogRepositoryCustom{
                 .from(dog)
                 .where(dog.dogSize.eq(dogSize))
                 .fetch();
+        return results;
+    }
+
+    @Override
+    public List<String> findDogNamesByMemberId(Long memberId) {
+        NumberExpression<Integer> dogRank = new CaseBuilder()
+                .when(dog.representative.isTrue()).then(1)
+                .otherwise(2);
+        List<Tuple> tuples = queryFactory
+                .select(dog.name, dogRank)
+                .from(dog)
+                .where(dog.member.id.eq(memberId))
+                .orderBy(dogRank.asc())
+                .fetch();
+        List<String> results = new ArrayList<>();
+        for (Tuple tuple : tuples) {
+            results.add(tuple.get(dog.name));
+        }
         return results;
     }
 

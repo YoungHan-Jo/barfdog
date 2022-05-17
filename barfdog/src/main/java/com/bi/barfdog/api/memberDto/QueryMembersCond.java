@@ -9,7 +9,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PastOrPresent;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -22,11 +21,11 @@ public class QueryMembersCond {
     private String name;
 
     @NotNull
-    @PastOrPresent @DateTimeFormat(pattern = "yyyy.MM.dd")
+    @PastOrPresent @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate from;
 
     @NotNull
-    @PastOrPresent @DateTimeFormat(pattern = "yyyy.MM.dd")
+    @PastOrPresent @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate to;
 
 }

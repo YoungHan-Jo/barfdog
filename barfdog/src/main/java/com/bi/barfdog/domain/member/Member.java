@@ -4,9 +4,12 @@ import com.bi.barfdog.api.memberDto.MemberUpdateRequestDto;
 import com.bi.barfdog.domain.Address;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import lombok.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -121,6 +124,10 @@ public class Member extends BaseTimeEntity {
 
     public void login() {
         lastLoginDate = LocalDateTime.now();
+    }
+
+    public void updateBirthday(LocalDate birthday) {
+        this.birthday = birthday.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
     }
 }
 

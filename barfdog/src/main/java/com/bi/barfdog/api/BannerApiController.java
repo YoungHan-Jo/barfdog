@@ -36,7 +36,7 @@ public class BannerApiController {
 
     private final CommonValidator commonValidator;
 
-    WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
+    private WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
 
 
     @PostMapping("/main")

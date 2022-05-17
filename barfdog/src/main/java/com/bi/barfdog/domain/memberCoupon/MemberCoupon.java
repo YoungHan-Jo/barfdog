@@ -1,5 +1,6 @@
 package com.bi.barfdog.domain.memberCoupon;
 
+import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.coupon.Coupon;
 import com.bi.barfdog.domain.coupon.CouponStatus;
 import com.bi.barfdog.domain.member.Member;
@@ -18,7 +19,7 @@ import static javax.persistence.FetchType.*;
 @NoArgsConstructor
 @Getter @Builder
 @Entity
-public class MemberCoupon {
+public class MemberCoupon extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "member_coupon_id")

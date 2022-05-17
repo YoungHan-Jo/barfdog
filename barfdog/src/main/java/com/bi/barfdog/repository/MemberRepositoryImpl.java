@@ -4,11 +4,14 @@ import com.bi.barfdog.api.couponDto.Area;
 import com.bi.barfdog.api.couponDto.GroupPublishRequestDto;
 import com.bi.barfdog.api.memberDto.*;
 import com.bi.barfdog.config.finalVariable.BarfCity;
+import com.bi.barfdog.domain.dog.QDog;
 import com.bi.barfdog.domain.member.Grade;
 import com.bi.barfdog.domain.member.Member;
+import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -127,6 +130,7 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
 
         QueryMemberDto result = queryFactory
                 .select(Projections.constructor(QueryMemberDto.class,
+                        member.id,
                         member.name,
                         member.email,
                         member.address,
@@ -135,7 +139,6 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
                         member.accumulatedAmount,
                         member.grade,
                         member.subscribe,
-//                        null,
                         member.accumulatedSubscribe,
                         member.lastLoginDate,
                         new CaseBuilder()

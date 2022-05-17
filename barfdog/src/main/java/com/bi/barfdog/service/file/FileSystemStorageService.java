@@ -60,6 +60,11 @@ public class FileSystemStorageService implements StorageService {
         return getImgFilenamePath(file, "itemContents");
     }
 
+    @Override
+    public ImgFilenamePath storeBlogImg(MultipartFile file) {
+        return getImgFilenamePath(file,"blogs");
+    }
+
 
     @Override
     public Stream<Path> loadAll() {
@@ -120,7 +125,7 @@ public class FileSystemStorageService implements StorageService {
                     .filename(filename)
                     .build();
 
-            if (fileType.equals("banners")) {
+            if (fileType.equals("banners") || fileType.equals("blogs")) {
                 File inFile = new File(uploadPath, uuid.toString() + "_" + file.getOriginalFilename());
                 File outFile = new File(uploadPath, "s_" + filename);
 

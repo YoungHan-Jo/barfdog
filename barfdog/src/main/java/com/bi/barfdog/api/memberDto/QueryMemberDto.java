@@ -16,6 +16,8 @@ import java.util.List;
 @Builder
 public class QueryMemberDto {
 
+    private Long id;
+
     private String name;
 
     private String email;
@@ -31,8 +33,6 @@ public class QueryMemberDto {
     private Grade grade;
 
     private boolean subscribe;
-
-//    private List<String> dogNames;
 
     private int accumulatedSubscribe;
 

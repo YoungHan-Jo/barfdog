@@ -11,6 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.springframework.util.StringUtils.hasText;
@@ -83,5 +84,9 @@ public class MemberValidator {
         if (!member.getRoleList().contains("ADMIN")) {
             errors.reject("is not admin","관리자 계정이 아닙니다.");
         }
+    }
+
+    public void wrongTerm(LocalDate from, LocalDate to, Errors errors) {
+        if(from.isAfter(to)) errors.reject("wrong term","잘못된 기간 설정입니다.");
     }
 }

@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -162,11 +163,23 @@ public class MemberService {
         return responseDto;
     }
 
-    public QueryMemberDto getMemberDto(Long id) {
+    public QueryMemberAndDogsDto getMemberDto(Long id) {
 
-        QueryMemberDto responseDto = memberRepository.findMemberDto(id).get();
+        QueryMemberDto memberDto = memberRepository.findMemberDto(id).get();
+        List<String> dogNames = dogRepository.findDogNamesByMemberId(id);
+
+        QueryMemberAndDogsDto responseDto = QueryMemberAndDogsDto.builder()
+                .memberDto(memberDto)
+                .dogNames(dogNames)
+                .build();
 
 
         return responseDto;
+    }
+
+    @Transactional
+    public void updateBirthday(Long id, UpdateBirthdayRequestDto requestDto) {
+        Member member = memberRepository.findById(id).get();
+        member.updateBirthday(requestDto.getBirthday());
     }
 }
