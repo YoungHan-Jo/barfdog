@@ -182,4 +182,10 @@ public class MemberService {
         Member member = memberRepository.findById(id).get();
         member.updateBirthday(requestDto.getBirthday());
     }
+
+    @Transactional
+    public void updateGrade(Long id, UpdateGradeRequestDto requestDto) {
+        Member member = memberRepository.findById(id).get();
+        member.updateGrade(requestDto.getGrade());
+    }
 }

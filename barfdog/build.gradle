@@ -93,6 +93,7 @@ dependencies {
 	//querydsl 추가
 	implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
 	annotationProcessor "com.querydsl:querydsl-apt:${queryDslVersion}"
+//	implementation "com.querydsl:querydsl-apt:${queryDslVersion}"
 
 	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.5.8'
 
@@ -128,7 +129,7 @@ dependencies {
 }
 
 //querydsl 추가 시작
-def querydslDir = "$buildDir/generated/querydsl"
+def querydslDir = "$buildDir\\generated\\querydsl"
 querydsl {
 	jpa = true
 	querydslSourcesDir = querydslDir
@@ -151,7 +152,14 @@ configurations {
 //}
 //querydsl 추가 끝
 
-
+//compileQuerydsl.doFirst {
+//	println "querydslDir = $querydslDir"
+//	if ( file("$buildDir\\generated").exists()){
+//
+//		delete(file(querydslDir))
+//	}
+//
+//}
 
 
 targetCompatibility = "1.8"

@@ -1,5 +1,6 @@
 package com.bi.barfdog.api.blogDto;
 
+import com.bi.barfdog.domain.blog.Blog;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,10 +10,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class BlogImageDto {
+public class ArticlesAdminDto {
 
-    private Long id;
+    private Long articleId;
 
-    private String url;
+    private int articleNumber;
+
+    private Long blogId;
+
+    private String blogTitle;
 
 }

@@ -1,10 +1,14 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.blogDto.BlogImageDto;
+import com.bi.barfdog.api.blogDto.BlogSaveDto;
+import com.bi.barfdog.api.blogDto.QueryBlogsAdminDto;
 import com.bi.barfdog.api.memberDto.*;
+import com.bi.barfdog.api.resource.BlogsAdminDtoResource;
 import com.bi.barfdog.api.resource.MembersDtoResource;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.repository.BlogRepository;
 import com.bi.barfdog.repository.MemberRepository;
 import com.bi.barfdog.service.BlogService;
 import com.bi.barfdog.service.MemberService;
@@ -35,9 +39,12 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 public class AdminApiController {
 
     private final MemberRepository memberRepository;
+    private final BlogRepository blogRepository;
+
     private final MemberService memberService;
-    private final MemberValidator memberValidator;
     private final BlogService blogService;
+
+    private final MemberValidator memberValidator;
 
     WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
 
@@ -102,13 +109,96 @@ public class AdminApiController {
         return ResponseEntity.ok(representationModel);
     }
 
+    @PutMapping("/members/{id}/grade")
+    public ResponseEntity updateMemberGrade(@PathVariable Long id,
+                                            @RequestBody @Valid UpdateGradeRequestDto requestDto,
+                                            Errors errors) {
+        if(errors.hasErrors()) return badRequest(errors);
+        Optional<Member> optionalMember = memberRepository.findById(id);
+        if (!optionalMember.isPresent()) return notFound();
+
+        memberService.updateGrade(id, requestDto);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(AdminApiController.class).slash("members").slash(id).slash("grade");
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(AdminApiController.class).slash("members").slash(id).withRel("query_member"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-updateGrade").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     @PostMapping("/blogImage/upload")
     public ResponseEntity uploadBlogImage(@RequestPart MultipartFile file) {
         if(file.isEmpty()) return ResponseEntity.badRequest().build();
 
         BlogImageDto responseDto = blogService.uploadFile(file);
 
-        return ResponseEntity.ok(responseDto);
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(AdminApiController.class).slash("blogImage").slash("upload");
+
+        EntityModel<BlogImageDto> entityModel = EntityModel.of(responseDto,
+                selfLinkBuilder.withSelfRel(),
+                profileRootUrlBuilder.slash("index.html#resources-upload-blogImage").withRel("profile")
+        );
+
+        return ResponseEntity.ok(entityModel);
+    }
+
+    @PostMapping("/blogs")
+    public ResponseEntity createBlog(@RequestBody @Valid BlogSaveDto requestDto,
+                                     Errors errors) {
+        if(errors.hasErrors()) return badRequest(errors);
+
+        blogService.saveBlog(requestDto);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(AdminApiController.class).slash("blogs");
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(AdminApiController.class).slash("blogs").withRel("query_blogs"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-create-blog").withRel("profile"));
+
+        return ResponseEntity.created(selfLinkBuilder.toUri()).body(representationModel);
+    }
+
+    @GetMapping("/blogs")
+    public ResponseEntity queryBlogs(Pageable pageable,
+                                     PagedResourcesAssembler<QueryBlogsAdminDto> assembler) {
+
+        Page<QueryBlogsAdminDto> page = blogRepository.findAdminListDtos(pageable);
+
+        PagedModel<EntityModel<QueryBlogsAdminDto>> entityModels = assembler.toModel(page, e -> new BlogsAdminDtoResource(e));
+
+        entityModels.add(profileRootUrlBuilder.slash("index.html#resources-admin-query-blogs").withRel("profile"));
+
+        return ResponseEntity.ok(entityModels);
+    }
+
+    @GetMapping("/articles")
+    public ResponseEntity queryArticles() {
+
+        blogService.getArticlesAdmin();
+
+        return null;
     }
 
 

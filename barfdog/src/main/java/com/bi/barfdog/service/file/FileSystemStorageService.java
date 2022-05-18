@@ -125,7 +125,7 @@ public class FileSystemStorageService implements StorageService {
                     .filename(filename)
                     .build();
 
-            if (fileType.equals("banners") || fileType.equals("blogs")) {
+            if (fileType.equals("banners")) {
                 File inFile = new File(uploadPath, uuid.toString() + "_" + file.getOriginalFilename());
                 File outFile = new File(uploadPath, "s_" + filename);
 

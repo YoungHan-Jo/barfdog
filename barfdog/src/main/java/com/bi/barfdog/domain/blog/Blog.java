@@ -15,7 +15,7 @@ import javax.persistence.*;
 @Entity
 public class Blog extends BaseTimeEntity {
 
-    @Id @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "blog_id")
     private Long id;
 

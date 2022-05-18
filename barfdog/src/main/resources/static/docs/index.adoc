@@ -94,7 +94,7 @@ BarfDog;
 
 `GET` 요청을 사용하여 페이징으로 회원을 검색할 수 있다.
 
-operation::admin_query_members[snippets='curl-request,request-headers,request-body,request-fields,response-body,response-headers,response-fields,links']
+operation::admin_query_members[snippets='curl-request,request-headers,request-parameters,request-body,request-fields,response-body,response-headers,response-fields,links']
 
 
 [[resources-admin-queryMember]]
@@ -112,6 +112,12 @@ operation::admin_query_member[snippets='curl-request,path-parameters,request-hea
 operation::update_memberBirthday[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-body,response-headers,response-fields,links']
 
 
+[[resources-admin-updateGrade]]
+=== 회원 등급 수정
+
+`PUT` 요청을 사용해서 회원 등급을 수정 할 수 있다.
+
+operation::update_memberGrade[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-body,response-headers,response-fields,links']
 
 
 
@@ -120,6 +126,27 @@ operation::update_memberBirthday[snippets='curl-request,path-parameters,request-
 
 
 
+
+[[resources-upload-blogImage]]
+=== 블로그 이미지 업로드
+
+`POST` 요청을 사용해서 블로그 이미지를 업로드 할 수 있다.
+
+operation::upload_blogImage[snippets='curl-request,request-headers,request-body,request-parts,response-body,response-headers,response-fields,links']
+
+[[resources-create-blog]]
+=== 블로그 생성
+
+`POST` 요청을 사용해서 블로그를 생성 할 수 있다.
+
+operation::create_blog[snippets='curl-request,request-headers,request-body,request-fields,response-body,response-headers,response-fields,links']
+
+[[resources-admin-query-blogs]]
+=== 관리자 - 블로그 리스트 조회(페이징)
+
+`GET` 요청을 사용하여 페이징으로 블로그리스트를 조회할 수 있다.
+
+operation::admin_query_blogs[snippets='curl-request,request-headers,request-parameters,request-body,response-body,response-headers,response-fields,links']
 
 
 

@@ -129,5 +129,9 @@ public class Member extends BaseTimeEntity {
     public void updateBirthday(LocalDate birthday) {
         this.birthday = birthday.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
     }
+
+    public void updateGrade(Grade grade) {
+        this.grade = grade;
+    }
 }
 

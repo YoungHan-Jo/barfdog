@@ -9,10 +9,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class BlogImageDto {
+public class QueryArticlesAdminDto {
 
-    private Long id;
+    private ArticlesAdminDto articlesAdminDto;
 
-    private String url;
-
+    private BlogTitlesDto blogTitlesDto;
 }
