@@ -8,6 +8,7 @@ import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.domain.Address;
 import com.bi.barfdog.domain.banner.BannerStatus;
 import com.bi.barfdog.domain.banner.BannerTargets;
+import com.bi.barfdog.domain.blog.*;
 import com.bi.barfdog.domain.coupon.*;
 import com.bi.barfdog.domain.dog.*;
 import com.bi.barfdog.domain.member.*;
@@ -20,6 +21,7 @@ import com.bi.barfdog.domain.setting.ActivityConstant;
 import com.bi.barfdog.domain.setting.DeliveryConstant;
 import com.bi.barfdog.domain.setting.Setting;
 import com.bi.barfdog.domain.setting.SnackConstant;
+import com.bi.barfdog.domain.surveyReport.SurveyReport;
 import com.bi.barfdog.repository.*;
 import com.bi.barfdog.service.BannerService;
 import com.bi.barfdog.service.DogService;
@@ -41,6 +43,7 @@ import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
+import java.util.stream.IntStream;
 
 import static com.bi.barfdog.config.finalVariable.AutoCoupon.*;
 
@@ -72,6 +75,9 @@ public class AppConfig {
             BannerRepository bannerRepository;
 
             @Autowired
+            BlogImageRepository blogImageRepository;
+
+            @Autowired
             SettingRepository settingRepository;
             @Autowired
             RecipeRepository recipeRepository;
@@ -83,6 +89,10 @@ public class AppConfig {
             CouponRepository couponRepository;
             @Autowired
             MemberCouponRepository memberCouponRepository;
+            @Autowired
+            ArticleRepository articleRepository;
+            @Autowired
+            BlogRepository blogRepository;
 
 
             @Autowired
@@ -98,6 +108,9 @@ public class AppConfig {
                     createMainBanner(i);
                 }
                 createMyPageBanner();
+
+                createBlogsAndArticles();
+
 
 
                 Member admin = makeMember(appProperties.getAdminEmail(), "관리자", appProperties.getAdminPassword(), "01056785678", Gender.FEMALE, Grade.BARF, 100000, true, "ADMIN,USER");
@@ -148,7 +161,52 @@ public class AppConfig {
                 makeMemberCoupon(member, dogBirthCoupon);
                 makeMemberCoupon(member, memberBirthCoupon);
 
+                createDogAndGetSurveyReport(admin, recipe);
 
+
+            }
+
+            private void createBlogsAndArticles() {
+                Blog blog1 = makeBlog(1);
+                Blog blog2 = makeBlog(2);
+
+
+                Article article1 = Article.builder()
+                        .number(1)
+                        .blog(blog1)
+                        .build();
+
+                Article article2 = Article.builder()
+                        .number(2)
+                        .blog(blog2)
+                        .build();
+
+                articleRepository.save(article1);
+                articleRepository.save(article2);
+            }
+
+            private void generateBlogImage(Blog blog1, int i) {
+                BlogImage blogImage = BlogImage.builder()
+                        .blog(blog1)
+                        .folder("/folder/folder/")
+                        .filename("blogImage" + i + ".jpg")
+                        .build();
+
+                blogImageRepository.save(blogImage);
+            }
+
+            private Blog makeBlog(int i) {
+                Blog blog = Blog.builder()
+                        .status(BlogStatus.LEAKED)
+                        .title("블로그" + i)
+                        .category(BlogCategory.HEALTH)
+                        .contents("블로그 내용" + i)
+                        .build();
+
+                return blogRepository.save(blog);
+            }
+
+            private SurveyReport createDogAndGetSurveyReport(Member admin, Recipe recipe) {
                 DogSaveRequestDto requestDto = DogSaveRequestDto.builder()
                         .name("김바프")
                         .gender(Gender.MALE)
@@ -168,9 +226,7 @@ public class AppConfig {
                         .recommendRecipeId(recipe.getId())
                         .caution("NONE")
                         .build();
-                dogService.createDogAndGetSurveyReport(requestDto, admin);
-
-
+                return dogService.createDogAndGetSurveyReport(requestDto, admin);
             }
 
             private void makeMemberCoupon(Member member, Coupon subsCoupon) {

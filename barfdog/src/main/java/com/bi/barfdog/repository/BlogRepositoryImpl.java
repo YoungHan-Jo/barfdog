@@ -1,7 +1,10 @@
 package com.bi.barfdog.repository;
 
 
+import com.bi.barfdog.api.blogDto.BlogAdminDto;
+import com.bi.barfdog.api.blogDto.BlogTitlesDto;
 import com.bi.barfdog.api.blogDto.QueryBlogsAdminDto;
+import com.bi.barfdog.domain.blog.BlogStatus;
 import com.bi.barfdog.domain.blog.QBlog;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -42,5 +45,33 @@ public class BlogRepositoryImpl implements BlogRepositoryCustom{
                 .fetchOne();
 
         return new PageImpl<>(result, pageable, totalCount);
+    }
+
+    @Override
+    public List<BlogTitlesDto> findTitleDtos() {
+        return queryFactory
+                .select(Projections.constructor(BlogTitlesDto.class,
+                        blog.id,
+                        blog.title
+                ))
+                .from(blog)
+                .where(blog.status.eq(BlogStatus.LEAKED))
+                .orderBy(blog.createdDate.desc())
+                .fetch();
+    }
+
+    @Override
+    public BlogAdminDto findAdminDtoById(Long id) {
+        return queryFactory
+                .select(Projections.constructor(BlogAdminDto.class,
+                        blog.id,
+                        blog.status,
+                        blog.title,
+                        blog.category,
+                        blog.contents
+                ))
+                .from(blog)
+                .where(blog.id.eq(id))
+                .fetchOne();
     }
 }

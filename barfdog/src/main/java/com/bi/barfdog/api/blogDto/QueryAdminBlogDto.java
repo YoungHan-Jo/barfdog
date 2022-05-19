@@ -5,14 +5,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class BlogImageDto {
+public class QueryAdminBlogDto {
 
-    private Long id;
+    private BlogAdminDto blogAdminDto;
 
-    private String url;
-
+    private List<AdminBlogImageDto> adminBlogImageDtos;
 }

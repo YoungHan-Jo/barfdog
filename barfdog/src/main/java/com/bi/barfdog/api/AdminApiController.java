@@ -1,17 +1,17 @@
 package com.bi.barfdog.api;
 
-import com.bi.barfdog.api.blogDto.BlogImageDto;
-import com.bi.barfdog.api.blogDto.BlogSaveDto;
-import com.bi.barfdog.api.blogDto.QueryBlogsAdminDto;
+import com.bi.barfdog.api.blogDto.*;
 import com.bi.barfdog.api.memberDto.*;
 import com.bi.barfdog.api.resource.BlogsAdminDtoResource;
 import com.bi.barfdog.api.resource.MembersDtoResource;
 import com.bi.barfdog.common.ErrorsResource;
+import com.bi.barfdog.domain.blog.Blog;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.repository.BlogRepository;
 import com.bi.barfdog.repository.MemberRepository;
 import com.bi.barfdog.service.BlogService;
 import com.bi.barfdog.service.MemberService;
+import com.bi.barfdog.validator.BlogValidator;
 import com.bi.barfdog.validator.MemberValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -45,6 +45,7 @@ public class AdminApiController {
     private final BlogService blogService;
 
     private final MemberValidator memberValidator;
+    private final BlogValidator blogValidator;
 
     WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
 
@@ -151,11 +152,11 @@ public class AdminApiController {
     public ResponseEntity uploadBlogImage(@RequestPart MultipartFile file) {
         if(file.isEmpty()) return ResponseEntity.badRequest().build();
 
-        BlogImageDto responseDto = blogService.uploadFile(file);
+        BlogImageAdminDto responseDto = blogService.uploadFile(file);
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(AdminApiController.class).slash("blogImage").slash("upload");
 
-        EntityModel<BlogImageDto> entityModel = EntityModel.of(responseDto,
+        EntityModel<BlogImageAdminDto> entityModel = EntityModel.of(responseDto,
                 selfLinkBuilder.withSelfRel(),
                 profileRootUrlBuilder.slash("index.html#resources-upload-blogImage").withRel("profile")
         );
@@ -188,6 +189,7 @@ public class AdminApiController {
 
         PagedModel<EntityModel<QueryBlogsAdminDto>> entityModels = assembler.toModel(page, e -> new BlogsAdminDtoResource(e));
 
+        entityModels.add(linkTo(AdminApiController.class).slash("articles").withRel("admin_query_articles"));
         entityModels.add(profileRootUrlBuilder.slash("index.html#resources-admin-query-blogs").withRel("profile"));
 
         return ResponseEntity.ok(entityModels);
@@ -196,9 +198,85 @@ public class AdminApiController {
     @GetMapping("/articles")
     public ResponseEntity queryArticles() {
 
-        blogService.getArticlesAdmin();
+        QueryArticlesAdminDto responseDto = blogService.getArticlesAdmin();
 
-        return null;
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(AdminApiController.class).slash("articles");
+
+        EntityModel<QueryArticlesAdminDto> entityModel = EntityModel.of(responseDto,
+                selfLinkBuilder.withSelfRel(),
+                selfLinkBuilder.withRel("update_article"),
+                profileRootUrlBuilder.slash("index.html#resources-admin-query-articles").withRel("profile")
+        );
+
+        return ResponseEntity.ok(entityModel);
+    }
+
+    @PutMapping("/articles")
+    public ResponseEntity updateArticles(@RequestBody @Valid UpdateArticlesRequestDto requestDto,
+                                         Errors errors) {
+        if (errors.hasErrors()) {
+            return badRequest(errors);
+        }
+        Optional<Blog> optionalBlog1 = blogRepository.findById(requestDto.getFirstBlogId());
+        Optional<Blog> optionalBlog2 = blogRepository.findById(requestDto.getSecondBlogId());
+        if (!optionalBlog1.isPresent() || !optionalBlog2.isPresent()) {
+            return notFound();
+        }
+
+        blogValidator.validateHiddenStatus(requestDto, errors);
+        blogValidator.validateDuplicateBlogId(requestDto, errors);
+        if (errors.hasErrors()) return badRequest(errors);
+
+        blogService.updateArticles(requestDto);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(AdminApiController.class).slash("articles");
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(selfLinkBuilder.withRel("admin_query_articles"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-articles").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @GetMapping("/blogs/{id}")
+    public ResponseEntity queryBlog(@PathVariable Long id) {
+        Optional<Blog> optionalBlog = blogRepository.findById(id);
+        if (!optionalBlog.isPresent()) return notFound();
+
+        QueryAdminBlogDto responseDto = blogService.findQueryAdminBlogDtoById(id);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(AdminApiController.class).slash("blogs").slash(id);
+
+        EntityModel<QueryAdminBlogDto> entityModel = EntityModel.of(responseDto,
+                selfLinkBuilder.withSelfRel(),
+                selfLinkBuilder.withRel("admin_update_blog"),
+                linkTo(AdminApiController.class).slash("blogImage").slash("upload").withRel("upload_blogImage"),
+                profileRootUrlBuilder.slash("index.html#resources-admin-query-blog").withRel("profile")
+        );
+
+        return ResponseEntity.ok(entityModel);
+    }
+
+    @PutMapping("/blogs/{id}")
+    public ResponseEntity updateBlog(@PathVariable Long id,
+                                     @RequestBody @Valid UpdateBlogRequestDto requestDto,
+                                     Errors errors) {
+        if(errors.hasErrors()) return badRequest(errors);
+        Optional<Blog> optionalBlog = blogRepository.findById(id);
+        if(!optionalBlog.isPresent()) return notFound();
+
+        blogService.updateBlog(id,requestDto);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(AdminApiController.class).slash("blogs").slash(id);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(selfLinkBuilder.withRel("admin_query_blog"));
+        representationModel.add(linkTo(AdminApiController.class).slash("blogs").withRel("admin_query_blogs"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-blog").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
     }
 
 

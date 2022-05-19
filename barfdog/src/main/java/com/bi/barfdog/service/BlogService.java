@@ -1,11 +1,9 @@
 package com.bi.barfdog.service;
 
 import com.bi.barfdog.api.InfoController;
-import com.bi.barfdog.api.blogDto.ArticlesAdminDto;
-import com.bi.barfdog.api.blogDto.BlogImageDto;
-import com.bi.barfdog.api.blogDto.BlogSaveDto;
-import com.bi.barfdog.api.blogDto.QueryArticlesAdminDto;
+import com.bi.barfdog.api.blogDto.*;
 import com.bi.barfdog.domain.banner.ImgFilenamePath;
+import com.bi.barfdog.domain.blog.Article;
 import com.bi.barfdog.domain.blog.Blog;
 import com.bi.barfdog.domain.blog.BlogImage;
 import com.bi.barfdog.repository.ArticleRepository;
@@ -33,11 +31,11 @@ public class BlogService {
     private final ArticleRepository articleRepository;
 
     @Transactional
-    public BlogImageDto uploadFile(MultipartFile file) {
+    public BlogImageAdminDto uploadFile(MultipartFile file) {
 
         ImgFilenamePath path = storageService.storeBlogImg(file);
 
-        BlogImageDto blogImageDto = saveBlogImageAndGetBlogImageDto(path);
+        BlogImageAdminDto blogImageDto = saveBlogImageAndGetBlogImageDto(path);
 
         return blogImageDto;
     }
@@ -45,15 +43,57 @@ public class BlogService {
     @Transactional
     public void saveBlog(BlogSaveDto requestDto) {
         Blog savedBlog = saveBlogAndReturn(requestDto);
-        setBlogToBlogImages(requestDto, savedBlog);
+        setBlogToBlogImages(requestDto.getBlogImageIdList(), savedBlog);
     }
 
 
 
     public QueryArticlesAdminDto getArticlesAdmin() {
-        List<ArticlesAdminDto> articlesAdminDto = articleRepository.findArticlesAdminDto();
+        List<ArticlesAdminDto> articlesAdminDtos = articleRepository.findArticlesAdminDto();
+        List<BlogTitlesDto> titleDtos = blogRepository.findTitleDtos();
+        QueryArticlesAdminDto queryArticlesAdminDto = QueryArticlesAdminDto.builder()
+                .articlesAdminDtos(articlesAdminDtos)
+                .blogTitlesDtos(titleDtos)
+                .build();
+        return queryArticlesAdminDto;
+    }
 
-        return null;
+    @Transactional
+    public void updateArticles(UpdateArticlesRequestDto requestDto) {
+        Blog blog1 = blogRepository.findById(requestDto.getFirstBlogId()).get();
+        Blog blog2 = blogRepository.findById(requestDto.getSecondBlogId()).get();
+
+        Article article1 = articleRepository.findByNumber(1).get();
+        Article article2 = articleRepository.findByNumber(2).get();
+
+        article1.change(blog1);
+        article2.change(blog2);
+    }
+
+    public QueryAdminBlogDto findQueryAdminBlogDtoById(Long id) {
+
+        BlogAdminDto blogAdminDto = blogRepository.findAdminDtoById(id);
+        List<AdminBlogImageDto> adminBlogImageDtos = blogImageRepository.findAdminDtoByBlogId(id);
+
+
+        QueryAdminBlogDto queryAdminBlogDto = QueryAdminBlogDto.builder()
+                .blogAdminDto(blogAdminDto)
+                .adminBlogImageDtos(adminBlogImageDtos)
+                .build();
+
+        return queryAdminBlogDto;
+    }
+
+    @Transactional
+    public void updateBlog(Long id, UpdateBlogRequestDto requestDto) {
+        Blog blog = blogRepository.findById(id).get();
+
+        blog.update(requestDto);
+
+        setBlogToBlogImages(requestDto.getAddImageIdList(), blog);
+
+        blogImageRepository.deleteAllById(requestDto.getDeleteImageIdList());
+
     }
 
 
@@ -62,7 +102,9 @@ public class BlogService {
 
 
 
-    private BlogImageDto saveBlogImageAndGetBlogImageDto(ImgFilenamePath path) {
+
+
+    private BlogImageAdminDto saveBlogImageAndGetBlogImageDto(ImgFilenamePath path) {
         String filename = path.getFilename();
 
         BlogImage blogImage = BlogImage.builder()
@@ -74,7 +116,7 @@ public class BlogService {
 
         String url = linkTo(InfoController.class).slash("display").slash("blogs?filename=" + filename).toString();
 
-        BlogImageDto blogImageDto = BlogImageDto.builder()
+        BlogImageAdminDto blogImageDto = BlogImageAdminDto.builder()
                 .id(savedBlogImage.getId())
                 .url(url)
                 .build();
@@ -92,10 +134,8 @@ public class BlogService {
 
 
 
-
-
-    private void setBlogToBlogImages(BlogSaveDto requestDto, Blog savedBlog) {
-        for (Long blogImageId : requestDto.getBlogImageIdList()) {
+    private void setBlogToBlogImages(List<Long> idList, Blog savedBlog) {
+        for (Long blogImageId : idList) {
             BlogImage blogImage = blogImageRepository.findById(blogImageId).get();
             blogImage.setBlog(savedBlog);
         }
@@ -112,4 +152,7 @@ public class BlogService {
         Blog savedBlog = blogRepository.save(blog);
         return savedBlog;
     }
+
+
+
 }

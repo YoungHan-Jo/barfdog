@@ -29,8 +29,19 @@ public class ArticleRepositoryImpl implements ArticleRepositoryCustom{
                         blog.title
                         ))
                 .from(article)
-                .leftJoin(article.blog, blog).fetchJoin()
+                .leftJoin(article.blog, blog)
                 .orderBy(article.number.asc())
                 .fetch();
     }
+
+
+
+
+
+
+
+
+
+
+
 }

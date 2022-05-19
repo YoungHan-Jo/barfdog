@@ -94,7 +94,7 @@ BarfDog;
 
 `GET` 요청을 사용하여 페이징으로 회원을 검색할 수 있다.
 
-operation::admin_query_members[snippets='curl-request,request-headers,request-parameters,request-body,request-fields,response-body,response-headers,response-fields,links']
+operation::admin_query_members[snippets='curl-request,request-headers,request-parameters,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
 [[resources-admin-queryMember]]
@@ -102,14 +102,14 @@ operation::admin_query_members[snippets='curl-request,request-headers,request-pa
 
 `GET` 요청을 사용해서 회원 정보를 조회할 수 있다.
 
-operation::admin_query_member[snippets='curl-request,path-parameters,request-headers,request-body,response-body,response-headers,response-fields,links']
+operation::admin_query_member[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 [[resources-admin-updateBirthday]]
 === 회원 생일 수정
 
 `PUT` 요청을 사용해서 회원 생일을 수정 할 수 있다.
 
-operation::update_memberBirthday[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-body,response-headers,response-fields,links']
+operation::update_memberBirthday[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
 [[resources-admin-updateGrade]]
@@ -117,7 +117,7 @@ operation::update_memberBirthday[snippets='curl-request,path-parameters,request-
 
 `PUT` 요청을 사용해서 회원 등급을 수정 할 수 있다.
 
-operation::update_memberGrade[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-body,response-headers,response-fields,links']
+operation::update_memberGrade[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
 
@@ -132,21 +132,45 @@ operation::update_memberGrade[snippets='curl-request,path-parameters,request-hea
 
 `POST` 요청을 사용해서 블로그 이미지를 업로드 할 수 있다.
 
-operation::upload_blogImage[snippets='curl-request,request-headers,request-body,request-parts,response-body,response-headers,response-fields,links']
+operation::upload_blogImage[snippets='curl-request,request-headers,request-body,request-parts,response-headers,response-body,response-fields,links']
 
 [[resources-create-blog]]
 === 블로그 생성
 
 `POST` 요청을 사용해서 블로그를 생성 할 수 있다.
 
-operation::create_blog[snippets='curl-request,request-headers,request-body,request-fields,response-body,response-headers,response-fields,links']
+operation::create_blog[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 [[resources-admin-query-blogs]]
 === 관리자 - 블로그 리스트 조회(페이징)
 
 `GET` 요청을 사용하여 페이징으로 블로그리스트를 조회할 수 있다.
 
-operation::admin_query_blogs[snippets='curl-request,request-headers,request-parameters,request-body,response-body,response-headers,response-fields,links']
+operation::admin_query_blogs[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-admin-query-articles]]
+=== 관리자 - 아티클 리스트 정보 조회
+
+`GET` 요청을 사용하여 아티클 리스트와 아티클로 설정할 블로그 제목 리스트를 조회할 수 있다.
+
+operation::admin_query_articles[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-admin-query-articles]]
+=== 관리자 - 아티클 수정
+
+`PUT` 요청을 사용하여 아티클을 변경할 수 있다.
+
+operation::admin_update_articles[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+[[resources-admin-query-blog]]
+=== 관리자 - 블로그 하나 조회
+
+`GET` 요청을 사용하여 수정할 블로그의 정보를 조회할 수 있다.
+
+operation::admin_query_blog[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+
 
 
 
@@ -164,21 +188,21 @@ operation::admin_query_blogs[snippets='curl-request,request-headers,request-para
 
 `GET` 요청을 사용하여 모든 메인 배너를 조회할 수 있다.
 
-operation::query_mainBanners[snippets='curl-request,request-headers,request-body,response-body,response-headers,response-fields,links']
+operation::query_mainBanners[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 [[resources-create-mainBanner]]
 === 메인배너 생성
 
 `POST` 요청을 사용해서 새 메인배너를 만들 수 있다.
 
-operation::create_mainBanner[snippets='curl-request,request-headers,request-body,request-parts,request-part-requestDto-fields,response-body,response-headers,response-fields,links']
+operation::create_mainBanner[snippets='curl-request,request-headers,request-body,request-parts,request-part-requestDto-fields,response-headers,response-body,response-fields,links']
 
 [[resources-query-mainBanner]]
 === 메인배너 하나만 조회
 
 `GET` 요청을 사용해서 메인 배너 하나를 조회할 수 있다.
 
-operation::query_mainBanner[snippets='curl-request,path-parameters,request-headers,request-body,response-body,response-headers,response-fields,links']
+operation::query_mainBanner[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 
 [[resources-update-mainBanner]]
@@ -186,28 +210,28 @@ operation::query_mainBanner[snippets='curl-request,path-parameters,request-heade
 
 `POST` 요청을 사용해서 메인배너를 수정할 수 있다.[파일+데이터 동시에 수정하기 때문에 POST 사용]
 
-operation::update_mainBanner[snippets='curl-request,path-parameters,request-headers,request-body,request-parts,request-part-requestDto-fields,response-body,response-headers,response-fields,links']
+operation::update_mainBanner[snippets='curl-request,path-parameters,request-headers,request-body,request-parts,request-part-requestDto-fields,response-headers,response-body,response-fields,links']
 
 [[resources-update-mainBanner-leakedOrder-up]]
 === 메인배너 노출 순위 올리기
 
 `PUT` 요청을 사용해서 메인 배너의 노출 순위를 올릴 수 있다.
 
-operation::update_mainBanner_up[snippets='curl-request,path-parameters,request-headers,request-body,response-body,response-headers,response-fields,links']
+operation::update_mainBanner_up[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 [[resources-update-mainBanner-leakedOrder-down]]
 === 메인배너 노출 순위 내리기
 
 `PUT` 요청을 사용해서 메인 배너의 노출 순위를 내릴 수 있다.
 
-operation::update_mainBanner_down[snippets='curl-request,path-parameters,request-headers,request-body,response-body,response-headers,response-fields,links']
+operation::update_mainBanner_down[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 [[resources-delete-mainBanner]]
 === 메인배너 삭제
 
 `DELETE` 요청을 사용해서 메인 배너를 삭제할 수 있다.
 
-operation::delete_mainBanner[snippets='curl-request,path-parameters,request-headers,request-body,response-body,response-headers,response-fields,links']
+operation::delete_mainBanner[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 
 
@@ -217,21 +241,21 @@ operation::delete_mainBanner[snippets='curl-request,path-parameters,request-head
 
 `GET` 요청을 사용하여 모든 팝업 배너를 조회할 수 있다.
 
-operation::query_popupBanners[snippets='curl-request,request-headers,request-body,response-body,response-headers,response-fields,links']
+operation::query_popupBanners[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 [[resources-create-popupBanner]]
 === 팝업 배너 생성
 
 `POST` 요청을 사용해서 새 팝업 배너를 만들 수 있다.
 
-operation::create_popupBanner[snippets='curl-request,request-headers,request-body,request-parts,request-part-requestDto-fields,response-body,response-headers,response-fields,links']
+operation::create_popupBanner[snippets='curl-request,request-headers,request-body,request-parts,request-part-requestDto-fields,response-headers,response-body,response-fields,links']
 
 [[resources-query-popupBanner]]
 === 팝업 배너 하나만 조회
 
 `GET` 요청을 사용해서 팝업 배너 하나를 조회할 수 있다.
 
-operation::query_popupBanner[snippets='curl-request,path-parameters,request-headers,request-body,response-body,response-headers,response-fields,links']
+operation::query_popupBanner[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 
 [[resources-update-popupBanner]]
@@ -239,28 +263,28 @@ operation::query_popupBanner[snippets='curl-request,path-parameters,request-head
 
 `POST` 요청을 사용해서 팝업 배너를 수정할 수 있다.[파일+데이터 동시에 수정하기 때문에 POST 사용]
 
-operation::update_popupBanner[snippets='curl-request,path-parameters,request-headers,request-body,request-parts,request-part-requestDto-fields,response-body,response-headers,response-fields,links']
+operation::update_popupBanner[snippets='curl-request,path-parameters,request-headers,request-body,request-parts,request-part-requestDto-fields,response-headers,response-body,response-fields,links']
 
 [[resources-update-popupBanner-leakedOrder-up]]
 === 팝업 배너 노출 순위 올리기
 
 `PUT` 요청을 사용해서 팝업 배너의 노출 순위를 올릴 수 있다.
 
-operation::update_popupBanner_up[snippets='curl-request,path-parameters,request-headers,request-body,response-body,response-headers,response-fields,links']
+operation::update_popupBanner_up[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 [[resources-update-popupBanner-leakedOrder-down]]
 === 팝업 배너 노출 순위 내리기
 
 `PUT` 요청을 사용해서 팝업 배너의 노출 순위를 내릴 수 있다.
 
-operation::update_popupBanner_down[snippets='curl-request,path-parameters,request-headers,request-body,response-body,response-headers,response-fields,links']
+operation::update_popupBanner_down[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 [[resources-delete-popupBanner]]
 === 팝업 배너 삭제
 
 `DELETE` 요청을 사용해서 팝업 배너를 삭제할 수 있다.
 
-operation::delete_popupBanner[snippets='curl-request,path-parameters,request-headers,request-body,response-body,response-headers,response-fields,links']
+operation::delete_popupBanner[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 
 [[resources-create-myPageBanner]]
@@ -268,21 +292,21 @@ operation::delete_popupBanner[snippets='curl-request,path-parameters,request-hea
 
 `POST` 요청을 사용해서 마이페이지 배너를 생성할 수 있다.
 
-operation::create_myPageBanner[snippets='curl-request,request-headers,request-body,request-parts,request-part-requestDto-fields,response-body,response-headers,response-fields,links']
+operation::create_myPageBanner[snippets='curl-request,request-headers,request-body,request-parts,request-part-requestDto-fields,response-headers,response-body,response-fields,links']
 
 [[resources-query-myPageBanner]]
 === 마이페이지 배너 조회
 
 `GET` 요청을 사용해서 마이페이지 배너를 조회할 수 있다.
 
-operation::query_myPageBanner[snippets='curl-request,request-headers,request-body,response-body,response-headers,response-fields,links']
+operation::query_myPageBanner[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 [[resources-update-myPageBanner]]
 === 마이페이지 배너 수정
 
 `POST` 요청을 사용해서 마이페이지 배너를 수정할 수 있다.[파일+데이터 동시에 수정하기 때문에 POST 사용]
 
-operation::create_myPageBanner[snippets='curl-request,request-headers,request-body,request-parts,request-part-requestDto-fields,response-body,response-headers,response-fields,links']
+operation::create_myPageBanner[snippets='curl-request,request-headers,request-body,request-parts,request-part-requestDto-fields,response-headers,response-body,response-fields,links']
 
 
 [[resources-create-topBanner]]
@@ -290,21 +314,21 @@ operation::create_myPageBanner[snippets='curl-request,request-headers,request-bo
 
 `POST` 요청을 사용해서 상단 띠 배너를 생성할 수 있다.
 
-operation::create_topBanner[snippets='curl-request,request-headers,request-body,response-body,response-headers,response-fields,links']
+operation::create_topBanner[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 [[resources-query-topBanner]]
 === 상단 띠 배너 조회
 
 `GET` 요청을 사용해서 상단 띠 배너를 생성할 수 있다.
 
-operation::query_topBanner[snippets='curl-request,request-headers,request-body,response-body,response-headers,response-fields,links']
+operation::query_topBanner[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 [[resources-update-topBanner]]
 === 상단 띠 배너 수정
 
 `PUT` 요청을 사용해서 상단 띠 배너를 수정할 수 있다.
 
-operation::update_topBanner[snippets='curl-request,path-parameters,request-headers,request-fields,request-body,response-body,response-headers,response-fields,links']
+operation::update_topBanner[snippets='curl-request,path-parameters,request-headers,request-fields,request-body,response-headers,response-body,response-fields,links']
 
 
 [[resources-join-info]]

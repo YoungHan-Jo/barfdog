@@ -1,6 +1,8 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.blogDto.BlogSaveDto;
+import com.bi.barfdog.api.blogDto.UpdateArticlesRequestDto;
+import com.bi.barfdog.api.blogDto.UpdateBlogRequestDto;
 import com.bi.barfdog.api.memberDto.QueryMembersCond;
 import com.bi.barfdog.api.memberDto.UpdateBirthdayRequestDto;
 import com.bi.barfdog.api.memberDto.UpdateGradeRequestDto;
@@ -25,6 +27,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +38,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -774,6 +778,7 @@ public class AdminApiControllerTest extends BaseTest {
                                 linkWithRel("self").description("현재 페이지 링크"),
                                 linkWithRel("next").description("다음 페이지 링크"),
                                 linkWithRel("last").description("마지막 페이지 링크"),
+                                linkWithRel("admin_query_articles").description("수정할 아티클 리스트 조회 링크"),
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
                         ),
                         requestHeaders(
@@ -805,6 +810,7 @@ public class AdminApiControllerTest extends BaseTest {
                                 fieldWithPath("_links.self.href").description("현재 페이지 링크"),
                                 fieldWithPath("_links.next.href").description("다음 페이지 링크"),
                                 fieldWithPath("_links.last.href").description("마지막 페이지 링크"),
+                                fieldWithPath("_links.admin_query_articles.href").description("수정할 아티클 리스트 조회 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
@@ -836,6 +842,9 @@ public class AdminApiControllerTest extends BaseTest {
     @DisplayName("정상적으로 아티클 정보 조회하는 테스트")
     public void queryArticles() throws Exception {
        //given
+        IntStream.range(1,5).forEach(i -> {
+            generateBlog(i);
+        });
        
        //when & then
         mockMvc.perform(get("/api/admin/articles")
@@ -844,9 +853,308 @@ public class AdminApiControllerTest extends BaseTest {
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-        ;
+                .andDo(document("admin_query_articles",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("update_article").description("아티클 수정 요청 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt 토큰")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("articlesAdminDtos[0].articleId").description("아티클 인덱스 id"),
+                                fieldWithPath("articlesAdminDtos[0].articleNumber").description("아티클 번호 [1 or 2]"),
+                                fieldWithPath("articlesAdminDtos[0].blogId").description("블로그 인덱스 id"),
+                                fieldWithPath("articlesAdminDtos[0].blogTitle").description("블로그 제목"),
+                                fieldWithPath("blogTitlesDtos[0].blogId").description("블로그 인덱스 id"),
+                                fieldWithPath("blogTitlesDtos[0].title").description("블로그 제목"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.update_article.href").description("아티클 수정 요청 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
       
     }
+
+    @Test
+    @DisplayName("아티클 정보 조회 시 블로그 LEAKED 만 조회하는지 테스트")
+    public void queryArticles_onlyLEKAED_Blog() throws Exception {
+        //given
+
+        IntStream.range(1,5).forEach(i -> {
+            generateBlogHidden(i);
+        });
+
+        //when & then
+        mockMvc.perform(get("/api/admin/articles")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("blogTitlesDtos", hasSize(2)))
+        ;
+    }
+
+    @Test
+    @DisplayName("정상적으로 아티클을 업데이트 하는 테스트")
+    public void updateArticles() throws Exception {
+       //given
+        Blog blog1 = generateBlog(1);
+        Blog blog2 = generateBlog(2);
+
+        UpdateArticlesRequestDto requestDto = UpdateArticlesRequestDto.builder()
+                .firstBlogId(blog1.getId())
+                .secondBlogId(blog2.getId())
+                .build();
+
+        //when & then
+        mockMvc.perform(put("/api/admin/articles")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("admin_update_articles",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("admin_query_articles").description("수정할 아티클 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt 토큰")
+                        ),
+                        requestFields(
+                                fieldWithPath("firstBlogId").description("1번 아티클로 설정할 블로그 id"),
+                                fieldWithPath("secondBlogId").description("2번 아티클로 설정할 블로그 id")
+
+                        ), responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.admin_query_articles.href").description("수정할 아티클 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+    }
+
+    @Test
+    @DisplayName("아티클로 설정할 블로그가 존재하지 않을 경우 404")
+    public void updateArticles_blog_404() throws Exception {
+        //given
+
+        UpdateArticlesRequestDto requestDto = UpdateArticlesRequestDto.builder()
+                .firstBlogId(9999L)
+                .secondBlogId(999L)
+                .build();
+
+        //when & then
+        mockMvc.perform(put("/api/admin/articles")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("아티클로 설정할 블로그가 hidden 일 경우 400")
+    public void updateArticles_blog_hidden_404() throws Exception {
+        //given
+
+        Blog blog1 = generateBlogHidden(1);
+        Blog blog2 = generateBlogHidden(2);
+
+        UpdateArticlesRequestDto requestDto = UpdateArticlesRequestDto.builder()
+                .firstBlogId(blog1.getId())
+                .secondBlogId(blog2.getId())
+                .build();
+
+        //when & then
+        mockMvc.perform(put("/api/admin/articles")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("아티클로 설정할 블로그가 서로 같을 경우 400")
+    public void updateArticles_duplicateBlog_400() throws Exception {
+        //given
+
+        Blog blog1 = generateBlog(1);
+
+        UpdateArticlesRequestDto requestDto = UpdateArticlesRequestDto.builder()
+                .firstBlogId(blog1.getId())
+                .secondBlogId(blog1.getId())
+                .build();
+
+        //when & then
+        mockMvc.perform(put("/api/admin/articles")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+    
+    @Test
+    @DisplayName("정상적으로 수정할 블로그 정보 조회하는 테스트")
+    public void queryBlog() throws Exception {
+       //given
+
+        Blog blog = generateBlog(1);
+
+        IntStream.range(1,6).forEach(i -> {
+            generateBlogImage(i, blog);
+        });
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/admin/blogs/{id}", blog.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("admin_query_blog",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("admin_update_blog").description("블로그 수정 요청 링크"),
+                                linkWithRel("upload_blogImage").description("이미지 업로드 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt 토큰")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("조회할 블로그 인덱스 id")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("blogAdminDto.id").description("블로그 인덱스 id"),
+                                fieldWithPath("blogAdminDto.status").description("블로그 상태 [LEAKED, HIDDEN]"),
+                                fieldWithPath("blogAdminDto.title").description("블로그 제목"),
+                                fieldWithPath("blogAdminDto.category").description("블로그 카테고리 [NUTRITION,HEALTH,LIFE]"),
+                                fieldWithPath("blogAdminDto.contents").description("블로그 내용"),
+                                fieldWithPath("adminBlogImageDtos[0].blogImageId").description("블로그 이미지 인덱스 id"),
+                                fieldWithPath("adminBlogImageDtos[0].filename").description("파일 이름"),
+                                fieldWithPath("adminBlogImageDtos[0].url").description("이미지 display url"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.admin_update_blog.href").description("블로그 수정 요청 링크"),
+                                fieldWithPath("_links.upload_blogImage.href").description("이미지 업로드 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+    }
+
+    @Test
+    @DisplayName("수정할 블로그가 존재하지 않을 경우 404")
+    public void queryBlog_notFound() throws Exception {
+        //given
+
+        Blog blog = generateBlog(1);
+
+        IntStream.range(1,6).forEach(i -> {
+            generateBlogImage(i, blog);
+        });
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/admin/blogs/9999")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+    
+    @Test
+    @DisplayName("정상적으로 블로그를 수정하는 테스트")
+    public void updateBlog() throws Exception {
+       //given
+        Blog blog = generateBlog(1);
+
+        BlogImage original1 = generateBlogImage(1, blog);
+        BlogImage original2 = generateBlogImage(2, blog);
+        BlogImage original3 = generateBlogImage(3, blog);
+        BlogImage delete1 = generateBlogImage(4, blog);
+        BlogImage delete2 = generateBlogImage(5, blog);
+
+        BlogImage add1 = generateBlogImage(1);
+        BlogImage add2 = generateBlogImage(2);
+        BlogImage add3 = generateBlogImage(3);
+
+        List<Long> addImageIdList = new ArrayList<>();
+        List<Long> deleteImageIdList = new ArrayList<>();
+
+        addImageIdList.add(add1.getId());
+        addImageIdList.add(add2.getId());
+        addImageIdList.add(add3.getId());
+
+        deleteImageIdList.add(delete1.getId());
+        deleteImageIdList.add(delete2.getId());
+
+        UpdateBlogRequestDto requestDto = UpdateBlogRequestDto.builder()
+                .status(BlogStatus.LEAKED)
+                .title("업데이트 블로그")
+                .category(BlogCategory.NUTRITION)
+                .contents("업데이트 컨텐츠 내용")
+                .addImageIdList(addImageIdList)
+                .deleteImageIdList(deleteImageIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/admin/blogs/{id}",blog.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        em.flush();
+        em.clear();
+
+        Optional<BlogImage> optional1 = blogImageRepository.findById(delete1.getId());
+        Optional<BlogImage> optional2 = blogImageRepository.findById(delete2.getId());
+
+        assertThat(optional1.isPresent()).isFalse();
+        assertThat(optional2.isPresent()).isFalse();
+
+        BlogImage addedImage1 = blogImageRepository.findById(add1.getId()).get();
+        BlogImage addedImage2 = blogImageRepository.findById(add2.getId()).get();
+        BlogImage addedImage3 = blogImageRepository.findById(add3.getId()).get();
+
+        assertThat(addedImage1.getBlog().getId()).isEqualTo(blog.getId());
+        assertThat(addedImage2.getBlog().getId()).isEqualTo(blog.getId());
+        assertThat(addedImage3.getBlog().getId()).isEqualTo(blog.getId());
+
+
+    }
+    
+
+
+    
+
+
     
 
 
@@ -873,6 +1181,16 @@ public class AdminApiControllerTest extends BaseTest {
         return blogRepository.save(blog);
     }
 
+    private Blog generateBlogHidden(int i) {
+        Blog blog = Blog.builder()
+                .status(BlogStatus.HIDDEN)
+                .title("제목" + i)
+                .category(BlogCategory.HEALTH)
+                .contents("컨텐츠 내용")
+                .build();
+        return blogRepository.save(blog);
+    }
+
 
     private List<Long> getBlogImgIdList() {
         BlogImage blogImage1 = generateBlogImage(1);
@@ -886,6 +1204,16 @@ public class AdminApiControllerTest extends BaseTest {
 
     private BlogImage generateBlogImage(int i) {
         BlogImage blogImage = BlogImage.builder()
+                .folder("folder")
+                .filename("filename" + i)
+                .build();
+
+        return blogImageRepository.save(blogImage);
+    }
+
+    private BlogImage generateBlogImage(int i, Blog blog) {
+        BlogImage blogImage = BlogImage.builder()
+                .blog(blog)
                 .folder("folder")
                 .filename("filename" + i)
                 .build();

@@ -22,4 +22,8 @@ public class Article {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "blog_id")
     private Blog blog;
+
+    public void change(Blog blog) {
+        this.blog = blog;
+    }
 }

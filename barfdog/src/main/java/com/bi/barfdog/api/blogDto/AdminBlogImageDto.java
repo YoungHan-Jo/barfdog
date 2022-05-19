@@ -5,15 +5,19 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class QueryArticlesAdminDto {
+public class AdminBlogImageDto {
 
-    private List<ArticlesAdminDto> articlesAdminDtos;
+    private Long blogImageId;
 
-    private List<BlogTitlesDto> blogTitlesDtos;
+    private String filename;
+
+    private String url;
+
+    public void setDisplayUrl(String url) {
+        this.url = url + filename;
+    }
 }
