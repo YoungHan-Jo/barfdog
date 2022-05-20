@@ -120,6 +120,13 @@ operation::update_memberBirthday[snippets='curl-request,path-parameters,request-
 operation::update_memberGrade[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
+[[admin_query_memberSubscribes]]
+=== 특정 회원 구독정보 조회
+
+`GET` 요청을 사용해서 특정 회원의 구독리스트를 조회할 수 있다.
+
+operation::admin_query_memberSubscribes[snippets='curl-request,path-parameters,request-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
 
 
 
@@ -170,10 +177,29 @@ operation::admin_update_articles[snippets='curl-request,request-headers,request-
 
 operation::admin_query_blog[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
+[[resources-admin-query-blog]]
+=== 관리자 - 블로그 수정
+
+`PUT` 요청을 사용하여 블로그의 정보를 수정할 수 있다.
+
+operation::admin_query_blog[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-admin-query-blog]]
+=== 관리자 - 블로그 삭제
+
+`DELETE` 요청을 사용하여 블로그를 삭제할 수 있다.
+
+아티클인 블로그를 삭제할 경우 400 에러와 메시지 나옴.
+
+operation::admin_delete_blog[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 
+[[resources-create-notice]]
+=== 공지사항 생성
 
+`POST` 요청을 사용해서 공지사항을 생성 할 수 있다.
 
+operation::create_notice[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
 

@@ -2,13 +2,17 @@ package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.blogDto.*;
 import com.bi.barfdog.api.memberDto.*;
+import com.bi.barfdog.api.resource.AdminMemberSubscribesDtoRessource;
 import com.bi.barfdog.api.resource.BlogsAdminDtoResource;
 import com.bi.barfdog.api.resource.MembersDtoResource;
+import com.bi.barfdog.common.ErrorMessageDto;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.blog.Blog;
 import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.repository.ArticleRepository;
 import com.bi.barfdog.repository.BlogRepository;
 import com.bi.barfdog.repository.MemberRepository;
+import com.bi.barfdog.repository.SubscribeRepository;
 import com.bi.barfdog.service.BlogService;
 import com.bi.barfdog.service.MemberService;
 import com.bi.barfdog.validator.BlogValidator;
@@ -22,13 +26,16 @@ import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -40,6 +47,8 @@ public class AdminApiController {
 
     private final MemberRepository memberRepository;
     private final BlogRepository blogRepository;
+    private final ArticleRepository articleRepository;
+    private final SubscribeRepository subscribeRepository;
 
     private final MemberService memberService;
     private final BlogService blogService;
@@ -128,6 +137,23 @@ public class AdminApiController {
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-updateGrade").withRel("profile"));
 
         return ResponseEntity.ok(representationModel);
+    }
+
+    @GetMapping("/members/{id}/subscribes")
+    public ResponseEntity queryMemberSubscribes(@PathVariable Long id,
+                                                Pageable pageable,
+                                                PagedResourcesAssembler<MemberSubscribeAdminDto> assembler) {
+
+        Optional<Member> optionalMember = memberRepository.findById(id);
+        if(!optionalMember.isPresent()) return notFound();
+
+        Page<MemberSubscribeAdminDto> page = subscribeRepository.findSubscribeAdminDtoByMemberId(id, pageable);
+
+        PagedModel<AdminMemberSubscribesDtoRessource> entityModels = assembler.toModel(page, e -> new AdminMemberSubscribesDtoRessource(e));
+
+        entityModels.add(profileRootUrlBuilder.slash("index.html#resources-admin-query-memberSubscribes").withRel("profile"));
+
+        return ResponseEntity.ok(entityModels);
     }
 
 
@@ -279,6 +305,44 @@ public class AdminApiController {
         return ResponseEntity.ok(representationModel);
     }
 
+    @DeleteMapping("/blogs/{id}")
+    public ResponseEntity deleteBlog(@PathVariable Long id) {
+        Optional<Blog> optionalBlog = blogRepository.findById(id);
+        if (!optionalBlog.isPresent()) return notFound();
+
+        Long count = articleRepository.findCountByBlogId(id);
+        if (count > 0L) {
+            return ResponseEntity.badRequest().body(new ErrorMessageDto(400, "아티클로 설정된 블로그는 삭제할 수 없습니다."));
+        }
+
+        blogService.deleteBlog(id);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(AdminApiController.class).slash("blogs").slash(id);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(AdminApiController.class).slash("blogs").withRel("admin_query_blogs"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-delete-blog").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @PostMapping("/notices")
+    public ResponseEntity createNotice(@RequestBody @Valid NoticeSaveDto requestDto,
+                                       Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+
+        blogService.saveNotice(requestDto);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(AdminApiController.class).slash("notices");
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(AdminApiController.class).slash("notices").withRel("query_notices"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-create-notice").withRel("profile"));
+
+        return ResponseEntity.created(selfLinkBuilder.toUri()).body(representationModel);
+    }
 
 
 

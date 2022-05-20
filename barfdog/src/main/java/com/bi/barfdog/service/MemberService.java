@@ -9,15 +9,16 @@ import com.bi.barfdog.directsend.AuthResponseDto;
 import com.bi.barfdog.domain.member.FirstReward;
 import com.bi.barfdog.domain.member.Grade;
 import com.bi.barfdog.domain.member.Member;
-import com.bi.barfdog.repository.DogRepository;
-import com.bi.barfdog.repository.MemberRepository;
-import com.bi.barfdog.repository.RewardRepository;
+import com.bi.barfdog.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,6 +30,8 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final RewardRepository rewardRepository;
     private final DogRepository dogRepository;
+    private final SubscribeRepository subscribeRepository;
+    private final SubscribeRecipeRepository subscribeRecipeRepository;
 
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
@@ -188,4 +191,5 @@ public class MemberService {
         Member member = memberRepository.findById(id).get();
         member.updateGrade(requestDto.getGrade());
     }
+
 }

@@ -5,6 +5,7 @@ import com.bi.barfdog.api.blogDto.*;
 import com.bi.barfdog.domain.banner.ImgFilenamePath;
 import com.bi.barfdog.domain.blog.Article;
 import com.bi.barfdog.domain.blog.Blog;
+import com.bi.barfdog.domain.blog.BlogCategory;
 import com.bi.barfdog.domain.blog.BlogImage;
 import com.bi.barfdog.repository.ArticleRepository;
 import com.bi.barfdog.repository.BlogImageRepository;
@@ -96,12 +97,31 @@ public class BlogService {
 
     }
 
+    @Transactional
+    public void deleteBlog(Long id) {
 
+        blogImageRepository.deleteAllByBlogId(id);
+        blogRepository.deleteById(id);
 
+    }
 
+    @Transactional
+    public void saveNotice(NoticeSaveDto requestDto) {
 
+        Blog savedBlog = saveNoticeAndReturn(requestDto);
+        setBlogToBlogImages(requestDto.getNoticeImageIdList(), savedBlog);
 
+    }
 
+    private Blog saveNoticeAndReturn(NoticeSaveDto requestDto) {
+        Blog notice = Blog.builder()
+                .status(requestDto.getStatus())
+                .title(requestDto.getTitle())
+                .category(BlogCategory.NOTICE)
+                .contents(requestDto.getContents())
+                .build();
+        return blogRepository.save(notice);
+    }
 
 
     private BlogImageAdminDto saveBlogImageAndGetBlogImageDto(ImgFilenamePath path) {

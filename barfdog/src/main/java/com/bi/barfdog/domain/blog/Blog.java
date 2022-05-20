@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @AllArgsConstructor
@@ -26,10 +28,11 @@ public class Blog extends BaseTimeEntity {
     private String title;
 
     @Enumerated(EnumType.STRING)
-    private BlogCategory category; // [NUTRITION,HEALTH,LIFE]
+    private BlogCategory category; // [NUTRITION,HEALTH,LIFE,NOTICE]
 
     @Column(columnDefinition = "TEXT")
     private String contents; // 상세내용
+
 
     public void update(UpdateBlogRequestDto requestDto) {
         this.status = requestDto.getStatus();

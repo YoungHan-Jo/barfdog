@@ -34,14 +34,14 @@ public class ArticleRepositoryImpl implements ArticleRepositoryCustom{
                 .fetch();
     }
 
-
-
-
-
-
-
-
-
+    @Override
+    public Long findCountByBlogId(Long id) {
+        return queryFactory
+                .select(article.count())
+                .from(article)
+                .where(article.blog.id.eq(id))
+                .fetchOne();
+    }
 
 
 }

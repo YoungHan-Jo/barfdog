@@ -2,8 +2,8 @@ package com.bi.barfdog.repository;
 
 import com.bi.barfdog.api.blogDto.BlogAdminDto;
 import com.bi.barfdog.api.blogDto.BlogTitlesDto;
-import com.bi.barfdog.api.blogDto.QueryAdminBlogDto;
 import com.bi.barfdog.api.blogDto.QueryBlogsAdminDto;
+import com.bi.barfdog.domain.blog.Blog;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -15,5 +15,7 @@ public interface BlogRepositoryCustom {
     List<BlogTitlesDto> findTitleDtos();
 
     BlogAdminDto findAdminDtoById(Long id);
+
+    List<Blog> findAllNotices();
 
 }

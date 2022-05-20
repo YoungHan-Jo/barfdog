@@ -44,5 +44,7 @@ public class SurveyReport extends BaseTimeEntity {
     private FoodAnalysis foodAnalysis;
 
 
-
+    public void setDog(Dog dog) {
+        this.dog = dog;
+    }
 }

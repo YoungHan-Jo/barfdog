@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface ArticleRepositoryCustom {
     List<ArticlesAdminDto> findArticlesAdminDto();
+
+    Long findCountByBlogId(Long id);
 }

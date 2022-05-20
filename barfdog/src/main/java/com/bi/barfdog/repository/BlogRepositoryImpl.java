@@ -4,6 +4,8 @@ package com.bi.barfdog.repository;
 import com.bi.barfdog.api.blogDto.BlogAdminDto;
 import com.bi.barfdog.api.blogDto.BlogTitlesDto;
 import com.bi.barfdog.api.blogDto.QueryBlogsAdminDto;
+import com.bi.barfdog.domain.blog.Blog;
+import com.bi.barfdog.domain.blog.BlogCategory;
 import com.bi.barfdog.domain.blog.BlogStatus;
 import com.bi.barfdog.domain.blog.QBlog;
 import com.querydsl.core.types.Projections;
@@ -73,5 +75,14 @@ public class BlogRepositoryImpl implements BlogRepositoryCustom{
                 .from(blog)
                 .where(blog.id.eq(id))
                 .fetchOne();
+    }
+
+    @Override
+    public List<Blog> findAllNotices() {
+        return queryFactory
+                .selectFrom(blog)
+                .where(blog.category.eq(BlogCategory.NOTICE))
+                .fetch()
+                ;
     }
 }

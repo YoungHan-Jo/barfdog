@@ -3,16 +3,20 @@ package com.bi.barfdog.validator;
 import com.bi.barfdog.api.blogDto.UpdateArticlesRequestDto;
 import com.bi.barfdog.domain.blog.Blog;
 import com.bi.barfdog.domain.blog.BlogStatus;
+import com.bi.barfdog.repository.ArticleRepository;
 import com.bi.barfdog.repository.BlogRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
+import org.springframework.web.server.ResponseStatusException;
 
 @RequiredArgsConstructor
 @Component
 public class BlogValidator {
 
     private final BlogRepository blogRepository;
+    private final ArticleRepository articleRepository;
 
     public void validateHiddenStatus(UpdateArticlesRequestDto requestDto, Errors errors) {
         Blog blog1 = blogRepository.findById(requestDto.getFirstBlogId()).get();
@@ -30,4 +34,5 @@ public class BlogValidator {
             errors.reject("blogs are duplicated each other","선택한 두 블로그가 서로 중복됩니다.");
         }
     }
+
 }

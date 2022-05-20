@@ -1,8 +1,7 @@
 package com.bi.barfdog.api;
 
-import com.bi.barfdog.api.blogDto.BlogSaveDto;
-import com.bi.barfdog.api.blogDto.UpdateArticlesRequestDto;
-import com.bi.barfdog.api.blogDto.UpdateBlogRequestDto;
+import com.bi.barfdog.api.blogDto.*;
+import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
 import com.bi.barfdog.api.memberDto.QueryMembersCond;
 import com.bi.barfdog.api.memberDto.UpdateBirthdayRequestDto;
 import com.bi.barfdog.api.memberDto.UpdateGradeRequestDto;
@@ -10,15 +9,14 @@ import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.Address;
-import com.bi.barfdog.domain.blog.Blog;
-import com.bi.barfdog.domain.blog.BlogCategory;
-import com.bi.barfdog.domain.blog.BlogImage;
-import com.bi.barfdog.domain.blog.BlogStatus;
+import com.bi.barfdog.domain.blog.*;
+import com.bi.barfdog.domain.dog.*;
 import com.bi.barfdog.domain.member.*;
+import com.bi.barfdog.domain.recipe.Recipe;
+import com.bi.barfdog.domain.surveyReport.*;
 import com.bi.barfdog.jwt.JwtLoginDto;
-import com.bi.barfdog.repository.BlogImageRepository;
-import com.bi.barfdog.repository.BlogRepository;
-import com.bi.barfdog.repository.MemberRepository;
+import com.bi.barfdog.repository.*;
+import com.bi.barfdog.service.DogService;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +25,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,6 +65,24 @@ public class AdminApiControllerTest extends BaseTest {
 
     @Autowired
     BlogRepository blogRepository;
+
+    @Autowired
+    ArticleRepository articleRepository;
+
+    @Autowired
+    DogRepository dogRepository;
+
+    @Autowired
+    SurveyReportRepository surveyReportRepository;
+    @Autowired
+    RecipeRepository recipeRepository;
+    @Autowired
+    SubscribeRecipeRepository subscribeRecipeRepository;
+    @Autowired
+    SubscribeRepository subscribeRepository;
+
+    @Autowired
+    DogService dogService;
 
     @Autowired
     EntityManager em;
@@ -541,22 +556,128 @@ public class AdminApiControllerTest extends BaseTest {
     }
     
     
-    
-    
-    
-    
-    
-    
+    @Test
+    @DisplayName("정상적으로 특정회원 구독정보 조회하는 테스트")
+    public void queryMemberSubscribes() throws Exception {
+       //given
+
+        Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        List<Recipe> recipes = recipeRepository.findAll();
+
+        IntStream.range(1,14).forEach(i -> {
+            createDogAndGetSurveyReport(user, i % 2 == 0 ? recipes.get(0) : recipes.get(1), i);
+        });
 
 
-    
-    
-    
-    
-    
-    
-    
-    
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/admin/members/{id}/subscribes", user.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("page", "1")
+                        .param("size", "3"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("admin_query_memberSubscribes",
+                        links(
+                                linkWithRel("first").description("첫 페이지 링크"),
+                                linkWithRel("prev").description("이전 페이지 링크"),
+                                linkWithRel("self").description("현재 페이지 링크"),
+                                linkWithRel("next").description("다음 페이지 링크"),
+                                linkWithRel("last").description("마지막 페이지 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt 토큰")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("회원 인덱스 id")
+                        ),
+                        requestParameters(
+                                parameterWithName("page").description("페이지 번호 [0번부터 시작 - 0번이 첫 페이지]"),
+                                parameterWithName("size").description("한 페이지 당 조회 개수")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_embedded.memberSubscribeAdminDtoList[0].querySubscribeAdminDto.id").description("구독 인덱스 id"),
+                                fieldWithPath("_embedded.memberSubscribeAdminDtoList[0].querySubscribeAdminDto.dogName").description("강아지 이름"),
+                                fieldWithPath("_embedded.memberSubscribeAdminDtoList[0].querySubscribeAdminDto.subscribeStartDate").description("구독 시작일"),
+                                fieldWithPath("_embedded.memberSubscribeAdminDtoList[0].querySubscribeAdminDto.plan").description("플랜"),
+                                fieldWithPath("_embedded.memberSubscribeAdminDtoList[0].querySubscribeAdminDto.amount").description("급여량"),
+                                fieldWithPath("_embedded.memberSubscribeAdminDtoList[0].querySubscribeAdminDto.paymentPrice").description("결제금액"),
+                                fieldWithPath("_embedded.memberSubscribeAdminDtoList[0].querySubscribeAdminDto.deliveryDate").description("발송일자"),
+                                fieldWithPath("_embedded.memberSubscribeAdminDtoList[0].recipeNames").description("레시피 이름 리스트"),
+                                fieldWithPath("page.size").description("한 페이지 당 개수"),
+                                fieldWithPath("page.totalElements").description("검색 총 결과 수"),
+                                fieldWithPath("page.totalPages").description("총 페이지 수"),
+                                fieldWithPath("page.number").description("페이지 번호 [0페이지 부터 시작]"),
+                                fieldWithPath("_links.first.href").description("첫 페이지 링크"),
+                                fieldWithPath("_links.prev.href").description("이전 페이지 링크"),
+                                fieldWithPath("_links.self.href").description("현재 페이지 링크"),
+                                fieldWithPath("_links.next.href").description("다음 페이지 링크"),
+                                fieldWithPath("_links.last.href").description("마지막 페이지 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+      
+    }
+
+    @Test
+    @DisplayName("페이지 정보 없을 시 0페이지 5개 조회하는 테스트")
+    public void queryMemberSubscribes_no_paging() throws Exception {
+        //given
+
+        Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        List<Recipe> recipes = recipeRepository.findAll();
+
+        IntStream.range(1,30).forEach(i -> {
+            createDogAndGetSurveyReport(user, i % 2 == 0 ? recipes.get(0) : recipes.get(1), i);
+        });
+
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/admin/members/{id}/subscribes", user.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("_embedded.memberSubscribeAdminDtoList",hasSize(20)));
+    }
+
+    @Test
+    @DisplayName("특정회원 구독정보 조회할 유저가 존재하지 않을경우 404 나오는 테스트")
+    public void queryMemberSubscribes_notFound() throws Exception {
+        //given
+        Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        List<Recipe> recipes = recipeRepository.findAll();
+
+        IntStream.range(1,14).forEach(i -> {
+            createDogAndGetSurveyReport(user, i % 2 == 0 ? recipes.get(0) : recipes.get(1), i);
+        });
+
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/admin/members/999999/subscribes")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("page", "0")
+                        .param("size", "3"))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+
+    }
+
+
+
     @Test
     @DisplayName("정상적으로 블로그이미지 업로드하는 테스트")
     public void uploadBlogImage() throws Exception {
@@ -972,7 +1093,6 @@ public class AdminApiControllerTest extends BaseTest {
     @DisplayName("아티클로 설정할 블로그가 hidden 일 경우 400")
     public void updateArticles_blog_hidden_404() throws Exception {
         //given
-
         Blog blog1 = generateBlogHidden(1);
         Blog blog2 = generateBlogHidden(2);
 
@@ -1017,7 +1137,6 @@ public class AdminApiControllerTest extends BaseTest {
     @DisplayName("정상적으로 수정할 블로그 정보 조회하는 테스트")
     public void queryBlog() throws Exception {
        //given
-
         Blog blog = generateBlog(1);
 
         IntStream.range(1,6).forEach(i -> {
@@ -1128,7 +1247,41 @@ public class AdminApiControllerTest extends BaseTest {
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andDo(document("admin_update_blog",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("admin_query_blog").description("수정할 블로그 하나 조회하는 링크"),
+                                linkWithRel("admin_query_blogs").description("블로그 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt 토큰")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("수정할 블로그 인덱스 id")
+                        ),
+                        requestFields(
+                                fieldWithPath("status").description("수정할 상태 [LEAKED, HIDDEN]"),
+                                fieldWithPath("title").description("수정할 제목"),
+                                fieldWithPath("category").description("수정할 카테고리 [NUTRITION,HEALTH,LIFE]"),
+                                fieldWithPath("contents").description("수정할 내용"),
+                                fieldWithPath("addImageIdList").description("추가할 블로그 이미지 인덱스 id 리스트"),
+                                fieldWithPath("deleteImageIdList").description("삭제할 블로그 이미지 인덱스 id 리스트")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.admin_query_blog.href").description("수정할 블로그 하나 조회하는 링크"),
+                                fieldWithPath("_links.admin_query_blogs.href").description("블로그 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ))
+        ;
 
         em.flush();
         em.clear();
@@ -1149,13 +1302,308 @@ public class AdminApiControllerTest extends BaseTest {
 
 
     }
-    
+
+    @Test
+    @DisplayName("블로그 수정 시 파일 변화 없어도 성공하는 테스트")
+    public void updateBlog_image() throws Exception {
+        //given
+        Blog blog = generateBlog(1);
+
+        BlogImage original1 = generateBlogImage(1, blog);
+        BlogImage original2 = generateBlogImage(2, blog);
+        BlogImage original3 = generateBlogImage(3, blog);
+        BlogImage original4 = generateBlogImage(4, blog);
+        BlogImage original5 = generateBlogImage(5, blog);
+
+        List<Long> addImageIdList = new ArrayList<>();
+        List<Long> deleteImageIdList = new ArrayList<>();
+
+        String title = "업데이트 블로그";
+        String contents = "업데이트 컨텐츠 내용";
+        UpdateBlogRequestDto requestDto = UpdateBlogRequestDto.builder()
+                .status(BlogStatus.LEAKED)
+                .title(title)
+                .category(BlogCategory.NUTRITION)
+                .contents(contents)
+                .addImageIdList(addImageIdList)
+                .deleteImageIdList(deleteImageIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/admin/blogs/{id}",blog.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        em.flush();
+        em.clear();
+
+        List<AdminBlogImageDto> adminDtoByBlogId = blogImageRepository.findAdminDtoByBlogId(blog.getId());
+        assertThat(adminDtoByBlogId.size()).isEqualTo(5);
+
+        Blog findBlog = blogRepository.findById(blog.getId()).get();
+        assertThat(findBlog.getTitle()).isEqualTo(title);
+        assertThat(findBlog.getContents()).isEqualTo(contents);
 
 
-    
+    }
+
+    @Test
+    @DisplayName("블로그 수정시 값 부족할 경우 400 나오는 테스트")
+    public void updateBlog_400() throws Exception {
+        //given
+        Blog blog = generateBlog(1);
+
+        BlogImage original1 = generateBlogImage(1, blog);
+        BlogImage original2 = generateBlogImage(2, blog);
+        BlogImage original3 = generateBlogImage(3, blog);
+        BlogImage delete1 = generateBlogImage(4, blog);
+        BlogImage delete2 = generateBlogImage(5, blog);
+
+        BlogImage add1 = generateBlogImage(1);
+        BlogImage add2 = generateBlogImage(2);
+        BlogImage add3 = generateBlogImage(3);
+
+        List<Long> addImageIdList = new ArrayList<>();
+        List<Long> deleteImageIdList = new ArrayList<>();
+
+        addImageIdList.add(add1.getId());
+        addImageIdList.add(add2.getId());
+        addImageIdList.add(add3.getId());
+
+        deleteImageIdList.add(delete1.getId());
+        deleteImageIdList.add(delete2.getId());
+
+        UpdateBlogRequestDto requestDto = UpdateBlogRequestDto.builder()
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/admin/blogs/{id}",blog.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("수정할 블로그가 존재하지 않을 경우 404")
+    public void updateBlog_not_found() throws Exception {
+        //given
+        BlogImage add1 = generateBlogImage(1);
+        BlogImage add2 = generateBlogImage(2);
+        BlogImage add3 = generateBlogImage(3);
+
+        List<Long> addImageIdList = new ArrayList<>();
+        List<Long> deleteImageIdList = new ArrayList<>();
+
+        addImageIdList.add(add1.getId());
+        addImageIdList.add(add2.getId());
+        addImageIdList.add(add3.getId());
+
+        UpdateBlogRequestDto requestDto = UpdateBlogRequestDto.builder()
+                .status(BlogStatus.LEAKED)
+                .title("업데이트 블로그")
+                .category(BlogCategory.NUTRITION)
+                .contents("업데이트 컨텐츠 내용")
+                .addImageIdList(addImageIdList)
+                .deleteImageIdList(deleteImageIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/admin/blogs/999999")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("정상적으로 블로그 삭제하는 테스트")
+    public void deleteBlog() throws Exception {
+       //given
+        Blog blog = generateBlog(1);
+
+        BlogImage original1 = generateBlogImage(1, blog);
+        BlogImage original2 = generateBlogImage(2, blog);
+        BlogImage original3 = generateBlogImage(3, blog);
+
+       //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.delete("/api/admin/blogs/{id}", blog.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("admin_delete_blog",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("admin_query_blogs").description("블로그 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt 토큰")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("삭제할 블로그 인덱스 id")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.admin_query_blogs.href").description("블로그 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ))
+        ;
+
+        em.flush();
+        em.clear();
+
+        Optional<Blog> optionalBlog = blogRepository.findById(blog.getId());
+        assertThat(optionalBlog.isPresent()).isFalse();
+
+        Optional<BlogImage> optionalBlogImage1 = blogImageRepository.findById(original1.getId());
+        Optional<BlogImage> optionalBlogImage2 = blogImageRepository.findById(original2.getId());
+        Optional<BlogImage> optionalBlogImage3 = blogImageRepository.findById(original3.getId());
+        assertThat(optionalBlogImage1.isPresent()).isFalse();
+        assertThat(optionalBlogImage2.isPresent()).isFalse();
+        assertThat(optionalBlogImage3.isPresent()).isFalse();
+
+    }
+
+    @Test
+    @DisplayName("삭제할 블로그가 존재하지 않을 경우 404")
+    public void deleteBlog_not_found() throws Exception {
+        //given
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.delete("/api/admin/blogs/999999")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+        ;
+
+    }
+
+    @Test
+    @DisplayName("삭제할 블로그가 아티클로 설정되어있을 경우 400")
+    public void deleteBlog_isArticle_400() throws Exception {
+        //given
+
+        Article article = articleRepository.findByNumber(1).get();
+
+        Blog blog = article.getBlog();
+
+        BlogImage original1 = generateBlogImage(1, blog);
+        BlogImage original2 = generateBlogImage(2, blog);
+        BlogImage original3 = generateBlogImage(3, blog);
 
 
-    
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.delete("/api/admin/blogs/{id}", blog.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+        ;
+
+    }
+
+
+    @Test
+    @DisplayName("정상적으로 공지사항 등록")
+    public void createNotice() throws Exception {
+       //given
+        List<Long> blogImageIdList = getBlogImgIdList();
+
+        NoticeSaveDto requestDto = NoticeSaveDto.builder()
+                .status(BlogStatus.LEAKED)
+                .title("제목")
+                .contents("내용")
+                .noticeImageIdList(blogImageIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/notices")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andDo(document("create_notice",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_notices").description("공지사항 리스트 호출 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt 토큰")
+                        ),
+                        requestFields(
+                                fieldWithPath("status").description("공지사항 상태 [LEAKED, HIDDEN]"),
+                                fieldWithPath("title").description("공지사항 제목"),
+                                fieldWithPath("contents").description("공지사항 컨텐츠 html"),
+                                fieldWithPath("noticeImageIdList").description("공지사항 이미지 ID 리스트")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.LOCATION).description("location header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_notices.href").description("공지사항 리스트 호출 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        List<Blog> allNotices = blogRepository.findAllNotices();
+
+        assertThat(allNotices.size()).isEqualTo(1);
+
+
+    }
+
+    @Test
+    @DisplayName("공지사항 등록 시 값 부족하면 400에러")
+    public void createNotice_bad_request() throws Exception {
+        //given
+        List<Long> blogImageIdList = getBlogImgIdList();
+
+        NoticeSaveDto requestDto = NoticeSaveDto.builder()
+                .status(BlogStatus.LEAKED)
+                .noticeImageIdList(blogImageIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/notices")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+
+    }
 
 
 
@@ -1165,6 +1613,38 @@ public class AdminApiControllerTest extends BaseTest {
 
 
 
+
+
+
+
+
+
+
+
+
+
+    private SurveyReport createDogAndGetSurveyReport(Member member, Recipe recipe, int i) {
+        DogSaveRequestDto requestDto = DogSaveRequestDto.builder()
+                .name("강아지" + i)
+                .gender(Gender.MALE)
+                .birth("202102")
+                .oldDog(false)
+                .dogType("포메라니안")
+                .dogSize(DogSize.SMALL)
+                .weight("3.5")
+                .neutralization(true)
+                .activityLevel(ActivityLevel.NORMAL)
+                .walkingCountPerWeek("10")
+                .walkingTimePerOneTime("1.1")
+                .dogStatus(DogStatus.HEALTHY)
+                .snackCountLevel(SnackCountLevel.NORMAL)
+                .inedibleFood("NONE")
+                .inedibleFoodEtc("NONE")
+                .recommendRecipeId(recipe.getId())
+                .caution("NONE")
+                .build();
+        return dogService.createDogAndGetSurveyReport(requestDto, member);
+    }
 
 
 

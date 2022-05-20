@@ -1,6 +1,7 @@
 package com.bi.barfdog.domain.subscribe;
 
 import com.bi.barfdog.domain.BaseTimeEntity;
+import com.bi.barfdog.domain.dog.Dog;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.domain.order.SubscribeOrder;
 import com.bi.barfdog.domain.subscribeRecipe.SubscribeRecipe;
@@ -24,6 +25,9 @@ public class Subscribe extends BaseTimeEntity {
     @GeneratedValue
     @Column(name = "subscribe_id")
     private Long id;
+
+    @OneToOne(mappedBy = "subscribe")
+    private Dog dog;
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "order_id")
