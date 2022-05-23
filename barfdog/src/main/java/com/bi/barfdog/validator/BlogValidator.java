@@ -2,6 +2,7 @@ package com.bi.barfdog.validator;
 
 import com.bi.barfdog.api.blogDto.UpdateArticlesRequestDto;
 import com.bi.barfdog.domain.blog.Blog;
+import com.bi.barfdog.domain.blog.BlogCategory;
 import com.bi.barfdog.domain.blog.BlogStatus;
 import com.bi.barfdog.repository.ArticleRepository;
 import com.bi.barfdog.repository.BlogRepository;
@@ -29,10 +30,16 @@ public class BlogValidator {
     }
 
     public void validateDuplicateBlogId(UpdateArticlesRequestDto requestDto, Errors errors) {
-
         if (requestDto.getFirstBlogId() == requestDto.getSecondBlogId()) {
             errors.reject("blogs are duplicated each other","선택한 두 블로그가 서로 중복됩니다.");
         }
     }
 
+    public void validateIsNotice(UpdateArticlesRequestDto requestDto, Errors errors) {
+        Blog blog1 = blogRepository.findById(requestDto.getFirstBlogId()).get();
+        Blog blog2 = blogRepository.findById(requestDto.getSecondBlogId()).get();
+        if (blog1.getCategory() == BlogCategory.NOTICE || blog2.getCategory() == BlogCategory.NOTICE) {
+            errors.reject("notice can not be article","공지사항은 아티클로 설정할 수 없습니다.");
+        }
+    }
 }

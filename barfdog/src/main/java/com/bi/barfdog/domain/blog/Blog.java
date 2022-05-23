@@ -1,6 +1,7 @@
 package com.bi.barfdog.domain.blog;
 
 import com.bi.barfdog.api.blogDto.UpdateBlogRequestDto;
+import com.bi.barfdog.api.blogDto.UpdateNoticeRequestDto;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,6 +39,12 @@ public class Blog extends BaseTimeEntity {
         this.status = requestDto.getStatus();
         this.title = requestDto.getTitle();
         this.category = requestDto.getCategory();
+        this.contents = requestDto.getContents();
+    }
+
+    public void update(UpdateNoticeRequestDto requestDto) {
+        this.status = requestDto.getStatus();
+        this.title = requestDto.getTitle();
         this.contents = requestDto.getContents();
     }
 }

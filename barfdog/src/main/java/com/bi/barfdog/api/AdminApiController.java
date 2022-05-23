@@ -5,6 +5,7 @@ import com.bi.barfdog.api.memberDto.*;
 import com.bi.barfdog.api.resource.AdminMemberSubscribesDtoRessource;
 import com.bi.barfdog.api.resource.BlogsAdminDtoResource;
 import com.bi.barfdog.api.resource.MembersDtoResource;
+import com.bi.barfdog.api.resource.NoticeAdminDtoResource;
 import com.bi.barfdog.common.ErrorMessageDto;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.blog.Blog;
@@ -26,16 +27,13 @@ import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -211,11 +209,12 @@ public class AdminApiController {
     public ResponseEntity queryBlogs(Pageable pageable,
                                      PagedResourcesAssembler<QueryBlogsAdminDto> assembler) {
 
-        Page<QueryBlogsAdminDto> page = blogRepository.findAdminListDtos(pageable);
+        Page<QueryBlogsAdminDto> page = blogRepository.findAdminBlogListDtos(pageable);
 
         PagedModel<EntityModel<QueryBlogsAdminDto>> entityModels = assembler.toModel(page, e -> new BlogsAdminDtoResource(e));
 
         entityModels.add(linkTo(AdminApiController.class).slash("articles").withRel("admin_query_articles"));
+        entityModels.add(linkTo(AdminApiController.class).slash("blogs").withRel("create_blog"));
         entityModels.add(profileRootUrlBuilder.slash("index.html#resources-admin-query-blogs").withRel("profile"));
 
         return ResponseEntity.ok(entityModels);
@@ -249,6 +248,7 @@ public class AdminApiController {
             return notFound();
         }
 
+        blogValidator.validateIsNotice(requestDto, errors);
         blogValidator.validateHiddenStatus(requestDto, errors);
         blogValidator.validateDuplicateBlogId(requestDto, errors);
         if (errors.hasErrors()) return badRequest(errors);
@@ -342,6 +342,60 @@ public class AdminApiController {
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-create-notice").withRel("profile"));
 
         return ResponseEntity.created(selfLinkBuilder.toUri()).body(representationModel);
+    }
+
+    @GetMapping("/notices")
+    public ResponseEntity queryNotices(Pageable pageable,
+                                       PagedResourcesAssembler<QueryBlogsAdminDto> assembler) {
+        Page<QueryBlogsAdminDto> page = blogRepository.findAdminNoticeListDtos(pageable);
+
+        PagedModel<EntityModel<QueryBlogsAdminDto>> entityModels = assembler.toModel(page, e -> new NoticeAdminDtoResource(e));
+
+        entityModels.add(linkTo(AdminApiController.class).slash("notices").withRel("create_notice"));
+        entityModels.add(profileRootUrlBuilder.slash("index.html#resources-admin-query-notices").withRel("profile"));
+
+        return ResponseEntity.ok(entityModels);
+    }
+
+    @GetMapping("/notices/{id}")
+    public ResponseEntity queryNotice(@PathVariable Long id) {
+        Optional<Blog> optionalBlog = blogRepository.findById(id);
+        if (!optionalBlog.isPresent()) return notFound();
+
+        QueryAdminNoticeDto responseDto = blogService.findQueryAdminNoticeDtoById(id);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(AdminApiController.class).slash("notices").slash(id);
+
+        EntityModel<QueryAdminNoticeDto> entityModel = EntityModel.of(responseDto,
+                selfLinkBuilder.withSelfRel(),
+                selfLinkBuilder.withRel("admin_update_notice"),
+                linkTo(AdminApiController.class).slash("blogImage").slash("upload").withRel("upload_blogImage"),
+                profileRootUrlBuilder.slash("index.html#resources-admin-query-notice").withRel("profile")
+        );
+
+        return ResponseEntity.ok(entityModel);
+    }
+
+    @PutMapping("/notices/{id}")
+    public ResponseEntity updateNotice(@PathVariable Long id,
+                                       @RequestBody @Valid UpdateNoticeRequestDto requestDto,
+                                       Errors errors) {
+
+        if(errors.hasErrors()) return badRequest(errors);
+        Optional<Blog> optionalBlog = blogRepository.findById(id);
+        if(!optionalBlog.isPresent()) return notFound();
+
+        blogService.updateNotice(id, requestDto);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(AdminApiController.class).slash("notices").slash(id);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(selfLinkBuilder.withRel("admin_query_notice"));
+        representationModel.add(linkTo(AdminApiController.class).slash("notices").withRel("admin_query_notices"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-notice").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
     }
 
 

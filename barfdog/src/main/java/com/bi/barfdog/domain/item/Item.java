@@ -20,7 +20,7 @@ public class Item extends BaseTimeEntity {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private ItemType itemType; // [FRESH, TOPPING, GOODS]
+    private ItemType itemType; // [RAW, TOPPING, GOODS]
 
     private String name;
 

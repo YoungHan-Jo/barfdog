@@ -883,6 +883,10 @@ public class AdminApiControllerTest extends BaseTest {
             generateBlog(i);
         });
 
+        IntStream.range(1,3).forEach(i -> {
+            generateNoticeLeaked(i);
+        });
+
         //when & then
         mockMvc.perform(get("/api/admin/blogs")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
@@ -892,6 +896,7 @@ public class AdminApiControllerTest extends BaseTest {
                         .param("size", "5"))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("page.totalElements").value(19))
                 .andDo(document("admin_query_blogs",
                         links(
                                 linkWithRel("first").description("첫 페이지 링크"),
@@ -900,6 +905,7 @@ public class AdminApiControllerTest extends BaseTest {
                                 linkWithRel("next").description("다음 페이지 링크"),
                                 linkWithRel("last").description("마지막 페이지 링크"),
                                 linkWithRel("admin_query_articles").description("수정할 아티클 리스트 조회 링크"),
+                                linkWithRel("create_blog").description("블로그 생성 링크"),
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
                         ),
                         requestHeaders(
@@ -932,6 +938,7 @@ public class AdminApiControllerTest extends BaseTest {
                                 fieldWithPath("_links.next.href").description("다음 페이지 링크"),
                                 fieldWithPath("_links.last.href").description("마지막 페이지 링크"),
                                 fieldWithPath("_links.admin_query_articles.href").description("수정할 아티클 리스트 조회 링크"),
+                                fieldWithPath("_links.create_blog.href").description("블로그 생성 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
@@ -966,6 +973,11 @@ public class AdminApiControllerTest extends BaseTest {
         IntStream.range(1,5).forEach(i -> {
             generateBlog(i);
         });
+
+        IntStream.range(1,4).forEach(i -> {
+            generateNoticeLeaked(i);
+        });
+
        
        //when & then
         mockMvc.perform(get("/api/admin/articles")
@@ -974,6 +986,7 @@ public class AdminApiControllerTest extends BaseTest {
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("blogTitlesDtos",hasSize(6)))
                 .andDo(document("admin_query_articles",
                         links(
                                 linkWithRel("self").description("self 링크"),
@@ -1087,6 +1100,28 @@ public class AdminApiControllerTest extends BaseTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("아티클로 설정할 블로그가 공지사항일 경우 400")
+    public void updateArticles_blog_Notice_400() throws Exception {
+        //given
+        Blog blog1 = generateBlog(1);
+        Blog notice = generateNoticeLeaked(2);
+
+        UpdateArticlesRequestDto requestDto = UpdateArticlesRequestDto.builder()
+                .firstBlogId(blog1.getId())
+                .secondBlogId(notice.getId())
+                .build();
+
+        //when & then
+        mockMvc.perform(put("/api/admin/articles")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -1604,6 +1639,360 @@ public class AdminApiControllerTest extends BaseTest {
 
 
     }
+    
+    @Test
+    @DisplayName("정상적으로 공지사항 리스트 조회하는 테스트")
+    public void queryNotices() throws Exception {
+       //given
+        IntStream.range(1,13).forEach(i -> {
+            generateNoticeLeaked(i);
+        });
+
+        IntStream.range(1,4).forEach(i -> {
+            generateNoticeHidden(i);
+        });
+
+        //when & then
+        mockMvc.perform(get("/api/admin/notices")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("page", "1")
+                        .param("size", "5"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("admin_query_notices",
+                        links(
+                                linkWithRel("first").description("첫 페이지 링크"),
+                                linkWithRel("prev").description("이전 페이지 링크"),
+                                linkWithRel("self").description("현재 페이지 링크"),
+                                linkWithRel("next").description("다음 페이지 링크"),
+                                linkWithRel("last").description("마지막 페이지 링크"),
+                                linkWithRel("create_notice").description("공지사항 생성 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt 토큰")
+                        ),
+                        requestParameters(
+                                parameterWithName("page").description("페이지 번호 [0번부터 시작 - 0번이 첫 페이지]"),
+                                parameterWithName("size").description("한 페이지 당 조회 개수")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_embedded.queryBlogsAdminDtoList[0].id").description("공지사항 인덱스 id"),
+                                fieldWithPath("_embedded.queryBlogsAdminDtoList[0].title").description("제목"),
+                                fieldWithPath("_embedded.queryBlogsAdminDtoList[0].createdDate").description("작성일"),
+                                fieldWithPath("_embedded.queryBlogsAdminDtoList[0].status").description("노출 상태 [LEAKED, HIDDEN]"),
+                                fieldWithPath("_embedded.queryBlogsAdminDtoList[0]._links.query_notice.href").description("수정할 공지사항 하나 조회하는 링크"),
+                                fieldWithPath("_embedded.queryBlogsAdminDtoList[0]._links.update_notice.href").description("공지사항 수정 요청하는 링크"),
+                                fieldWithPath("_embedded.queryBlogsAdminDtoList[0]._links.delete_notice.href").description("해당 공지사항 삭제 링크"),
+                                fieldWithPath("page.size").description("한 페이지 당 개수"),
+                                fieldWithPath("page.totalElements").description("검색 총 결과 수"),
+                                fieldWithPath("page.totalPages").description("총 페이지 수"),
+                                fieldWithPath("page.number").description("페이지 번호 [0페이지 부터 시작]"),
+                                fieldWithPath("_links.first.href").description("첫 페이지 링크"),
+                                fieldWithPath("_links.prev.href").description("이전 페이지 링크"),
+                                fieldWithPath("_links.self.href").description("현재 페이지 링크"),
+                                fieldWithPath("_links.next.href").description("다음 페이지 링크"),
+                                fieldWithPath("_links.last.href").description("마지막 페이지 링크"),
+                                fieldWithPath("_links.create_notice.href").description("공지사항 생성 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        List<Blog> leakedNotices = blogRepository.findLeakedNotices();
+        assertThat(leakedNotices.size()).isEqualTo(12);
+    }
+
+    @Test
+    @DisplayName("공지사항 리스트 조회 시 페이지 정보 없을 경우 0페이지 20개 조회 테스트")
+    public void queryNotices_noPageable() throws Exception {
+        //given
+        IntStream.range(1,24).forEach(i -> {
+            generateNoticeLeaked(i);
+        });
+
+        IntStream.range(1,4).forEach(i -> {
+            generateNoticeHidden(i);
+        });
+
+        //when & then
+        mockMvc.perform(get("/api/admin/notices")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("page.size").value(20))
+                .andExpect(jsonPath("page.number").value(0))
+        ;
+
+        em.flush();
+        em.clear();
+
+        List<Blog> leakedNotices = blogRepository.findLeakedNotices();
+        assertThat(leakedNotices.size()).isEqualTo(23);
+    }
+
+    @Test
+    @DisplayName("공지사항 하나만 조회하기")
+    public void queryNotice() throws Exception {
+       //given
+        Blog notice = generateNoticeLeaked(1);
+
+        IntStream.range(1,4).forEach(i -> {
+            generateBlogImage(i, notice);
+        });
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/admin/notices/{id}", notice.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("admin_query_notice",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("admin_update_notice").description("공지사항 수정 요청 링크"),
+                                linkWithRel("upload_blogImage").description("이미지 업로드 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt 토큰")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("조회할 공지사항 인덱스 id")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("noticeAdminDto.id").description("공지사항 인덱스 id"),
+                                fieldWithPath("noticeAdminDto.status").description("공지사항 상태 [LEAKED, HIDDEN]"),
+                                fieldWithPath("noticeAdminDto.title").description("공지사항 제목"),
+                                fieldWithPath("noticeAdminDto.contents").description("공지사항 내용"),
+                                fieldWithPath("adminBlogImageDtos[0].blogImageId").description("공지사항 이미지 인덱스 id"),
+                                fieldWithPath("adminBlogImageDtos[0].filename").description("파일 이름"),
+                                fieldWithPath("adminBlogImageDtos[0].url").description("이미지 display url"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.admin_update_notice.href").description("공지사항 수정 요청 링크"),
+                                fieldWithPath("_links.upload_blogImage.href").description("이미지 업로드 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+    }
+
+    @Test
+    @DisplayName("조회할 공지사항이 없을 경우 404")
+    public void queryNotice_not_exist_404() throws Exception {
+        //given
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/admin/notices/999999")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+
+
+    @Test
+    @DisplayName("정상적으로 공지사항 수정하는 테스트")
+    public void updateNotice_() throws Exception {
+        //given
+
+        Blog notice = generateNoticeLeaked(1);
+
+        BlogImage original1 = generateBlogImage(1, notice);
+        BlogImage original2 = generateBlogImage(2, notice);
+        BlogImage original3 = generateBlogImage(3, notice);
+        BlogImage delete1 = generateBlogImage(4, notice);
+        BlogImage delete2 = generateBlogImage(5, notice);
+
+        BlogImage add1 = generateBlogImage(1);
+        BlogImage add2 = generateBlogImage(2);
+        BlogImage add3 = generateBlogImage(3);
+
+        List<Long> addImageIdList = new ArrayList<>();
+        List<Long> deleteImageIdList = new ArrayList<>();
+
+        addImageIdList.add(add1.getId());
+        addImageIdList.add(add2.getId());
+        addImageIdList.add(add3.getId());
+
+        deleteImageIdList.add(delete1.getId());
+        deleteImageIdList.add(delete2.getId());
+
+        String title = "공지사항 제목 수정";
+        String contents = "공지사항 내용 수정";
+        UpdateNoticeRequestDto requestDto = UpdateNoticeRequestDto.builder()
+                .status(BlogStatus.LEAKED)
+                .title(title)
+                .contents(contents)
+                .addImageIdList(addImageIdList)
+                .deleteImageIdList(deleteImageIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/admin/notices/{id}",notice.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("admin_update_notice",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("admin_query_notice").description("수정할 공지사항 하나 조회하는 링크"),
+                                linkWithRel("admin_query_notices").description("공지사항 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt 토큰")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("수정할 공지사항 인덱스 id")
+                        ),
+                        requestFields(
+                                fieldWithPath("status").description("수정할 상태 [LEAKED, HIDDEN]"),
+                                fieldWithPath("title").description("수정할 제목"),
+                                fieldWithPath("contents").description("수정할 내용"),
+                                fieldWithPath("addImageIdList").description("추가할 공지사항 이미지 인덱스 id 리스트"),
+                                fieldWithPath("deleteImageIdList").description("삭제할 공지사항 이미지 인덱스 id 리스트")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.admin_query_notice.href").description("수정할 공지사항 하나 조회하는 링크"),
+                                fieldWithPath("_links.admin_query_notices.href").description("공지사항 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ))
+        ;
+
+        Optional<BlogImage> optional1 = blogImageRepository.findById(delete1.getId());
+        Optional<BlogImage> optional2 = blogImageRepository.findById(delete2.getId());
+
+        assertThat(optional1.isPresent()).isFalse();
+        assertThat(optional2.isPresent()).isFalse();
+
+        BlogImage addedImage1 = blogImageRepository.findById(add1.getId()).get();
+        BlogImage addedImage2 = blogImageRepository.findById(add2.getId()).get();
+        BlogImage addedImage3 = blogImageRepository.findById(add3.getId()).get();
+
+        assertThat(addedImage1.getBlog().getId()).isEqualTo(notice.getId());
+        assertThat(addedImage2.getBlog().getId()).isEqualTo(notice.getId());
+        assertThat(addedImage3.getBlog().getId()).isEqualTo(notice.getId());
+
+        Blog savedBlog = blogRepository.findById(notice.getId()).get();
+        assertThat(savedBlog.getContents()).isEqualTo(contents);
+        assertThat(savedBlog.getTitle()).isEqualTo(title);
+
+
+    }
+
+    @Test
+    @DisplayName("파일 변화 없어도 정상적으로 공지사항 수정하는 테스트")
+    public void updateNotice_noFiles() throws Exception {
+        //given
+
+        Blog notice = generateNoticeLeaked(1);
+
+        String title = "공지사항 제목 수정";
+        String contents = "공지사항 내용 수정";
+        UpdateNoticeRequestDto requestDto = UpdateNoticeRequestDto.builder()
+                .status(BlogStatus.LEAKED)
+                .title(title)
+                .contents(contents)
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/admin/notices/{id}",notice.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        em.flush();
+        em.clear();
+
+
+        Blog savedBlog = blogRepository.findById(notice.getId()).get();
+        assertThat(savedBlog.getContents()).isEqualTo(contents);
+        assertThat(savedBlog.getTitle()).isEqualTo(title);
+
+    }
+
+    @Test
+    @DisplayName("공지사항 수정시 요청 값 부족 시 400")
+    public void updateNotice_badRequest() throws Exception {
+        //given
+
+        Blog notice = generateNoticeLeaked(1);
+
+        String title = "공지사항 제목 수정";
+        String contents = "공지사항 내용 수정";
+        UpdateNoticeRequestDto requestDto = UpdateNoticeRequestDto.builder()
+                .status(BlogStatus.LEAKED)
+                .title(title)
+                .contents(contents)
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/admin/notices/{id}",notice.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+    }
+
+    @Test
+    @DisplayName("수정할 공지사항이 존재하지 않음 404")
+    public void updateNotice_notFound() throws Exception {
+        //given
+
+        Blog notice = generateNoticeLeaked(1);
+
+        String title = "공지사항 제목 수정";
+        String contents = "공지사항 내용 수정";
+        UpdateNoticeRequestDto requestDto = UpdateNoticeRequestDto.builder()
+                .status(BlogStatus.LEAKED)
+                .title(title)
+                .contents(contents)
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/admin/notices/999999")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
 
 
 
@@ -1614,13 +2003,25 @@ public class AdminApiControllerTest extends BaseTest {
 
 
 
+    private void generateNoticeHidden(int i) {
+        Blog blog = Blog.builder()
+                .status(BlogStatus.HIDDEN)
+                .title("공지사항" + i)
+                .category(BlogCategory.NOTICE)
+                .contents("컨텐츠 내용")
+                .build();
+        blogRepository.save(blog);
+    }
 
-
-
-
-
-
-
+    private Blog generateNoticeLeaked(int i) {
+        Blog blog = Blog.builder()
+                .status(BlogStatus.LEAKED)
+                .title("공지사항" + i)
+                .category(BlogCategory.NOTICE)
+                .contents("컨텐츠 내용")
+                .build();
+        return blogRepository.save(blog);
+    }
 
 
     private SurveyReport createDogAndGetSurveyReport(Member member, Recipe recipe, int i) {

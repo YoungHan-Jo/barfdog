@@ -201,6 +201,27 @@ operation::admin_delete_blog[snippets='curl-request,path-parameters,request-head
 
 operation::create_notice[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
+[[resources-admin-query-notices]]
+=== 관리자 - 공지사항 리스트 조회(페이징)
+
+`GET` 요청을 사용하여 페이징으로 공지사항 리스트를 조회할 수 있다.
+
+operation::admin_query_notices[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-admin-query-notice]]
+=== 관리자 - 공지사항 하나 조회
+
+`GET` 요청을 사용하여 수정할 공지사항의 정보를 조회할 수 있다.
+
+operation::admin_query_notice[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-admin-query-notice]]
+=== 관리자 - 공지사항 수정
+
+`PUT` 요청을 사용하여 공지사항의 정보를 수정할 수 있다.
+
+operation::admin_update_notice[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
 
 
 

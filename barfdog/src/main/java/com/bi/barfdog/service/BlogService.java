@@ -51,7 +51,7 @@ public class BlogService {
 
     public QueryArticlesAdminDto getArticlesAdmin() {
         List<ArticlesAdminDto> articlesAdminDtos = articleRepository.findArticlesAdminDto();
-        List<BlogTitlesDto> titleDtos = blogRepository.findTitleDtos();
+        List<BlogTitlesDto> titleDtos = blogRepository.findTitleDtosForArticles();
         QueryArticlesAdminDto queryArticlesAdminDto = QueryArticlesAdminDto.builder()
                 .articlesAdminDtos(articlesAdminDtos)
                 .blogTitlesDtos(titleDtos)
@@ -85,8 +85,33 @@ public class BlogService {
         return queryAdminBlogDto;
     }
 
+    public QueryAdminNoticeDto findQueryAdminNoticeDtoById(Long id) {
+
+        NoticeAdminDto noticeAdminDto = blogRepository.findAdminNoticeDtoById(id);
+        List<AdminBlogImageDto> adminBlogImageDtos = blogImageRepository.findAdminDtoByBlogId(id);
+
+        QueryAdminNoticeDto queryAdminNoticeDto = QueryAdminNoticeDto.builder()
+                .noticeAdminDto(noticeAdminDto)
+                .adminBlogImageDtos(adminBlogImageDtos)
+                .build();
+
+        return queryAdminNoticeDto;
+    }
+
     @Transactional
     public void updateBlog(Long id, UpdateBlogRequestDto requestDto) {
+        Blog blog = blogRepository.findById(id).get();
+
+        blog.update(requestDto);
+
+        setBlogToBlogImages(requestDto.getAddImageIdList(), blog);
+
+        blogImageRepository.deleteAllById(requestDto.getDeleteImageIdList());
+
+    }
+
+    @Transactional
+    public void updateNotice(Long id, UpdateNoticeRequestDto requestDto) {
         Blog blog = blogRepository.findById(id).get();
 
         blog.update(requestDto);
