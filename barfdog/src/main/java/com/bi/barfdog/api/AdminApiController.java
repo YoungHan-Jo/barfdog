@@ -9,6 +9,7 @@ import com.bi.barfdog.api.resource.NoticeAdminDtoResource;
 import com.bi.barfdog.common.ErrorMessageDto;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.blog.Blog;
+import com.bi.barfdog.domain.blog.BlogCategory;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.repository.ArticleRepository;
 import com.bi.barfdog.repository.BlogRepository;
@@ -176,11 +177,11 @@ public class AdminApiController {
     public ResponseEntity uploadBlogImage(@RequestPart MultipartFile file) {
         if(file.isEmpty()) return ResponseEntity.badRequest().build();
 
-        BlogImageAdminDto responseDto = blogService.uploadFile(file);
+        UploadedImageAdminDto responseDto = blogService.uploadFile(file);
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(AdminApiController.class).slash("blogImage").slash("upload");
 
-        EntityModel<BlogImageAdminDto> entityModel = EntityModel.of(responseDto,
+        EntityModel<UploadedImageAdminDto> entityModel = EntityModel.of(responseDto,
                 selfLinkBuilder.withSelfRel(),
                 profileRootUrlBuilder.slash("index.html#resources-upload-blogImage").withRel("profile")
         );
@@ -192,6 +193,10 @@ public class AdminApiController {
     public ResponseEntity createBlog(@RequestBody @Valid BlogSaveDto requestDto,
                                      Errors errors) {
         if(errors.hasErrors()) return badRequest(errors);
+
+        blogValidator.validateWrongImgId(requestDto.getBlogImageIdList(),errors);
+        if (errors.hasErrors()) return badRequest(errors);
+
 
         blogService.saveBlog(requestDto);
 
@@ -331,6 +336,8 @@ public class AdminApiController {
     public ResponseEntity createNotice(@RequestBody @Valid NoticeSaveDto requestDto,
                                        Errors errors) {
         if (errors.hasErrors()) return badRequest(errors);
+        blogValidator.validateWrongImgId(requestDto.getNoticeImageIdList(),errors);
+        if (errors.hasErrors()) return badRequest(errors);
 
         blogService.saveNotice(requestDto);
 
@@ -394,6 +401,28 @@ public class AdminApiController {
         representationModel.add(selfLinkBuilder.withRel("admin_query_notice"));
         representationModel.add(linkTo(AdminApiController.class).slash("notices").withRel("admin_query_notices"));
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-notice").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @DeleteMapping("/notices/{id}")
+    public ResponseEntity deleteNotice(@PathVariable Long id) {
+        Optional<Blog> optionalBlog = blogRepository.findById(id);
+        if (!optionalBlog.isPresent()) return notFound();
+
+        Blog blog = blogRepository.findById(id).get();
+        if (blog.getCategory() != BlogCategory.NOTICE) {
+            return ResponseEntity.badRequest().body(new ErrorMessageDto(400, "해당 인덱스의 글은 공지사항 유형이 아닙니다."));
+        }
+
+        blogService.deleteBlog(id);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(AdminApiController.class).slash("notices").slash(id);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(AdminApiController.class).slash("notices").withRel("admin_query_notices"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-delete-notice").withRel("profile"));
 
         return ResponseEntity.ok(representationModel);
     }

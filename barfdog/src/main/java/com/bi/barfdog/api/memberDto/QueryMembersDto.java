@@ -27,4 +27,6 @@ public class QueryMembersDto {
 
     private boolean subscribe;
 
+    private boolean longUnconnected;
+
 }

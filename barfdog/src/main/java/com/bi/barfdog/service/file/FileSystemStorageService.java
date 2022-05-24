@@ -65,6 +65,11 @@ public class FileSystemStorageService implements StorageService {
         return getImgFilenamePath(file,"blogs");
     }
 
+    @Override
+    public ImgFilenamePath storeEventImg(MultipartFile file) {
+        return getImgFilenamePath(file, "events");
+    }
+
 
     @Override
     public Stream<Path> loadAll() {

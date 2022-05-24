@@ -97,7 +97,10 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
                         member.phoneNumber,
                         dog.name,
                         member.accumulatedAmount,
-                        member.subscribe
+                        member.subscribe,
+                        new CaseBuilder()
+                                .when(member.lastLoginDate.before(LocalDateTime.now().minusYears(1L))).then(true)
+                                .otherwise(false)
                 ))
                 .from(dog)
                 .rightJoin(dog.member, member)

@@ -1,4 +1,4 @@
-package com.bi.barfdog.domain.blog;
+package com.bi.barfdog.domain.event;
 
 import com.bi.barfdog.domain.BaseTimeEntity;
 import lombok.*;
@@ -11,20 +11,25 @@ import static javax.persistence.FetchType.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder @Getter
 @Entity
-public class BlogImage extends BaseTimeEntity {
-
+public class EventImage extends BaseTimeEntity {
     @Id @GeneratedValue
-    @Column(name = "blog_image_id")
+    @Column(name = "event_image_id")
     private Long id;
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "blog_id")
-    private Blog blog;
+    @JoinColumn(name = "event_id")
+    private Event event;
+
+    private int leakOrder;
 
     private String folder;
     private String filename;
 
-    public void setBlog(Blog blog) {
-        this.blog = blog;
+    public void setEvent(Event event) {
+        this.event = event;
+    }
+
+    public void setOrder(int leakOrder) {
+        this.leakOrder = leakOrder;
     }
 }

@@ -148,6 +148,7 @@ public class AdminApiControllerTest extends BaseTest {
                                 fieldWithPath("_embedded.queryMembersDtoList[0].dogName").description("대표 강아지 이름 [없으면 null]"),
                                 fieldWithPath("_embedded.queryMembersDtoList[0].accumulatedAmount").description("누적 결제 금액"),
                                 fieldWithPath("_embedded.queryMembersDtoList[0].subscribe").description("구독 여부 [true/false]"),
+                                fieldWithPath("_embedded.queryMembersDtoList[0].longUnconnected").description("장기 미접속 여부 [true/false]"),
                                 fieldWithPath("_embedded.queryMembersDtoList[0]._links.query_member.href").description("유저 상세보기 링크"),
                                 fieldWithPath("page.size").description("한 페이지 당 개수"),
                                 fieldWithPath("page.totalElements").description("검색 총 결과 수"),
@@ -807,7 +808,6 @@ public class AdminApiControllerTest extends BaseTest {
             BlogImage blogImage = blogImageRepository.findById(id).get();
             assertThat(blogImage.getBlog().getId()).isEqualTo(findBlog.getId());
         }
-        
     }
 
     @Test
@@ -861,6 +861,36 @@ public class AdminApiControllerTest extends BaseTest {
         BlogSaveDto requestDto = BlogSaveDto.builder()
                 .status(status)
                 .title(title)
+                .blogImageIdList(blogImageIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/blogs")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 이미지 id일 경우")
+    public void createBlog_wrong_image_id() throws Exception {
+        //given
+
+        List<Long> blogImageIdList = getBlogImgIdList();
+        blogImageIdList.add(100L);
+
+        String title = "건강 블로그 제목";
+        BlogStatus status = BlogStatus.LEAKED;
+        BlogCategory category = BlogCategory.HEALTH;
+        String contents = "컨텐츠 내용";
+        BlogSaveDto requestDto = BlogSaveDto.builder()
+                .status(status)
+                .title(title)
+                .category(category)
+                .contents(contents)
                 .blogImageIdList(blogImageIdList)
                 .build();
 
@@ -1637,8 +1667,33 @@ public class AdminApiControllerTest extends BaseTest {
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
+    }
+
+    @Test
+    @DisplayName("정상적으로 공지사항 등록")
+    public void createNotice_() throws Exception {
+        //given
+        List<Long> blogImageIdList = getBlogImgIdList();
+        blogImageIdList.add(100L);
+
+        NoticeSaveDto requestDto = NoticeSaveDto.builder()
+                .status(BlogStatus.LEAKED)
+                .title("제목")
+                .contents("내용")
+                .noticeImageIdList(blogImageIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/notices")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
 
     }
+
     
     @Test
     @DisplayName("정상적으로 공지사항 리스트 조회하는 테스트")
@@ -1992,6 +2047,101 @@ public class AdminApiControllerTest extends BaseTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("정상적으로 공지사항 삭제하는 테스트")
+    public void deleteNotice() throws Exception {
+        //given
+        Blog notice = generateNoticeLeaked(1);
+
+        BlogImage original1 = generateBlogImage(1, notice);
+        BlogImage original2 = generateBlogImage(2, notice);
+        BlogImage original3 = generateBlogImage(3, notice);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.delete("/api/admin/notices/{id}", notice.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("admin_delete_notice",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("admin_query_notices").description("공지사항 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt 토큰")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("삭제할 공지사항 인덱스 id")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.admin_query_notices.href").description("공지사항 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ))
+        ;
+
+        em.flush();
+        em.clear();
+
+        Optional<Blog> optionalBlog = blogRepository.findById(notice.getId());
+        assertThat(optionalBlog.isPresent()).isFalse();
+
+        Optional<BlogImage> optionalBlogImage1 = blogImageRepository.findById(original1.getId());
+        Optional<BlogImage> optionalBlogImage2 = blogImageRepository.findById(original2.getId());
+        Optional<BlogImage> optionalBlogImage3 = blogImageRepository.findById(original3.getId());
+        assertThat(optionalBlogImage1.isPresent()).isFalse();
+        assertThat(optionalBlogImage2.isPresent()).isFalse();
+        assertThat(optionalBlogImage3.isPresent()).isFalse();
+
+    }
+
+    @Test
+    @DisplayName("삭제할 공지사항이 존재하지 않을 경우 404")
+    public void deleteNotice_404() throws Exception {
+        //given
+        Blog notice = generateBlog(1);
+
+        BlogImage original1 = generateBlogImage(1, notice);
+        BlogImage original2 = generateBlogImage(2, notice);
+        BlogImage original3 = generateBlogImage(3, notice);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.delete("/api/admin/notices/999999")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("삭제할 공지사항이 공지사항 유형이 아닐경우 bad request")
+    public void deleteNotice_not_notice() throws Exception {
+        //given
+        Blog blog = generateBlog(1);
+
+        BlogImage original1 = generateBlogImage(1, blog);
+        BlogImage original2 = generateBlogImage(2, blog);
+        BlogImage original3 = generateBlogImage(3, blog);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.delete("/api/admin/notices/{id}", blog.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
     }
 
 

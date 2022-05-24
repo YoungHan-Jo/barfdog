@@ -32,11 +32,11 @@ public class BlogService {
     private final ArticleRepository articleRepository;
 
     @Transactional
-    public BlogImageAdminDto uploadFile(MultipartFile file) {
+    public UploadedImageAdminDto uploadFile(MultipartFile file) {
 
         ImgFilenamePath path = storageService.storeBlogImg(file);
 
-        BlogImageAdminDto blogImageDto = saveBlogImageAndGetBlogImageDto(path);
+        UploadedImageAdminDto blogImageDto = saveBlogImageAndGetBlogImageDto(path);
 
         return blogImageDto;
     }
@@ -132,10 +132,8 @@ public class BlogService {
 
     @Transactional
     public void saveNotice(NoticeSaveDto requestDto) {
-
         Blog savedBlog = saveNoticeAndReturn(requestDto);
         setBlogToBlogImages(requestDto.getNoticeImageIdList(), savedBlog);
-
     }
 
     private Blog saveNoticeAndReturn(NoticeSaveDto requestDto) {
@@ -149,7 +147,7 @@ public class BlogService {
     }
 
 
-    private BlogImageAdminDto saveBlogImageAndGetBlogImageDto(ImgFilenamePath path) {
+    private UploadedImageAdminDto saveBlogImageAndGetBlogImageDto(ImgFilenamePath path) {
         String filename = path.getFilename();
 
         BlogImage blogImage = BlogImage.builder()
@@ -161,7 +159,7 @@ public class BlogService {
 
         String url = linkTo(InfoController.class).slash("display").slash("blogs?filename=" + filename).toString();
 
-        BlogImageAdminDto blogImageDto = BlogImageAdminDto.builder()
+        UploadedImageAdminDto blogImageDto = UploadedImageAdminDto.builder()
                 .id(savedBlogImage.getId())
                 .url(url)
                 .build();

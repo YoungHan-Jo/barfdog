@@ -24,6 +24,8 @@ public interface StorageService {
 
     ImgFilenamePath storeBlogImg(MultipartFile file);
 
+    ImgFilenamePath storeEventImg(MultipartFile file);
+
     Stream<Path> loadAll();
 
     Path load(String category, String filename);
