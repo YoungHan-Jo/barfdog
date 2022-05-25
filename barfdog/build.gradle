@@ -53,11 +53,12 @@ asciidoctor.doFirst {
 //	finalizedBy 'copyDocument'
 //}
 
+
 bootJar { // jar 설정
 	dependsOn asciidoctor
 	copy {
-		from "${asciidoctor.outputDir}"
-		into 'src/main/resources/static/docs'
+		from file("src/build/asciidoc")
+		into file("src/main/resources/static/docs")
 	}
 	finalizedBy 'copyDocument'
 }

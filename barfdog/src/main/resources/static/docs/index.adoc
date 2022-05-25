@@ -48,16 +48,16 @@ BarfDog;
 | 새 리소스를 성공적으로 생성함. 응답의 `Location` 헤더에 해당 리소스의 URI가 담겨있다.
 
 | `400 Bad Request`
-| 잘못된 요청을 보낸 경우. 응답 본문에 더 오류에 대한 정보가 담겨있다.
+| 잘못된 요청을 보낸 경우. 응답 본문에 오류에 대한 정보가 담겨있다.
 
 | `401 Unauthorized`
-| 인증되지 않음.
+| 인증되지 않음. ex) 토큰 기한만료 or 토큰이 없을 경우 응답 본문 'reason' 필드 참고
 
 | `403 Forbidden`
-| 접근 권한 없음.
+| 접근 권한 없음. ex) 해당 토큰으로는 접근할 수 없을 경우
 
 | `404 Not Found`
-| 요청한 리소스가 없음.
+| 요청한 리소스가 없음. 요청한 인덱스번호에 해당하는 정보가 존재하지 않을경우
 
 | `409 Conflict`
 | 리소스 충돌(중복).
@@ -162,7 +162,7 @@ operation::admin_query_blogs[snippets='curl-request,request-headers,request-para
 
 operation::admin_query_articles[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
 
-[[resources-admin-query-articles]]
+[[resources-admin-update-articles]]
 === 관리자 - 아티클 수정
 
 `PUT` 요청을 사용하여 아티클을 변경할 수 있다.
@@ -177,14 +177,14 @@ operation::admin_update_articles[snippets='curl-request,request-headers,request-
 
 operation::admin_query_blog[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
-[[resources-admin-query-blog]]
+[[resources-admin-update-blog]]
 === 관리자 - 블로그 수정
 
 `PUT` 요청을 사용하여 블로그의 정보를 수정할 수 있다.
 
-operation::admin_query_blog[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+operation::admin_update_blog[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
-[[resources-admin-query-blog]]
+[[resources-admin-delete-blog]]
 === 관리자 - 블로그 삭제
 
 `DELETE` 요청을 사용하여 블로그를 삭제할 수 있다.
@@ -200,6 +200,90 @@ operation::admin_delete_blog[snippets='curl-request,path-parameters,request-head
 `POST` 요청을 사용해서 공지사항을 생성 할 수 있다.
 
 operation::create_notice[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-admin-query-notices]]
+=== 관리자 - 공지사항 리스트 조회(페이징)
+
+`GET` 요청을 사용하여 페이징으로 공지사항 리스트를 조회할 수 있다.
+
+operation::admin_query_notices[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-admin-query-notice]]
+=== 관리자 - 공지사항 하나 조회
+
+`GET` 요청을 사용하여 수정할 공지사항의 정보를 조회할 수 있다.
+
+operation::admin_query_notice[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-admin-update-notice]]
+=== 관리자 - 공지사항 수정
+
+`PUT` 요청을 사용하여 공지사항의 정보를 수정할 수 있다.
+
+operation::admin_update_notice[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-delete-notice]]
+=== 관리자 - 공지사항 삭제
+
+`DELETE` 요청을 사용하여 공지사항을 삭제할 수 있다.
+
+글 카테고리가 공지사항이 아닌 글을 삭제하려고 할 경우 400 에러와 메시지 나옴.
+
+operation::admin_delete_notice[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-upload-eventThumbnail]]
+=== 이벤트 썸네일 이미지 업로드
+
+`POST` 요청을 사용해서 이벤트 썸네일을 업로드 할 수 있다.
+
+operation::upload_eventThumbnail[snippets='curl-request,request-headers,request-body,request-parts,response-headers,response-body,response-fields,links']
+
+
+[[resources-upload-eventImage]]
+=== 이벤트 이미지 업로드
+
+`POST` 요청을 사용해서 이벤트 이미지를 업로드 할 수 있다.
+
+operation::upload_eventImage[snippets='curl-request,request-headers,request-body,request-parts,response-headers,response-body,response-fields,links']
+
+[[resources-create-event]]
+=== 이벤트 생성
+
+`POST` 요청을 사용해서 이벤트를 생성 할 수 있다.
+
+operation::create_event[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+[[resources-admin-query-events]]
+=== 관리자 - 이벤트 리스트 조회(페이징)
+
+`GET` 요청을 사용하여 페이징으로 이벤트 리스트를 조회할 수 있다.
+
+operation::admin_query_events[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-admin-query-event]]
+=== 관리자 - 수정할 이벤트 하나 조회
+
+`GET` 요청을 사용하여 수정할 이벤트의 정보를 조회할 수 있다.
+
+operation::admin_query_event[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-admin-update-event]]
+=== 관리자 - 이벤트 수정
+
+`PUT` 요청을 사용하여 이벤트의 정보를 수정할 수 있다.
+
+operation::admin_update_event[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-admin-delete-event]]
+=== 관리자 - 이벤트 삭제
+
+`DELETE` 요청을 사용하여 이벤트를 삭제할 수 있다.
+
+operation::admin_delete_event[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+
+
 
 
 
@@ -553,7 +637,7 @@ operation::query_direct_coupons[snippets='curl-request,request-headers,request-p
 
 operation::query_auto_coupons[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
 
-[[resources-query-auto-coupons]]
+[[resources-update-coupon-inactive]]
 === 쿠폰 비활성(삭제)시키기
 
 `PUT` 요청을 사용해서 쿠폰을 비활성(삭제) 시킬 수 있다.

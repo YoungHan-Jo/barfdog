@@ -3,8 +3,6 @@ package com.bi.barfdog.repository;
 import com.bi.barfdog.api.InfoController;
 import com.bi.barfdog.api.eventDto.QueryEventAdminDto;
 import com.bi.barfdog.api.eventDto.QueryEventsAdminDto;
-import com.bi.barfdog.domain.event.QEvent;
-import com.bi.barfdog.domain.event.QEventThumbnail;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -77,7 +75,7 @@ public class EventRepositoryImpl implements EventRepositoryCustom{
 
         for (EventsAdminDto eventsAdminDto : eventsAdminDtoList) {
 
-            String filename = eventThumbnailRepository.findFilenameByEvent(eventsAdminDto.getId());
+            String filename = eventThumbnailRepository.findFilenameByEventId(eventsAdminDto.getId());
 
             String url = linkTo(InfoController.class).slash("events").slash("blogs?filename=" + filename).toString();
 

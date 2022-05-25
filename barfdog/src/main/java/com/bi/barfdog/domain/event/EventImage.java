@@ -29,7 +29,7 @@ public class EventImage extends BaseTimeEntity {
         this.event = event;
     }
 
-    public void setOrder(int leakOrder) {
+    public void setLeakOrder(int leakOrder) {
         this.leakOrder = leakOrder;
     }
 }

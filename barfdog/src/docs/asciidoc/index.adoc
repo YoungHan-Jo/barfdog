@@ -162,7 +162,7 @@ operation::admin_query_blogs[snippets='curl-request,request-headers,request-para
 
 operation::admin_query_articles[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
 
-[[resources-admin-query-articles]]
+[[resources-admin-update-articles]]
 === 관리자 - 아티클 수정
 
 `PUT` 요청을 사용하여 아티클을 변경할 수 있다.
@@ -177,14 +177,14 @@ operation::admin_update_articles[snippets='curl-request,request-headers,request-
 
 operation::admin_query_blog[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
-[[resources-admin-query-blog]]
+[[resources-admin-update-blog]]
 === 관리자 - 블로그 수정
 
 `PUT` 요청을 사용하여 블로그의 정보를 수정할 수 있다.
 
-operation::admin_query_blog[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+operation::admin_update_blog[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
-[[resources-admin-query-blog]]
+[[resources-admin-delete-blog]]
 === 관리자 - 블로그 삭제
 
 `DELETE` 요청을 사용하여 블로그를 삭제할 수 있다.
@@ -215,7 +215,7 @@ operation::admin_query_notices[snippets='curl-request,request-headers,request-pa
 
 operation::admin_query_notice[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
-[[resources-admin-query-notice]]
+[[resources-admin-update-notice]]
 === 관리자 - 공지사항 수정
 
 `PUT` 요청을 사용하여 공지사항의 정보를 수정할 수 있다.
@@ -260,6 +260,30 @@ operation::create_event[snippets='curl-request,request-headers,request-body,requ
 `GET` 요청을 사용하여 페이징으로 이벤트 리스트를 조회할 수 있다.
 
 operation::admin_query_events[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-admin-query-event]]
+=== 관리자 - 수정할 이벤트 하나 조회
+
+`GET` 요청을 사용하여 수정할 이벤트의 정보를 조회할 수 있다.
+
+operation::admin_query_event[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-admin-update-event]]
+=== 관리자 - 이벤트 수정
+
+`PUT` 요청을 사용하여 이벤트의 정보를 수정할 수 있다.
+
+operation::admin_update_event[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-admin-delete-event]]
+=== 관리자 - 이벤트 삭제
+
+`DELETE` 요청을 사용하여 이벤트를 삭제할 수 있다.
+
+operation::admin_delete_event[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+
+
 
 
 
@@ -613,7 +637,7 @@ operation::query_direct_coupons[snippets='curl-request,request-headers,request-p
 
 operation::query_auto_coupons[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
 
-[[resources-query-auto-coupons]]
+[[resources-update-coupon-inactive]]
 === 쿠폰 비활성(삭제)시키기
 
 `PUT` 요청을 사용해서 쿠폰을 비활성(삭제) 시킬 수 있다.

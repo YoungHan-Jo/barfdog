@@ -1,6 +1,7 @@
 package com.bi.barfdog.repository;
 
 import com.bi.barfdog.api.eventDto.QueryEventAdminDto;
+import com.bi.barfdog.domain.event.EventImage;
 import com.bi.barfdog.domain.event.QEventImage;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -28,7 +29,26 @@ public class EventImageRepositoryImpl implements EventImageRepositoryCustom{
                         ))
                 .from(eventImage)
                 .where(eventImage.event.id.eq(id))
+                .orderBy(eventImage.leakOrder.asc())
                 .fetch()
                 ;
     }
+
+    @Override
+    public void deleteByIdList(List<Long> deleteImageIdList) {
+        queryFactory
+                .delete(eventImage)
+                .where(eventImage.id.in(deleteImageIdList)).execute();
+
+    }
+
+    @Override
+    public List<EventImage> findByEventId(Long id) {
+        return queryFactory
+                .selectFrom(eventImage)
+                .where(eventImage.event.id.eq(id))
+                .orderBy(eventImage.leakOrder.asc())
+                .fetch();
+    }
+
 }

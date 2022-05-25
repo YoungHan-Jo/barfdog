@@ -4,6 +4,7 @@ import com.bi.barfdog.api.blogDto.UploadedImageAdminDto;
 import com.bi.barfdog.api.eventDto.EventSaveDto;
 import com.bi.barfdog.api.eventDto.QueryEventAdminDto;
 import com.bi.barfdog.api.eventDto.QueryEventsAdminDto;
+import com.bi.barfdog.api.eventDto.UpdateEventRequestDto;
 import com.bi.barfdog.api.resource.EventAdminDtoResource;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.event.Event;
@@ -117,11 +118,59 @@ public class EventAdminController {
 
         QueryEventAdminDto responseDto = eventService.findAdminEvent(id);
 
-        WebMvcLinkBuilder selfLinkBuilder = linkTo(AdminApiController.class);
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(EventAdminController.class).slash(id);
 
-
+        EntityModel<QueryEventAdminDto> entityModel = EntityModel.of(responseDto,
+                selfLinkBuilder.withSelfRel(),
+                linkTo(EventAdminController.class).withRel("query_events"),
+                linkTo(EventAdminController.class).slash(id).withRel("update_event"),
+                profileRootUrlBuilder.slash("index.html#resources-admin-query-event").withRel("profile")
+        );
 
         return ResponseEntity.ok(entityModel);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity updateEvent(@PathVariable Long id,
+                                      @RequestBody @Valid UpdateEventRequestDto requestDto,
+                                      Errors errors) {
+        if(errors.hasErrors()) return badRequest(errors);
+
+        Optional<Event> optionalEvent = eventRepository.findById(id);
+        if(!optionalEvent.isPresent()) return notFound();
+        eventValidator.validateImages(requestDto, errors);
+        if(errors.hasErrors()) return badRequest(errors);
+        eventValidator.validateWrongImages(id,requestDto, errors);
+        if(errors.hasErrors()) return badRequest(errors);
+
+        eventService.updateEvent(id, requestDto);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(EventAdminController.class).slash(id);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(EventAdminController.class).slash(id).withRel("admin_query_event"));
+        representationModel.add(linkTo(EventAdminController.class).withRel("admin_query_events"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-update-event").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity deleteEvent(@PathVariable Long id) {
+        Optional<Event> optionalEvent = eventRepository.findById(id);
+        if(!optionalEvent.isPresent()) return notFound();
+
+        eventService.deleteEvent(id);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(EventAdminController.class).slash(id);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(EventAdminController.class).withRel("query_events"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-delete-event").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
     }
 
 

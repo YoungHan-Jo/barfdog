@@ -1,5 +1,6 @@
 package com.bi.barfdog.domain.event;
 
+import com.bi.barfdog.api.eventDto.UpdateEventRequestDto;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,4 +24,8 @@ public class Event extends BaseTimeEntity {
 
     private String title;
 
+    public void update(UpdateEventRequestDto requestDto) {
+        this.status = requestDto.getStatus();
+        this.title = requestDto.getTitle();
+    }
 }
