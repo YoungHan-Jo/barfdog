@@ -87,13 +87,13 @@ public class DirectSendUtils {
 
     public static void sendCouponAlim(List<MemberCoupon> memberCouponList) throws IOException {
         if (memberCouponList.get(0).getCoupon().getCouponType() == CouponType.CODE_PUBLISHED) {
-            sendAlimTalk(memberCouponList, DirectSend.CODE_PUBLISH_TEMPLATE, getReceiverOfCoupon(memberCouponList));
+            sendAlimTalk(DirectSend.CODE_PUBLISH_TEMPLATE, getReceiverOfCoupon(memberCouponList));
         } else if (memberCouponList.get(0).getCoupon().getCouponType() == CouponType.GENERAL_PUBLISHED) {
-            sendAlimTalk(memberCouponList, DirectSend.GENERAL_PUBLISH_TEMPLATE, getReceiverOfCoupon(memberCouponList));
+            sendAlimTalk(DirectSend.GENERAL_PUBLISH_TEMPLATE, getReceiverOfCoupon(memberCouponList));
         }
     }
 
-    private static void sendAlimTalk(List<MemberCoupon> memberCouponList, String templateNumber, String receiver) throws IOException {
+    private static void sendAlimTalk( String templateNumber, String receiver) throws IOException {
         /* 여기서부터 수정해주시기 바랍니다. */
 
         String username = DirectSend.USERNAME;                //필수입력
@@ -102,7 +102,6 @@ public class DirectSendUtils {
         String user_template_no = templateNumber;            //필수입력 (하단 290 라인 API 이용하여 확인)
 
         receiver = "["+ receiver +"]";
-
 
         String postvars = "";
         postvars = "\"username\":\""+username+"\"";             //필수입력

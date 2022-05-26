@@ -2009,7 +2009,6 @@ public class AdminApiControllerTest extends BaseTest {
         String contents = "공지사항 내용 수정";
         UpdateNoticeRequestDto requestDto = UpdateNoticeRequestDto.builder()
                 .status(BlogStatus.LEAKED)
-                .title(title)
                 .contents(contents)
                 .build();
 

@@ -1,6 +1,6 @@
 package com.bi.barfdog.api;
 
-import com.bi.barfdog.api.memberDto.MemberConditionPublishCoupon;
+import com.bi.barfdog.api.memberDto.MemberConditionToPublish;
 import com.bi.barfdog.api.memberDto.MemberUpdateRequestDto;
 import com.bi.barfdog.api.memberDto.UpdatePasswordRequestDto;
 import com.bi.barfdog.common.AppProperties;
@@ -340,20 +340,20 @@ public class MemberApiControllerTest extends BaseTest {
     @DisplayName("쿠폰 발행 시 이메일로 검색한 유저 조회하는 테스트")
     public void queryMembersInPublishCoupon() throws Exception {
        //given
-        MemberConditionPublishCoupon condition = MemberConditionPublishCoupon.builder()
+        MemberConditionToPublish condition = MemberConditionToPublish.builder()
                 .email(appProperties.getAdminEmail())
                 .build();
 
         //when & then
-        mockMvc.perform(get("/api/members/publicationCoupon")
+        mockMvc.perform(get("/api/members/publication")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(condition)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("_embedded.memberPublishCouponResponseDtoList[0].dogName").value("대표견"))
-                .andDo(document("query_members_in_publishCoupon",
+                .andExpect(jsonPath("_embedded.memberPublishResponseDtoList[0].dogName").value("대표견"))
+                .andDo(document("query_members_in_publication",
                         links(
                                 linkWithRel("self").description("self 링크"),
                                 linkWithRel("publish_coupon_personal").description("개인 쿠폰 발행 링크"),
@@ -372,40 +372,41 @@ public class MemberApiControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
                         ),
                         responseFields(
-                                fieldWithPath("_embedded.memberPublishCouponResponseDtoList[0].memberId").description("회원 id"),
-                                fieldWithPath("_embedded.memberPublishCouponResponseDtoList[0].grade").description("회원 등급"),
-                                fieldWithPath("_embedded.memberPublishCouponResponseDtoList[0].name").description("회원 이름"),
-                                fieldWithPath("_embedded.memberPublishCouponResponseDtoList[0].email").description("회원 email"),
-                                fieldWithPath("_embedded.memberPublishCouponResponseDtoList[0].phoneNumber").description("휴대전화 번호"),
-                                fieldWithPath("_embedded.memberPublishCouponResponseDtoList[0].dogName").description("대표견 이름"),
-                                fieldWithPath("_embedded.memberPublishCouponResponseDtoList[0].accumulatedAmount").description("구매 누적 금액"),
-                                fieldWithPath("_embedded.memberPublishCouponResponseDtoList[0].subscribe").description("구독 여부"),
+                                fieldWithPath("_embedded.memberPublishResponseDtoList[0].memberId").description("회원 id"),
+                                fieldWithPath("_embedded.memberPublishResponseDtoList[0].grade").description("회원 등급"),
+                                fieldWithPath("_embedded.memberPublishResponseDtoList[0].name").description("회원 이름"),
+                                fieldWithPath("_embedded.memberPublishResponseDtoList[0].email").description("회원 email"),
+                                fieldWithPath("_embedded.memberPublishResponseDtoList[0].phoneNumber").description("휴대전화 번호"),
+                                fieldWithPath("_embedded.memberPublishResponseDtoList[0].dogName").description("대표견 이름"),
+                                fieldWithPath("_embedded.memberPublishResponseDtoList[0].accumulatedAmount").description("구매 누적 금액"),
+                                fieldWithPath("_embedded.memberPublishResponseDtoList[0].subscribe").description("구독 여부"),
                                 fieldWithPath("_links.self.href").description("self 링크"),
                                 fieldWithPath("_links.publish_coupon_personal.href").description("개인 쿠폰 발행 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
-
-        ;
     }
 
     @Test
     @DisplayName("쿠폰 발행 시 이메일로 검색한 유저 대표견이 없으면 dog name에 null 나오는 테스트")
     public void queryMembersInPublishCoupon_dog_null() throws Exception {
         //given
-        MemberConditionPublishCoupon condition = MemberConditionPublishCoupon.builder()
-                .email(appProperties.getUserEmail())
+
+
+
+        MemberConditionToPublish condition = MemberConditionToPublish.builder()
+                .email("abc@gmail.com")
                 .build();
 
         //when & then
-        mockMvc.perform(get("/api/members/publicationCoupon")
+        mockMvc.perform(get("/api/members/publication")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(condition)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("_embedded.memberPublishCouponResponseDtoList[0].dogName").isEmpty())
+                .andExpect(jsonPath("_embedded.memberPublishResponseDtoList[0].dogName").isEmpty())
         ;
     }
 
@@ -413,20 +414,20 @@ public class MemberApiControllerTest extends BaseTest {
     @DisplayName("쿠폰 발행 시 이름으로 검색한 유저 조회하는 테스트")
     public void queryMembersInPublishCoupon_search_by_name() throws Exception {
         //given
-        MemberConditionPublishCoupon condition = MemberConditionPublishCoupon.builder()
+        MemberConditionToPublish condition = MemberConditionToPublish.builder()
                 .name("관리자")
                 .build();
 
         //when & then
-        mockMvc.perform(get("/api/members/publicationCoupon")
+        mockMvc.perform(get("/api/members/publication")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(condition)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("_embedded.memberPublishCouponResponseDtoList[0].dogName").value("대표견"))
-                .andExpect(jsonPath("_embedded.memberPublishCouponResponseDtoList[0].email").value(appProperties.getAdminEmail()))
+                .andExpect(jsonPath("_embedded.memberPublishResponseDtoList[0].dogName").value("대표견"))
+                .andExpect(jsonPath("_embedded.memberPublishResponseDtoList[0].email").value(appProperties.getAdminEmail()))
         ;
     }
 
@@ -434,12 +435,12 @@ public class MemberApiControllerTest extends BaseTest {
     @DisplayName("일반 유저가 쿠폰 발행 시 검색한 유저 조회 api 호출하면 forbidden 나오는 테스트")
     public void queryMembersInPublishCoupon_forbidden() throws Exception {
         //given
-        MemberConditionPublishCoupon condition = MemberConditionPublishCoupon.builder()
+        MemberConditionToPublish condition = MemberConditionToPublish.builder()
                 .email(appProperties.getAdminEmail())
                 .build();
 
         //when & then
-        mockMvc.perform(get("/api/members/publicationCoupon")
+        mockMvc.perform(get("/api/members/publication")
                         .header(HttpHeaders.AUTHORIZATION, getUserToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
@@ -453,13 +454,13 @@ public class MemberApiControllerTest extends BaseTest {
     @DisplayName("검색조건이 하나도 없으면 bad request 나오는 테스트")
     public void queryMembersInPublishCoupon_emptyCondition() throws Exception {
         //given
-        MemberConditionPublishCoupon condition = MemberConditionPublishCoupon.builder()
+        MemberConditionToPublish condition = MemberConditionToPublish.builder()
                 .email("")
                 .name("")
                 .build();
 
         //when & then
-        mockMvc.perform(get("/api/members/publicationCoupon")
+        mockMvc.perform(get("/api/members/publication")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)

@@ -1,6 +1,6 @@
 package com.bi.barfdog.validator;
 
-import com.bi.barfdog.api.memberDto.MemberConditionPublishCoupon;
+import com.bi.barfdog.api.memberDto.MemberConditionToPublish;
 import com.bi.barfdog.api.memberDto.MemberSaveRequestDto;
 import com.bi.barfdog.api.memberDto.MemberUpdateRequestDto;
 import com.bi.barfdog.api.memberDto.UpdatePasswordRequestDto;
@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static org.springframework.util.StringUtils.hasText;
@@ -74,7 +75,7 @@ public class MemberValidator {
         }
     }
 
-    public void validateConditionInPublication(MemberConditionPublishCoupon condition, Errors errors) {
+    public void validateConditionInPublication(MemberConditionToPublish condition, Errors errors) {
         if (!hasText(condition.getEmail()) && !hasText(condition.getName())) {
             errors.reject("Both conditions can't be empty ","모든 조건이 빈 값일 수 없습니다.");
         }
@@ -88,5 +89,14 @@ public class MemberValidator {
 
     public void wrongTerm(LocalDate from, LocalDate to, Errors errors) {
         if(from.isAfter(to)) errors.reject("wrong term","잘못된 기간 설정입니다.");
+    }
+
+    public void validateMemberIdList(List<Long> memberIdList, Errors errors) {
+        for (Long id : memberIdList) {
+            Optional<Member> optionalMember = memberRepository.findById(id);
+            if (!optionalMember.isPresent()) {
+                errors.reject("member id doesn't exist","존재하지 않은 member id 입니다.");
+            }
+        }
     }
 }

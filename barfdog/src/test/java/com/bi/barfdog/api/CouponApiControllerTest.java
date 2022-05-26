@@ -1188,9 +1188,10 @@ public class CouponApiControllerTest extends BaseTest {
                 ))
         ;
 
+        List<Member> findMembers = memberRepository.findByGrades(gradeList);
+
         List<MemberCoupon> all = memberCouponRepository.findAll();
-        assertThat(all.size()).isEqualTo(1);
-        assertThat(all.get(0).getMember().getName()).isEqualTo(user.getName());
+        assertThat(all.size()).isEqualTo(findMembers.size());
 
     }
 
@@ -1453,8 +1454,10 @@ public class CouponApiControllerTest extends BaseTest {
                 .andExpect(status().isCreated())
         ;
 
+        List<Member> allMembers = memberRepository.findAll();
+
         List<MemberCoupon> all = memberCouponRepository.findAll();
-        assertThat(all.size()).isEqualTo(3);
+        assertThat(all.size()).isEqualTo(allMembers.size());
 
     }
 

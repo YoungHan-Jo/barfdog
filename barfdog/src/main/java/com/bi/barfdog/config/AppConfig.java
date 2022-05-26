@@ -117,6 +117,8 @@ public class AppConfig {
                 Member manager = makeMember("develope07@binter.co.kr", "관리자계정", appProperties.getAdminPassword(), "01056781234", Gender.FEMALE, Grade.BARF, 100000, true, "ADMIN,USER");
 
                 Member member = makeMember(appProperties.getUserEmail(), "김회원", appProperties.getUserPassword(), "01012341234", Gender.MALE, Grade.BRONZE, 0, false, "USER");
+                makeMember("abc@gmail.com", "박회원", appProperties.getUserPassword(), "01012341111", Gender.MALE, Grade.BRONZE, 0, false, "USER");
+
 
                 makeSetting();
 

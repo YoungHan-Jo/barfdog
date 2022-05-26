@@ -283,6 +283,19 @@ operation::admin_update_event[snippets='curl-request,path-parameters,request-hea
 operation::admin_delete_event[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 
+[[resources-publish-reward-personal]]
+=== 적립금 발급(개인)
+
+`POST` 요청을 사용해서 특정 개인들에게 적립금을 발급할 수 있다.
+
+operation::admin_publish_rewards_personal[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-publish-reward-group]]
+=== 적립금 발급(그룹)
+
+`POST` 요청을 사용해서 선택한 그룹에게 적립금을 발급할 수 있다.
+
+operation::admin_publish_rewards_group[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
 
@@ -658,12 +671,12 @@ operation::query_general_coupons_in_publication[snippets='curl-request,request-h
 
 operation::query_code_coupons_in_publication[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
 
-[[resources-query-members-in-publishCoupon]]
+[[resources-query-members-in-publication]]
 === 개인 쿠폰 발행 시 유저 검색
 
 `GET` 요청을 사용해서 개인 쿠폰 발행할 유저를 검색할 수 있다.
 
-operation::query_members_in_publishCoupon[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+operation::query_members_in_publication[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 [[resources-publish-coupon-personal]]
 === 개인 쿠폰 발행하기

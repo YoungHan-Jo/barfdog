@@ -11,7 +11,7 @@ import javax.validation.constraints.Email;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class MemberConditionPublishCoupon {
+public class MemberConditionToPublish {
 
     @Email
     private String email;

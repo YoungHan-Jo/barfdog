@@ -3,15 +3,13 @@ package com.bi.barfdog.repository;
 import com.bi.barfdog.api.couponDto.Area;
 import com.bi.barfdog.api.couponDto.GroupPublishRequestDto;
 import com.bi.barfdog.api.memberDto.*;
+import com.bi.barfdog.api.rewardDto.PublishToGroupDto;
 import com.bi.barfdog.config.finalVariable.BarfCity;
-import com.bi.barfdog.domain.dog.QDog;
 import com.bi.barfdog.domain.member.Grade;
 import com.bi.barfdog.domain.member.Member;
-import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
-import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,7 +17,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -36,10 +33,10 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<MemberPublishCouponResponseDto> searchMemberDtosInPublication(MemberConditionPublishCoupon condition) {
+    public List<MemberPublishResponseDto> searchMemberDtosInPublication(MemberConditionToPublish condition) {
 
-        List<MemberPublishCouponResponseDto> result = queryFactory
-                .select(Projections.constructor(MemberPublishCouponResponseDto.class,
+        List<MemberPublishResponseDto> result = queryFactory
+                .select(Projections.constructor(MemberPublishResponseDto.class,
                                 member.id,
                                 member.grade,
                                 member.name,
@@ -84,6 +81,33 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
                         birthBetween(requestDto.getBirthYearFrom(),requestDto.getBirthYearTo())
                 )
                 .fetch();
+    }
+
+    @Override
+    public List<Member> findByGrades(List<Grade> gradeList) {
+        return queryFactory
+                .selectFrom(member)
+                .where(member.grade.in(gradeList))
+                .fetch();
+    }
+
+    @Override
+    public List<Long> findMemberIdList(PublishToGroupDto requestDto) {
+        return queryFactory
+                .select(member.id)
+                .from(member)
+                .where(
+                        subscribeEq(requestDto.isSubscribe()),
+                        longUnconnectedEq(requestDto.isLongUnconnected()),
+                        gradeIn(requestDto.getGradeList()),
+                        areaEq(requestDto.getArea()),
+                        birthBetween(requestDto.getBirthYearFrom(),requestDto.getBirthYearTo())
+                )
+                .fetch();
+    }
+
+    private BooleanExpression subscribeEq(PublishToGroupDto requestDto) {
+        return member.subscribe.eq(requestDto.isSubscribe());
     }
 
     @Override

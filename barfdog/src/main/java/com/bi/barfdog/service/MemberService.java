@@ -11,14 +11,11 @@ import com.bi.barfdog.domain.member.Grade;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.repository.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -71,7 +68,7 @@ public class MemberService {
                         .rewardType(RewardType.RECOMMEND)
                         .rewardStatus(RewardStatus.SAVED)
                         .tradeReward(RewardPoint.RECOMMEND)
-                        .content(RewardContent.RECOMMEND)
+                        .name(RewardName.RECOMMEND)
                         .build();
 
                 rewardRepository.save(reward);

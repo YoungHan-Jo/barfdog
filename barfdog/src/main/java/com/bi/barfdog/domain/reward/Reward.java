@@ -21,15 +21,16 @@ public class Reward extends BaseTimeEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
+    private String name;
+
     @Enumerated(EnumType.STRING)
-    private RewardType rewardType; // [EVENT, ORDER, SUBSCRIBE]
+    private RewardType rewardType; // [RECOMMEND, INVITE, REVIEW, EVENT, ORDER, SUBSCRIBE, ADMIN]
 
     @Enumerated(EnumType.STRING)
     private RewardStatus rewardStatus; // [SAVED, USED]
 
     private int tradeReward;
 
-    private String content;
 
 
 }

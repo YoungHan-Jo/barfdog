@@ -16,8 +16,6 @@ import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,7 +24,6 @@ import javax.validation.Valid;
 import java.util.List;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.util.StringUtils.*;
 
 @RequiredArgsConstructor
 @RequestMapping(value = "/api/members", produces = MediaTypes.HAL_JSON_VALUE)
@@ -119,20 +116,20 @@ public class MemberApiController {
         return ResponseEntity.ok(representationModel);
     }
 
-    @GetMapping("/publicationCoupon")
-    public ResponseEntity queryMemberDtosInPublication(@RequestBody @Valid MemberConditionPublishCoupon condition, Errors errors) {
+    @GetMapping("/publication")
+    public ResponseEntity queryMemberDtosInPublication(@RequestBody @Valid MemberConditionToPublish condition, Errors errors) {
         if (errors.hasErrors()) return badRequest(errors);
         memberValidator.validateConditionInPublication(condition, errors);
         if (errors.hasErrors()) return badRequest(errors);
 
-        List<MemberPublishCouponResponseDto> responseDto = memberRepository.searchMemberDtosInPublication(condition);
+        List<MemberPublishResponseDto> responseDto = memberRepository.searchMemberDtosInPublication(condition);
 
-        WebMvcLinkBuilder selfLinkBuilder = linkTo(MemberApiController.class).slash("publicationCoupon");
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(MemberApiController.class).slash("publication");
 
-        CollectionModel<MemberPublishCouponResponseDto> collectionModel = CollectionModel.of(responseDto,
+        CollectionModel<MemberPublishResponseDto> collectionModel = CollectionModel.of(responseDto,
                 selfLinkBuilder.withSelfRel(),
                 linkTo(CouponApiController.class).slash("personal").withRel("publish_coupon_personal"),
-                profileRootUrlBuilder.slash("index.html#resources-query-members-in-publishCoupon").withRel("profile")
+                profileRootUrlBuilder.slash("index.html#resources-query-members-in-publication").withRel("profile")
                 );
 
 

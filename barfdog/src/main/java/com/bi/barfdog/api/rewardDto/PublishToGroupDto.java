@@ -1,16 +1,13 @@
-package com.bi.barfdog.api.couponDto;
+package com.bi.barfdog.api.rewardDto;
 
-import com.bi.barfdog.domain.coupon.CouponType;
+import com.bi.barfdog.api.couponDto.Area;
 import com.bi.barfdog.domain.member.Grade;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +15,14 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class GroupPublishRequestDto {
+public class PublishToGroupDto {
+
+    @NotEmpty
+    private String name;
+
+    @NotNull
+    @PositiveOrZero
+    private int amount;
 
     @NotNull
     private boolean subscribe;
@@ -34,18 +38,13 @@ public class GroupPublishRequestDto {
 
     @NotEmpty
     @Positive
-    private String birthYearFrom;
+    private String birthYearFrom; // 'yyyy'
     @NotEmpty
     @Positive
-    private String birthYearTo;
+    private String birthYearTo; // 'yyyy'
 
-    @NotEmpty
-    private String expiredDate;
-    @NotNull
-    private CouponType couponType;
-    @NotNull
-    private Long couponId;
     @NotNull
     private boolean alimTalk;
+
 
 }
