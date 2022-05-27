@@ -30,20 +30,6 @@ public class ItemApiController {
 
     WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
 
-    @PostMapping
-    public ResponseEntity createProducts(@RequestPart @Valid ItemSaveDto requestDto, Errors errors,
-                                         @RequestPart(required = false) List<MultipartFile> imgFiles,
-                                         @RequestPart(required = false) List<MultipartFile> contentImgFiles) {
-        if(errors.hasErrors()) return badRequest(errors);
-
-        itemService.createItem(requestDto, imgFiles, contentImgFiles);
-
-
-
-
-        return ResponseEntity.created(null).body(null);
-    }
-
 
 
 

@@ -9,9 +9,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.PositiveOrZero;
+import javax.validation.constraints.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -21,7 +20,7 @@ import java.util.List;
 public class ItemSaveDto {
 
     @NotNull
-    private ItemType itemType; // [FRESH, TOPPING, GOODS]
+    private ItemType itemType; // [RAW, TOPPING, GOODS]
 
     @NotEmpty
     private String name;
@@ -45,19 +44,46 @@ public class ItemSaveDto {
     private int remaining;
 
     @NotNull
-    @Valid
-    private List<ItemOptionSaveDto> itemOptionSaveDtoList;
-
-    @NotNull
     private String contents; // 상세내용
     @NotNull
     private boolean deliveryFree; // 배송비 무료 여부
     @NotNull
     private ItemStatus itemStatus; // 상품 노출여부
 
+    @NotNull
+    @Valid
+    @Builder.Default
+    private List<ItemOptionSaveDto> itemOptionSaveDtoList = new ArrayList<>();
+
+
+    @Builder.Default
+    private List<Long> contentImageIdList = new ArrayList<>();
+
+    @Size(min = 1)
+    @NotNull
+    @Valid
+    @Builder.Default
+    private List<ItemImageOrderDto> itemImageOrderDtoList = new ArrayList<>();
+
+
     /*
     *  내부 클래스
     * */
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class ItemImageOrderDto {
+
+        @NotNull
+        private Long id;
+
+        @NotNull
+        @Positive
+        private int leakOrder;
+    }
+
+
     @Data
     @AllArgsConstructor
     @NoArgsConstructor

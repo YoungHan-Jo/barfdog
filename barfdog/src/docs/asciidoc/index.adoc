@@ -297,6 +297,38 @@ operation::admin_publish_rewards_personal[snippets='curl-request,request-headers
 
 operation::admin_publish_rewards_group[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
+[[resources-admin-queryRewards]]
+=== 관리자 - 적립금 내역 리스트 조회(페이징)
+
+`GET` 요청을 사용하여 페이징으로 적립금 내역 리스트를 조회할 수 있다.
+
+operation::admin_query_rewards[snippets='curl-request,request-headers,request-parameters,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+[[resources-upload-imageImage]]
+=== 일반상품 이미지 업로드
+
+`POST` 요청을 사용해서 일반상품 이미지를 업로드 할 수 있다.
+
+operation::upload_itemImage[snippets='curl-request,request-headers,request-body,request-parts,response-headers,response-body,response-fields,links']
+
+
+[[resources-upload-itemContentImage]]
+=== 일반상품 내용 이미지 업로드
+
+`POST` 요청을 사용해서 일반상품 내용 이미지를 업로드 할 수 있다.
+
+operation::upload_itemContentImage[snippets='curl-request,request-headers,request-body,request-parts,response-headers,response-body,response-fields,links']
+
+[[resources-create-item]]
+=== 일반상품 생성
+
+`POST` 요청을 사용해서 일반상품을 생성 할 수 있다.
+
+operation::create_item[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+
 
 
 

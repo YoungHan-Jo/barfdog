@@ -20,8 +20,6 @@ public interface StorageService {
 
     ImgFilenamePath storeItemImg(MultipartFile file);
 
-    ImgFilenamePath storeItemContentImg(MultipartFile file);
-
     ImgFilenamePath storeBlogImg(MultipartFile file);
 
     ImgFilenamePath storeEventImg(MultipartFile file);

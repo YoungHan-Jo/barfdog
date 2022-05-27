@@ -24,8 +24,15 @@ public class ItemImage extends BaseTimeEntity {
     @JoinColumn(name = "item_id")
     private Item item;
 
-    private int leakedOrder;
+    private int leakOrder;
     private String folder;
     private String filename;
 
+    public void setItem(Item item) {
+        this.item = item;
+    }
+
+    public void setOrder(int leakOrder) {
+        this.leakOrder = leakOrder;
+    }
 }

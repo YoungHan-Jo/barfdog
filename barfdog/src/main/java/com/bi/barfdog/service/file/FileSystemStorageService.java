@@ -56,11 +56,6 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    public ImgFilenamePath storeItemContentImg(MultipartFile file) {
-        return getImgFilenamePath(file, "itemContents");
-    }
-
-    @Override
     public ImgFilenamePath storeBlogImg(MultipartFile file) {
         return getImgFilenamePath(file,"blogs");
     }

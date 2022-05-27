@@ -30,7 +30,9 @@ public class Item extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     private DiscountType discountType; // [FIXED_RATE, FLAT_RATE]
+
     private int discountDegree;
+
     private int salePrice; // 판매가
 
     private boolean inStock;
@@ -44,13 +46,5 @@ public class Item extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     private ItemStatus status; // [LEAKED,HIDDEN]
-
-    @OneToMany(mappedBy = "item")
-    private List<ItemImage> itemImageList = new ArrayList<>();
-
-    @OneToMany(mappedBy = "item")
-    private List<ItemContentImage> contentImageList = new ArrayList<>();
-
-
 
 }

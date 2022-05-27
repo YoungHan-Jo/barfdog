@@ -1,5 +1,6 @@
 package com.bi.barfdog.domain.item;
 
+import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.item.Item;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,7 +15,7 @@ import static javax.persistence.FetchType.*;
 @NoArgsConstructor
 @Builder @Getter
 @Entity
-public class ItemContentImage {
+public class ItemContentImage extends BaseTimeEntity {
 
     @Id @GeneratedValue
     @Column(name = "product_content_image_id")
@@ -24,8 +25,10 @@ public class ItemContentImage {
     @JoinColumn(name = "item_id")
     private Item item;
 
-    private int leakedOrder;
     private String folder;
     private String filename;
 
+    public void setItem(Item item) {
+        this.item = item;
+    }
 }

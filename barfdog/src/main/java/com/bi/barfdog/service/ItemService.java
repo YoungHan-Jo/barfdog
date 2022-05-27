@@ -1,5 +1,7 @@
 package com.bi.barfdog.service;
 
+import com.bi.barfdog.api.InfoController;
+import com.bi.barfdog.api.blogDto.UploadedImageAdminDto;
 import com.bi.barfdog.api.itemDto.ItemSaveDto;
 import com.bi.barfdog.domain.banner.ImgFilenamePath;
 import com.bi.barfdog.domain.item.*;
@@ -13,10 +15,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.bi.barfdog.api.itemDto.ItemSaveDto.*;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -31,48 +33,101 @@ public class ItemService {
     private final StorageService storageService;
 
     @Transactional
-    public void createItem(ItemSaveDto requestDto, List<MultipartFile> imgFiles, List<MultipartFile> contentImgFiles) {
+    public UploadedImageAdminDto uploadItemImageFile(MultipartFile file) {
+        ImgFilenamePath path = storageService.storeItemImg(file);
+        UploadedImageAdminDto itemImageDto = saveItemImageAndGetItemImageDto(path);
 
-        Item savedItem = saveItem(requestDto);
-
-        saveItemOptions(requestDto, savedItem);
-
-        saveItemImagesAndFiles(imgFiles, savedItem);
-
-        saveContentImagesAndFiles(contentImgFiles, savedItem);
-
+        return itemImageDto;
     }
 
-    private void saveContentImagesAndFiles(List<MultipartFile> contentImgFiles, Item savedItem) {
-        for (int i = 0; i < contentImgFiles.size(); i++) {
-            MultipartFile file = contentImgFiles.get(i);
-            ImgFilenamePath path = storageService.storeItemContentImg(file);
+    @Transactional
+    public UploadedImageAdminDto uploadItemContentImageFile(MultipartFile file) {
+        ImgFilenamePath path = storageService.storeItemImg(file);
+        UploadedImageAdminDto itemContentImageDto = saveItemContentImageAndGetItemContentImageDto(path);
 
-            ItemContentImage itemContentImage = ItemContentImage.builder()
-                    .item(savedItem)
-                    .leakedOrder(i + 1)
-                    .folder(path.getFolder())
-                    .filename(path.getFilename())
-                    .build();
+        return itemContentImageDto;
+    }
 
-            itemContentImageRepository.save(itemContentImage);
+    @Transactional
+    public void createItem(ItemSaveDto requestDto) {
+        Item item = saveItem(requestDto);
+        saveItemOptions(requestDto, item);
+        setItemToItemImage(requestDto, item);
+        setItemToItemContentImage(requestDto, item);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    private void setItemToItemContentImage(ItemSaveDto requestDto, Item item) {
+        List<Long> contentImageIdList = requestDto.getContentImageIdList();
+        for (Long id : contentImageIdList) {
+            ItemContentImage itemContentImage = itemContentImageRepository.findById(id).get();
+            itemContentImage.setItem(item);
         }
     }
 
-    private void saveItemImagesAndFiles(List<MultipartFile> imgFiles, Item savedItem) {
-        for (int i = 0; i < imgFiles.size(); i++) {
-            MultipartFile file = imgFiles.get(i);
-            ImgFilenamePath path = storageService.storeItemImg(file);
-
-            ItemImage itemImage = ItemImage.builder()
-                    .item(savedItem)
-                    .leakedOrder(i + 1)
-                    .folder(path.getFolder())
-                    .filename(path.getFilename())
-                    .build();
-            itemImageRepository.save(itemImage);
+    private void setItemToItemImage(ItemSaveDto requestDto, Item item) {
+        List<ItemImageOrderDto> itemImageOrderDtoList = requestDto.getItemImageOrderDtoList();
+        for (ItemImageOrderDto itemImageOrderDto : itemImageOrderDtoList) {
+            Long id = itemImageOrderDto.getId();
+            ItemImage itemImage = itemImageRepository.findById(id).get();
+            itemImage.setItem(item);
+            itemImage.setOrder(itemImageOrderDto.getLeakOrder());
         }
     }
+
+
+    private UploadedImageAdminDto saveItemImageAndGetItemImageDto(ImgFilenamePath path) {
+        String filename = path.getFilename();
+
+        ItemImage itemImage = ItemImage.builder()
+                .folder(path.getFolder())
+                .filename(filename)
+                .build();
+
+        ItemImage savedItemImage = itemImageRepository.save(itemImage);
+
+        String url = linkTo(InfoController.class).slash("display").slash("items?filename=" + filename).toString();
+
+        UploadedImageAdminDto itemImageDto = UploadedImageAdminDto.builder()
+                .id(savedItemImage.getId())
+                .url(url)
+                .build();
+        return itemImageDto;
+    }
+
+    private UploadedImageAdminDto saveItemContentImageAndGetItemContentImageDto(ImgFilenamePath path) {
+        String filename = path.getFilename();
+
+        ItemContentImage itemContentImage = ItemContentImage.builder()
+                .folder(path.getFolder())
+                .filename(filename)
+                .build();
+
+        ItemContentImage savedImage = itemContentImageRepository.save(itemContentImage);
+
+        String url = linkTo(InfoController.class).slash("display").slash("items?filename=" + filename).toString();
+
+        UploadedImageAdminDto itemContentImageDto = UploadedImageAdminDto.builder()
+                .id(savedImage.getId())
+                .url(url)
+                .build();
+        return itemContentImageDto;
+    }
+
 
     private void saveItemOptions(ItemSaveDto requestDto, Item savedItem) {
         for (ItemOptionSaveDto dto : requestDto.getItemOptionSaveDtoList()) {
@@ -97,6 +152,7 @@ public class ItemService {
                 .salePrice(requestDto.getSalePrice())
                 .inStock(requestDto.isInStock())
                 .remaining(requestDto.getRemaining())
+                .contents(requestDto.getContents())
                 .deliveryFree(requestDto.isDeliveryFree())
                 .status(requestDto.getItemStatus())
                 .build();
@@ -104,4 +160,6 @@ public class ItemService {
         Item savedItem = itemRepository.save(item);
         return savedItem;
     }
+
+
 }

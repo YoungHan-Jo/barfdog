@@ -45,6 +45,7 @@ import static org.springframework.restdocs.request.RequestDocumentation.requestP
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Transactional
@@ -364,7 +365,7 @@ public class RewardAdminControllerTest extends BaseTest {
     }
 
     @Test
-    @DisplayName("정상적으로 적립금 내역 조회하는 테스트")
+    @DisplayName("정상적으로 해당 이메일 적립금 내역 조회하는 테스트")
     public void queryRewards() throws Exception {
        //given
         String email = appProperties.getUserEmail();
@@ -377,7 +378,7 @@ public class RewardAdminControllerTest extends BaseTest {
         QueryMembersCond requestDto = QueryMembersCond.builder()
                 .email(email)
                 .from(LocalDate.of(2020, 05, 11))
-                .to(LocalDate.of(2022, 05, 26))
+                .to(LocalDate.now().plusDays(1))
                 .build();
 
         //when & then
@@ -385,12 +386,11 @@ public class RewardAdminControllerTest extends BaseTest {
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
-                        .param("page","1")
-                        .param("size","5")
+                        .param("page", "1")
+                        .param("size", "5")
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isOk())
-
                 .andDo(document("admin_query_rewards",
                         links(
                                 linkWithRel("first").description("첫 페이지 링크"),
@@ -412,16 +412,22 @@ public class RewardAdminControllerTest extends BaseTest {
                                 parameterWithName("page").description("페이지 번호 [0번부터 시작 - 0번이 첫 페이지]"),
                                 parameterWithName("size").description("한 페이지 당 조회 개수")
                         ),
+                        requestFields(
+                                fieldWithPath("email").type("String").description("검색할 유저 email"),
+                                fieldWithPath("name").type("String").description("검색할 유저 이름"),
+                                fieldWithPath("from").description("가입날짜 'yyyy-MM-dd' 부터 "),
+                                fieldWithPath("to").description("가입날짜 'yyyy-MM-dd' 까지 ")
+                        ),
                         responseHeaders(
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
                         ),
                         responseFields(
-                                fieldWithPath("_embedded.queryAdminRewardsDtoList[0].id").description(""),
-                                fieldWithPath("_embedded.queryAdminRewardsDtoList[0].createdDate").description(""),
-                                fieldWithPath("_embedded.queryAdminRewardsDtoList[0].name").description(""),
-                                fieldWithPath("_embedded.queryAdminRewardsDtoList[0].amount").description(""),
-                                fieldWithPath("_embedded.queryAdminRewardsDtoList[0].memberName").description(""),
-                                fieldWithPath("_embedded.queryAdminRewardsDtoList[0].email").description(""),
+                                fieldWithPath("_embedded.queryAdminRewardsDtoList[0].id").description("적립금내역 인덱스 id"),
+                                fieldWithPath("_embedded.queryAdminRewardsDtoList[0].createdDate").description("발급 날짜시간"),
+                                fieldWithPath("_embedded.queryAdminRewardsDtoList[0].name").description("적립금 이름"),
+                                fieldWithPath("_embedded.queryAdminRewardsDtoList[0].amount").description("적립금 수량"),
+                                fieldWithPath("_embedded.queryAdminRewardsDtoList[0].memberName").description("유저 이름"),
+                                fieldWithPath("_embedded.queryAdminRewardsDtoList[0].email").description("유저 이메일"),
                                 fieldWithPath("page.size").description("한 페이지 당 개수"),
                                 fieldWithPath("page.totalElements").description("검색 총 결과 수"),
                                 fieldWithPath("page.totalPages").description("총 페이지 수"),
@@ -436,9 +442,182 @@ public class RewardAdminControllerTest extends BaseTest {
                                 fieldWithPath("_links.publish_reward_group.href").description("그룹에게 적립금 발행하는 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
-                ));
+                ))
+        ;
+
+        em.flush();
+        em.clear();
+
+        List<Reward> allRewards = rewardRepository.findAll();
+        assertThat(allRewards.size()).isEqualTo(12);
+
 
     }
+
+    @Test
+    @DisplayName("정상적으로 이름으로 적립금 내역 조회 성공")
+    public void queryRewards_byName() throws Exception {
+        //given
+        String email = appProperties.getUserEmail();
+        Member member = memberRepository.findByEmail(email).get();
+
+        String adminEmail = appProperties.getAdminEmail();
+        Member admin = memberRepository.findByEmail(adminEmail).get();
+
+        IntStream.range(1,7).forEach(i -> {
+            generateReward(member, i);
+            generateReward(admin, i);
+        });
+
+        QueryMembersCond requestDto = QueryMembersCond.builder()
+                .name("김회원")
+                .from(LocalDate.of(2020, 05, 11))
+                .to(LocalDate.now().plusDays(1))
+                .build();
+
+        //when & then
+        mockMvc.perform(get("/api/admin/rewards")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("size","5")
+                        .param("page","1")
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("_embedded.queryAdminRewardsDtoList[0].memberName").value("김회원"))
+                .andExpect(jsonPath("page.totalElements").value(6));
+    }
+
+    @Test
+    @DisplayName("유저정보 없이 적립금 내역 조회 성공")
+    public void queryRewards_noCond() throws Exception {
+        //given
+        String email = appProperties.getUserEmail();
+        Member member = memberRepository.findByEmail(email).get();
+
+        String adminEmail = appProperties.getAdminEmail();
+        Member admin = memberRepository.findByEmail(adminEmail).get();
+
+        IntStream.range(1,7).forEach(i -> {
+            generateReward(member, i);
+            generateReward(admin, i);
+        });
+
+        QueryMembersCond requestDto = QueryMembersCond.builder()
+                .from(LocalDate.of(2020, 05, 11))
+                .to(LocalDate.now().plusDays(1))
+                .build();
+
+        //when & then
+        mockMvc.perform(get("/api/admin/rewards")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("size","5")
+                        .param("page","1")
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("page.totalElements").value(12));
+    }
+
+
+    @Test
+    @DisplayName("적립금 조회 시 페이지 정보 없을 경우 0페이지 20개 조회")
+    public void queryRewards_noPage() throws Exception {
+        //given
+        String email = appProperties.getUserEmail();
+        Member member = memberRepository.findByEmail(email).get();
+
+        IntStream.range(1,25).forEach(i -> {
+            generateReward(member, i);
+        });
+
+        QueryMembersCond requestDto = QueryMembersCond.builder()
+                .email(email)
+                .from(LocalDate.of(2020, 05, 11))
+                .to(LocalDate.now().plusDays(1))
+                .build();
+
+        //when & then
+        mockMvc.perform(get("/api/admin/rewards")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("적립금 내역 조회 시 설정 날자 없음 400")
+    public void queryRewards_noDate_400() throws Exception {
+        //given
+        String email = appProperties.getUserEmail();
+        Member member = memberRepository.findByEmail(email).get();
+
+        IntStream.range(1,7).forEach(i -> {
+            generateReward(member, i);
+        });
+
+        QueryMembersCond requestDto = QueryMembersCond.builder()
+                .to(LocalDate.now().plusDays(1))
+                .build();
+
+        //when & then
+        mockMvc.perform(get("/api/admin/rewards")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("적립금 조회 시 날짜 설정 잘못 되었을 경우 400")
+    public void queryRewards_wrongDate() throws Exception {
+        //given
+        String email = appProperties.getUserEmail();
+        Member member = memberRepository.findByEmail(email).get();
+
+        IntStream.range(1,25).forEach(i -> {
+            generateReward(member, i);
+        });
+
+        QueryMembersCond requestDto = QueryMembersCond.builder()
+                .email(email)
+                .from(LocalDate.of(2020, 05, 11))
+                .to(LocalDate.of(2020, 05, 10))
+                .build();
+
+        //when & then
+        mockMvc.perform(get("/api/admin/rewards")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
     private void generateReward(Member member, int i) {
         Reward reward = Reward.builder()

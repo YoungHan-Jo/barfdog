@@ -52,8 +52,9 @@ public class RewardRepositoryImpl implements RewardRepositoryCustom{
                 .fetch();
 
         Long totalCount = queryFactory
-                .select(member.count())
-                .from(member)
+                .select(reward.count())
+                .from(reward)
+                .join(reward.member, member)
                 .where(
                         nameEq(cond.getName()),
                         emailEq(cond.getEmail()),

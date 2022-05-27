@@ -22,7 +22,6 @@ public class EventValidator {
     private final EventThumbnailRepository eventThumbnailRepository;
     private final EventImageRepository eventImageRepository;
 
-
     public void validateImages(EventSaveDto requestDto, Errors errors) {
         validateThumbnail(requestDto.getThumbnailId(), errors);
 
