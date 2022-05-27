@@ -38,8 +38,7 @@ import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.docu
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.partWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.requestParts;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -553,19 +552,50 @@ public class ItemAdminControllerTest extends BaseTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    @DisplayName("수정할 아이템 하나 조회하는 테스트")
+    public void queryItem() throws Exception {
+       //given
+
+        Item item = generateItem(1);
+
+        IntStream.range(1,4).forEach(i -> {
+            generateOption(item, i);
+        });
 
 
+        //when & then
+        mockMvc.perform(get("/api/admin/items/{id}"));
 
+    }
 
+    private void generateOption(Item item, int i) {
+        ItemOption itemOption = ItemOption.builder()
+                .item(item)
+                .name("옵션" + i)
+                .optionPrice(i * 1000)
+                .remaining(999)
+                .build();
+        itemOptionRepository.save(itemOption);
+    }
 
-
-
-
-
-
-
-
-
+    private Item generateItem(int i) {
+        Item item = Item.builder()
+                .itemType(ItemType.RAW)
+                .name("상품" + i)
+                .description("상품설명" + i)
+                .originalPrice(10000)
+                .discountType(DiscountType.FLAT_RATE)
+                .discountDegree(1000)
+                .salePrice(9000)
+                .inStock(true)
+                .remaining(999)
+                .contents("상세 내용" + i)
+                .deliveryFree(true)
+                .status(ItemStatus.LEAKED)
+                .build();
+        return itemRepository.save(item);
+    }
 
 
     private ItemImage generateItemImage(int i) {
