@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface ItemContentImageRepository extends JpaRepository<ItemContentImage, Long> {
+public interface ItemContentImageRepository extends JpaRepository<ItemContentImage, Long>, ItemContentImageRepositoryCustom {
     List<ItemContentImage> findByItem(Item item);
 }

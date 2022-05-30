@@ -9,7 +9,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.Valid;
-import javax.validation.constraints.*;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +20,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ItemSaveDto {
+public class ItemUpdateDto {
 
     @NotNull
     private ItemType itemType; // [RAW, TOPPING, GOODS]
@@ -50,45 +53,68 @@ public class ItemSaveDto {
     @NotNull
     private ItemStatus itemStatus; // 상품 노출여부
 
+    @Builder.Default
+    private List<Long> addContentImageIdList = new ArrayList<>();
+    @Builder.Default
+    private List<Long> deleteContentImageIdList = new ArrayList<>();
+
+    @Builder.Default
+    private List<Long> deleteOptionIdList = new ArrayList<>();
     @NotNull
     @Valid
     @Builder.Default
     private List<ItemOptionSaveDto> itemOptionSaveDtoList = new ArrayList<>();
-
-
-    @Builder.Default
-    private List<Long> contentImageIdList = new ArrayList<>();
-
-    @Size(min = 1)
     @NotNull
     @Valid
     @Builder.Default
-    private List<ItemImageOrderDto> itemImageOrderDtoList = new ArrayList<>();
+    private List<ItemOptionUpdateDto> itemOptionUpdateDtoList = new ArrayList<>();
 
+    @Builder.Default
+    private List<Long> deleteImageIdList = new ArrayList<>();
+    @Builder.Default
+    private List<Long> addImageIdList = new ArrayList<>();
+    @NotNull
+    @Valid
+    private List<ImageOrderDto> imageOrderDtoList;
 
-    /*
-    *  내부 클래스
-    * */
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
     @Builder
-    public static class ItemImageOrderDto {
-
+    public static class ImageOrderDto {
         @NotNull
         private Long id;
 
         @NotNull
         @Positive
         private int leakOrder;
-    }
 
+    }
 
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
     @Builder
     public static class ItemOptionSaveDto {
+
+        @NotEmpty
+        private String name;
+
+        @PositiveOrZero
+        private int price;
+
+        @PositiveOrZero
+        private int remaining;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class ItemOptionUpdateDto {
+
+        @NotNull
+        private Long id;
 
         @NotEmpty
         private String name;

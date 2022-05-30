@@ -2,12 +2,22 @@ package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.blogDto.UploadedImageAdminDto;
 import com.bi.barfdog.api.itemDto.ItemSaveDto;
+import com.bi.barfdog.api.itemDto.QueryItemAdminDto;
+import com.bi.barfdog.api.itemDto.QueryItemsAdminDto;
+import com.bi.barfdog.api.itemDto.QueryItemsAdminRequestDto;
+import com.bi.barfdog.api.resource.ItemAdminDtoResource;
 import com.bi.barfdog.common.ErrorsResource;
+import com.bi.barfdog.domain.item.Item;
+import com.bi.barfdog.repository.ItemRepository;
 import com.bi.barfdog.service.ItemService;
 import com.bi.barfdog.validator.ItemValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.MediaTypes;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +26,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+
+import java.util.List;
+import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
@@ -27,6 +40,8 @@ public class ItemAdminController {
     private final ItemService itemService;
 
     private final ItemValidator itemValidator;
+
+    private final ItemRepository itemRepository;
 
     private WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
 
@@ -82,6 +97,44 @@ public class ItemAdminController {
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-create-item").withRel("profile"));
 
         return ResponseEntity.created(linkTo(ItemAdminController.class).toUri()).body(representationModel);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity queryItem(@PathVariable Long id) {
+        Optional<Item> optionalItem = itemRepository.findById(id);
+        if (!optionalItem.isPresent()) return notFound();
+
+        QueryItemAdminDto responseDto = itemService.queryItem(id);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(ItemAdminController.class).slash(id);
+
+        EntityModel<QueryItemAdminDto> entityModel = EntityModel.of(responseDto,
+                selfLinkBuilder.withSelfRel(),
+                linkTo(ItemAdminController.class).withRel("query_items"),
+                linkTo(ItemAdminController.class).slash("image").slash("upload").withRel("upload_itemImages"),
+                linkTo(ItemAdminController.class).slash("contentImage").slash("upload").withRel("upload_itemContentImages"),
+                linkTo(ItemAdminController.class).slash(id).withRel("update_item"),
+                profileRootUrlBuilder.slash("index.html#resources-admin-query-item").withRel("profile")
+        );
+
+        return ResponseEntity.ok(entityModel);
+    }
+
+    @GetMapping
+    public ResponseEntity queryItems(Pageable pageable,
+                                     PagedResourcesAssembler<QueryItemsAdminDto> assembler,
+                                     @RequestBody @Valid QueryItemsAdminRequestDto requestDto,
+                                     Errors errors) {
+        if(errors.hasErrors()) return badRequest(errors);
+
+        Page<QueryItemsAdminDto> page = itemRepository.findAdminDtoList(pageable, requestDto.getItemType());
+
+        PagedModel<EntityModel<QueryItemsAdminDto>> entityModels = assembler.toModel(page, e -> new ItemAdminDtoResource(e));
+
+        entityModels.add(linkTo(ItemAdminController.class).withRel("create_item"));
+        entityModels.add(profileRootUrlBuilder.slash("index.html#resources-admin-query-items").withRel("profile"));
+
+        return ResponseEntity.ok(entityModels);
     }
 
 

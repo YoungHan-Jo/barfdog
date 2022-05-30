@@ -13,7 +13,7 @@ public class EventAdminDtoResource extends EntityModel<QueryEventsAdminDto> {
     public EventAdminDtoResource(QueryEventsAdminDto dto, Link... links) {
         super(dto, Arrays.asList(links));
         add(linkTo(EventAdminController.class).slash(dto.getEventsAdminDto().getId()).withRel("query_event"));
-        add(linkTo(EventAdminController.class).withRel("update_event"));
-        add(linkTo(EventAdminController.class).withRel("delete_event"));
+        add(linkTo(EventAdminController.class).slash(dto.getEventsAdminDto().getId()).withRel("update_event"));
+        add(linkTo(EventAdminController.class).slash(dto.getEventsAdminDto().getId()).withRel("delete_event"));
     }
 }

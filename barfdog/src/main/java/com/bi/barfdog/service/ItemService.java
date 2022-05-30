@@ -3,6 +3,9 @@ package com.bi.barfdog.service;
 import com.bi.barfdog.api.InfoController;
 import com.bi.barfdog.api.blogDto.UploadedImageAdminDto;
 import com.bi.barfdog.api.itemDto.ItemSaveDto;
+import com.bi.barfdog.api.itemDto.QueryItemAdminDto;
+import com.bi.barfdog.api.itemDto.QueryItemsAdminDto;
+import com.bi.barfdog.api.itemDto.QueryItemsAdminRequestDto;
 import com.bi.barfdog.domain.banner.ImgFilenamePath;
 import com.bi.barfdog.domain.item.*;
 import com.bi.barfdog.repository.ItemContentImageRepository;
@@ -56,6 +59,20 @@ public class ItemService {
         setItemToItemContentImage(requestDto, item);
     }
 
+    public QueryItemAdminDto queryItem(Long id) {
+
+        QueryItemAdminDto.ItemAdminDto itemAdminDto = itemRepository.findAdminDtoById(id);
+        List<QueryItemAdminDto.ItemOptionAdminDto> itemOptionAdminDtoList = itemOptionRepository.findAdminDtoListByItemId(id);
+        List<QueryItemAdminDto.ItemImageAdminDto> itemImageAdminDtoList = itemImageRepository.findAdminDtoByItemId(id);
+        List<QueryItemAdminDto.ItemContentImageDto> itemContentImageDtoList = itemContentImageRepository.findAdminDtoByItemId(id);
+
+        return QueryItemAdminDto.builder()
+                .itemAdminDto(itemAdminDto)
+                .itemOptionAdminDtoList(itemOptionAdminDtoList)
+                .itemImageAdminDtoList(itemImageAdminDtoList)
+                .itemContentImageDtoList(itemContentImageDtoList)
+                .build();
+    }
 
 
 

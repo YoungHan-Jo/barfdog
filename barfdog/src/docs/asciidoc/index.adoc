@@ -327,6 +327,23 @@ operation::upload_itemContentImage[snippets='curl-request,request-headers,reques
 
 operation::create_item[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
+[[resources-admin-query-item]]
+=== 관리자 - 수정할 상품 하나 조회
+
+`GET` 요청을 사용하여 수정할 상품의 정보를 조회할 수 있다.
+
+operation::admin_query_item[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-admin-query-items]]
+=== 관리자 - 일반상품 리스트 조회(페이징)
+
+`GET` 요청을 사용하여 페이징으로 적립금 내역 리스트를 조회할 수 있다.
+
+operation::admin_query_items[snippets='curl-request,request-headers,request-parameters,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+
+
 
 
 

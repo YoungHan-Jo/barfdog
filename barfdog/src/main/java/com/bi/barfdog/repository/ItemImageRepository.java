@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface ItemImageRepository extends JpaRepository<ItemImage, Long> {
+public interface ItemImageRepository extends JpaRepository<ItemImage, Long>, ItemImageRepositoryCustom {
     List<ItemImage> findByItemOrderByLeakOrderAsc(Item item);
 }

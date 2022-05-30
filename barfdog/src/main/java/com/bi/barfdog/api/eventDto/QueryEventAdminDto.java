@@ -60,6 +60,7 @@ public class QueryEventAdminDto {
         public void changeUrl() {
             this.url = linkTo(InfoController.class).slash("display").slash("events?filename=" + filename).toString();
         }
+
     }
 
 
