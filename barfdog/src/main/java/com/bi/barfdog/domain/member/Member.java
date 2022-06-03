@@ -3,8 +3,8 @@ package com.bi.barfdog.domain.member;
 import com.bi.barfdog.api.memberDto.MemberUpdateRequestDto;
 import com.bi.barfdog.domain.Address;
 import com.bi.barfdog.domain.BaseTimeEntity;
+import com.bi.barfdog.domain.reward.RewardPoint;
 import lombok.*;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -89,9 +89,10 @@ public class Member extends BaseTimeEntity {
     /*
     * 비지니스 로직
     * */
-
     public void setRecommendCode(String recommendCode) {
         this.recommendCode = recommendCode;
+        firstReward.setRecommend(true);
+        reward += RewardPoint.RECOMMEND;
     }
 
     public void chargePoint(int chargedReward) {
@@ -116,10 +117,6 @@ public class Member extends BaseTimeEntity {
         agreement = new Agreement(true, true,
                 requestDto.isReceiveSms(), requestDto.isReceiveEmail(), true);
 
-    }
-
-    public void getFirstRewardRecommend() {
-        firstReward.setRecommend(true);
     }
 
     public void login() {

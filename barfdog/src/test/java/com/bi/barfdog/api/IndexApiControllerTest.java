@@ -134,13 +134,17 @@ public class IndexApiControllerTest extends BaseTest {
                         )
                 ));
 
+        em.flush();
+        em.clear();
+
+        Member targetMember = memberRepository.findByMyRecommendationCode(sampleMember.getMyRecommendationCode()).get();
         Member findMember = memberRepository.findByEmail("verin4494@gmail.com").get();
 
         Reward reward = rewardRepository.findByMember(findMember).get(0);
         assertThat(reward.getRewardType()).isEqualTo(RewardType.RECOMMEND);
         assertThat(reward.getRewardStatus()).isEqualTo(RewardStatus.SAVED);
         assertThat(reward.getTradeReward()).isEqualTo(RewardPoint.RECOMMEND);
-        assertThat(reward.getName()).isEqualTo(RewardName.RECOMMEND);
+        assertThat(reward.getName()).isEqualTo(RewardName.RECOMMEND + " ("+targetMember.getName()+")");
         assertThat(findMember.getFirstReward().isRecommend()).isTrue();
         assertThat(findMember.getReward()).isEqualTo(3000);
         assertThat(findMember.getRecommendCode()).isEqualTo(sampleMember.getMyRecommendationCode());
@@ -188,7 +192,6 @@ public class IndexApiControllerTest extends BaseTest {
         assertThat(reward.getRewardType()).isEqualTo(RewardType.RECOMMEND);
         assertThat(reward.getRewardStatus()).isEqualTo(RewardStatus.SAVED);
         assertThat(reward.getTradeReward()).isEqualTo(RewardPoint.RECOMMEND);
-        assertThat(reward.getName()).isEqualTo(RewardName.RECOMMEND);
         assertThat(findMember.getFirstReward().isRecommend()).isTrue();
 
 

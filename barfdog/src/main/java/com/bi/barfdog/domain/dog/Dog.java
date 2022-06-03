@@ -5,7 +5,6 @@ import com.bi.barfdog.domain.member.Gender;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.subscribe.Subscribe;
-import com.bi.barfdog.domain.surveyReport.FoodAnalysis;
 import com.bi.barfdog.domain.surveyReport.SurveyReport;
 import lombok.*;
 
@@ -76,9 +75,6 @@ public class Dog extends BaseTimeEntity {
     @OneToOne(fetch = LAZY)
     @JoinColumn(name = "survey_report_id")
     private SurveyReport surveyReport;
-
-    @Embedded
-    private DogProfilePicture dogProfilePicture;
 
 
     public void setSurveyReport(SurveyReport surveyReport) {

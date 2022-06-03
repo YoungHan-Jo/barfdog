@@ -1,6 +1,7 @@
 package com.bi.barfdog.validator;
 
 import com.bi.barfdog.api.rewardDto.PublishToGroupDto;
+import com.bi.barfdog.domain.member.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
@@ -16,4 +17,6 @@ public class RewardValidator {
             errors.reject("birthYear is Wrong","생년 범위의 순서가 잘못 되었습니다.");
         }
     }
+
+
 }

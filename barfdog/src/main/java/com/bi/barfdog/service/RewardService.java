@@ -2,13 +2,15 @@ package com.bi.barfdog.service;
 
 import com.bi.barfdog.api.rewardDto.PublishToGroupDto;
 import com.bi.barfdog.api.rewardDto.PublishToPersonalDto;
+import com.bi.barfdog.api.rewardDto.QueryRewardsDto;
+import com.bi.barfdog.api.rewardDto.RecommendFriendDto;
 import com.bi.barfdog.domain.member.Member;
-import com.bi.barfdog.domain.reward.Reward;
-import com.bi.barfdog.domain.reward.RewardStatus;
-import com.bi.barfdog.domain.reward.RewardType;
+import com.bi.barfdog.domain.reward.*;
 import com.bi.barfdog.repository.MemberRepository;
 import com.bi.barfdog.repository.RewardRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +36,21 @@ public class RewardService {
     public void publishToGroup(PublishToGroupDto requestDto) {
         List<Long> memberIdList = memberRepository.findMemberIdList(requestDto);
         saveReward(memberIdList, requestDto.getName(), requestDto.getAmount());
+    }
+
+    @Transactional
+    public void recommendFriend(Member member, RecommendFriendDto requestDto) {
+        Member targetMember = memberRepository.findByMyRecommendationCode(requestDto.getRecommendCode()).get();
+        member.setRecommendCode(requestDto.getRecommendCode());
+        Reward reward = Reward.builder()
+                .member(member)
+                .name(RewardName.RECOMMEND + " (" + targetMember.getName() + ")")
+                .rewardType(RewardType.RECOMMEND)
+                .rewardStatus(RewardStatus.SAVED)
+                .tradeReward(RewardPoint.RECOMMEND)
+                .build();
+        rewardRepository.save(reward);
+
     }
 
 
@@ -63,5 +80,6 @@ public class RewardService {
             rewardRepository.save(reward);
         }
     }
+
 
 }

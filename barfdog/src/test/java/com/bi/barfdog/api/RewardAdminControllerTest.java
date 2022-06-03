@@ -378,7 +378,7 @@ public class RewardAdminControllerTest extends BaseTest {
         QueryMembersCond requestDto = QueryMembersCond.builder()
                 .email(email)
                 .from(LocalDate.of(2020, 05, 11))
-                .to(LocalDate.now().plusDays(1))
+                .to(LocalDate.now())
                 .build();
 
         //when & then
@@ -472,7 +472,7 @@ public class RewardAdminControllerTest extends BaseTest {
         QueryMembersCond requestDto = QueryMembersCond.builder()
                 .name("김회원")
                 .from(LocalDate.of(2020, 05, 11))
-                .to(LocalDate.now().plusDays(1))
+                .to(LocalDate.now())
                 .build();
 
         //when & then
@@ -506,7 +506,7 @@ public class RewardAdminControllerTest extends BaseTest {
 
         QueryMembersCond requestDto = QueryMembersCond.builder()
                 .from(LocalDate.of(2020, 05, 11))
-                .to(LocalDate.now().plusDays(1))
+                .to(LocalDate.now())
                 .build();
 
         //when & then
@@ -537,7 +537,7 @@ public class RewardAdminControllerTest extends BaseTest {
         QueryMembersCond requestDto = QueryMembersCond.builder()
                 .email(email)
                 .from(LocalDate.of(2020, 05, 11))
-                .to(LocalDate.now().plusDays(1))
+                .to(LocalDate.now())
                 .build();
 
         //when & then

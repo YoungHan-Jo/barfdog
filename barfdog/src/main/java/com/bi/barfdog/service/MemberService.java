@@ -59,18 +59,19 @@ public class MemberService {
         if (recommendCode != null) {
             Optional<Member> optionalMember = memberRepository.findByMyRecommendationCode(recommendCode);
             if (optionalMember.isPresent()) {
+
+                Member findMember = optionalMember.get();
+                findMember.chargePoint(RewardPoint.RECOMMEND);
+
                 member.setRecommendCode(recommendCode);
-                member.getFirstRewardRecommend();
-                member.chargePoint(RewardPoint.RECOMMEND);
 
                 Reward reward = Reward.builder()
                         .member(member)
                         .rewardType(RewardType.RECOMMEND)
                         .rewardStatus(RewardStatus.SAVED)
                         .tradeReward(RewardPoint.RECOMMEND)
-                        .name(RewardName.RECOMMEND)
+                        .name(RewardName.RECOMMEND + " ("+findMember.getName()+")")
                         .build();
-
                 rewardRepository.save(reward);
             }
         }
@@ -82,7 +83,6 @@ public class MemberService {
 
 
         return memberRepository.save(member);
-
     }
 
     public DirectSendResponseDto sendPhoneAuth(String phoneNumber) throws IOException {

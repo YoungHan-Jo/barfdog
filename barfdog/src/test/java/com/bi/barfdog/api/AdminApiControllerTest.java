@@ -134,7 +134,6 @@ public class AdminApiControllerTest extends BaseTest {
                                 fieldWithPath("name").type("String").description("검색할 유저 이름"),
                                 fieldWithPath("from").description("가입날짜 'yyyy-MM-dd' 부터 "),
                                 fieldWithPath("to").description("가입날짜 'yyyy-MM-dd' 까지 ")
-
                         ),
                         responseHeaders(
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
@@ -162,6 +161,7 @@ public class AdminApiControllerTest extends BaseTest {
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
+
     }
 
     @Test
@@ -220,7 +220,6 @@ public class AdminApiControllerTest extends BaseTest {
     @DisplayName("기간 설정이 잘못되었을 경우")
     public void queryMembers_wrong_term_400() throws Exception {
         //given
-
         IntStream.range(1,29).forEach(i ->{
             generateMember(i);
         });

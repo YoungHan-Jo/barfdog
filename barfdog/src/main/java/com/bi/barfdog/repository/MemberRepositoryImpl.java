@@ -180,6 +180,26 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
         return Optional.ofNullable(result);
     }
 
+    @Override
+    public int findRewardById(Long id) {
+        return queryFactory
+                .select(member.reward)
+                .from(member)
+                .where(member.id.eq(id))
+                .fetchOne()
+                ;
+    }
+
+    @Override
+    public Long findCountByMyCode(String myRecommendationCode) {
+        return queryFactory
+                .select(member.count())
+                .from(member)
+                .where(member.recommendCode.eq(myRecommendationCode))
+                .fetchOne()
+                ;
+    }
+
     private BooleanExpression createdDateBetween(QueryMembersCond cond) {
         LocalDateTime from = cond.getFrom().atTime(0, 0, 0);
         LocalDateTime to = cond.getTo().atTime(23, 59, 59);

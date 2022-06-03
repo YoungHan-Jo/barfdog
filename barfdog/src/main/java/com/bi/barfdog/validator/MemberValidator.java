@@ -99,4 +99,10 @@ public class MemberValidator {
             }
         }
     }
+
+    public void validateHadRecommended(Member member, Errors errors) {
+        if (member.getFirstReward().isRecommend()) {
+            errors.reject("already have recommended","이미 추천한 적이 있습니다.");
+        }
+    }
 }

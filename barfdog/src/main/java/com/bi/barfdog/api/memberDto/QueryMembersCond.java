@@ -25,6 +25,7 @@ public class QueryMembersCond {
     private LocalDate from;
 
     @NotNull
+    @PastOrPresent
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate to;
 

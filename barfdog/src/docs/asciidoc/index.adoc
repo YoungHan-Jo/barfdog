@@ -776,3 +776,29 @@ operation::query_auto_coupons_modification[snippets='curl-request,request-header
 `PUT` 요청을 사용해서 자동발행 쿠폰을 수정할 수 있다.
 
 operation::update_auto_coupons[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+[[resources-reward-info]]
+== 적립금
+
+마이페이지 적립금 관련 리소스.
+
+[[resources-query-rewards]]
+=== 적립금 내역 조회(페이징)
+
+`GET` 요청을 사용하여 페이징으로 적립금 내역을 검색할 수 있다.
+
+operation::query_rewards[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+
+[[resources-query-rewards-invite]]
+=== 친구초대 적립금 내역 조회(페이징)
+
+`GET` 요청을 사용하여 페이징으로 친구초대 적립금 내역을 검색할 수 있다.
+
+operation::query_rewards_invite[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+
+
+
+

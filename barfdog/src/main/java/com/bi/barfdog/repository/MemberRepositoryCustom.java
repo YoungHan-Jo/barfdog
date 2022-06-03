@@ -25,4 +25,8 @@ public interface MemberRepositoryCustom {
     Page<QueryMembersDto> findDtosByCond(Pageable pageable, QueryMembersCond cond);
 
     Optional<QueryMemberDto> findMemberDto(Long id);
+
+    int findRewardById(Long id);
+
+    Long findCountByMyCode(String myRecommendationCode);
 }
