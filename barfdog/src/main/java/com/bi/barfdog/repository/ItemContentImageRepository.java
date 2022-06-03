@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface ItemContentImageRepository extends JpaRepository<ItemContentImage, Long>, ItemContentImageRepositoryCustom {
     List<ItemContentImage> findByItem(Item item);
+
+    void deleteByItem(Item item);
 }

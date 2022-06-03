@@ -1,6 +1,5 @@
 package com.bi.barfdog.api;
 
-import com.bi.barfdog.api.eventDto.UpdateEventRequestDto;
 import com.bi.barfdog.api.itemDto.ItemSaveDto;
 import com.bi.barfdog.api.itemDto.ItemUpdateDto;
 import com.bi.barfdog.api.itemDto.QueryItemsAdminRequestDto;
@@ -13,7 +12,6 @@ import com.bi.barfdog.repository.ItemContentImageRepository;
 import com.bi.barfdog.repository.ItemImageRepository;
 import com.bi.barfdog.repository.ItemOptionRepository;
 import com.bi.barfdog.repository.ItemRepository;
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,11 +28,11 @@ import javax.persistence.EntityManager;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
@@ -894,25 +892,37 @@ public class ItemAdminControllerTest extends BaseTest {
         });
 
         List<ItemUpdateDto.ImageOrderDto> imageOrderDtoList = new ArrayList<>();
-        ItemUpdateDto.ImageOrderDto imageOrderDto = ItemUpdateDto.ImageOrderDto.builder()
-                .id()
-                .leakOrder()
-                .build();
+        addImageOrderDtoList(imageOrderDtoList, itemImage1.getId(), 1);
+        addImageOrderDtoList(imageOrderDtoList, addImageIdList.get(0), 2);
+        addImageOrderDtoList(imageOrderDtoList, addImageIdList.get(1), 3);
+        addImageOrderDtoList(imageOrderDtoList, addImageIdList.get(2), 4);
 
 
+        String name = "수정한 이름";
+        String description = "수정한 설명";
+        int originalPrice = 20000;
+        String contents = "수정된 내용";
+        ItemStatus status = ItemStatus.HIDDEN;
+        boolean deliveryFree = false;
+        boolean inStock = false;
+        int remaining = 0;
+        DiscountType discountType = DiscountType.FLAT_RATE;
+        ItemType itemType = ItemType.TOPPING;
+        int discountDegree = 1000;
+        int salePrice = 19000;
         ItemUpdateDto requestDto = ItemUpdateDto.builder()
-                .itemType(ItemType.TOPPING)
-                .name("수정한 이름")
-                .description("수정한 설명")
-                .originalPrice(20000)
-                .discountType(DiscountType.FLAT_RATE)
-                .discountDegree(1000)
-                .salePrice(19000)
-                .inStock(false)
-                .remaining(0)
-                .contents("수정된 내용")
-                .deliveryFree(false)
-                .itemStatus(ItemStatus.HIDDEN)
+                .itemType(itemType)
+                .name(name)
+                .description(description)
+                .originalPrice(originalPrice)
+                .discountType(discountType)
+                .discountDegree(discountDegree)
+                .salePrice(salePrice)
+                .inStock(inStock)
+                .remaining(remaining)
+                .contents(contents)
+                .deliveryFree(deliveryFree)
+                .itemStatus(status)
                 .addContentImageIdList(addContentImageIdList)
                 .deleteContentImageIdList(deleteContentImageIdList)
                 .deleteOptionIdList(deleteOptionIdList)
@@ -932,8 +942,741 @@ public class ItemAdminControllerTest extends BaseTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andDo(document("admin_update_item",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_items").description("상품 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt 토큰")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("수정할 상품 인덱스 id")
+                        ),
+                        requestFields(
+                                fieldWithPath("itemType").description("상품 타입 [RAW, TOPPING, GOODS]"),
+                                fieldWithPath("name").description("상품 이름"),
+                                fieldWithPath("description").description("상품 설명"),
+                                fieldWithPath("originalPrice").description("원가"),
+                                fieldWithPath("discountType").description("할인 타입 [FIXED_RATE, FLAT_RATE]"),
+                                fieldWithPath("discountDegree").description("할인 정도"),
+                                fieldWithPath("salePrice").description("할인적용 후 판매 가격"),
+                                fieldWithPath("inStock").description("재고 여부 [true/false]"),
+                                fieldWithPath("remaining").description("재고 수량"),
+                                fieldWithPath("contents").description("상세 내용"),
+                                fieldWithPath("deliveryFree").description("배송비 무료 여부 [true/false]"),
+                                fieldWithPath("itemStatus").description("노출여부 [LEAKED,HIDDEN]"),
+                                fieldWithPath("addContentImageIdList").description("추가할 내용 이미지 인덱스 id 리스트"),
+                                fieldWithPath("deleteContentImageIdList").description("삭제할 내용 이미지 인덱스 id 리스트"),
+                                fieldWithPath("deleteOptionIdList").description("삭제할 상품 옵션 인덱스 id 리스트"),
+                                fieldWithPath("itemOptionSaveDtoList[0].name").description("추가할 옵션의 이름"),
+                                fieldWithPath("itemOptionSaveDtoList[0].price").description("추가할 옵션의 가격"),
+                                fieldWithPath("itemOptionSaveDtoList[0].remaining").description("추가할 옵션의 재고량"),
+                                fieldWithPath("itemOptionUpdateDtoList[0].id").description("수정할 옵션의 인덱스 id"),
+                                fieldWithPath("itemOptionUpdateDtoList[0].name").description("수정할 옵션의 이름"),
+                                fieldWithPath("itemOptionUpdateDtoList[0].price").description("수정할 옵션의 가격"),
+                                fieldWithPath("itemOptionUpdateDtoList[0].remaining").description("수정할 옵션의 재고량"),
+                                fieldWithPath("deleteImageIdList").description("삭제할 상품 이미지 인덱스 id 리스트"),
+                                fieldWithPath("addImageIdList").description("추가할 상품 이미지 인덱스 id 리스트"),
+                                fieldWithPath("imageOrderDtoList[0].id").description("상품 이미지 인덱스 id"),
+                                fieldWithPath("imageOrderDtoList[0].leakOrder").description("상품 이미지 노출 순서")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_items.href").description("상품 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        List<ItemOption> allOptions = itemOptionRepository.findByItem(item);
+        assertThat(allOptions.size()).isEqualTo(5);
+
+        List<ItemImage> allItemImages = itemImageRepository.findByItem(item);
+        assertThat(allItemImages.size()).isEqualTo(4);
+        assertThat(allItemImages.get(0).getLeakOrder()).isEqualTo(1);
+        assertThat(allItemImages.get(1).getLeakOrder()).isEqualTo(2);
+        assertThat(allItemImages.get(2).getLeakOrder()).isEqualTo(3);
+        assertThat(allItemImages.get(3).getLeakOrder()).isEqualTo(4);
+
+        List<ItemContentImage> allItemContentImages = itemContentImageRepository.findByItem(item);
+        assertThat(allItemContentImages.size()).isEqualTo(4);
+
+        Item findItem = itemRepository.findById(item.getId()).get();
+        assertThat(findItem.getName()).isEqualTo(name);
+        assertThat(findItem.getDescription()).isEqualTo(description);
+        assertThat(findItem.getOriginalPrice()).isEqualTo(originalPrice);
+        assertThat(findItem.getContents()).isEqualTo(contents);
+        assertThat(findItem.getStatus()).isEqualTo(status);
+        assertThat(findItem.isDeliveryFree()).isEqualTo(deliveryFree);
+        assertThat(findItem.isInStock()).isEqualTo(inStock);
+        assertThat(findItem.getRemaining()).isEqualTo(remaining);
+        assertThat(findItem.getDiscountType()).isEqualTo(discountType);
+        assertThat(findItem.getItemType()).isEqualTo(itemType);
+        assertThat(findItem.getDiscountDegree()).isEqualTo(discountDegree);
+        assertThat(findItem.getSalePrice()).isEqualTo(salePrice);
+    }
+
+    @Test
+    @DisplayName("옵션 변화 없어도 정상적으로 상품을 수정하는 테스트")
+    public void updateItem_option_unchanged() throws Exception {
+        //given
+        Item item = generateItem(1);
+
+        ItemOption option1 = generateOption(item, 1);
+        ItemOption option2 = generateOption(item, 2);
+
+        ItemImage itemImage1 = generateItemImage(item, 1);
+        ItemImage deleteItemImage1 = generateItemImage(item, 2);
+        ItemImage deleteItemImage2 = generateItemImage(item, 3);
+
+        ItemContentImage itemContentImage1 = generateItemContentImage(item, 1);
+        ItemContentImage deleteItemContentImage1 = generateItemContentImage(item, 2);
+        ItemContentImage deleteItemContentImage2 = generateItemContentImage(item, 3);
+
+        List<Long> addContentImageIdList = new ArrayList<>();
+        IntStream.range(11,14).forEach(i -> {
+            ItemContentImage itemContentImage = generateItemContentImage(i);
+            addContentImageIdList.add(itemContentImage.getId());
+        });
+
+        List<Long> deleteContentImageIdList = new ArrayList<>();
+        deleteContentImageIdList.add(deleteItemContentImage1.getId());
+        deleteContentImageIdList.add(deleteItemContentImage2.getId());
+
+
+        List<Long> deleteImageIdList = new ArrayList<>();
+        deleteImageIdList.add(deleteItemImage1.getId());
+        deleteImageIdList.add(deleteItemImage2.getId());
+
+        List<Long> addImageIdList = new ArrayList<>();
+        IntStream.range(11,14).forEach(i -> {
+            ItemImage itemImage = generateItemImage(i);
+            addImageIdList.add(itemImage.getId());
+        });
+
+        List<ItemUpdateDto.ImageOrderDto> imageOrderDtoList = new ArrayList<>();
+        addImageOrderDtoList(imageOrderDtoList, itemImage1.getId(), 1);
+        addImageOrderDtoList(imageOrderDtoList, addImageIdList.get(0), 2);
+        addImageOrderDtoList(imageOrderDtoList, addImageIdList.get(1), 3);
+        addImageOrderDtoList(imageOrderDtoList, addImageIdList.get(2), 4);
+
+
+        String name = "수정한 이름";
+        String description = "수정한 설명";
+        int originalPrice = 20000;
+        String contents = "수정된 내용";
+        ItemStatus status = ItemStatus.HIDDEN;
+        boolean deliveryFree = false;
+        boolean inStock = false;
+        int remaining = 0;
+        DiscountType discountType = DiscountType.FLAT_RATE;
+        ItemType itemType = ItemType.TOPPING;
+        int discountDegree = 1000;
+        int salePrice = 19000;
+        ItemUpdateDto requestDto = ItemUpdateDto.builder()
+                .itemType(itemType)
+                .name(name)
+                .description(description)
+                .originalPrice(originalPrice)
+                .discountType(discountType)
+                .discountDegree(discountDegree)
+                .salePrice(salePrice)
+                .inStock(inStock)
+                .remaining(remaining)
+                .contents(contents)
+                .deliveryFree(deliveryFree)
+                .itemStatus(status)
+                .addContentImageIdList(addContentImageIdList)
+                .deleteContentImageIdList(deleteContentImageIdList)
+                .deleteImageIdList(deleteImageIdList)
+                .addImageIdList(addImageIdList)
+                .imageOrderDtoList(imageOrderDtoList)
+                .build();
+
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/admin/items/{id}", item.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
         ;
 
+        em.flush();
+        em.clear();
+
+        List<ItemOption> allOptions = itemOptionRepository.findByItem(item);
+        assertThat(allOptions.size()).isEqualTo(2);
+
+        List<ItemImage> allItemImages = itemImageRepository.findByItem(item);
+        assertThat(allItemImages.size()).isEqualTo(4);
+        assertThat(allItemImages.get(0).getLeakOrder()).isEqualTo(1);
+        assertThat(allItemImages.get(1).getLeakOrder()).isEqualTo(2);
+        assertThat(allItemImages.get(2).getLeakOrder()).isEqualTo(3);
+        assertThat(allItemImages.get(3).getLeakOrder()).isEqualTo(4);
+
+        List<ItemContentImage> allItemContentImages = itemContentImageRepository.findByItem(item);
+        assertThat(allItemContentImages.size()).isEqualTo(4);
+
+    }
+
+    @Test
+    @DisplayName("이미지 변화 없어도 정상적으로 상품을 수정하는 테스트")
+    public void updateItem_image_unchanged() throws Exception {
+        //given
+        Item item = generateItem(1);
+
+        ItemOption option1 = generateOption(item, 1);
+        ItemOption option2 = generateOption(item, 2);
+
+        ItemImage itemImage1 = generateItemImage(item, 1);
+
+        ItemContentImage itemContentImage1 = generateItemContentImage(item, 1);
+        ItemContentImage deleteItemContentImage1 = generateItemContentImage(item, 2);
+        ItemContentImage deleteItemContentImage2 = generateItemContentImage(item, 3);
+
+        List<Long> addContentImageIdList = new ArrayList<>();
+        IntStream.range(11,14).forEach(i -> {
+            ItemContentImage itemContentImage = generateItemContentImage(i);
+            addContentImageIdList.add(itemContentImage.getId());
+        });
+
+        List<Long> deleteContentImageIdList = new ArrayList<>();
+        deleteContentImageIdList.add(deleteItemContentImage1.getId());
+        deleteContentImageIdList.add(deleteItemContentImage2.getId());
+
+        List<ItemUpdateDto.ImageOrderDto> imageOrderDtoList = new ArrayList<>();
+        addImageOrderDtoList(imageOrderDtoList, itemImage1.getId(), 1);
+
+
+        String name = "수정한 이름";
+        String description = "수정한 설명";
+        int originalPrice = 20000;
+        String contents = "수정된 내용";
+        ItemStatus status = ItemStatus.HIDDEN;
+        boolean deliveryFree = false;
+        boolean inStock = false;
+        int remaining = 0;
+        DiscountType discountType = DiscountType.FLAT_RATE;
+        ItemType itemType = ItemType.TOPPING;
+        int discountDegree = 1000;
+        int salePrice = 19000;
+        ItemUpdateDto requestDto = ItemUpdateDto.builder()
+                .itemType(itemType)
+                .name(name)
+                .description(description)
+                .originalPrice(originalPrice)
+                .discountType(discountType)
+                .discountDegree(discountDegree)
+                .salePrice(salePrice)
+                .inStock(inStock)
+                .remaining(remaining)
+                .contents(contents)
+                .deliveryFree(deliveryFree)
+                .itemStatus(status)
+                .addContentImageIdList(addContentImageIdList)
+                .deleteContentImageIdList(deleteContentImageIdList)
+                .imageOrderDtoList(imageOrderDtoList)
+                .build();
+
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/admin/items/{id}", item.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+        ;
+
+        em.flush();
+        em.clear();
+
+        List<ItemOption> allOptions = itemOptionRepository.findByItem(item);
+        assertThat(allOptions.size()).isEqualTo(2);
+
+        List<ItemImage> allItemImages = itemImageRepository.findByItem(item);
+        assertThat(allItemImages.size()).isEqualTo(1);
+        assertThat(allItemImages.get(0).getLeakOrder()).isEqualTo(1);
+
+        List<ItemContentImage> allItemContentImages = itemContentImageRepository.findByItem(item);
+        assertThat(allItemContentImages.size()).isEqualTo(4);
+
+    }
+
+    @Test
+    @DisplayName("내용 이미지 추가만 있어도 정상적으로 상품을 수정하는 테스트")
+    public void updateItem_content_image_AddOnly() throws Exception {
+        //given
+        Item item = generateItem(1);
+
+        ItemOption option1 = generateOption(item, 1);
+        ItemOption option2 = generateOption(item, 2);
+
+        ItemImage itemImage1 = generateItemImage(item, 1);
+
+        ItemContentImage itemContentImage1 = generateItemContentImage(item, 1);
+
+        List<Long> addContentImageIdList = new ArrayList<>();
+        IntStream.range(11,14).forEach(i -> {
+            ItemContentImage itemContentImage = generateItemContentImage(i);
+            addContentImageIdList.add(itemContentImage.getId());
+        });
+
+        List<ItemUpdateDto.ImageOrderDto> imageOrderDtoList = new ArrayList<>();
+        addImageOrderDtoList(imageOrderDtoList, itemImage1.getId(), 1);
+
+
+        String name = "수정한 이름";
+        String description = "수정한 설명";
+        int originalPrice = 20000;
+        String contents = "수정된 내용";
+        ItemStatus status = ItemStatus.HIDDEN;
+        boolean deliveryFree = false;
+        boolean inStock = false;
+        int remaining = 0;
+        DiscountType discountType = DiscountType.FLAT_RATE;
+        ItemType itemType = ItemType.TOPPING;
+        int discountDegree = 1000;
+        int salePrice = 19000;
+        ItemUpdateDto requestDto = ItemUpdateDto.builder()
+                .itemType(itemType)
+                .name(name)
+                .description(description)
+                .originalPrice(originalPrice)
+                .discountType(discountType)
+                .discountDegree(discountDegree)
+                .salePrice(salePrice)
+                .inStock(inStock)
+                .remaining(remaining)
+                .contents(contents)
+                .deliveryFree(deliveryFree)
+                .itemStatus(status)
+                .addContentImageIdList(addContentImageIdList)
+                .imageOrderDtoList(imageOrderDtoList)
+                .build();
+
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/admin/items/{id}", item.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+        ;
+
+        em.flush();
+        em.clear();
+
+        List<ItemOption> allOptions = itemOptionRepository.findByItem(item);
+        assertThat(allOptions.size()).isEqualTo(2);
+
+        List<ItemImage> allItemImages = itemImageRepository.findByItem(item);
+        assertThat(allItemImages.size()).isEqualTo(1);
+        assertThat(allItemImages.get(0).getLeakOrder()).isEqualTo(1);
+
+        List<ItemContentImage> allItemContentImages = itemContentImageRepository.findByItem(item);
+        assertThat(allItemContentImages.size()).isEqualTo(4);
+
+    }
+
+    @Test
+    @DisplayName("내용 이미지 변화 없어도 정상적으로 상품을 수정하는 테스트")
+    public void updateItem_content_image_unchanged() throws Exception {
+        //given
+        Item item = generateItem(1);
+
+        ItemOption option1 = generateOption(item, 1);
+        ItemOption option2 = generateOption(item, 2);
+
+        ItemImage itemImage1 = generateItemImage(item, 1);
+
+        ItemContentImage itemContentImage1 = generateItemContentImage(item, 1);
+
+        List<ItemUpdateDto.ImageOrderDto> imageOrderDtoList = new ArrayList<>();
+        addImageOrderDtoList(imageOrderDtoList, itemImage1.getId(), 1);
+
+        String name = "수정한 이름";
+        String description = "수정한 설명";
+        int originalPrice = 20000;
+        String contents = "수정된 내용";
+        ItemStatus status = ItemStatus.HIDDEN;
+        boolean deliveryFree = false;
+        boolean inStock = false;
+        int remaining = 0;
+        DiscountType discountType = DiscountType.FLAT_RATE;
+        ItemType itemType = ItemType.TOPPING;
+        int discountDegree = 1000;
+        int salePrice = 19000;
+        ItemUpdateDto requestDto = ItemUpdateDto.builder()
+                .itemType(itemType)
+                .name(name)
+                .description(description)
+                .originalPrice(originalPrice)
+                .discountType(discountType)
+                .discountDegree(discountDegree)
+                .salePrice(salePrice)
+                .inStock(inStock)
+                .remaining(remaining)
+                .contents(contents)
+                .deliveryFree(deliveryFree)
+                .itemStatus(status)
+                .imageOrderDtoList(imageOrderDtoList)
+                .build();
+
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/admin/items/{id}", item.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+        ;
+
+        em.flush();
+        em.clear();
+
+        List<ItemOption> allOptions = itemOptionRepository.findByItem(item);
+        assertThat(allOptions.size()).isEqualTo(2);
+
+        List<ItemImage> allItemImages = itemImageRepository.findByItem(item);
+        assertThat(allItemImages.size()).isEqualTo(1);
+        assertThat(allItemImages.get(0).getLeakOrder()).isEqualTo(1);
+
+        List<ItemContentImage> allItemContentImages = itemContentImageRepository.findByItem(item);
+        assertThat(allItemContentImages.size()).isEqualTo(1);
+
+    }
+
+    @Test
+    @DisplayName("상품 수정 시 값 부족할 경우 400")
+    public void updateItem_bad_request() throws Exception {
+        //given
+        Item item = generateItem(1);
+
+        ItemOption option1 = generateOption(item, 1);
+        ItemOption option2 = generateOption(item, 2);
+
+        ItemImage itemImage1 = generateItemImage(item, 1);
+
+        ItemContentImage itemContentImage1 = generateItemContentImage(item, 1);
+
+        String name = "수정한 이름";
+        String description = "수정한 설명";
+        int originalPrice = 20000;
+        String contents = "수정된 내용";
+        ItemStatus status = ItemStatus.HIDDEN;
+        boolean deliveryFree = false;
+        boolean inStock = false;
+        int remaining = 0;
+        DiscountType discountType = DiscountType.FLAT_RATE;
+        ItemType itemType = ItemType.TOPPING;
+        int discountDegree = 1000;
+        int salePrice = 19000;
+        ItemUpdateDto requestDto = ItemUpdateDto.builder()
+                .itemType(itemType)
+                .name(name)
+                .discountType(discountType)
+                .discountDegree(discountDegree)
+                .salePrice(salePrice)
+                .inStock(inStock)
+                .remaining(remaining)
+                .contents(contents)
+                .deliveryFree(deliveryFree)
+                .itemStatus(status)
+                .build();
+
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/admin/items/{id}", item.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+        ;
+    }
+
+    @Test
+    @DisplayName("상품 수정 시 이미지 파일 순서 정보 없을 시 400")
+    public void updateItem_no_imageLeakOrder_400() throws Exception {
+        //given
+        Item item = generateItem(1);
+
+        ItemOption option1 = generateOption(item, 1);
+        ItemOption option2 = generateOption(item, 2);
+
+        ItemImage itemImage1 = generateItemImage(item, 1);
+
+        ItemContentImage itemContentImage1 = generateItemContentImage(item, 1);
+
+
+        String name = "수정한 이름";
+        String description = "수정한 설명";
+        int originalPrice = 20000;
+        String contents = "수정된 내용";
+        ItemStatus status = ItemStatus.HIDDEN;
+        boolean deliveryFree = false;
+        boolean inStock = false;
+        int remaining = 0;
+        DiscountType discountType = DiscountType.FLAT_RATE;
+        ItemType itemType = ItemType.TOPPING;
+        int discountDegree = 1000;
+        int salePrice = 19000;
+        ItemUpdateDto requestDto = ItemUpdateDto.builder()
+                .itemType(itemType)
+                .name(name)
+                .description(description)
+                .originalPrice(originalPrice)
+                .discountType(discountType)
+                .discountDegree(discountDegree)
+                .salePrice(salePrice)
+                .inStock(inStock)
+                .remaining(remaining)
+                .contents(contents)
+                .deliveryFree(deliveryFree)
+                .itemStatus(status)
+                .build();
+
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/admin/items/{id}", item.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+    }
+
+
+    @Test
+    @DisplayName("수정할 상품이 존재하지 않을 경우 404 에러")
+    public void updateItem_notFound() throws Exception {
+        //given
+        Item item = generateItem(1);
+
+        ItemOption option1 = generateOption(item, 1);
+        ItemOption option2 = generateOption(item, 2);
+        ItemOption deleteOption1 = generateOption(item, 3);
+        ItemOption deleteOption2 = generateOption(item, 4);
+
+        ItemImage itemImage1 = generateItemImage(item, 1);
+        ItemImage deleteItemImage1 = generateItemImage(item, 2);
+        ItemImage deleteItemImage2 = generateItemImage(item, 3);
+
+        ItemContentImage itemContentImage1 = generateItemContentImage(item, 1);
+        ItemContentImage deleteItemContentImage1 = generateItemContentImage(item, 2);
+        ItemContentImage deleteItemContentImage2 = generateItemContentImage(item, 3);
+
+        List<Long> addContentImageIdList = new ArrayList<>();
+        IntStream.range(11,14).forEach(i -> {
+            ItemContentImage itemContentImage = generateItemContentImage(i);
+            addContentImageIdList.add(itemContentImage.getId());
+        });
+
+        List<Long> deleteContentImageIdList = new ArrayList<>();
+        deleteContentImageIdList.add(deleteItemContentImage1.getId());
+        deleteContentImageIdList.add(deleteItemContentImage2.getId());
+
+        List<Long> deleteOptionIdList = new ArrayList<>();
+        deleteOptionIdList.add(deleteOption1.getId());
+        deleteOptionIdList.add(deleteOption2.getId());
+
+        List<ItemUpdateDto.ItemOptionSaveDto> itemOptionSaveDtoList = new ArrayList<>();
+
+        IntStream.range(11,14).forEach(i -> {
+            ItemUpdateDto.ItemOptionSaveDto itemOptionSaveDto = generateOption(i);
+            itemOptionSaveDtoList.add(itemOptionSaveDto);
+        });
+
+        List<ItemUpdateDto.ItemOptionUpdateDto> itemOptionUpdateDtoList = new ArrayList<>();
+        addOptionUpdateDtoInList(option1, itemOptionUpdateDtoList);
+        addOptionUpdateDtoInList(option2, itemOptionUpdateDtoList);
+
+        List<Long> deleteImageIdList = new ArrayList<>();
+        deleteImageIdList.add(deleteItemImage1.getId());
+        deleteImageIdList.add(deleteItemImage2.getId());
+
+        List<Long> addImageIdList = new ArrayList<>();
+        IntStream.range(11,14).forEach(i -> {
+            ItemImage itemImage = generateItemImage(i);
+            addImageIdList.add(itemImage.getId());
+        });
+
+        List<ItemUpdateDto.ImageOrderDto> imageOrderDtoList = new ArrayList<>();
+        addImageOrderDtoList(imageOrderDtoList, itemImage1.getId(), 1);
+        addImageOrderDtoList(imageOrderDtoList, addImageIdList.get(0), 2);
+        addImageOrderDtoList(imageOrderDtoList, addImageIdList.get(1), 3);
+        addImageOrderDtoList(imageOrderDtoList, addImageIdList.get(2), 4);
+
+
+        String name = "수정한 이름";
+        String description = "수정한 설명";
+        int originalPrice = 20000;
+        String contents = "수정된 내용";
+        ItemStatus status = ItemStatus.HIDDEN;
+        boolean deliveryFree = false;
+        boolean inStock = false;
+        int remaining = 0;
+        DiscountType discountType = DiscountType.FLAT_RATE;
+        ItemType itemType = ItemType.TOPPING;
+        int discountDegree = 1000;
+        int salePrice = 19000;
+        ItemUpdateDto requestDto = ItemUpdateDto.builder()
+                .itemType(itemType)
+                .name(name)
+                .description(description)
+                .originalPrice(originalPrice)
+                .discountType(discountType)
+                .discountDegree(discountDegree)
+                .salePrice(salePrice)
+                .inStock(inStock)
+                .remaining(remaining)
+                .contents(contents)
+                .deliveryFree(deliveryFree)
+                .itemStatus(status)
+                .addContentImageIdList(addContentImageIdList)
+                .deleteContentImageIdList(deleteContentImageIdList)
+                .deleteOptionIdList(deleteOptionIdList)
+                .itemOptionSaveDtoList(itemOptionSaveDtoList)
+                .itemOptionUpdateDtoList(itemOptionUpdateDtoList)
+                .deleteImageIdList(deleteImageIdList)
+                .addImageIdList(addImageIdList)
+                .imageOrderDtoList(imageOrderDtoList)
+                .build();
+
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/admin/items/999999")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+
+    }
+
+
+
+    @Test
+    @DisplayName("정상적으로 상품 삭제하는 테스트")
+    public void deleteItem() throws Exception {
+       //given
+        Item item = generateItem(1);
+
+        IntStream.range(1,5).forEach(i -> {
+            generateOption(item, i);
+            generateItemImage(item, i);
+            generateItemContentImage(item, i);
+        });
+
+       //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.delete("/api/admin/items/{id}", item.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("admin_delete_item",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_items").description("상품 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt 토큰")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("삭제할 상품 인덱스 id")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_items.href").description("상품 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        Optional<Item> optionalItem = itemRepository.findById(item.getId());
+        assertThat(optionalItem.isPresent()).isFalse();
+
+        List<ItemOption> allOptions = itemOptionRepository.findByItem(item);
+        assertThat(allOptions.size()).isEqualTo(0);
+        List<ItemImage> allImages = itemImageRepository.findByItem(item);
+        assertThat(allImages.size()).isEqualTo(0);
+        List<ItemContentImage> allContentImages = itemContentImageRepository.findByItem(item);
+        assertThat(allContentImages.size()).isEqualTo(0);
+
+    }
+
+    @Test
+    @DisplayName("삭제할 상품이 없을 경우 404")
+    public void deleteItem_404() throws Exception {
+        //given
+        Item item = generateItem(1);
+
+        IntStream.range(1,5).forEach(i -> {
+            generateOption(item, i);
+            generateItemImage(item, i);
+            generateItemContentImage(item, i);
+        });
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.delete("/api/admin/items/999999")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    private void addImageOrderDtoList(List<ItemUpdateDto.ImageOrderDto> imageOrderDtoList, long id, int leakOrder) {
+        ItemUpdateDto.ImageOrderDto imageOrderDto = ItemUpdateDto.ImageOrderDto.builder()
+                .id(id)
+                .leakOrder(leakOrder)
+                .build();
+        imageOrderDtoList.add(imageOrderDto);
     }
 
     private void addOptionUpdateDtoInList(ItemOption itemOption, List<ItemUpdateDto.ItemOptionUpdateDto> itemOptionUpdateDtoList) {

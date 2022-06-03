@@ -1,10 +1,7 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.blogDto.UploadedImageAdminDto;
-import com.bi.barfdog.api.itemDto.ItemSaveDto;
-import com.bi.barfdog.api.itemDto.QueryItemAdminDto;
-import com.bi.barfdog.api.itemDto.QueryItemsAdminDto;
-import com.bi.barfdog.api.itemDto.QueryItemsAdminRequestDto;
+import com.bi.barfdog.api.itemDto.*;
 import com.bi.barfdog.api.resource.ItemAdminDtoResource;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.item.Item;
@@ -135,6 +132,43 @@ public class ItemAdminController {
         entityModels.add(profileRootUrlBuilder.slash("index.html#resources-admin-query-items").withRel("profile"));
 
         return ResponseEntity.ok(entityModels);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity updateItem(@PathVariable Long id,
+                                     @RequestBody @Valid ItemUpdateDto requestDto,
+                                     Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+        Optional<Item> optionalItem = itemRepository.findById(id);
+        if (!optionalItem.isPresent()) return notFound();
+
+        itemService.updateItem(id, requestDto);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(ItemAdminController.class).slash(id);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(ItemAdminController.class).withRel("query_items"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-item").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity deleteItem(@PathVariable Long id) {
+        Optional<Item> optionalItem = itemRepository.findById(id);
+        if(!optionalItem.isPresent()) return notFound();
+
+        itemService.deleteItem(id);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(ItemAdminController.class).slash(id);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(ItemAdminController.class).withRel("query_items"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-delete-item").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
     }
 
 

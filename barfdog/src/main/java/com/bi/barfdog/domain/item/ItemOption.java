@@ -1,5 +1,6 @@
 package com.bi.barfdog.domain.item;
 
+import com.bi.barfdog.api.itemDto.ItemUpdateDto;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,4 +31,9 @@ public class ItemOption extends BaseTimeEntity {
 
     private int remaining;
 
+    public void update(ItemUpdateDto.ItemOptionUpdateDto dto) {
+        name = dto.getName();
+        optionPrice = dto.getPrice();
+        remaining = dto.getRemaining();
+    }
 }

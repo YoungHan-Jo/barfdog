@@ -22,17 +22,38 @@ public class ItemValidator {
 
     public void validateImage(ItemSaveDto requestDto, Errors errors) {
         List<Long> contentImageIdList = requestDto.getContentImageIdList();
-        for (Long id : contentImageIdList) {
+        validateItemContentImageIdList(contentImageIdList, errors);
+
+        List<ItemSaveDto.ItemImageOrderDto> itemImageOrderDtoList = requestDto.getItemImageOrderDtoList();
+        for (ItemSaveDto.ItemImageOrderDto itemImageOrderDto : itemImageOrderDtoList) {
+            Optional<ItemImage> optionalItemImage = itemImageRepository.findById(itemImageOrderDto.getId());
+            if (!optionalItemImage.isPresent()) {
+                errors.reject("itemImage doesn't exist","존재하지 않는 상품 이미지 id 입니다.");
+            }
+        }
+    }
+
+    public void validateImageIdList(List<Long> addImageIdList, Errors errors) {
+        validateItemImageIdList(addImageIdList, errors);
+    }
+
+    public void validateImageIdList(List<Long> deleteImageIdList, Long itemId, Errors errors) {
+        validateItemImageIdList(deleteImageIdList, errors);
+    }
+
+    private void validateItemContentImageIdList(List<Long> addImageIdList, Errors errors) {
+        for (Long id : addImageIdList) {
             Optional<ItemContentImage> optionalItemContentImage = itemContentImageRepository.findById(id);
             if (!optionalItemContentImage.isPresent()) {
                 errors.reject("itemContentImage doesn't exist","존재하지 않는 상품 내용 이미지 id 입니다.");
 
             }
         }
+    }
 
-        List<ItemSaveDto.ItemImageOrderDto> itemImageOrderDtoList = requestDto.getItemImageOrderDtoList();
-        for (ItemSaveDto.ItemImageOrderDto itemImageOrderDto : itemImageOrderDtoList) {
-            Optional<ItemImage> optionalItemImage = itemImageRepository.findById(itemImageOrderDto.getId());
+    private void validateItemImageIdList(List<Long> deleteImageIdList, Errors errors) {
+        for (Long id : deleteImageIdList) {
+            Optional<ItemImage> optionalItemImage = itemImageRepository.findById(id);
             if (!optionalItemImage.isPresent()) {
                 errors.reject("itemImage doesn't exist","존재하지 않는 상품 이미지 id 입니다.");
             }

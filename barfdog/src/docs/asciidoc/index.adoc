@@ -341,6 +341,20 @@ operation::admin_query_item[snippets='curl-request,path-parameters,request-heade
 
 operation::admin_query_items[snippets='curl-request,request-headers,request-parameters,request-body,request-fields,response-headers,response-body,response-fields,links']
 
+[[resources-update-item]]
+=== 관리자 - 상품 수정
+
+`PUT` 요청을 사용하여 상품의 정보를 수정할 수 있다.
+
+operation::admin_update_item[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-delete-item]]
+=== 관리자 - 상품 삭제
+
+`DELETE` 요청을 사용하여 상품을 삭제할 수 있다.
+
+operation::admin_delete_item[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
 
 
 

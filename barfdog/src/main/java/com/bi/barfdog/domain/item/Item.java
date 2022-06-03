@@ -1,5 +1,6 @@
 package com.bi.barfdog.domain.item;
 
+import com.bi.barfdog.api.itemDto.ItemUpdateDto;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.coupon.DiscountType;
 import lombok.*;
@@ -47,4 +48,18 @@ public class Item extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private ItemStatus status; // [LEAKED,HIDDEN]
 
+    public void update(ItemUpdateDto requestDto) {
+        itemType = requestDto.getItemType();
+        name = requestDto.getName();
+        description = requestDto.getDescription();
+        originalPrice = requestDto.getOriginalPrice();
+        discountType = requestDto.getDiscountType();
+        discountDegree = requestDto.getDiscountDegree();
+        salePrice = requestDto.getSalePrice();
+        inStock = requestDto.isInStock();
+        remaining = requestDto.getRemaining();
+        contents = requestDto.getContents();
+        deliveryFree = requestDto.isDeliveryFree();
+        status = requestDto.getItemStatus();
+    }
 }
