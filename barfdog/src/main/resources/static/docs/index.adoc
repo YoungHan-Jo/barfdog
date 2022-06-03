@@ -283,6 +283,82 @@ operation::admin_update_event[snippets='curl-request,path-parameters,request-hea
 operation::admin_delete_event[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 
+[[resources-publish-reward-personal]]
+=== 적립금 발급(개인)
+
+`POST` 요청을 사용해서 특정 개인들에게 적립금을 발급할 수 있다.
+
+operation::admin_publish_rewards_personal[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-publish-reward-group]]
+=== 적립금 발급(그룹)
+
+`POST` 요청을 사용해서 선택한 그룹에게 적립금을 발급할 수 있다.
+
+operation::admin_publish_rewards_group[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-admin-queryRewards]]
+=== 관리자 - 적립금 내역 리스트 조회(페이징)
+
+`GET` 요청을 사용하여 페이징으로 적립금 내역 리스트를 조회할 수 있다.
+
+operation::admin_query_rewards[snippets='curl-request,request-headers,request-parameters,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+[[resources-upload-imageImage]]
+=== 일반상품 이미지 업로드
+
+`POST` 요청을 사용해서 일반상품 이미지를 업로드 할 수 있다.
+
+operation::upload_itemImage[snippets='curl-request,request-headers,request-body,request-parts,response-headers,response-body,response-fields,links']
+
+
+[[resources-upload-itemContentImage]]
+=== 일반상품 내용 이미지 업로드
+
+`POST` 요청을 사용해서 일반상품 내용 이미지를 업로드 할 수 있다.
+
+operation::upload_itemContentImage[snippets='curl-request,request-headers,request-body,request-parts,response-headers,response-body,response-fields,links']
+
+[[resources-create-item]]
+=== 일반상품 생성
+
+`POST` 요청을 사용해서 일반상품을 생성 할 수 있다.
+
+operation::create_item[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-admin-query-item]]
+=== 관리자 - 수정할 상품 하나 조회
+
+`GET` 요청을 사용하여 수정할 상품의 정보를 조회할 수 있다.
+
+operation::admin_query_item[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-admin-query-items]]
+=== 관리자 - 일반상품 리스트 조회(페이징)
+
+`GET` 요청을 사용하여 페이징으로 적립금 내역 리스트를 조회할 수 있다.
+
+operation::admin_query_items[snippets='curl-request,request-headers,request-parameters,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-update-item]]
+=== 관리자 - 상품 수정
+
+`PUT` 요청을 사용하여 상품의 정보를 수정할 수 있다.
+
+operation::admin_update_item[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-delete-item]]
+=== 관리자 - 상품 삭제
+
+`DELETE` 요청을 사용하여 상품을 삭제할 수 있다.
+
+operation::admin_delete_item[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+
+
+
+
 
 
 
@@ -658,12 +734,12 @@ operation::query_general_coupons_in_publication[snippets='curl-request,request-h
 
 operation::query_code_coupons_in_publication[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
 
-[[resources-query-members-in-publishCoupon]]
+[[resources-query-members-in-publication]]
 === 개인 쿠폰 발행 시 유저 검색
 
 `GET` 요청을 사용해서 개인 쿠폰 발행할 유저를 검색할 수 있다.
 
-operation::query_members_in_publishCoupon[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+operation::query_members_in_publication[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 [[resources-publish-coupon-personal]]
 === 개인 쿠폰 발행하기
@@ -700,3 +776,29 @@ operation::query_auto_coupons_modification[snippets='curl-request,request-header
 `PUT` 요청을 사용해서 자동발행 쿠폰을 수정할 수 있다.
 
 operation::update_auto_coupons[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+[[resources-reward-info]]
+== 적립금
+
+마이페이지 적립금 관련 리소스.
+
+[[resources-query-rewards]]
+=== 적립금 내역 조회(페이징)
+
+`GET` 요청을 사용하여 페이징으로 적립금 내역을 검색할 수 있다.
+
+operation::query_rewards[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+
+[[resources-query-rewards-invite]]
+=== 친구초대 적립금 내역 조회(페이징)
+
+`GET` 요청을 사용하여 페이징으로 친구초대 적립금 내역을 검색할 수 있다.
+
+operation::query_rewards_invite[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+
+
+
+
