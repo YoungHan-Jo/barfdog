@@ -4,6 +4,7 @@ import com.bi.barfdog.api.InfoController;
 import com.bi.barfdog.api.blogDto.UploadedImageAdminDto;
 import com.bi.barfdog.api.eventDto.EventSaveDto;
 import com.bi.barfdog.api.eventDto.QueryEventAdminDto;
+import com.bi.barfdog.api.eventDto.QueryEventDto;
 import com.bi.barfdog.api.eventDto.UpdateEventRequestDto;
 import com.bi.barfdog.domain.banner.ImgFilenamePath;
 import com.bi.barfdog.domain.event.Event;
@@ -189,5 +190,9 @@ public class EventService {
     }
 
 
+    public QueryEventDto queryEvent(Long id) {
+        Event event = eventRepository.findById(id).get();
 
+        return null;
+    }
 }

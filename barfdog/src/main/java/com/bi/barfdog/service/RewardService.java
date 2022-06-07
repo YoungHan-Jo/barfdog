@@ -2,20 +2,15 @@ package com.bi.barfdog.service;
 
 import com.bi.barfdog.api.rewardDto.PublishToGroupDto;
 import com.bi.barfdog.api.rewardDto.PublishToPersonalDto;
-import com.bi.barfdog.api.rewardDto.QueryRewardsDto;
 import com.bi.barfdog.api.rewardDto.RecommendFriendDto;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.reward.*;
 import com.bi.barfdog.repository.MemberRepository;
 import com.bi.barfdog.repository.RewardRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -29,19 +24,24 @@ public class RewardService {
     @Transactional
     public void publishToPersonal(PublishToPersonalDto requestDto) {
         List<Long> memberIdList = requestDto.getMemberIdList();
-        saveReward(memberIdList, requestDto.getName(), requestDto.getAmount());
+        saveRewards(memberIdList, requestDto.getName(), requestDto.getAmount());
     }
 
     @Transactional
     public void publishToGroup(PublishToGroupDto requestDto) {
         List<Long> memberIdList = memberRepository.findMemberIdList(requestDto);
-        saveReward(memberIdList, requestDto.getName(), requestDto.getAmount());
+        saveRewards(memberIdList, requestDto.getName(), requestDto.getAmount());
     }
 
     @Transactional
     public void recommendFriend(Member member, RecommendFriendDto requestDto) {
         Member targetMember = memberRepository.findByMyRecommendationCode(requestDto.getRecommendCode()).get();
         member.setRecommendCode(requestDto.getRecommendCode());
+        saveReward(member, targetMember);
+
+    }
+
+    private void saveReward(Member member, Member targetMember) {
         Reward reward = Reward.builder()
                 .member(member)
                 .name(RewardName.RECOMMEND + " (" + targetMember.getName() + ")")
@@ -50,24 +50,9 @@ public class RewardService {
                 .tradeReward(RewardPoint.RECOMMEND)
                 .build();
         rewardRepository.save(reward);
-
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    private void saveReward(List<Long> memberIdList, String name, int amount) {
+    private void saveRewards(List<Long> memberIdList, String name, int amount) {
         for (Long id : memberIdList) {
             Member member = memberRepository.findById(id).get();
             Reward reward = Reward.builder()

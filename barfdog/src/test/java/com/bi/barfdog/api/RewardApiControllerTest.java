@@ -1,5 +1,6 @@
 package com.bi.barfdog.api;
 
+import com.bi.barfdog.api.rewardDto.RecommendFriendDto;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.common.BaseTest;
@@ -12,6 +13,7 @@ import com.bi.barfdog.domain.reward.RewardType;
 import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.MemberRepository;
 import com.bi.barfdog.repository.RewardRepository;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,8 +25,10 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import java.util.List;
 import java.util.stream.IntStream;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
@@ -34,8 +38,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -158,7 +161,7 @@ public class RewardApiControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
                         ),
                         responseFields(
-                                fieldWithPath("recommend").description("추천코드 [없으면 null]"),
+                                fieldWithPath("recommend").description("과거에 추천한 추천코드 [추천한 적 없으면 : null]"),
                                 fieldWithPath("joinedCount").description("가입한 친구 수"),
                                 fieldWithPath("orderedCount").description("주문한 친구 수"),
                                 fieldWithPath("totalRewards").description("총 적립 포인트"),
@@ -184,13 +187,123 @@ public class RewardApiControllerTest extends BaseTest {
     }
 
 
+    @Test
+    @DisplayName("정상적으로 친구 추천하는 테스트")
+    public void recommendFriend() throws Exception {
+       //given
+        Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        assertThat(user.getRecommendCode()).isNull();
+
+        Member targetMember = generateMember(1, null);
+
+        RecommendFriendDto requestDto = RecommendFriendDto.builder()
+                .recommendCode(targetMember.getMyRecommendationCode())
+                .build();
+
+        //when & then
+        mockMvc.perform(put("/api/rewards/recommend")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("query_rewards_recommend",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_rewards_invite").description("친구 추천코드 입력 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt 토큰")
+                        ),
+                        requestFields(
+                                fieldWithPath("recommendCode").description("추천할 친구의 추천코드")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("친구 추천코드 입력 링크"),
+                                fieldWithPath("_links.query_rewards_invite.href").description("친구 초대 리스트 화면 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ))
+        ;
+
+        em.flush();
+        em.clear();
+
+        Member findMember = memberRepository.findById(user.getId()).get();
+
+        assertThat(findMember.getReward()).isEqualTo(RewardPoint.RECOMMEND);
+
+        List<Reward> rewards = rewardRepository.findByMember(findMember);
+        assertThat(rewards.get(0).getRewardStatus()).isEqualTo(RewardStatus.SAVED);
+        assertThat(rewards.get(0).getTradeReward()).isEqualTo(RewardPoint.RECOMMEND);
+        assertThat(rewards.get(0).getRewardType()).isEqualTo(RewardType.RECOMMEND);
+
+    }
+
+    @Test
+    @DisplayName("추천할 친구 코드가 존재하지않는 경우")
+    public void recommendFriend_wrong_code_404() throws Exception {
+        //given
+        Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        assertThat(user.getRecommendCode()).isNull();
+
+        RecommendFriendDto requestDto = RecommendFriendDto.builder()
+                .recommendCode("wrongRecommendCode")
+                .build();
+
+        //when & then
+        mockMvc.perform(put("/api/rewards/recommend")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+        ;
+    }
+
+    @Test
+    @DisplayName("이미 추천한 적이 있을 경우 bad request")
+    public void recommendFriend_had_recommended_400() throws Exception {
+        //given
+        Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member recommendedMember = generateMember(2, null);
+        user.setRecommendCode(recommendedMember.getMyRecommendationCode());
+
+        Member targetMember = generateMember(1, null);
+
+        RecommendFriendDto requestDto = RecommendFriendDto.builder()
+                .recommendCode(targetMember.getMyRecommendationCode())
+                .build();
+
+        //when & then
+        mockMvc.perform(put("/api/rewards/recommend")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+        ;
+
+    }
 
 
 
 
 
 
-    private void generateMember(int i, String recommendCode) {
+
+
+    private Member generateMember(int i, String recommendCode) {
         Member member = Member.builder()
                 .email("email@gmail.com" + i)
                 .name("일반 회원" + i)
@@ -209,7 +322,7 @@ public class RewardApiControllerTest extends BaseTest {
                 .roles("USER")
                 .build();
 
-        memberRepository.save(member);
+        return memberRepository.save(member);
     }
 
 
@@ -238,10 +351,10 @@ public class RewardApiControllerTest extends BaseTest {
         return getBearerToken(appProperties.getUserEmail(), appProperties.getUserPassword());
     }
 
-    private String getBearerToken(String appProperties, String appProperties1) throws Exception {
+    private String getBearerToken(String email, String password) throws Exception {
         JwtLoginDto requestDto = JwtLoginDto.builder()
-                .email(appProperties)
-                .password(appProperties1)
+                .email(email)
+                .password(password)
                 .build();
 
         //when & then

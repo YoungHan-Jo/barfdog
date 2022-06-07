@@ -20,6 +20,7 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
+import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
@@ -86,8 +87,14 @@ public class RewardApiController {
 
         rewardService.recommendFriend(member, requestDto);
 
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(RewardApiController.class).slash("recommend");
 
-        return ResponseEntity.ok(null);
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(RewardApiController.class).slash("invite").withRel("query_rewards_invite"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-recommend-friend").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
     }
 
 

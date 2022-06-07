@@ -2,7 +2,9 @@ package com.bi.barfdog.repository;
 
 import com.bi.barfdog.api.InfoController;
 import com.bi.barfdog.api.eventDto.QueryEventAdminDto;
+import com.bi.barfdog.api.eventDto.QueryEventDto;
 import com.bi.barfdog.api.eventDto.QueryEventsAdminDto;
+import com.bi.barfdog.domain.event.QEventImage;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,7 @@ import java.util.List;
 
 import static com.bi.barfdog.api.eventDto.QueryEventsAdminDto.*;
 import static com.bi.barfdog.domain.event.QEvent.*;
+import static com.bi.barfdog.domain.event.QEventImage.*;
 import static com.bi.barfdog.domain.event.QEventThumbnail.*;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
@@ -69,6 +72,39 @@ public class EventRepositoryImpl implements EventRepositoryCustom{
                 .fetchOne();
     }
 
+    @Override
+    public QueryEventDto findEventDto(Long id) {
+        QueryEventDto.EventDto eventDto = queryFactory
+                .select(Projections.constructor(QueryEventDto.EventDto.class,
+                        event.id,
+                        event.title,
+                        event.createdDate
+                        ))
+                .from(event)
+                .where(event.id.eq(id))
+                .fetchOne();
+
+        List<String> filenames = queryFactory
+                .select(eventImage.filename)
+                .from(eventImage)
+                .where(eventImage.event.id.eq(id))
+                .orderBy(eventImage.leakOrder.asc())
+                .fetch();
+
+        List<String> imageUrlList = new ArrayList<>();
+
+        for (String filename : filenames) {
+            String url = linkTo(InfoController.class).slash("display/events?filename=" + filename).toString();
+            imageUrlList.add(url);
+        }
+
+        QueryEventDto result = QueryEventDto.builder()
+                .eventDto(eventDto)
+                .imageUrlList(imageUrlList)
+                .build();
+        return result;
+    }
+
 
     private List<QueryEventsAdminDto> getQueryEventsAdminDtos(List<EventsAdminDto> eventsAdminDtoList) {
         List<QueryEventsAdminDto> result = new ArrayList<>();
@@ -77,7 +113,7 @@ public class EventRepositoryImpl implements EventRepositoryCustom{
 
             String filename = eventThumbnailRepository.findFilenameByEventId(eventsAdminDto.getId());
 
-            String url = linkTo(InfoController.class).slash("events").slash("blogs?filename=" + filename).toString();
+            String url = linkTo(InfoController.class).slash("display/events?filename=" + filename).toString();
 
             QueryEventsAdminDto queryEventsAdminDto = builder()
                     .eventsAdminDto(eventsAdminDto)

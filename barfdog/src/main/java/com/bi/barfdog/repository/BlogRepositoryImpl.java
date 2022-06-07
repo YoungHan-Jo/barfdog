@@ -5,6 +5,7 @@ import com.bi.barfdog.api.blogDto.BlogAdminDto;
 import com.bi.barfdog.api.blogDto.BlogTitlesDto;
 import com.bi.barfdog.api.blogDto.NoticeAdminDto;
 import com.bi.barfdog.api.blogDto.QueryBlogsAdminDto;
+import com.bi.barfdog.api.noticeDto.QueryNoticesDto;
 import com.bi.barfdog.domain.blog.Blog;
 import com.bi.barfdog.domain.blog.BlogCategory;
 import com.bi.barfdog.domain.blog.BlogStatus;
@@ -93,6 +94,34 @@ public class BlogRepositoryImpl implements BlogRepositoryCustom{
                 .where(blog.id.eq(id))
                 .fetchOne()
                 ;
+    }
+
+    @Override
+    public Page<QueryNoticesDto> findNoticeDtos(Pageable pageable) {
+        List<QueryNoticesDto> result = queryFactory
+                .select(Projections.constructor(QueryNoticesDto.class,
+                        blog.id,
+                        blog.title,
+                        blog.createdDate
+                ))
+                .from(blog)
+                .where(EqLeakedNotice())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .orderBy(blog.createdDate.desc())
+                .fetch();
+
+        Long totalCount = queryFactory
+                .select(blog.count())
+                .from(blog)
+                .where(EqLeakedNotice())
+                .fetchOne();
+
+        return new PageImpl<>(result, pageable, totalCount);
+    }
+
+    private BooleanExpression EqLeakedNotice() {
+        return categoryEqNotice().and(blog.status.eq(BlogStatus.LEAKED));
     }
 
     @Override
