@@ -30,6 +30,9 @@ public class BlogSaveDto {
     @NotEmpty
     private String contents;
 
+    @NotNull
+    private Long blogThumbnailId;
+
     @Builder.Default
     private List<Long> blogImageIdList = new ArrayList<>();
 

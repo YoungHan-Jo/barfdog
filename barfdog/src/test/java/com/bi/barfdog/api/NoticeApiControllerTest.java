@@ -28,8 +28,7 @@ import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.li
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
-import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
-import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
+import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -117,16 +116,125 @@ public class NoticeApiControllerTest extends BaseTest {
     public void queryNotice() throws Exception {
        //given
 
-        Blog notice = generateNoticeLeaked(1);
+        Blog notice1 = generateNoticeLeaked(1);
+        Blog notice2 = generateNoticeLeaked(2);
+        Blog notice3 = generateNoticeLeaked(3);
 
         //when & then
-        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/notices/{id}", notice.getId())
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/notices/{id}", notice2.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andDo(document("query_notice",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_notices").description("공지사항 리스트 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt 토큰")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("공지사항 인덱스 id")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("noticeDto.id").description("현재 공지사항 인덱스 id"),
+                                fieldWithPath("noticeDto.title").description("현재 공지사항 제목"),
+                                fieldWithPath("noticeDto.createdDate").description("현재 공지사항 등록 날짜"),
+                                fieldWithPath("noticeDto.contents").description("현재 공지사항 내용"),
+                                fieldWithPath("previous.id").description("이전 글 id"),
+                                fieldWithPath("previous.title").description("이전 글 제목"),
+                                fieldWithPath("previous._link").description("이전 글 링크"),
+                                fieldWithPath("next.id").description("다음 글 id"),
+                                fieldWithPath("next.title").description("다음 글 제목"),
+                                fieldWithPath("next._link").description("다음 글 링크"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_notices.href").description("공지사항 리스트 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+    }
+
+    @Test
+    @DisplayName("공지사항 하나 조회 시 이전글 없을 경우 이전글 null")
+    public void queryNotice_empty_Previous() throws Exception {
+        //given
+
+        Blog notice1 = generateNoticeLeaked(1);
+        Blog notice2 = generateNoticeLeaked(2);
+        Blog notice3 = generateNoticeLeaked(3);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/notices/{id}", notice3.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("previous").isEmpty())
         ;
 
+    }
+
+    @Test
+    @DisplayName("공지사항 하나 조회 시 다음글 없을 경우 다음글 null")
+    public void queryNotice_empty_next() throws Exception {
+        //given
+
+        Blog notice1 = generateNoticeLeaked(1);
+        Blog notice2 = generateNoticeLeaked(2);
+        Blog notice3 = generateNoticeLeaked(3);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/notices/{id}", notice1.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("next").isEmpty())
+        ;
+
+    }
+
+    @Test
+    @DisplayName("공지사항 하나 조회 시 이전글 다음글 모두 없을 경우 이전글 다음글 null")
+    public void queryNotice_empty_nextPrev() throws Exception {
+        //given
+
+        Blog notice1 = generateNoticeLeaked(1);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/notices/{id}", notice1.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("next").isEmpty())
+                .andExpect(jsonPath("previous").isEmpty())
+        ;
+    }
+
+    @Test
+    @DisplayName("공지사항 하나 조회 시 이전글 다음글 모두 없을 경우 이전글 다음글 null")
+    public void queryNotice_notFound() throws Exception {
+        //given
+
+        Blog notice1 = generateNoticeLeaked(1);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/notices/999999")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+        ;
     }
 
 

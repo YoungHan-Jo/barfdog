@@ -1,14 +1,17 @@
 package com.bi.barfdog.repository;
 
 
+import com.bi.barfdog.api.NoticeApiController;
 import com.bi.barfdog.api.blogDto.BlogAdminDto;
 import com.bi.barfdog.api.blogDto.BlogTitlesDto;
 import com.bi.barfdog.api.blogDto.NoticeAdminDto;
 import com.bi.barfdog.api.blogDto.QueryBlogsAdminDto;
+import com.bi.barfdog.api.noticeDto.QueryNoticePageDto;
 import com.bi.barfdog.api.noticeDto.QueryNoticesDto;
 import com.bi.barfdog.domain.blog.Blog;
 import com.bi.barfdog.domain.blog.BlogCategory;
 import com.bi.barfdog.domain.blog.BlogStatus;
+import com.bi.barfdog.domain.blog.QBlogThumbnail;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -21,6 +24,8 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 import static com.bi.barfdog.domain.blog.QBlog.*;
+import static com.bi.barfdog.domain.blog.QBlogThumbnail.*;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
 @RequiredArgsConstructor
 @Repository
@@ -68,17 +73,25 @@ public class BlogRepositoryImpl implements BlogRepositoryCustom{
 
     @Override
     public BlogAdminDto findAdminDtoById(Long id) {
-        return queryFactory
+        BlogAdminDto result = queryFactory
                 .select(Projections.constructor(BlogAdminDto.class,
                         blog.id,
                         blog.status,
                         blog.title,
                         blog.category,
+                        blogThumbnail.id,
+                        blogThumbnail.filename,
+                        blogThumbnail.filename,
                         blog.contents
                 ))
                 .from(blog)
+                .join(blog.blogThumbnail, blogThumbnail)
                 .where(blog.id.eq(id))
                 .fetchOne();
+
+        result.changeUrl();
+
+        return result;
     }
 
     @Override
@@ -105,7 +118,7 @@ public class BlogRepositoryImpl implements BlogRepositoryCustom{
                         blog.createdDate
                 ))
                 .from(blog)
-                .where(EqLeakedNotice())
+                .where(eqLeakedNotice())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .orderBy(blog.createdDate.desc())
@@ -114,13 +127,79 @@ public class BlogRepositoryImpl implements BlogRepositoryCustom{
         Long totalCount = queryFactory
                 .select(blog.count())
                 .from(blog)
-                .where(EqLeakedNotice())
+                .where(eqLeakedNotice())
                 .fetchOne();
 
         return new PageImpl<>(result, pageable, totalCount);
     }
 
-    private BooleanExpression EqLeakedNotice() {
+    @Override
+    public QueryNoticePageDto findNoticePageDtoById(Long id) {
+
+        QueryNoticePageDto.NoticeDto noticeDto = queryFactory.select(Projections.constructor(QueryNoticePageDto.NoticeDto.class,
+                        blog.id,
+                        blog.title,
+                        blog.createdDate,
+                        blog.contents
+                ))
+                .from(blog)
+                .where(blog.id.eq(id))
+                .fetchOne();
+        List<Blog> notices = queryFactory
+                .select(blog)
+                .from(blog)
+                .where(eqLeakedNotice())
+                .orderBy(blog.createdDate.desc())
+                .fetch();
+
+        QueryNoticePageDto.AnotherNotice previous = null;
+        QueryNoticePageDto.AnotherNotice next = null;
+
+        for (int i = 0; i < notices.size(); ++i) {
+            Blog notice = notices.get(i);
+            if (notice.getId() == id) {
+                previous = getPrevious(notices, previous, i);
+                next = getNext(notices, next, i);
+                break;
+            }
+        }
+
+        QueryNoticePageDto result = QueryNoticePageDto.builder()
+                .noticeDto(noticeDto)
+                .previous(previous)
+                .next(next)
+                .build();
+
+        return result;
+    }
+
+    private QueryNoticePageDto.AnotherNotice getNext(List<Blog> notices, QueryNoticePageDto.AnotherNotice next, int i) {
+        if (i + 1 < notices.size()) {
+            Blog nextNotice = notices.get(i + 1);
+            Long nextId = nextNotice.getId();
+            next = QueryNoticePageDto.AnotherNotice.builder()
+                    .id(nextId)
+                    .title(nextNotice.getTitle())
+                    ._link(linkTo(NoticeApiController.class).slash(nextId).toString())
+                    .build();
+        }
+        return next;
+    }
+
+    private QueryNoticePageDto.AnotherNotice getPrevious(List<Blog> notices, QueryNoticePageDto.AnotherNotice previous, int i) {
+        if (i - 1 >= 0) {
+            Blog previousNotice = notices.get(i - 1);
+            Long prevId = previousNotice.getId();
+            previous = QueryNoticePageDto.AnotherNotice.builder()
+                    .id(prevId)
+                    .title(previousNotice.getTitle())
+                    ._link(linkTo(NoticeApiController.class).slash(prevId).toString())
+                    .build();
+        }
+        return previous;
+    }
+
+    private BooleanExpression eqLeakedNotice() {
         return categoryEqNotice().and(blog.status.eq(BlogStatus.LEAKED));
     }
 

@@ -27,6 +27,9 @@ public class UpdateBlogRequestDto {
     @NotEmpty
     private String contents; // 상세내용
 
+    @NotNull
+    private Long thumbnailId;
+
     @Builder.Default
     private List<Long> addImageIdList = new ArrayList<>();
     @Builder.Default

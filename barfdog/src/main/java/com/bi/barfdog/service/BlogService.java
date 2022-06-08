@@ -3,13 +3,11 @@ package com.bi.barfdog.service;
 import com.bi.barfdog.api.InfoController;
 import com.bi.barfdog.api.blogDto.*;
 import com.bi.barfdog.domain.banner.ImgFilenamePath;
-import com.bi.barfdog.domain.blog.Article;
-import com.bi.barfdog.domain.blog.Blog;
-import com.bi.barfdog.domain.blog.BlogCategory;
-import com.bi.barfdog.domain.blog.BlogImage;
+import com.bi.barfdog.domain.blog.*;
 import com.bi.barfdog.repository.ArticleRepository;
 import com.bi.barfdog.repository.BlogImageRepository;
 import com.bi.barfdog.repository.BlogRepository;
+import com.bi.barfdog.repository.BlogThumbnailRepository;
 import com.bi.barfdog.service.file.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,11 +26,25 @@ public class BlogService {
     private final StorageService storageService;
 
     private final BlogRepository blogRepository;
+    private final BlogThumbnailRepository blogThumbnailRepository;
     private final BlogImageRepository blogImageRepository;
     private final ArticleRepository articleRepository;
 
+
+
     @Transactional
-    public UploadedImageAdminDto uploadFile(MultipartFile file) {
+    public UploadedImageAdminDto uploadThumbnail(MultipartFile file) {
+
+        ImgFilenamePath path = storageService.storeBlogImg(file);
+
+        UploadedImageAdminDto blogImageDto = saveBlogThumbnailAndGetBlogImageDto(path);
+
+        return blogImageDto;
+    }
+
+
+    @Transactional
+    public UploadedImageAdminDto uploadImage(MultipartFile file) {
 
         ImgFilenamePath path = storageService.storeBlogImg(file);
 
@@ -102,7 +114,8 @@ public class BlogService {
     public void updateBlog(Long id, UpdateBlogRequestDto requestDto) {
         Blog blog = blogRepository.findById(id).get();
 
-        blog.update(requestDto);
+        BlogThumbnail blogThumbnail = blogThumbnailRepository.findById(requestDto.getThumbnailId()).get();
+        blog.update(requestDto, blogThumbnail);
 
         setBlogToBlogImages(requestDto.getAddImageIdList(), blog);
 
@@ -166,6 +179,23 @@ public class BlogService {
         return blogImageDto;
     }
 
+    private UploadedImageAdminDto saveBlogThumbnailAndGetBlogImageDto(ImgFilenamePath path) {
+        String filename = path.getFilename();
+
+        BlogThumbnail blogThumbnail = BlogThumbnail.builder()
+                .folder(path.getFolder())
+                .filename(filename)
+                .build();
+        BlogThumbnail savedThumbnail = blogThumbnailRepository.save(blogThumbnail);
+
+        String url = linkTo(InfoController.class).slash("display").slash("blogs?filename=" + filename).toString();
+
+        UploadedImageAdminDto blogImageDto = UploadedImageAdminDto.builder()
+                .id(savedThumbnail.getId())
+                .url(url)
+                .build();
+        return blogImageDto;
+    }
 
 
 
@@ -185,12 +215,16 @@ public class BlogService {
     }
 
     private Blog saveBlogAndReturn(BlogSaveDto requestDto) {
+        BlogThumbnail blogThumbnail = blogThumbnailRepository.findById(requestDto.getBlogThumbnailId()).get();
+
         Blog blog = Blog.builder()
                 .status(requestDto.getStatus())
                 .title(requestDto.getTitle())
                 .category(requestDto.getCategory())
                 .contents(requestDto.getContents())
+                .blogThumbnail(blogThumbnail)
                 .build();
+
 
         Blog savedBlog = blogRepository.save(blog);
         return savedBlog;

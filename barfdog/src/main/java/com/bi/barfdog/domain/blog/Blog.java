@@ -12,6 +12,8 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static javax.persistence.FetchType.*;
+
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -34,12 +36,16 @@ public class Blog extends BaseTimeEntity {
     @Column(columnDefinition = "TEXT")
     private String contents; // 상세내용
 
+    @OneToOne(fetch = LAZY)
+    @JoinColumn(name = "blog_thumbnail_id")
+    private BlogThumbnail blogThumbnail;
 
-    public void update(UpdateBlogRequestDto requestDto) {
+    public void update(UpdateBlogRequestDto requestDto, BlogThumbnail blogThumbnail) {
         this.status = requestDto.getStatus();
         this.title = requestDto.getTitle();
         this.category = requestDto.getCategory();
         this.contents = requestDto.getContents();
+        this.blogThumbnail = blogThumbnail;
     }
 
     public void update(UpdateNoticeRequestDto requestDto) {

@@ -4,6 +4,7 @@ import com.bi.barfdog.api.blogDto.BlogAdminDto;
 import com.bi.barfdog.api.blogDto.BlogTitlesDto;
 import com.bi.barfdog.api.blogDto.NoticeAdminDto;
 import com.bi.barfdog.api.blogDto.QueryBlogsAdminDto;
+import com.bi.barfdog.api.noticeDto.QueryNoticePageDto;
 import com.bi.barfdog.api.noticeDto.QueryNoticesDto;
 import com.bi.barfdog.domain.blog.Blog;
 import org.springframework.data.domain.Page;
@@ -27,4 +28,6 @@ public interface BlogRepositoryCustom {
     NoticeAdminDto findAdminNoticeDtoById(Long id);
 
     Page<QueryNoticesDto> findNoticeDtos(Pageable pageable);
+
+    QueryNoticePageDto findNoticePageDtoById(Long id);
 }

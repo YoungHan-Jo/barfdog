@@ -17,6 +17,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -116,6 +117,21 @@ public class IndexApiController {
                 );
 
         return ResponseEntity.ok(entityModel);
+    }
+
+    @GetMapping("/api/email/duplication")
+    public ResponseEntity validateEmail(@RequestParam String email) {
+
+        Optional<Member> optionalMember = memberRepository.findByEmail(email);
+        if(optionalMember.isPresent()) return new ResponseEntity(HttpStatus.CONFLICT);
+
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(IndexApiController.class).slash("api/email/duplication");
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-email-duplication").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
     }
 
 

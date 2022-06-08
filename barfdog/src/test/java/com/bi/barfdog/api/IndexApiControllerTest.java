@@ -433,6 +433,62 @@ public class IndexApiControllerTest extends BaseTest {
 //                .andExpect(status().isInternalServerError());
 //    }
 
+    @Test
+    @DisplayName("정상적으로 이메일 중복체크하는 테스트")
+    public void duplicateEmail() throws Exception {
+       //given
+
+        
+
+        //when & then
+        mockMvc.perform(get("/api/email/duplication")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("email","random@gmail.com"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("email_duplication",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        requestParameters(
+                                parameterWithName("email").description("중복 조회할 이메일")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+
+    }
+
+    @Test
+    @DisplayName("이메일 중복체크시 중복일 경우 409")
+    public void duplicateEmail_conflict() throws Exception {
+        //given
+
+
+        //when & then
+        mockMvc.perform(get("/api/email/duplication")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("email", appProperties.getUserEmail()))
+                .andDo(print())
+                .andExpect(status().isConflict())
+        ;
+
+    }
+
+
     @Ignore
     @Test
     @DisplayName("정상적으로 이메일 인증보내는 테스트")

@@ -529,6 +529,17 @@ operation::update_topBanner[snippets='curl-request,path-parameters,request-heade
 
 operation::join[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
+[[resources-email-duplication]]
+=== 이메일 중복 체크
+
+`GET` 요청을 사용해서 이메일 중복체크를 할 수 있다.
+
+중복일 경우 http status 409
+
+operation::email_duplication[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+
+
 [[resources-join-phoneAuth]]
 === 휴대폰 인증 요청
 
@@ -798,7 +809,53 @@ operation::query_rewards[snippets='curl-request,request-headers,request-paramete
 
 operation::query_rewards_invite[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
 
+[[resources-recommend-friend]]
+=== 친구 코드로 추천하기
+
+`PUT` 요청을 사용하여 친구를 추천할 수 있다.
+
+operation::query_rewards_recommend[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 
 
+[[resources-event-info]]
+== 이벤트
+
+이벤트 관련 리소스.
+
+[[resources-query-events]]
+=== 진행중인 이벤트 조회(페이징)
+
+`GET` 요청을 사용하여 페이징으로 진행중인 이벤트 리스트를 조회할 수 있다.
+
+operation::query_events[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-query-event]]
+=== 이벤트 상세 조회
+
+`GET` 요청을 사용하여 이벤트 상세를 조회할 수 있다.
+
+operation::query_event[snippets='curl-request,request-headers,path-parameters,request-body,response-headers,response-body,response-fields,links']
+
+
+[[resources-notice-info]]
+== 공지사항
+
+공지사항 관련 리소스.
+
+[[resources-query-notices]]
+=== 공지사항 조회(페이징)
+
+`GET` 요청을 사용하여 페이징으로 공지사항 리스트를 조회할 수 있다.
+
+operation::query_notices[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-query-notice]]
+=== 공지사항 하나 조회
+
+`GET` 요청을 사용하여 페이징으로 공지사항 하나를 조회할 수 있다.
+
+이전 글 or 다음 글 존재하지않을 시 null 값
+
+operation::query_notice[snippets='curl-request,request-headers,path-parameters,request-body,response-headers,response-body,response-fields,links']
 
