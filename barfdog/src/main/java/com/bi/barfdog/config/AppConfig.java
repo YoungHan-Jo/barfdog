@@ -109,7 +109,6 @@ public class AppConfig {
                 }
                 createMyPageBanner();
 
-                createBlogsAndArticles();
 
 
 
@@ -168,24 +167,7 @@ public class AppConfig {
 
             }
 
-            private void createBlogsAndArticles() {
-                Blog blog1 = makeBlog(1);
-                Blog blog2 = makeBlog(2);
 
-
-                Article article1 = Article.builder()
-                        .number(1)
-                        .blog(blog1)
-                        .build();
-
-                Article article2 = Article.builder()
-                        .number(2)
-                        .blog(blog2)
-                        .build();
-
-                articleRepository.save(article1);
-                articleRepository.save(article2);
-            }
 
             private void generateBlogImage(Blog blog1, int i) {
                 BlogImage blogImage = BlogImage.builder()
@@ -197,16 +179,7 @@ public class AppConfig {
                 blogImageRepository.save(blogImage);
             }
 
-            private Blog makeBlog(int i) {
-                Blog blog = Blog.builder()
-                        .status(BlogStatus.LEAKED)
-                        .title("블로그" + i)
-                        .category(BlogCategory.HEALTH)
-                        .contents("블로그 내용" + i)
-                        .build();
 
-                return blogRepository.save(blog);
-            }
 
             private SurveyReport createDogAndGetSurveyReport(Member admin, Recipe recipe) {
                 DogSaveRequestDto requestDto = DogSaveRequestDto.builder()

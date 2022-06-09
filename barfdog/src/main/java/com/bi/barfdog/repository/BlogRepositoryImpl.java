@@ -2,10 +2,7 @@ package com.bi.barfdog.repository;
 
 
 import com.bi.barfdog.api.NoticeApiController;
-import com.bi.barfdog.api.blogDto.BlogAdminDto;
-import com.bi.barfdog.api.blogDto.BlogTitlesDto;
-import com.bi.barfdog.api.blogDto.NoticeAdminDto;
-import com.bi.barfdog.api.blogDto.QueryBlogsAdminDto;
+import com.bi.barfdog.api.blogDto.*;
 import com.bi.barfdog.api.noticeDto.QueryNoticePageDto;
 import com.bi.barfdog.api.noticeDto.QueryNoticesDto;
 import com.bi.barfdog.domain.blog.Blog;
@@ -173,35 +170,83 @@ public class BlogRepositoryImpl implements BlogRepositoryCustom{
         return result;
     }
 
-    private QueryNoticePageDto.AnotherNotice getNext(List<Blog> notices, QueryNoticePageDto.AnotherNotice next, int i) {
-        if (i + 1 < notices.size()) {
-            Blog nextNotice = notices.get(i + 1);
-            Long nextId = nextNotice.getId();
-            next = QueryNoticePageDto.AnotherNotice.builder()
-                    .id(nextId)
-                    .title(nextNotice.getTitle())
-                    ._link(linkTo(NoticeApiController.class).slash(nextId).toString())
-                    .build();
+    @Override
+    public Page<QueryBlogsDto> findBlogsDto(Pageable pageable) {
+        List<QueryBlogsDto> result = queryFactory
+                .select(Projections.constructor(QueryBlogsDto.class,
+                        blog.id,
+                        blog.category,
+                        blog.title,
+                        blog.contents,
+                        blog.createdDate,
+                        blogThumbnail.filename
+                        ))
+                .from(blog)
+                .leftJoin(blog.blogThumbnail, blogThumbnail)
+                .where(categoryNotInNotice())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .orderBy(blog.createdDate.desc())
+                .fetch();
+        for (QueryBlogsDto dto : result) {
+            dto.changeUrl(dto.getUrl());
         }
-        return next;
+
+        Long totalCount = queryFactory
+                .select(blog.count())
+                .from(blog)
+                .where(categoryNotInNotice())
+                .fetchOne();
+
+        return new PageImpl<>(result, pageable, totalCount);
     }
 
-    private QueryNoticePageDto.AnotherNotice getPrevious(List<Blog> notices, QueryNoticePageDto.AnotherNotice previous, int i) {
-        if (i - 1 >= 0) {
-            Blog previousNotice = notices.get(i - 1);
-            Long prevId = previousNotice.getId();
-            previous = QueryNoticePageDto.AnotherNotice.builder()
-                    .id(prevId)
-                    .title(previousNotice.getTitle())
-                    ._link(linkTo(NoticeApiController.class).slash(prevId).toString())
-                    .build();
+    @Override
+    public Page<QueryBlogsDto> findBlogsDtoByCategory(Pageable pageable, BlogCategory blogCategory) {
+        List<QueryBlogsDto> result = queryFactory
+                .select(Projections.constructor(QueryBlogsDto.class,
+                        blog.id,
+                        blog.category,
+                        blog.title,
+                        blog.contents,
+                        blog.createdDate,
+                        blogThumbnail.filename
+                ))
+                .from(blog)
+                .leftJoin(blog.blogThumbnail, blogThumbnail)
+                .where(blog.category.eq(blogCategory))
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .orderBy(blog.createdDate.desc())
+                .fetch();
+        for (QueryBlogsDto dto : result) {
+            dto.changeUrl(dto.getUrl());
         }
-        return previous;
+
+        Long totalCount = queryFactory
+                .select(blog.count())
+                .from(blog)
+                .where(blog.category.eq(blogCategory))
+                .fetchOne();
+
+        return new PageImpl<>(result, pageable, totalCount);
     }
 
-    private BooleanExpression eqLeakedNotice() {
-        return categoryEqNotice().and(blog.status.eq(BlogStatus.LEAKED));
+    @Override
+    public QueryBlogDto findBlogDtoById(Long id) {
+        return queryFactory
+                .select(Projections.constructor(QueryBlogDto.class,
+                        blog.id,
+                        blog.createdDate,
+                        blog.title,
+                        blog.contents
+                        ))
+                .from(blog)
+                .where(blog.id.eq(id))
+                .fetchOne()
+                ;
     }
+
 
     @Override
     public List<Blog> findAllNotices() {
@@ -247,6 +292,37 @@ public class BlogRepositoryImpl implements BlogRepositoryCustom{
 
     }
 
+
+
+    private QueryNoticePageDto.AnotherNotice getNext(List<Blog> notices, QueryNoticePageDto.AnotherNotice next, int i) {
+        if (i + 1 < notices.size()) {
+            Blog nextNotice = notices.get(i + 1);
+            Long nextId = nextNotice.getId();
+            next = QueryNoticePageDto.AnotherNotice.builder()
+                    .id(nextId)
+                    .title(nextNotice.getTitle())
+                    ._link(linkTo(NoticeApiController.class).slash(nextId).toString())
+                    .build();
+        }
+        return next;
+    }
+
+    private QueryNoticePageDto.AnotherNotice getPrevious(List<Blog> notices, QueryNoticePageDto.AnotherNotice previous, int i) {
+        if (i - 1 >= 0) {
+            Blog previousNotice = notices.get(i - 1);
+            Long prevId = previousNotice.getId();
+            previous = QueryNoticePageDto.AnotherNotice.builder()
+                    .id(prevId)
+                    .title(previousNotice.getTitle())
+                    ._link(linkTo(NoticeApiController.class).slash(prevId).toString())
+                    .build();
+        }
+        return previous;
+    }
+
+    private BooleanExpression eqLeakedNotice() {
+        return categoryEqNotice().and(blog.status.eq(BlogStatus.LEAKED));
+    }
 
 
 

@@ -52,6 +52,7 @@ public class Subscribe extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private SubscribeStatus status; // [BEFORE_PAYMENT, SUBSCRIBING, SUBSCRIBE_PENDING]
 
+    private boolean review;
 
     /*
     * 연관관계 편의 메서드

@@ -442,7 +442,7 @@ public class BlogAdminControllerTest extends BaseTest {
                         .param("size", "5"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("page.totalElements").value(19))
+                .andExpect(jsonPath("page.totalElements").value(17))
                 .andDo(document("admin_query_blogs",
                         links(
                                 linkWithRel("first").description("첫 페이지 링크"),
@@ -822,6 +822,8 @@ public class BlogAdminControllerTest extends BaseTest {
         //given
         Blog blog = generateBlog(1);
 
+        BlogThumbnail thumbnail = blog.getBlogThumbnail();
+
         BlogImage original1 = generateBlogImage(1, blog);
         BlogImage original2 = generateBlogImage(2, blog);
         BlogImage original3 = generateBlogImage(3, blog);
@@ -871,6 +873,9 @@ public class BlogAdminControllerTest extends BaseTest {
         assertThat(optionalBlogImage2.isPresent()).isFalse();
         assertThat(optionalBlogImage3.isPresent()).isFalse();
 
+        Optional<BlogThumbnail> optionalBlogThumbnail = blogThumbnailRepository.findById(thumbnail.getId());
+        assertThat(optionalBlogThumbnail.isPresent()).isFalse();
+
     }
 
     @Test
@@ -893,6 +898,7 @@ public class BlogAdminControllerTest extends BaseTest {
     @DisplayName("삭제할 블로그가 아티클로 설정되어있을 경우 400")
     public void deleteBlog_isArticle_400() throws Exception {
         //given
+        createBlogsAndArticles();
 
         Article article = articleRepository.findByNumber(1).get();
 
@@ -914,6 +920,36 @@ public class BlogAdminControllerTest extends BaseTest {
 
     }
 
+
+    private void createBlogsAndArticles() {
+        Blog blog1 = makeBlog(1);
+        Blog blog2 = makeBlog(2);
+
+
+        Article article1 = Article.builder()
+                .number(1)
+                .blog(blog1)
+                .build();
+
+        Article article2 = Article.builder()
+                .number(2)
+                .blog(blog2)
+                .build();
+
+        articleRepository.save(article1);
+        articleRepository.save(article2);
+    }
+
+    private Blog makeBlog(int i) {
+        Blog blog = Blog.builder()
+                .status(BlogStatus.LEAKED)
+                .title("블로그" + i)
+                .category(BlogCategory.HEALTH)
+                .contents("블로그 내용" + i)
+                .build();
+
+        return blogRepository.save(blog);
+    }
 
 
 

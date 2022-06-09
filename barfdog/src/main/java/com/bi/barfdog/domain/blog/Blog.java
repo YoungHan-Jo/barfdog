@@ -36,7 +36,7 @@ public class Blog extends BaseTimeEntity {
     @Column(columnDefinition = "TEXT")
     private String contents; // 상세내용
 
-    @OneToOne(fetch = LAZY)
+    @OneToOne(fetch = LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "blog_thumbnail_id")
     private BlogThumbnail blogThumbnail;
 

@@ -1,8 +1,10 @@
 package com.bi.barfdog.repository;
 
 import com.bi.barfdog.api.blogDto.ArticlesAdminDto;
+import com.bi.barfdog.api.blogDto.ArticlesDto;
 import com.bi.barfdog.domain.blog.QArticle;
 import com.bi.barfdog.domain.blog.QBlog;
+import com.bi.barfdog.domain.blog.QBlogThumbnail;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +14,7 @@ import java.util.List;
 
 import static com.bi.barfdog.domain.blog.QArticle.*;
 import static com.bi.barfdog.domain.blog.QBlog.blog;
+import static com.bi.barfdog.domain.blog.QBlogThumbnail.*;
 
 @RequiredArgsConstructor
 @Repository
@@ -41,6 +44,29 @@ public class ArticleRepositoryImpl implements ArticleRepositoryCustom{
                 .from(article)
                 .where(article.blog.id.eq(id))
                 .fetchOne();
+    }
+
+    @Override
+    public List<ArticlesDto> findArticlesDto() {
+        List<ArticlesDto> result = queryFactory
+                .select(Projections.constructor(ArticlesDto.class,
+                        blog.id,
+                        article.number,
+                        blogThumbnail.filename,
+                        blog.category,
+                        blog.title,
+                        blog.createdDate
+                ))
+                .from(article)
+                .join(article.blog, blog)
+                .join(blog.blogThumbnail, blogThumbnail)
+                .orderBy(article.number.asc())
+                .fetch();
+        for (ArticlesDto articlesDto : result) {
+            articlesDto.changeUrl(articlesDto.getUrl());
+        }
+
+        return result;
     }
 
 

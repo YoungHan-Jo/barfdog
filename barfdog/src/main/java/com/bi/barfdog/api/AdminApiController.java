@@ -63,50 +63,7 @@ public class AdminApiController {
 
 
 
-    @GetMapping("/articles")
-    public ResponseEntity queryArticles() {
 
-        QueryArticlesAdminDto responseDto = blogService.getArticlesAdmin();
-
-        WebMvcLinkBuilder selfLinkBuilder = linkTo(AdminApiController.class).slash("articles");
-
-        EntityModel<QueryArticlesAdminDto> entityModel = EntityModel.of(responseDto,
-                selfLinkBuilder.withSelfRel(),
-                selfLinkBuilder.withRel("update_article"),
-                profileRootUrlBuilder.slash("index.html#resources-admin-query-articles").withRel("profile")
-        );
-
-        return ResponseEntity.ok(entityModel);
-    }
-
-    @PutMapping("/articles")
-    public ResponseEntity updateArticles(@RequestBody @Valid UpdateArticlesRequestDto requestDto,
-                                         Errors errors) {
-        if (errors.hasErrors()) {
-            return badRequest(errors);
-        }
-        Optional<Blog> optionalBlog1 = blogRepository.findById(requestDto.getFirstBlogId());
-        Optional<Blog> optionalBlog2 = blogRepository.findById(requestDto.getSecondBlogId());
-        if (!optionalBlog1.isPresent() || !optionalBlog2.isPresent()) {
-            return notFound();
-        }
-
-        blogValidator.validateIsNotice(requestDto, errors);
-        blogValidator.validateHiddenStatus(requestDto, errors);
-        blogValidator.validateDuplicateBlogId(requestDto, errors);
-        if (errors.hasErrors()) return badRequest(errors);
-
-        blogService.updateArticles(requestDto);
-
-        WebMvcLinkBuilder selfLinkBuilder = linkTo(AdminApiController.class).slash("articles");
-
-        RepresentationModel representationModel = new RepresentationModel();
-        representationModel.add(selfLinkBuilder.withSelfRel());
-        representationModel.add(selfLinkBuilder.withRel("admin_query_articles"));
-        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-articles").withRel("profile"));
-
-        return ResponseEntity.ok(representationModel);
-    }
 
 
 

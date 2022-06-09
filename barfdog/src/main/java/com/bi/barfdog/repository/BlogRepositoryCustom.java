@@ -1,12 +1,10 @@
 package com.bi.barfdog.repository;
 
-import com.bi.barfdog.api.blogDto.BlogAdminDto;
-import com.bi.barfdog.api.blogDto.BlogTitlesDto;
-import com.bi.barfdog.api.blogDto.NoticeAdminDto;
-import com.bi.barfdog.api.blogDto.QueryBlogsAdminDto;
+import com.bi.barfdog.api.blogDto.*;
 import com.bi.barfdog.api.noticeDto.QueryNoticePageDto;
 import com.bi.barfdog.api.noticeDto.QueryNoticesDto;
 import com.bi.barfdog.domain.blog.Blog;
+import com.bi.barfdog.domain.blog.BlogCategory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -30,4 +28,10 @@ public interface BlogRepositoryCustom {
     Page<QueryNoticesDto> findNoticeDtos(Pageable pageable);
 
     QueryNoticePageDto findNoticePageDtoById(Long id);
+
+    Page<QueryBlogsDto> findBlogsDto(Pageable pageable);
+
+    Page<QueryBlogsDto> findBlogsDtoByCategory(Pageable pageable, BlogCategory blogCategory);
+
+    QueryBlogDto findBlogDtoById(Long id);
 }

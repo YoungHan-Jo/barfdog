@@ -15,16 +15,16 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ArticlesDto {
+public class QueryBlogsDto {
 
     private Long id;
-    private int number;
-    private String url;
-    private BlogCategory category; // [NUTRITION,HEALTH,LIFE]
+    private BlogCategory category;
     private String title;
+    private String contents;
     private LocalDateTime createdDate;
+    private String url;
 
     public void changeUrl(String filename) {
-        url = linkTo(InfoController.class).slash("display/blogs?filename=" + filename).toString();
+        this.url = linkTo(InfoController.class).slash("display/blogs?filename=" + filename).toString();
     }
 }
