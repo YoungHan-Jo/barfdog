@@ -4,7 +4,7 @@ import com.bi.barfdog.api.couponDto.*;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.coupon.Coupon;
 import com.bi.barfdog.domain.coupon.CouponType;
-import com.bi.barfdog.repository.CouponRepository;
+import com.bi.barfdog.repository.coupon.CouponRepository;
 import com.bi.barfdog.service.CouponService;
 import com.bi.barfdog.validator.CouponValidator;
 import lombok.RequiredArgsConstructor;

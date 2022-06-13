@@ -9,7 +9,7 @@ import com.bi.barfdog.domain.Address;
 import com.bi.barfdog.domain.member.Gender;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.jwt.JwtLoginDto;
-import com.bi.barfdog.repository.MemberRepository;
+import com.bi.barfdog.repository.member.MemberRepository;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;

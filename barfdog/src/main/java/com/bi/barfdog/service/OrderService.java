@@ -3,7 +3,7 @@ package com.bi.barfdog.service;
 import com.bi.barfdog.api.orderDto.OrderSheetSubsCouponDto;
 import com.bi.barfdog.api.orderDto.OrderSheetSubscribeResponseDto;
 import com.bi.barfdog.domain.member.Member;
-import com.bi.barfdog.repository.MemberCouponRepository;
+import com.bi.barfdog.repository.memberCoupon.MemberCouponRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -3,15 +3,16 @@ package com.bi.barfdog.domain.review;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.member.Member;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
-import java.util.List;
+import java.time.LocalDate;
 
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "dtype")
-@Builder @Getter
+@Getter
 @Entity
 public abstract class Review extends BaseTimeEntity {
 
@@ -23,6 +24,8 @@ public abstract class Review extends BaseTimeEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
+    private LocalDate writtenDate;
+
     private String username;
 
     private int star;
@@ -31,6 +34,5 @@ public abstract class Review extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     private ReviewStatus status; // [REQUEST,RETURN,APPROVAL,ADMIN]
-
 
 }

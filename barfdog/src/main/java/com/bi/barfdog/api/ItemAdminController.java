@@ -5,7 +5,7 @@ import com.bi.barfdog.api.itemDto.*;
 import com.bi.barfdog.api.resource.ItemAdminDtoResource;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.item.Item;
-import com.bi.barfdog.repository.ItemRepository;
+import com.bi.barfdog.repository.item.ItemRepository;
 import com.bi.barfdog.service.ItemService;
 import com.bi.barfdog.validator.ItemValidator;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;

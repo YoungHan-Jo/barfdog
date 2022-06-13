@@ -1,7 +1,6 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.eventDto.EventSaveDto;
-import com.bi.barfdog.api.eventDto.QueryEventAdminDto;
 import com.bi.barfdog.api.eventDto.UpdateEventRequestDto;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
@@ -10,9 +9,9 @@ import com.bi.barfdog.domain.event.EventImage;
 import com.bi.barfdog.domain.event.EventStatus;
 import com.bi.barfdog.domain.event.EventThumbnail;
 import com.bi.barfdog.jwt.JwtLoginDto;
-import com.bi.barfdog.repository.EventImageRepository;
-import com.bi.barfdog.repository.EventRepository;
-import com.bi.barfdog.repository.EventThumbnailRepository;
+import com.bi.barfdog.repository.event.EventImageRepository;
+import com.bi.barfdog.repository.event.EventRepository;
+import com.bi.barfdog.repository.event.EventThumbnailRepository;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;

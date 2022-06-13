@@ -1,19 +1,16 @@
 package com.bi.barfdog.validator;
 
-import com.bi.barfdog.api.blogDto.BlogSaveDto;
 import com.bi.barfdog.api.blogDto.UpdateArticlesRequestDto;
 import com.bi.barfdog.domain.blog.Blog;
 import com.bi.barfdog.domain.blog.BlogCategory;
 import com.bi.barfdog.domain.blog.BlogImage;
 import com.bi.barfdog.domain.blog.BlogStatus;
-import com.bi.barfdog.repository.ArticleRepository;
-import com.bi.barfdog.repository.BlogImageRepository;
-import com.bi.barfdog.repository.BlogRepository;
+import com.bi.barfdog.repository.article.ArticleRepository;
+import com.bi.barfdog.repository.blog.BlogImageRepository;
+import com.bi.barfdog.repository.blog.BlogRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;

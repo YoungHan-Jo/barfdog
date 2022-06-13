@@ -3,7 +3,7 @@ package com.bi.barfdog.api;
 import com.bi.barfdog.api.bannerDto.*;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.banner.*;
-import com.bi.barfdog.repository.BannerRepository;
+import com.bi.barfdog.repository.banner.BannerRepository;
 import com.bi.barfdog.service.BannerService;
 import com.bi.barfdog.validator.CommonValidator;
 import lombok.RequiredArgsConstructor;

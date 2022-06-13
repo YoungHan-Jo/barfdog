@@ -80,4 +80,9 @@ public class Dog extends BaseTimeEntity {
     public void setSurveyReport(SurveyReport surveyReport) {
         this.surveyReport = surveyReport;
     }
+
+    public void setSubscribe(Subscribe subscribe) {
+        this.subscribe = subscribe;
+        subscribe.setDog(this);
+    }
 }

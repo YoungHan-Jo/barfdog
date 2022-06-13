@@ -1,7 +1,7 @@
 package com.bi.barfdog.auth;
 
 import com.bi.barfdog.domain.member.Member;
-import com.bi.barfdog.repository.MemberRepository;
+import com.bi.barfdog.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

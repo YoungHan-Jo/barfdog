@@ -39,4 +39,10 @@ public class OrderItem extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private OrderItemStatus status;
 
+    @Builder.Default
+    private boolean writeableReview = true; //  true 일 때 리뷰 작성 가능
+
+    public void writeReview() {
+        this.writeableReview = false;
+    }
 }

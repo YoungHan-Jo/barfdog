@@ -4,7 +4,7 @@ import com.bi.barfdog.common.CommonUtils;
 import com.bi.barfdog.jwt.JwtAuthenticationFilter;
 import com.bi.barfdog.jwt.JwtAuthorizationFilter;
 import com.bi.barfdog.oauth.PrincipalOauth2UserService;
-import com.bi.barfdog.repository.MemberRepository;
+import com.bi.barfdog.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

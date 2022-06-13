@@ -5,7 +5,7 @@ import com.bi.barfdog.domain.member.Agreement;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.oauth.provider.NaverUserInfo;
 import com.bi.barfdog.oauth.provider.OAuth2UserInfo;
-import com.bi.barfdog.repository.MemberRepository;
+import com.bi.barfdog.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -13,14 +13,6 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 

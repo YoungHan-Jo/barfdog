@@ -1,10 +1,9 @@
 package com.bi.barfdog.domain.order;
 
+import com.bi.barfdog.domain.delivery.Delivery;
+import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.orderItem.OrderItem;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
@@ -13,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @DiscriminatorValue("general")
 @Entity
@@ -21,4 +19,14 @@ public class GeneralOrder extends Order{
 
     @OneToMany(mappedBy = "generalOrder")
     private List<OrderItem> orderItemList = new ArrayList<>();
+
+    @Builder
+    public GeneralOrder(Long id, String orderNumber, OrderStatus orderStatus, Member member, int orderPrice, int deliveryPrice, int discountTotal, int discountReward, int discountCoupon, int paymentPrice, int saveReward, boolean isSavedReward, PaymentMethod paymentMethod, Delivery delivery, List<OrderItem> orderItemList) {
+        super(id, orderNumber, orderStatus, member, orderPrice, deliveryPrice, discountTotal, discountReward, discountCoupon, paymentPrice, saveReward, isSavedReward, paymentMethod, delivery);
+        this.orderItemList = orderItemList;
+    }
+
+    public GeneralOrder(List<OrderItem> orderItemList) {
+        this.orderItemList = orderItemList;
+    }
 }

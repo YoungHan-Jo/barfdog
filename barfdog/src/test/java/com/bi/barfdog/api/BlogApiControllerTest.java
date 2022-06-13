@@ -2,9 +2,9 @@ package com.bi.barfdog.api;
 
 import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.blog.*;
-import com.bi.barfdog.repository.ArticleRepository;
-import com.bi.barfdog.repository.BlogRepository;
-import com.bi.barfdog.repository.BlogThumbnailRepository;
+import com.bi.barfdog.repository.article.ArticleRepository;
+import com.bi.barfdog.repository.blog.BlogRepository;
+import com.bi.barfdog.repository.blog.BlogThumbnailRepository;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.stream.IntStream;
 
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;

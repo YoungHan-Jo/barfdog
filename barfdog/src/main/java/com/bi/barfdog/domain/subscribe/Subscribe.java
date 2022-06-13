@@ -3,6 +3,7 @@ package com.bi.barfdog.domain.subscribe;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.dog.Dog;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
+import com.bi.barfdog.domain.order.Order;
 import com.bi.barfdog.domain.order.SubscribeOrder;
 import com.bi.barfdog.domain.subscribeRecipe.SubscribeRecipe;
 import lombok.*;
@@ -36,6 +37,7 @@ public class Subscribe extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private SubscribePlan plan; // [FULL, HALF, TOPPING]
 
+    @Builder.Default
     @OneToMany(mappedBy = "subscribe")
     private List<SubscribeRecipe> subscribeRecipes = new ArrayList<>();
 
@@ -52,7 +54,8 @@ public class Subscribe extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private SubscribeStatus status; // [BEFORE_PAYMENT, SUBSCRIBING, SUBSCRIBE_PENDING]
 
-    private boolean review;
+    @Builder.Default
+    private boolean writeableReview = true; // status 가 SUBSCRIBING 이고 true 일 때 리뷰 가능
 
     /*
     * 연관관계 편의 메서드
@@ -63,4 +66,16 @@ public class Subscribe extends BaseTimeEntity {
     }
 
 
+    public void setDog(Dog dog) {
+        this.dog = dog;
+    }
+
+    public void setOrder(SubscribeOrder subscribeOrder) {
+        this.subscribeOrder = subscribeOrder;
+        this.subscribeOrder.setSubscribe(this);
+    }
+
+    public void writeReview() {
+        this.writeableReview = false;
+    }
 }

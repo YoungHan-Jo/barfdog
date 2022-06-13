@@ -5,7 +5,7 @@ import com.bi.barfdog.api.bannerDto.MyPageBannerSaveRequestDto;
 import com.bi.barfdog.api.bannerDto.PopupBannerSaveRequestDto;
 import com.bi.barfdog.api.bannerDto.TopBannerSaveRequestDto;
 import com.bi.barfdog.domain.banner.*;
-import com.bi.barfdog.repository.BannerRepository;
+import com.bi.barfdog.repository.banner.BannerRepository;
 import com.bi.barfdog.service.file.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;

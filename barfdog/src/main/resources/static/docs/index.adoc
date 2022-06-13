@@ -130,7 +130,12 @@ operation::admin_query_memberSubscribes[snippets='curl-request,path-parameters,r
 
 
 
+[[resources-upload-blogThumbnail]]
+=== 블로그 썸네일 업로드
 
+`POST` 요청을 사용해서 블로그 썸네일을 업로드 할 수 있다.
+
+operation::upload_blogThumbnail[snippets='curl-request,request-headers,request-body,request-parts,response-headers,response-body,response-fields,links']
 
 
 
@@ -853,9 +858,44 @@ operation::query_notices[snippets='curl-request,request-headers,request-paramete
 [[resources-query-notice]]
 === 공지사항 하나 조회
 
-`GET` 요청을 사용하여 페이징으로 공지사항 하나를 조회할 수 있다.
+`GET` 요청을 사용하여 공지사항 하나를 조회할 수 있다.
 
 이전 글 or 다음 글 존재하지않을 시 null 값
 
 operation::query_notice[snippets='curl-request,request-headers,path-parameters,request-body,response-headers,response-body,response-fields,links']
 
+[[resources-blog-info]]
+== 블로그
+
+블로그 관련 리소스.
+
+[[resources-query-articles]]
+=== 아티클 목록 조회
+
+`GET` 요청을 사용하여 아티클 목록을 조회할 수 있다.
+
+operation::query_articles[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-query-blogs]]
+=== 전체 블로그 리스트 조회(페이징)
+
+`GET` 요청을 사용하여 페이징으로 블로그 전체 리스트를 조회할 수 있다.
+
+operation::query_blogs[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+
+[[resources-query-blogs-category]]
+=== 블로그 카테고리별 리스트 조회(페이징)
+
+`GET` 요청을 사용하여 페이징으로 카테고리별 블로그 리스트를 조회할 수 있다.
+
+카테고리가 존재하지 않을 경우 STATUS 404
+
+operation::query_blogs_category[snippets='curl-request,path-parameters,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-query-blog]]
+=== 블로그 하나 조회
+
+`GET` 요청을 사용하여 블로그 하나를 조회할 수 있다.
+
+operation::query_blog[snippets='curl-request,request-headers,path-parameters,request-body,response-headers,response-body,response-fields,links']

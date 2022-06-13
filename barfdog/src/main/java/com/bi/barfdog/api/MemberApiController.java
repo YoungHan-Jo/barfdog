@@ -4,7 +4,7 @@ import com.bi.barfdog.api.memberDto.*;
 import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.member.Member;
-import com.bi.barfdog.repository.MemberRepository;
+import com.bi.barfdog.repository.member.MemberRepository;
 import com.bi.barfdog.service.MemberService;
 import com.bi.barfdog.validator.MemberValidator;
 import lombok.RequiredArgsConstructor;

@@ -1,16 +1,16 @@
 package com.bi.barfdog.domain.review;
 
 import com.bi.barfdog.domain.item.Item;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.bi.barfdog.domain.member.Member;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
 
+import java.time.LocalDate;
+
 import static javax.persistence.FetchType.*;
 
-@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @DiscriminatorValue("item")
 @Getter
@@ -21,4 +21,13 @@ public class ItemReview extends Review{
     @JoinColumn(name = "item_id")
     private Item item;
 
+    @Builder
+    public ItemReview(Long id, Member member, LocalDate writtenDate, String username, int star, String contents, ReviewStatus status, Item item) {
+        super(id, member, writtenDate, username, star, contents, status);
+        this.item = item;
+    }
+
+    public ItemReview(Item item) {
+        this.item = item;
+    }
 }

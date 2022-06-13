@@ -8,7 +8,7 @@ import com.bi.barfdog.auth.PrincipalDetails;
 import com.bi.barfdog.common.CommonUtils;
 import com.bi.barfdog.config.ErrorReason;
 import com.bi.barfdog.domain.member.Member;
-import com.bi.barfdog.repository.MemberRepository;
+import com.bi.barfdog.repository.member.MemberRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

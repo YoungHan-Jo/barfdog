@@ -5,7 +5,7 @@ import com.bi.barfdog.api.noticeDto.QueryNoticesDto;
 import com.bi.barfdog.api.resource.NoticeDtoResource;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.blog.Blog;
-import com.bi.barfdog.repository.BlogRepository;
+import com.bi.barfdog.repository.blog.BlogRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

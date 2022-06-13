@@ -23,6 +23,14 @@ import com.bi.barfdog.domain.setting.Setting;
 import com.bi.barfdog.domain.setting.SnackConstant;
 import com.bi.barfdog.domain.surveyReport.SurveyReport;
 import com.bi.barfdog.repository.*;
+import com.bi.barfdog.repository.article.ArticleRepository;
+import com.bi.barfdog.repository.banner.BannerRepository;
+import com.bi.barfdog.repository.blog.BlogImageRepository;
+import com.bi.barfdog.repository.blog.BlogRepository;
+import com.bi.barfdog.repository.coupon.CouponRepository;
+import com.bi.barfdog.repository.dog.DogRepository;
+import com.bi.barfdog.repository.member.MemberRepository;
+import com.bi.barfdog.repository.memberCoupon.MemberCouponRepository;
 import com.bi.barfdog.service.BannerService;
 import com.bi.barfdog.service.DogService;
 import org.apache.commons.fileupload.FileItem;
@@ -43,7 +51,6 @@ import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
-import java.util.stream.IntStream;
 
 import static com.bi.barfdog.config.finalVariable.AutoCoupon.*;
 

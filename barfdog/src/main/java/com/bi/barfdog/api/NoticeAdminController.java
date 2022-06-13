@@ -9,7 +9,7 @@ import com.bi.barfdog.common.ErrorMessageDto;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.blog.Blog;
 import com.bi.barfdog.domain.blog.BlogCategory;
-import com.bi.barfdog.repository.BlogRepository;
+import com.bi.barfdog.repository.blog.BlogRepository;
 import com.bi.barfdog.service.BlogService;
 import com.bi.barfdog.validator.BlogValidator;
 import lombok.RequiredArgsConstructor;

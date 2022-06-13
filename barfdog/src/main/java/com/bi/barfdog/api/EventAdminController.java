@@ -8,7 +8,7 @@ import com.bi.barfdog.api.eventDto.UpdateEventRequestDto;
 import com.bi.barfdog.api.resource.EventAdminDtoResource;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.event.Event;
-import com.bi.barfdog.repository.EventRepository;
+import com.bi.barfdog.repository.event.EventRepository;
 import com.bi.barfdog.service.EventService;
 import com.bi.barfdog.validator.EventValidator;
 import lombok.RequiredArgsConstructor;

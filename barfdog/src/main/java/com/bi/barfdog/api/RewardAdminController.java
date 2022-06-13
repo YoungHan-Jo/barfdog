@@ -5,7 +5,7 @@ import com.bi.barfdog.api.rewardDto.PublishToGroupDto;
 import com.bi.barfdog.api.rewardDto.PublishToPersonalDto;
 import com.bi.barfdog.api.rewardDto.QueryAdminRewardsDto;
 import com.bi.barfdog.common.ErrorsResource;
-import com.bi.barfdog.repository.RewardRepository;
+import com.bi.barfdog.repository.reward.RewardRepository;
 import com.bi.barfdog.service.RewardService;
 import com.bi.barfdog.validator.MemberValidator;
 import com.bi.barfdog.validator.RewardValidator;

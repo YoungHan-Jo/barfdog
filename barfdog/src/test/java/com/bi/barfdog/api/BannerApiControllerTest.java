@@ -8,7 +8,7 @@ import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.banner.*;
 import com.bi.barfdog.jwt.JwtLoginDto;
-import com.bi.barfdog.repository.BannerRepository;
+import com.bi.barfdog.repository.banner.BannerRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;

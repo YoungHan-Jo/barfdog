@@ -23,4 +23,7 @@ public class ReviewImage {
     private String folder;
     private String filename;
 
+    public void setImageToReview(Review review) {
+        this.review = review;
+    }
 }
