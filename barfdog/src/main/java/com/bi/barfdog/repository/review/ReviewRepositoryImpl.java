@@ -1,17 +1,19 @@
 package com.bi.barfdog.repository.review;
 
+import com.bi.barfdog.api.InfoController;
+import com.bi.barfdog.api.reviewDto.QueryReviewDto;
 import com.bi.barfdog.api.reviewDto.QueryReviewsDto;
 import com.bi.barfdog.api.reviewDto.QueryWriteableReviewsDto;
 import com.bi.barfdog.api.reviewDto.ReviewType;
-import com.bi.barfdog.domain.dog.QDog;
 import com.bi.barfdog.domain.item.Item;
-import com.bi.barfdog.domain.item.QItem;
-import com.bi.barfdog.domain.item.QItemImage;
+import com.bi.barfdog.domain.item.ItemImage;
 import com.bi.barfdog.domain.member.Member;
-import com.bi.barfdog.domain.recipe.QRecipe;
-import com.bi.barfdog.domain.review.QItemReview;
-import com.bi.barfdog.domain.review.QReview;
-import com.bi.barfdog.domain.review.QSubscribeReview;
+import com.bi.barfdog.domain.recipe.Recipe;
+import com.bi.barfdog.domain.review.*;
+import com.bi.barfdog.repository.RecipeRepository;
+import com.bi.barfdog.repository.ReviewImageRepository;
+import com.bi.barfdog.repository.item.ItemImageRepository;
+import com.bi.barfdog.repository.item.ItemRepository;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -23,19 +25,15 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import java.math.BigInteger;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.bi.barfdog.domain.dog.QDog.*;
-import static com.bi.barfdog.domain.item.QItem.*;
-import static com.bi.barfdog.domain.item.QItemImage.*;
-import static com.bi.barfdog.domain.recipe.QRecipe.*;
-import static com.bi.barfdog.domain.review.QItemReview.*;
-import static com.bi.barfdog.domain.review.QReview.*;
-import static com.bi.barfdog.domain.review.QSubscribeReview.*;
+import static com.bi.barfdog.domain.review.QItemReview.itemReview;
+import static com.bi.barfdog.domain.review.QReview.review;
+import static com.bi.barfdog.domain.review.QReviewImage.*;
+import static com.bi.barfdog.domain.review.QSubscribeReview.subscribeReview;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
 @RequiredArgsConstructor
 @Repository
@@ -43,6 +41,9 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom{
 
     private final JPAQueryFactory queryFactory;
     private final EntityManager em;
+    private final ItemImageRepository itemImageRepository;
+    private final RecipeRepository recipeRepository;
+    private final ReviewImageRepository reviewImageRepository;
 
     @Override
     public Page<QueryWriteableReviewsDto> findWriteableReviewDto(Member member, Pageable pageable) {
@@ -134,59 +135,173 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom{
     @Override
     public Page<QueryReviewsDto> findReviewsDtoByMember(Pageable pageable, Member member) {
 
-        List<Tuple> tuples = queryFactory
-                .select(review, itemReview, subscribeReview)
-                .from(review)
-                .leftJoin(itemReview).on(review.id.eq(itemReview.id))
-                .leftJoin(subscribeReview).on(review.id.eq(subscribeReview.id))
+        List<Review> reviews = queryFactory
+                .selectFrom(review)
+                .leftJoin(itemReview).on(itemReview.eq(review))
+                .leftJoin(subscribeReview).on(subscribeReview.eq(review))
                 .where(review.member.eq(member))
                 .orderBy(review.writtenDate.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        List<QueryReviewsDto> result = new ArrayList<>();
-        for (Tuple tuple : tuples) {
-            Item item = tuple.get(itemReview.item);
-            if (item != null) {
-                
-                QueryReviewsDto queryReviewsDto = QueryReviewsDto.builder()
-                        .id(tuple.get(itemReview.id))
-                        .thumbnailUrl("")
-                        .title(tuple.get(itemReview.item.name))
-                        .star(tuple.get(itemReview.star))
-                        .contents(tuple.get(itemReview.contents))
-                        .createdDate(tuple.get(itemReview.writtenDate))
-                        .imageUrl("")
-                        .imageCount(1L)
-                        .status(tuple.get(itemReview.status))
-                        .build();
-                result.add(queryReviewsDto);
-            } else {
-                QueryReviewsDto queryReviewsDto = QueryReviewsDto.builder()
-                        .id(tuple.get(subscribeReview.id))
-                        .thumbnailUrl("")
-                        .title("구독상품")
-                        .star(tuple.get(subscribeReview.star))
-                        .contents(tuple.get(subscribeReview.contents))
-                        .createdDate(tuple.get(subscribeReview.writtenDate))
-                        .imageUrl("")
-                        .imageCount(1L)
-                        .status(tuple.get(subscribeReview.status))
-                        .build();
-                result.add(queryReviewsDto);
-            }
-
-
-        }
-
+        List<QueryReviewsDto> result = getQueryReviewsDtos(reviews);
 
         Long totalCount = queryFactory
                 .select(review.count())
                 .from(review)
+                .where(review.member.eq(member))
                 .fetchOne();
 
         return new PageImpl<>(result,pageable,totalCount);
+    }
+
+    @Override
+    public QueryReviewDto findReviewDtoById(Long id) {
+        List<QueryReviewDto.ReviewImageDto> reviewImageDtoList = getReviewImageDtos(id);
+
+        QueryReviewDto.ReviewDto reviewDto = getReviewDto(id);
+
+        QueryReviewDto result = QueryReviewDto.builder()
+                .reviewDto(reviewDto)
+                .reviewImageDtoList(reviewImageDtoList)
+                .build();
+
+        return result;
+    }
+
+    private List<QueryReviewDto.ReviewImageDto> getReviewImageDtos(Long id) {
+        List<QueryReviewDto.ReviewImageDto> reviewImageDtoList = queryFactory
+                .select(Projections.constructor(QueryReviewDto.ReviewImageDto.class,
+                        reviewImage.id,
+                        reviewImage.filename,
+                        reviewImage.filename
+                        ))
+                .from(reviewImage)
+                .where(reviewImage.review.id.eq(id))
+                .fetch();
+        for (QueryReviewDto.ReviewImageDto dto : reviewImageDtoList) {
+            dto.changeUrl(dto.getFilename());
+        }
+        return reviewImageDtoList;
+    }
+
+    private QueryReviewDto.ReviewDto getReviewDto(Long id) {
+        Review review = queryFactory
+                .selectFrom(QReview.review)
+                .where(QReview.review.id.eq(id))
+                .fetchOne();
+
+        QueryReviewDto.ReviewDto reviewDto = QueryReviewDto.ReviewDto.builder().build();
+
+        if (review instanceof ItemReview) {
+            ItemReview itemReview = (ItemReview) review;
+            Item item = itemReview.getItem();
+            String thumbnailUrl = getThumbnailUrl(item);
+
+            reviewDto = QueryReviewDto.ReviewDto.builder()
+                    .id(review.getId())
+                    .title(item.getName())
+                    .name(review.getUsername())
+                    .thumbnailUrl(thumbnailUrl)
+                    .writtenDate(review.getWrittenDate())
+                    .star(review.getStar())
+                    .contents(review.getContents())
+                    .build();
+        }
+        if (review instanceof SubscribeReview) {
+            SubscribeReview subscribeReview = (SubscribeReview) review;
+            String thumbnailUrl = getThumbnailUrl(subscribeReview);
+
+            reviewDto = QueryReviewDto.ReviewDto.builder()
+                    .id(review.getId())
+                    .title("구독 상품")
+                    .name(review.getUsername())
+                    .thumbnailUrl(thumbnailUrl)
+                    .writtenDate(review.getWrittenDate())
+                    .star(review.getStar())
+                    .contents(review.getContents())
+                    .build();
+        }
+        return reviewDto;
+    }
+
+    private List<QueryReviewsDto> getQueryReviewsDtos(List<Review> reviews) {
+        List<QueryReviewsDto> result = new ArrayList<>();
+
+        for (Review review : reviews) {
+            List<ReviewImage> reviewImages = reviewImageRepository.findByReview(review);
+            int imageCount = reviewImages.size();
+            String imageUrl = "";
+            imageUrl = getReviewImageUrl(reviewImages, imageCount, imageUrl);
+
+            if (review instanceof ItemReview) {
+                ItemReview itemreview = (ItemReview) review;
+                Item item = itemreview.getItem();
+                String thumbnailUrl = getThumbnailUrl(item);
+
+                QueryReviewsDto queryReviewsDto = QueryReviewsDto.builder()
+                        .id(review.getId())
+                        .thumbnailUrl(thumbnailUrl)
+                        .title(item.getName())
+                        .star(review.getStar())
+                        .contents(review.getContents())
+                        .createdDate(review.getWrittenDate())
+                        .imageUrl(imageUrl)
+                        .imageCount(imageCount)
+                        .status(review.getStatus())
+                        .returnReason(review.getReturnReason())
+                        .build();
+                result.add(queryReviewsDto);
+
+            }
+            if (review instanceof SubscribeReview) {
+                SubscribeReview subscribeReview = (SubscribeReview) review;
+                String thumbnailUrl = getThumbnailUrl(subscribeReview);
+
+                QueryReviewsDto queryReviewsDto = QueryReviewsDto.builder()
+                        .id(review.getId())
+                        .thumbnailUrl(thumbnailUrl)
+                        .title("구독 상품")
+                        .star(review.getStar())
+                        .contents(review.getContents())
+                        .createdDate(review.getWrittenDate())
+                        .imageUrl(imageUrl)
+                        .imageCount(imageCount)
+                        .status(review.getStatus())
+                        .returnReason(review.getReturnReason())
+                        .build();
+                result.add(queryReviewsDto);
+            }
+        }
+        return result;
+    }
+
+    private String getThumbnailUrl(Item item) {
+        String thumbnailUrl = "";
+        List<ItemImage> itemImages = itemImageRepository.findByItemOrderByLeakOrderAsc(item);
+        if (itemImages.size() > 0) {
+            ItemImage itemImage = itemImages.get(0);
+            String filename = itemImage.getFilename();
+            thumbnailUrl = linkTo(InfoController.class).slash("display/items?filename=" + filename).toString();
+        }
+        return thumbnailUrl;
+    }
+
+    private String getThumbnailUrl(SubscribeReview subscribeReview) {
+        Recipe recipe = subscribeReview.getSubscribe().getDog().getRecommendRecipe();
+        String filename = recipe.getThumbnailImage().getFilename1();
+        String thumbnailUrl = linkTo(InfoController.class).slash("display/recipes?filename=" + filename).toString();
+        return thumbnailUrl;
+    }
+
+    private String getReviewImageUrl(List<ReviewImage> reviewImages, int imageCount, String imageUrl) {
+        if (imageCount > 0) {
+            ReviewImage reviewImage = reviewImages.get(0);
+            String filename = reviewImage.getFilename();
+            imageUrl = linkTo(InfoController.class).slash("display/reviews?filename=" + filename).toString();
+        }
+        return imageUrl;
     }
 
 

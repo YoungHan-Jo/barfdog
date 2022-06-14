@@ -314,7 +314,7 @@ public class RewardApiControllerTest extends BaseTest {
                 .agreement(new Agreement(true,true,true,true,true))
                 .recommendCode(recommendCode)
                 .myRecommendationCode(BarfUtils.generateRandomCode())
-                .grade(Grade.BRONZE)
+                .grade(Grade.브론즈)
                 .reward(0)
                 .accumulatedAmount(0)
                 .firstReward(new FirstReward(true, false))

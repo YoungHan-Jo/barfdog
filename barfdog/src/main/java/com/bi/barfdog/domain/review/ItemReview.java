@@ -22,8 +22,8 @@ public class ItemReview extends Review{
     private Item item;
 
     @Builder
-    public ItemReview(Long id, Member member, LocalDate writtenDate, String username, int star, String contents, ReviewStatus status, Item item) {
-        super(id, member, writtenDate, username, star, contents, status);
+    public ItemReview(Long id, Member member, LocalDate writtenDate, String username, int star, String contents, ReviewStatus status, String returnReason, Item item) {
+        super(id, member, writtenDate, username, star, contents, status, returnReason);
         this.item = item;
     }
 

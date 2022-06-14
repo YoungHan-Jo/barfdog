@@ -1,6 +1,7 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.reviewDto.ReviewType;
+import com.bi.barfdog.api.reviewDto.UpdateReviewDto;
 import com.bi.barfdog.api.reviewDto.WriteReviewDto;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
@@ -11,6 +12,7 @@ import com.bi.barfdog.domain.item.ItemImage;
 import com.bi.barfdog.domain.item.ItemStatus;
 import com.bi.barfdog.domain.item.ItemType;
 import com.bi.barfdog.domain.member.Gender;
+import com.bi.barfdog.domain.member.Grade;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.order.GeneralOrder;
 import com.bi.barfdog.domain.order.Order;
@@ -21,7 +23,6 @@ import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.review.*;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.domain.subscribe.SubscribeStatus;
-import com.bi.barfdog.domain.subscribeRecipe.SubscribeRecipe;
 import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.RecipeRepository;
 import com.bi.barfdog.repository.ReviewImageRepository;
@@ -43,6 +44,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -406,7 +408,7 @@ public class ReviewApiControllerTest extends BaseTest {
                         .content(objectMapper.writeValueAsString(requestDto))
                 )
                 .andDo(print())
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
         ;
 
         em.flush();
@@ -474,7 +476,7 @@ public class ReviewApiControllerTest extends BaseTest {
                         .content(objectMapper.writeValueAsString(requestDto))
                 )
                 .andDo(print())
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
         ;
 
         em.flush();
@@ -813,14 +815,21 @@ public class ReviewApiControllerTest extends BaseTest {
        //given
 
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
 
         Item item = generateItem(1);
         IntStream.range(1,4).forEach(i -> {
             generateItemImage(item, 1);
         });
 
-        IntStream.range(1,8).forEach(i -> {
+        IntStream.range(1,5).forEach(i -> {
             generateItemReview(member, item, i);
+            generateItemReview(admin, item, i);
+        });
+
+        IntStream.range(1,11).forEach(i -> {
+            generateSubscribeReview(member, i);
+            generateSubscribeReview(admin, i);
         });
 
         //when & then
@@ -832,11 +841,642 @@ public class ReviewApiControllerTest extends BaseTest {
                         .param("size", "5"))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("page.totalElements").value(14))
+                .andDo(document("query_reviews",
+                        links(
+                                linkWithRel("first").description("첫 페이지 링크"),
+                                linkWithRel("prev").description("이전 페이지 링크"),
+                                linkWithRel("self").description("현재 페이지 링크"),
+                                linkWithRel("next").description("다음 페이지 링크"),
+                                linkWithRel("last").description("마지막 페이지 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt 토큰")
+                        ),
+                        requestParameters(
+                                parameterWithName("page").description("페이지 번호 [0번부터 시작 - 0번이 첫 페이지]"),
+                                parameterWithName("size").description("한 페이지 당 조회 개수")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_embedded.queryReviewsDtoList[0].id").description("리뷰 id"),
+                                fieldWithPath("_embedded.queryReviewsDtoList[0].thumbnailUrl").description("상품 썸네일 url"),
+                                fieldWithPath("_embedded.queryReviewsDtoList[0].title").description("상품 제목"),
+                                fieldWithPath("_embedded.queryReviewsDtoList[0].star").description("평점 1~5 int"),
+                                fieldWithPath("_embedded.queryReviewsDtoList[0].contents").description("리뷰 내용"),
+                                fieldWithPath("_embedded.queryReviewsDtoList[0].createdDate").description("리뷰 작성일"),
+                                fieldWithPath("_embedded.queryReviewsDtoList[0].imageUrl").description("리뷰 대표 이미지 url"),
+                                fieldWithPath("_embedded.queryReviewsDtoList[0].imageCount").description("리뷰 이미지 개수"),
+                                fieldWithPath("_embedded.queryReviewsDtoList[0].status").description("리뷰 상태 [REQUEST,RETURN,APPROVAL,ADMIN]"),
+                                fieldWithPath("_embedded.queryReviewsDtoList[0].returnReason").description("반려 사유"),
+                                fieldWithPath("_embedded.queryReviewsDtoList[0]._links.query_review_images.href").description("리뷰 이미지 리스트 조회 링크"),
+                                fieldWithPath("_embedded.queryReviewsDtoList[0]._links.query_review.href").description("수정할 리뷰 하나 조회 링크"),
+                                fieldWithPath("_embedded.queryReviewsDtoList[0]._links.delete_review.href").description("리뷰 삭제 링크"),
+                                fieldWithPath("_embedded.queryReviewsDtoList[0]._links.update_review.href").description("리뷰 수정 링크"),
+                                fieldWithPath("page.size").description("한 페이지 당 개수"),
+                                fieldWithPath("page.totalElements").description("검색 총 결과 수"),
+                                fieldWithPath("page.totalPages").description("총 페이지 수"),
+                                fieldWithPath("page.number").description("페이지 번호 [0페이지 부터 시작]"),
+                                fieldWithPath("_links.first.href").description("첫 페이지 링크"),
+                                fieldWithPath("_links.prev.href").description("이전 페이지 링크"),
+                                fieldWithPath("_links.self.href").description("현재 페이지 링크"),
+                                fieldWithPath("_links.next.href").description("다음 페이지 링크"),
+                                fieldWithPath("_links.last.href").description("마지막 페이지 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+    }
+
+
+    @Test
+    @DisplayName("정상적으로 리뷰 이미지 조회하는 테스트")
+    public void queryReviewImages() throws Exception {
+       //given
+        ItemReview review = ItemReview.builder()
+                .build();
+        reviewRepository.save(review);
+
+        IntStream.range(1,4).forEach(i -> {
+            generateReviewImage(i, review);
+        });
+
+       //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/reviews/{id}/images", review.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("query_review_images",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("리뷰 id")
+                        ),
+                        responseFields(
+                                fieldWithPath("_embedded.queryReviewImagesDtoList[0].filename").description("파일 이름"),
+                                fieldWithPath("_embedded.queryReviewImagesDtoList[0].url").description("이미지 url"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+    }
+
+    @Test
+    @DisplayName("리뷰이미지 리스트를 조회할 리뷰가 없을 경우 404")
+    public void queryReviewImages_404() throws Exception {
+        //given
+        ItemReview review = ItemReview.builder()
+                .build();
+        reviewRepository.save(review);
+
+        IntStream.range(1,4).forEach(i -> {
+            generateReviewImage(i, review);
+        });
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/reviews/999999/images")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+
+    }
+
+    @Test
+    @DisplayName("정상적으로 수정할 아이템 리뷰 하나 조회")
+    public void queryReview_item() throws Exception {
+       //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, i);
+        });
+
+        ItemReview review = ItemReview.builder()
+                .username(member.getName())
+                .item(item)
+                .writtenDate(LocalDate.now())
+                .contents("열글자 이상의 내용 작성")
+                .build();
+        reviewRepository.save(review);
+
+        IntStream.range(1,4).forEach(i -> {
+            generateReviewImage(i, review);
+        });
+
+       //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/reviews/{id}", review.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("query_review",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("update_review").description("리뷰 수정 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt token")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("리뷰 id")
+                        ),
+                        responseFields(
+                                fieldWithPath("reviewDto.id").description("리뷰 id"),
+                                fieldWithPath("reviewDto.title").description("리뷰 대상 상품 이름"),
+                                fieldWithPath("reviewDto.name").description("리뷰 작성자 이름"),
+                                fieldWithPath("reviewDto.thumbnailUrl").description("리뷰 대상 상품 썸네일"),
+                                fieldWithPath("reviewDto.writtenDate").description("리뷰 작성일"),
+                                fieldWithPath("reviewDto.star").description("리뷰 평점 1~5 int"),
+                                fieldWithPath("reviewDto.contents").description("리뷰 내용 10 글자 이상"),
+                                fieldWithPath("reviewImageDtoList[0].id").description("리뷰 이미지 id"),
+                                fieldWithPath("reviewImageDtoList[0].filename").description("리뷰 이미지 파일 이름"),
+                                fieldWithPath("reviewImageDtoList[0].url").description("리뷰 이미지 url"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.update_review.href").description("리뷰 수정 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+    }
+
+    @Test
+    @DisplayName("정상적으로 수정할 구독 리뷰 하나 조회")
+    public void queryReview_subscribe() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        Review review = generateSubscribeReview(member,1);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/reviews/{id}", review.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
         ;
 
     }
 
-    private void generateItemReview(Member member, Item item,int i) {
+    @Test
+    @DisplayName("수정할 리뷰 존재하지않음 404")
+    public void queryReview_404() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        Review review = generateSubscribeReview(member,1);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/reviews/999999")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+        ;
+
+    }
+    
+    @Test
+    @DisplayName("정상적으로 리뷰 하나 삭제")
+    public void deleteReview() throws Exception {
+       //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        Review review = generateSubscribeReview(member,1);
+       
+       //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.delete("/api/reviews/{id}", review.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("delete_review",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_reviews").description("작성한 리뷰 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt token")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("리뷰 id")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_reviews.href").description("작성한 리뷰 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        List<ReviewImage> reviewImages = reviewImageRepository.findAll();
+        assertThat(reviewImages.size()).isEqualTo(0);
+
+        List<Review> reviews = reviewRepository.findAll();
+        assertThat(reviews.size()).isEqualTo(0);
+
+
+    }
+
+    @Test
+    @DisplayName("본인이 작성하지 않은 리뷰 삭제 시 403")
+    public void deleteReview_forbidden() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        Review review = generateSubscribeReview(member,1);
+
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Review subscribeReview = generateSubscribeReview(admin, 1);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.delete("/api/reviews/{id}", subscribeReview.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+        ;
+
+    }
+
+    @Test
+    @DisplayName("삭제하려는 리뷰가 존재하지 않음")
+    public void deleteReview_notFound() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        Review review = generateSubscribeReview(member,1);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.delete("/api/reviews/999999")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+        ;
+    }
+
+    @Test
+    @DisplayName("정상적으로 리뷰 수정 완료")
+    public void updateReview() throws Exception {
+       //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, i);
+        });
+
+        ItemReview review = ItemReview.builder()
+                .member(member)
+                .username(member.getName())
+                .item(item)
+                .writtenDate(LocalDate.now())
+                .contents("열글자 이상의 내용 작성")
+                .build();
+        reviewRepository.save(review);
+
+        generateReviewImage(1, review);
+        generateReviewImage(2, review);
+        ReviewImage deleteImage1 = generateReviewImage(3, review);
+        ReviewImage deleteImage2 = generateReviewImage(4, review);
+
+        List<Long> deleteImageIdList = new ArrayList<>();
+
+        deleteImageIdList.add(deleteImage1.getId());
+        deleteImageIdList.add(deleteImage2.getId());
+
+
+        List<Long> addImageIdList = new ArrayList<>();
+        ReviewImage addImage1 = generateReviewImage(5);
+        ReviewImage addImage2 = generateReviewImage(6);
+        ReviewImage addImage3 = generateReviewImage(7);
+        addImageIdList.add(addImage1.getId());
+        addImageIdList.add(addImage2.getId());
+        addImageIdList.add(addImage3.getId());
+
+        int star = 4;
+        String contents = "수정할 내용 열글자 이상";
+
+        UpdateReviewDto requestDto = UpdateReviewDto.builder()
+                .star(star)
+                .contents(contents)
+                .addImageIdList(addImageIdList)
+                .deleteImageIdList(deleteImageIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/reviews/{id}", review.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("update_review",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_reviews").description("작성한 리뷰 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt token")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("리뷰 id")
+                        ),
+                        requestFields(
+                                fieldWithPath("star").description("리뷰 평점 1~5 int"),
+                                fieldWithPath("contents").description("리뷰 내용 10글자 이상"),
+                                fieldWithPath("addImageIdList").description("추가할 리뷰 이미지 id 리스트"),
+                                fieldWithPath("deleteImageIdList").description("삭제할 리뷰 이미지 id 리스트")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                                ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_reviews.href").description("작성한 리뷰 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        List<ReviewImage> reviewImages = reviewImageRepository.findByReview(review);
+        assertThat(reviewImages.size()).isEqualTo(5);
+
+        Review findReview = reviewRepository.findById(review.getId()).get();
+        assertThat(findReview.getStar()).isEqualTo(star);
+        assertThat(findReview.getContents()).isEqualTo(contents);
+    }
+
+    @Test
+    @DisplayName("수정할 리뷰 존재하지 않음 404")
+    public void updateReview_notFound() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, i);
+        });
+
+        ItemReview review = ItemReview.builder()
+                .member(member)
+                .username(member.getName())
+                .item(item)
+                .writtenDate(LocalDate.now())
+                .contents("열글자 이상의 내용 작성")
+                .build();
+        reviewRepository.save(review);
+
+        generateReviewImage(1, review);
+        generateReviewImage(2, review);
+        ReviewImage deleteImage1 = generateReviewImage(3, review);
+        ReviewImage deleteImage2 = generateReviewImage(4, review);
+
+        List<Long> deleteImageIdList = new ArrayList<>();
+
+        deleteImageIdList.add(deleteImage1.getId());
+        deleteImageIdList.add(deleteImage2.getId());
+
+
+        List<Long> addImageIdList = new ArrayList<>();
+        ReviewImage addImage1 = generateReviewImage(5);
+        ReviewImage addImage2 = generateReviewImage(6);
+        ReviewImage addImage3 = generateReviewImage(7);
+        addImageIdList.add(addImage1.getId());
+        addImageIdList.add(addImage2.getId());
+        addImageIdList.add(addImage3.getId());
+
+        int star = 4;
+        String contents = "수정할 내용 열글자 이상";
+
+        UpdateReviewDto requestDto = UpdateReviewDto.builder()
+                .star(star)
+                .contents(contents)
+                .addImageIdList(addImageIdList)
+                .deleteImageIdList(deleteImageIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/reviews/999999")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+
+
+    }
+
+    @Test
+    @DisplayName("리뷰 수정 시 값 부족할 경우 400")
+    public void updateReview_badRequest() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, i);
+        });
+
+        ItemReview review = ItemReview.builder()
+                .member(member)
+                .username(member.getName())
+                .item(item)
+                .writtenDate(LocalDate.now())
+                .contents("열글자 이상의 내용 작성")
+                .build();
+        reviewRepository.save(review);
+
+        generateReviewImage(1, review);
+        generateReviewImage(2, review);
+        ReviewImage deleteImage1 = generateReviewImage(3, review);
+        ReviewImage deleteImage2 = generateReviewImage(4, review);
+
+        List<Long> deleteImageIdList = new ArrayList<>();
+
+        deleteImageIdList.add(deleteImage1.getId());
+        deleteImageIdList.add(deleteImage2.getId());
+
+
+        List<Long> addImageIdList = new ArrayList<>();
+        ReviewImage addImage1 = generateReviewImage(5);
+        ReviewImage addImage2 = generateReviewImage(6);
+        ReviewImage addImage3 = generateReviewImage(7);
+        addImageIdList.add(addImage1.getId());
+        addImageIdList.add(addImage2.getId());
+        addImageIdList.add(addImage3.getId());
+
+        int star = 4;
+        String contents = "수정할 내용 열글자 이상";
+
+        UpdateReviewDto requestDto = UpdateReviewDto.builder()
+                .addImageIdList(addImageIdList)
+                .deleteImageIdList(deleteImageIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/reviews/{id}", review.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("수정하려는 리뷰가 내가 쓴 리뷰가 아닐 경우 forbidden")
+    public void updateReview_forbidden() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, i);
+        });
+
+        ItemReview review = ItemReview.builder()
+                .member(admin)
+                .username(admin.getName())
+                .item(item)
+                .writtenDate(LocalDate.now())
+                .contents("열글자 이상의 내용 작성")
+                .build();
+        reviewRepository.save(review);
+
+        generateReviewImage(1, review);
+        generateReviewImage(2, review);
+        ReviewImage deleteImage1 = generateReviewImage(3, review);
+        ReviewImage deleteImage2 = generateReviewImage(4, review);
+
+        List<Long> deleteImageIdList = new ArrayList<>();
+
+        deleteImageIdList.add(deleteImage1.getId());
+        deleteImageIdList.add(deleteImage2.getId());
+
+
+        List<Long> addImageIdList = new ArrayList<>();
+        ReviewImage addImage1 = generateReviewImage(5);
+        ReviewImage addImage2 = generateReviewImage(6);
+        ReviewImage addImage3 = generateReviewImage(7);
+        addImageIdList.add(addImage1.getId());
+        addImageIdList.add(addImage2.getId());
+        addImageIdList.add(addImage3.getId());
+
+        int star = 4;
+        String contents = "수정할 내용 열글자 이상";
+
+        UpdateReviewDto requestDto = UpdateReviewDto.builder()
+                .star(star)
+                .contents(contents)
+                .addImageIdList(addImageIdList)
+                .deleteImageIdList(deleteImageIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/reviews/{id}", review.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status(). isForbidden());
+    }
+
+
+
+
+
+
+
+
+
+
+    private Review generateSubscribeReview(Member member,int i) {
+        List<Recipe> recipes = recipeRepository.findAll();
+
+        Subscribe subscribe = Subscribe.builder()
+                .build();
+        subscribeRepository.save(subscribe);
+
+        Dog dog = generateDog(member, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE,
+                1, 1, SnackCountLevel.NORMAL, recipes.get(0));
+        dog.setSubscribe(subscribe);
+
+        SubscribeReview subscribeReview = SubscribeReview.builder()
+                .member(member)
+                .writtenDate(LocalDate.now())
+                .username(member.getName())
+                .star(3)
+                .contents("열글자 이상의 구독 리뷰"+i)
+                .status(ReviewStatus.RETURN)
+                .returnReason("상품에 맞지 않은 리뷰 내용"+i)
+                .subscribe(subscribe)
+                .build();
+        reviewRepository.save(subscribeReview);
+
+        IntStream.range(1,4).forEach(j -> {
+            generateReviewImage(j, subscribeReview);
+        });
+
+        return subscribeReview;
+    }
+
+    private ItemReview generateItemReview(Member member, Item item,int i) {
         ItemReview itemReview = ItemReview.builder()
                 .member(member)
                 .writtenDate(LocalDate.now().minusDays(30L))
@@ -847,6 +1487,21 @@ public class ReviewApiControllerTest extends BaseTest {
                 .item(item)
                 .build();
         itemReviewRepository.save(itemReview);
+
+        IntStream.range(1,4).forEach(j -> {
+            generateReviewImage(j, itemReview);
+        });
+
+        return itemReview;
+    }
+
+    private ReviewImage generateReviewImage(int i, Review review) {
+        ReviewImage reviewImage = ReviewImage.builder()
+                .review(review)
+                .folder("folder" + i)
+                .filename("filename" + i + ".jpg")
+                .build();
+        return reviewImageRepository.save(reviewImage);
     }
 
 

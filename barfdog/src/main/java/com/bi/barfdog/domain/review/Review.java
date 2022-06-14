@@ -1,5 +1,6 @@
 package com.bi.barfdog.domain.review;
 
+import com.bi.barfdog.api.reviewDto.UpdateReviewDto;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.member.Member;
 import lombok.*;
@@ -10,7 +11,7 @@ import java.time.LocalDate;
 
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Inheritance(strategy = InheritanceType.JOINED)
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "dtype")
 @Getter
 @Entity
@@ -35,4 +36,10 @@ public abstract class Review extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private ReviewStatus status; // [REQUEST,RETURN,APPROVAL,ADMIN]
 
+    private String returnReason;
+
+    public void update(UpdateReviewDto requestDto) {
+        this.star = requestDto.getStar();
+        this.contents = requestDto.getContents();
+    }
 }

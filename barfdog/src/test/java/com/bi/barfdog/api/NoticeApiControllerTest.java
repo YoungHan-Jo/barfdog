@@ -7,6 +7,7 @@ import com.bi.barfdog.domain.blog.BlogCategory;
 import com.bi.barfdog.domain.blog.BlogStatus;
 import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.blog.BlogRepository;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +19,11 @@ import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import java.util.List;
 import java.util.stream.IntStream;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
@@ -36,6 +40,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Transactional
 public class NoticeApiControllerTest extends BaseTest {
+
+    @Autowired
+    EntityManager em;
 
     @Autowired
     AppProperties appProperties;
@@ -118,6 +125,18 @@ public class NoticeApiControllerTest extends BaseTest {
         Blog notice1 = generateNoticeLeaked(1);
         Blog notice2 = generateNoticeLeaked(2);
         Blog notice3 = generateNoticeLeaked(3);
+
+        IntStream.range(4,8).forEach(i -> {
+            generateNoticeLeaked(i);
+        });
+
+        em.flush();
+        em.clear();
+
+        List<Blog> leakedNotices = blogRepository.findLeakedNotices();
+        assertThat(leakedNotices.size()).isEqualTo(7);
+
+
 
         //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.get("/api/notices/{id}", notice2.getId())

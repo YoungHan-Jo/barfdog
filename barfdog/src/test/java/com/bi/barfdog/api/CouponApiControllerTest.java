@@ -825,7 +825,7 @@ public class CouponApiControllerTest extends BaseTest {
                 .gender(Gender.MALE)
                 .agreement(new Agreement(true,true,true,true,true))
                 .myRecommendationCode(BarfUtils.generateRandomCode())
-                .grade(Grade.BRONZE)
+                .grade(Grade.브론즈)
                 .reward(0)
                 .accumulatedAmount(0)
                 .firstReward(new FirstReward(false, false))
@@ -903,7 +903,7 @@ public class CouponApiControllerTest extends BaseTest {
                 .gender(Gender.MALE)
                 .agreement(new Agreement(true,true,true,true,true))
                 .myRecommendationCode(BarfUtils.generateRandomCode())
-                .grade(Grade.BRONZE)
+                .grade(Grade.브론즈)
                 .reward(0)
                 .accumulatedAmount(0)
                 .firstReward(new FirstReward(false, false))
@@ -998,7 +998,7 @@ public class CouponApiControllerTest extends BaseTest {
                 .gender(Gender.MALE)
                 .agreement(new Agreement(true,true,true,true,true))
                 .myRecommendationCode(BarfUtils.generateRandomCode())
-                .grade(Grade.BRONZE)
+                .grade(Grade.브론즈)
                 .reward(0)
                 .accumulatedAmount(0)
                 .firstReward(new FirstReward(false, false))
@@ -1024,7 +1024,7 @@ public class CouponApiControllerTest extends BaseTest {
                 .gender(Gender.MALE)
                 .agreement(new Agreement(true,true,true,true,true))
                 .myRecommendationCode(BarfUtils.generateRandomCode())
-                .grade(Grade.BRONZE)
+                .grade(Grade.브론즈)
                 .reward(0)
                 .accumulatedAmount(0)
                 .firstReward(new FirstReward(false, false))
@@ -1128,8 +1128,8 @@ public class CouponApiControllerTest extends BaseTest {
         Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
         List<Grade> gradeList = new ArrayList<>();
-        gradeList.add(Grade.BRONZE);
-        gradeList.add(Grade.SILVER);
+        gradeList.add(Grade.브론즈);
+        gradeList.add(Grade.실버);
 
         GroupPublishRequestDto requestDto = GroupPublishRequestDto.builder()
                 .subscribe(false)
@@ -1205,8 +1205,8 @@ public class CouponApiControllerTest extends BaseTest {
         Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
         List<Grade> gradeList = new ArrayList<>();
-        gradeList.add(Grade.BRONZE);
-        gradeList.add(Grade.SILVER);
+        gradeList.add(Grade.브론즈);
+        gradeList.add(Grade.실버);
 
         GroupPublishRequestDto requestDto = GroupPublishRequestDto.builder()
                 .subscribe(false)
@@ -1279,7 +1279,7 @@ public class CouponApiControllerTest extends BaseTest {
         Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
         List<Grade> gradeList = new ArrayList<>();
-        gradeList.add(Grade.BRONZE);
+        gradeList.add(Grade.브론즈);
 
         GroupPublishRequestDto requestDto = GroupPublishRequestDto.builder()
                 .subscribe(false)
@@ -1316,7 +1316,7 @@ public class CouponApiControllerTest extends BaseTest {
         Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
         List<Grade> gradeList = new ArrayList<>();
-        gradeList.add(Grade.BRONZE);
+        gradeList.add(Grade.브론즈);
 
         GroupPublishRequestDto requestDto = GroupPublishRequestDto.builder()
                 .subscribe(false)
@@ -1353,7 +1353,7 @@ public class CouponApiControllerTest extends BaseTest {
         Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
         List<Grade> gradeList = new ArrayList<>();
-        gradeList.add(Grade.BRONZE);
+        gradeList.add(Grade.브론즈);
 
         GroupPublishRequestDto requestDto = GroupPublishRequestDto.builder()
                 .subscribe(false)

@@ -3,6 +3,7 @@ package com.bi.barfdog.service;
 import com.bi.barfdog.api.InfoController;
 import com.bi.barfdog.api.blogDto.UploadedImageAdminDto;
 import com.bi.barfdog.api.reviewDto.ReviewType;
+import com.bi.barfdog.api.reviewDto.UpdateReviewDto;
 import com.bi.barfdog.api.reviewDto.WriteReviewDto;
 import com.bi.barfdog.domain.banner.ImgFilenamePath;
 import com.bi.barfdog.domain.item.Item;
@@ -122,5 +123,29 @@ public class ReviewService {
         }
         OrderItem orderItem = orderItemRepository.findById(requestDto.getId()).get();
         orderItem.writeReview();
+    }
+
+    @Transactional
+    public void deleteReview(Review review) {
+        List<ReviewImage> reviewImages = reviewImageRepository.findByReview(review);
+        reviewImageRepository.deleteAll(reviewImages);
+
+        reviewRepository.delete(review);
+    }
+
+    @Transactional
+    public void updateReview(Long id, UpdateReviewDto requestDto) {
+        Review review = reviewRepository.findById(id).get();
+        review.update(requestDto);
+
+        reviewImageRepository.deleteAllById(requestDto.getDeleteImageIdList());
+        addReviewImages(requestDto, review);
+    }
+
+    private void addReviewImages(UpdateReviewDto requestDto, Review review) {
+        List<ReviewImage> addImages = reviewImageRepository.findAllById(requestDto.getAddImageIdList());
+        for (ReviewImage reviewImage : addImages) {
+            reviewImage.setImageToReview(review);
+        }
     }
 }

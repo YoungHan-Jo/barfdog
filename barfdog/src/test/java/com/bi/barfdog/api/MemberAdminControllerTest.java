@@ -477,7 +477,7 @@ public class MemberAdminControllerTest extends BaseTest {
 
         Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-        Grade newGrade = Grade.GOLD;
+        Grade newGrade = Grade.골드;
         UpdateGradeRequestDto requestDto = UpdateGradeRequestDto.builder()
                 .grade(newGrade)
                 .build();
@@ -533,7 +533,7 @@ public class MemberAdminControllerTest extends BaseTest {
 
         Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-        Grade newGrade = Grade.GOLD;
+        Grade newGrade = Grade.골드;
         UpdateGradeRequestDto requestDto = UpdateGradeRequestDto.builder()
                 .grade(newGrade)
                 .build();
@@ -803,7 +803,7 @@ public class MemberAdminControllerTest extends BaseTest {
                 .gender(Gender.MALE)
                 .agreement(new Agreement(true,true,true,true,true))
                 .myRecommendationCode(BarfUtils.generateRandomCode())
-                .grade(Grade.BRONZE)
+                .grade(Grade.브론즈)
                 .reward(0)
                 .accumulatedAmount(0)
                 .firstReward(new FirstReward(false, false))

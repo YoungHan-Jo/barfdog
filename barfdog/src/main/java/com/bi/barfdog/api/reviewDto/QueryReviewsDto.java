@@ -22,7 +22,8 @@ public class QueryReviewsDto {
     private String contents;
     private LocalDate createdDate;
     private String imageUrl;
-    private Long imageCount;
+    private int imageCount;
     private ReviewStatus status; // [REQUEST,RETURN,APPROVAL,ADMIN]
+    private String returnReason;
 
 }

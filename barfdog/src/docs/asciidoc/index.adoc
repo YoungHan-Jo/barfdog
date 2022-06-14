@@ -926,3 +926,45 @@ operation::upload_reviewImage[snippets='curl-request,request-headers,request-bod
 `POST` 요청을 사용해서 리뷰를 작성할 수 있다.
 
 operation::write_review[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-query-reviews]]
+=== 작성한 리뷰 리스트 조회(페이징)
+
+`GET` 요청을 사용하여 페이징으로 작성한 리뷰 리스트를 조회할 수 있다.
+
+operation::query_reviews[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+
+[[resources-query-review-images]]
+=== 리뷰 이미지 리스트 조회
+
+`GET` 요청을 사용하여 리뷰 이미지 리스트를 조회할 수 있다.
+
+operation::query_review_images[snippets='curl-request,request-headers,path-parameters,request-body,response-headers,response-body,response-fields,links']
+
+
+[[resources-query-review]]
+=== 리뷰 하나 조회
+
+`GET` 요청을 사용하여 리뷰 이미지 리스트를 조회할 수 있다.
+
+operation::query_review[snippets='curl-request,request-headers,path-parameters,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-delete-review]]
+=== 리뷰 삭제
+
+`DELETE` 요청을 사용하여 리뷰를 삭제할 수 있다.
+
+내가 작성한 리뷰가 아닐 경우 STATUS = 403
+
+operation::delete_review[snippets='curl-request,request-headers,path-parameters,request-body,response-headers,response-body,response-fields,links']
+
+
+[[resources-update-review]]
+=== 리뷰 수정
+
+`PUT` 요청을 사용하여 리뷰를 삭제할 수 있다.
+
+내가 작성한 리뷰가 아닐 경우 STATUS = 403
+
+operation::update_review[snippets='curl-request,request-headers,path-parameters,request-body,request-fields,response-headers,response-body,response-fields,links']

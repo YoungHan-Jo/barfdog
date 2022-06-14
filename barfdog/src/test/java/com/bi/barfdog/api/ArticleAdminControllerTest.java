@@ -3,6 +3,7 @@ package com.bi.barfdog.api;
 import com.bi.barfdog.api.blogDto.UpdateArticlesRequestDto;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
+import com.bi.barfdog.domain.blog.Article;
 import com.bi.barfdog.domain.blog.Blog;
 import com.bi.barfdog.domain.blog.BlogCategory;
 import com.bi.barfdog.domain.blog.BlogStatus;
@@ -58,6 +59,11 @@ public class ArticleAdminControllerTest extends BaseTest {
     @DisplayName("정상적으로 아티클 정보 조회하는 테스트")
     public void queryArticles() throws Exception {
         //given
+
+        IntStream.range(1,3).forEach(i -> {
+            generateArticle(i);
+        });
+
         IntStream.range(1,5).forEach(i -> {
             generateBlog(i);
         });
@@ -104,10 +110,27 @@ public class ArticleAdminControllerTest extends BaseTest {
 
     }
 
+    private void generateArticle(int i) {
+        Blog blog = generateBlog(i);
+        Article article = Article.builder()
+                .number(i)
+                .blog(blog)
+                .build();
+        articleRepository.save(article);
+    }
+
     @Test
     @DisplayName("아티클 정보 조회 시 블로그 LEAKED 만 조회하는지 테스트")
     public void queryArticles_onlyLEKAED_Blog() throws Exception {
         //given
+
+        IntStream.range(1,3).forEach(i -> {
+            generateArticle(i);
+        });
+
+        IntStream.range(1,5).forEach(i -> {
+            generateBlog(i);
+        });
 
         IntStream.range(1,5).forEach(i -> {
             generateBlogHidden(i);
@@ -120,7 +143,7 @@ public class ArticleAdminControllerTest extends BaseTest {
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("blogTitlesDtos", hasSize(2)))
+                .andExpect(jsonPath("blogTitlesDtos", hasSize(6)))
         ;
     }
 
@@ -128,12 +151,18 @@ public class ArticleAdminControllerTest extends BaseTest {
     @DisplayName("정상적으로 아티클을 업데이트 하는 테스트")
     public void updateArticles() throws Exception {
         //given
-        Blog blog1 = generateBlog(1);
-        Blog blog2 = generateBlog(2);
+
+        IntStream.range(1,3).forEach(i -> {
+            generateArticle(i);
+        });
+
+
+        Blog blog3 = generateBlog(3);
+        Blog blog4 = generateBlog(4);
 
         UpdateArticlesRequestDto requestDto = UpdateArticlesRequestDto.builder()
-                .firstBlogId(blog1.getId())
-                .secondBlogId(blog2.getId())
+                .firstBlogId(blog3.getId())
+                .secondBlogId(blog4.getId())
                 .build();
 
         //when & then

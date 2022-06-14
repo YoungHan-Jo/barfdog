@@ -193,8 +193,8 @@ public class RewardAdminControllerTest extends BaseTest {
        //given
 
         List<Grade> gradeList = new ArrayList<>();
-        gradeList.add(Grade.BRONZE);
-        gradeList.add(Grade.SILVER);
+        gradeList.add(Grade.브론즈);
+        gradeList.add(Grade.실버);
 
         String name = "그룹 적립금 발행 테스트";
         int amount = 8000;
@@ -269,8 +269,8 @@ public class RewardAdminControllerTest extends BaseTest {
     public void publishToGroup_badRequest() throws Exception {
         //given
         List<Grade> gradeList = new ArrayList<>();
-        gradeList.add(Grade.BRONZE);
-        gradeList.add(Grade.SILVER);
+        gradeList.add(Grade.브론즈);
+        gradeList.add(Grade.실버);
 
         String name = "그룹 적립금 발행 테스트";
         int amount = 8000;
@@ -300,8 +300,8 @@ public class RewardAdminControllerTest extends BaseTest {
         //given
 
         List<Grade> gradeList = new ArrayList<>();
-        gradeList.add(Grade.BRONZE);
-        gradeList.add(Grade.SILVER);
+        gradeList.add(Grade.브론즈);
+        gradeList.add(Grade.실버);
 
         String name = "그룹 적립금 발행 테스트";
         int amount = 8000;
@@ -334,8 +334,8 @@ public class RewardAdminControllerTest extends BaseTest {
         //given
 
         List<Grade> gradeList = new ArrayList<>();
-        gradeList.add(Grade.BRONZE);
-        gradeList.add(Grade.SILVER);
+        gradeList.add(Grade.브론즈);
+        gradeList.add(Grade.실버);
 
         String name = "그룹 적립금 발행 테스트";
         int amount = 8000;

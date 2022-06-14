@@ -52,7 +52,7 @@ public class MemberService {
                 .gender(requestDto.getGender())
                 .agreement(requestDto.getAgreement())
                 .myRecommendationCode(BarfUtils.generateRandomCode())
-                .grade(Grade.BRONZE)
+                .grade(Grade.브론즈)
                 .reward(0)
                 .accumulatedAmount(0)
                 .firstReward(new FirstReward(false,false))

@@ -23,8 +23,8 @@ public class SubscribeReview extends Review{
     private Subscribe subscribe;
 
     @Builder
-    public SubscribeReview(Long id, Member member, LocalDate writtenDate, String username, int star, String contents, ReviewStatus status, Subscribe subscribe) {
-        super(id, member, writtenDate, username, star, contents, status);
+    public SubscribeReview(Long id, Member member, LocalDate writtenDate, String username, int star, String contents, ReviewStatus status, String returnReason, Subscribe subscribe) {
+        super(id, member, writtenDate, username, star, contents, status, returnReason);
         this.subscribe = subscribe;
     }
 
