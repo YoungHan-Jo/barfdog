@@ -1,13 +1,11 @@
 package com.bi.barfdog.api.memberDto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotNull;
 
-@Getter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

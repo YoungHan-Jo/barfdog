@@ -1175,6 +1175,7 @@ public class ReviewApiControllerTest extends BaseTest {
                 .item(item)
                 .writtenDate(LocalDate.now())
                 .contents("열글자 이상의 내용 작성")
+                .status(ReviewStatus.RETURN)
                 .build();
         reviewRepository.save(review);
 
@@ -1254,6 +1255,7 @@ public class ReviewApiControllerTest extends BaseTest {
         Review findReview = reviewRepository.findById(review.getId()).get();
         assertThat(findReview.getStar()).isEqualTo(star);
         assertThat(findReview.getContents()).isEqualTo(contents);
+        assertThat(findReview.getStatus()).isEqualTo(ReviewStatus.REQUEST);
     }
 
     @Test

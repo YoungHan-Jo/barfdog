@@ -1,12 +1,11 @@
 package com.bi.barfdog.repository.review;
 
+import ch.qos.logback.core.status.StatusBase;
 import com.bi.barfdog.api.InfoController;
-import com.bi.barfdog.api.reviewDto.QueryReviewDto;
-import com.bi.barfdog.api.reviewDto.QueryReviewsDto;
-import com.bi.barfdog.api.reviewDto.QueryWriteableReviewsDto;
-import com.bi.barfdog.api.reviewDto.ReviewType;
+import com.bi.barfdog.api.reviewDto.*;
 import com.bi.barfdog.domain.item.Item;
 import com.bi.barfdog.domain.item.ItemImage;
+import com.bi.barfdog.domain.item.QItem;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.review.*;
@@ -15,7 +14,9 @@ import com.bi.barfdog.repository.ReviewImageRepository;
 import com.bi.barfdog.repository.item.ItemImageRepository;
 import com.bi.barfdog.repository.item.ItemRepository;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,10 +26,12 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.bi.barfdog.domain.item.QItem.*;
 import static com.bi.barfdog.domain.review.QItemReview.itemReview;
 import static com.bi.barfdog.domain.review.QReview.review;
 import static com.bi.barfdog.domain.review.QReviewImage.*;
@@ -168,6 +171,89 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom{
                 .build();
 
         return result;
+    }
+
+    @Override
+    public Page<QueryAdminReviewsDto> findAdminReviewsDto(Pageable pageable, AdminReviewsCond cond) {
+
+        OrderSpecifier<LocalDate> orderByCond = cond.getOrder().equals("asc")? review.writtenDate.asc():review.writtenDate.desc();
+
+        List<Review> reviews = queryFactory
+                .select(review)
+                .from(review)
+                .leftJoin(itemReview).on(itemReview.eq(review))
+                .leftJoin(subscribeReview).on(subscribeReview.eq(review))
+                .where(statusEqCond(cond.getStatus()))
+                .orderBy(orderByCond)
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        List<QueryAdminReviewsDto> result = getQueryAdminReviewsDtos(reviews);
+
+        Long totalCount = queryFactory
+                .select(review.count())
+                .from(review)
+                .leftJoin(itemReview).on(itemReview.eq(review))
+                .leftJoin(subscribeReview).on(subscribeReview.eq(review))
+                .where(statusEqCond(cond.getStatus()))
+                .fetchOne();
+
+        return new PageImpl<>(result, pageable, totalCount);
+    }
+
+    private List<QueryAdminReviewsDto> getQueryAdminReviewsDtos(List<Review> reviews) {
+        List<QueryAdminReviewsDto> result = new ArrayList<>();
+
+        for (Review review : reviews) {
+
+            if (review instanceof ItemReview) {
+                ItemReview itemreview = (ItemReview) review;
+                Item item = itemreview.getItem();
+
+                QueryAdminReviewsDto dto = QueryAdminReviewsDto.builder()
+                        .id(review.getId())
+                        .status(review.getStatus())
+                        .title(item.getName())
+                        .star(review.getStar())
+                        .contents(review.getContents())
+                        .createdDate(review.getWrittenDate())
+                        .name(review.getUsername())
+                        .email(review.getMember().getEmail())
+                        .build();
+                result.add(dto);
+            }
+            if (review instanceof SubscribeReview) {
+
+                QueryAdminReviewsDto dto = QueryAdminReviewsDto.builder()
+                        .id(review.getId())
+                        .status(review.getStatus())
+                        .title("구독 상품")
+                        .star(review.getStar())
+                        .contents(review.getContents())
+                        .createdDate(review.getWrittenDate())
+                        .name(review.getUsername())
+                        .email(review.getMember().getEmail())
+                        .build();
+                result.add(dto);
+            }
+        }
+        return result;
+    }
+
+    private BooleanExpression statusEqCond(ReviewStatus status) {
+        switch (status) {
+            case ADMIN:
+                return review.status.eq(ReviewStatus.ADMIN);
+            case RETURN:
+                return review.status.eq(ReviewStatus.RETURN);
+            case REQUEST:
+                return review.status.eq(ReviewStatus.REQUEST);
+            case APPROVAL:
+                return review.status.eq(ReviewStatus.APPROVAL);
+            default:
+                return null;
+        }
     }
 
     private List<QueryReviewDto.ReviewImageDto> getReviewImageDtos(Long id) {

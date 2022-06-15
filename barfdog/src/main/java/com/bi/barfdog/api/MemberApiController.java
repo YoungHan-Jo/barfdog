@@ -16,6 +16,7 @@ import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
@@ -117,10 +118,11 @@ public class MemberApiController {
     }
 
     @GetMapping("/publication")
-    public ResponseEntity queryMemberDtosInPublication(@RequestBody @Valid MemberConditionToPublish condition, Errors errors) {
-        if (errors.hasErrors()) return badRequest(errors);
-        memberValidator.validateConditionInPublication(condition, errors);
-        if (errors.hasErrors()) return badRequest(errors);
+    public ResponseEntity queryMemberDtosInPublication(@ModelAttribute @Valid MemberConditionToPublish condition,
+                                                       BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) return badRequest(bindingResult);
+        memberValidator.validateConditionInPublication(condition, bindingResult);
+        if (bindingResult.hasErrors()) return badRequest(bindingResult);
 
         List<MemberPublishResponseDto> responseDto = memberRepository.searchMemberDtosInPublication(condition);
 

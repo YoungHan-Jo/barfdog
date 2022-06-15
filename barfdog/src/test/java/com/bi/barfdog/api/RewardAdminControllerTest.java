@@ -373,11 +373,8 @@ public class RewardAdminControllerTest extends BaseTest {
             generateReward(member, i);
         });
 
-        QueryMembersCond requestDto = QueryMembersCond.builder()
-                .email(email)
-                .from(LocalDate.of(2020, 05, 11))
-                .to(LocalDate.now())
-                .build();
+        String from = LocalDate.of(2020, 05, 11).toString();
+        String to = LocalDate.now().toString();
 
         //when & then
         mockMvc.perform(get("/api/admin/rewards")
@@ -386,7 +383,10 @@ public class RewardAdminControllerTest extends BaseTest {
                         .accept(MediaTypes.HAL_JSON)
                         .param("page", "1")
                         .param("size", "5")
-                        .content(objectMapper.writeValueAsString(requestDto)))
+                        .param("email",email)
+                        .param("name","")
+                        .param("from",from)
+                        .param("to",to))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(document("admin_query_rewards",
@@ -408,13 +408,11 @@ public class RewardAdminControllerTest extends BaseTest {
                         ),
                         requestParameters(
                                 parameterWithName("page").description("페이지 번호 [0번부터 시작 - 0번이 첫 페이지]"),
-                                parameterWithName("size").description("한 페이지 당 조회 개수")
-                        ),
-                        requestFields(
-                                fieldWithPath("email").type("String").description("검색할 유저 email"),
-                                fieldWithPath("name").type("String").description("검색할 유저 이름"),
-                                fieldWithPath("from").description("가입날짜 'yyyy-MM-dd' 부터 "),
-                                fieldWithPath("to").description("가입날짜 'yyyy-MM-dd' 까지 ")
+                                parameterWithName("size").description("한 페이지 당 조회 개수"),
+                                parameterWithName("email").description("검색할 유저 email [값 없으면 빈 문자열]"),
+                                parameterWithName("name").description("검색할 유저 이름 [값 없으면 빈 문자열]"),
+                                parameterWithName("from").description("가입날짜 'yyyy-MM-dd' 부터 "),
+                                parameterWithName("to").description("가입날짜 'yyyy-MM-dd' 까지 ")
                         ),
                         responseHeaders(
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
@@ -467,20 +465,21 @@ public class RewardAdminControllerTest extends BaseTest {
             generateReward(admin, i);
         });
 
-        QueryMembersCond requestDto = QueryMembersCond.builder()
-                .name("김회원")
-                .from(LocalDate.of(2020, 05, 11))
-                .to(LocalDate.now())
-                .build();
+
+        String from = LocalDate.of(2020, 05, 11).toString();
+        String to = LocalDate.now().toString();
 
         //when & then
         mockMvc.perform(get("/api/admin/rewards")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
-                        .param("size","5")
-                        .param("page","1")
-                        .content(objectMapper.writeValueAsString(requestDto)))
+                        .param("size", "5")
+                        .param("page", "1")
+                        .param("email", "")
+                        .param("name", "김회원")
+                        .param("from", from)
+                        .param("to", to))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.queryAdminRewardsDtoList[0].memberName").value("김회원"))
@@ -502,19 +501,20 @@ public class RewardAdminControllerTest extends BaseTest {
             generateReward(admin, i);
         });
 
-        QueryMembersCond requestDto = QueryMembersCond.builder()
-                .from(LocalDate.of(2020, 05, 11))
-                .to(LocalDate.now())
-                .build();
+        String from = LocalDate.of(2020, 05, 11).toString();
+        String to = LocalDate.now().toString();
 
         //when & then
         mockMvc.perform(get("/api/admin/rewards")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
-                        .param("size","5")
-                        .param("page","1")
-                        .content(objectMapper.writeValueAsString(requestDto)))
+                        .param("size", "5")
+                        .param("page", "1")
+                        .param("email", "")
+                        .param("name", "")
+                        .param("from", from)
+                        .param("to", to))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("page.totalElements").value(12));
@@ -532,18 +532,18 @@ public class RewardAdminControllerTest extends BaseTest {
             generateReward(member, i);
         });
 
-        QueryMembersCond requestDto = QueryMembersCond.builder()
-                .email(email)
-                .from(LocalDate.of(2020, 05, 11))
-                .to(LocalDate.now())
-                .build();
+        String from = LocalDate.of(2020, 05, 11).toString();
+        String to = LocalDate.now().toString();
 
         //when & then
         mockMvc.perform(get("/api/admin/rewards")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
+                        .param("email", "")
+                        .param("name", "")
+                        .param("from", from)
+                        .param("to", to))
                 .andDo(print())
                 .andExpect(status().isOk());
     }
@@ -559,16 +559,21 @@ public class RewardAdminControllerTest extends BaseTest {
             generateReward(member, i);
         });
 
-        QueryMembersCond requestDto = QueryMembersCond.builder()
-                .to(LocalDate.now().plusDays(1))
-                .build();
+        String from = LocalDate.of(2020, 05, 11).toString();
+        String to = LocalDate.now().toString();
+
 
         //when & then
         mockMvc.perform(get("/api/admin/rewards")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
+                        .param("size", "5")
+                        .param("page", "1")
+                        .param("email", "")
+                        .param("name", "김회원")
+                        .param("from", "")
+                        .param("to", ""))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }
@@ -584,18 +589,20 @@ public class RewardAdminControllerTest extends BaseTest {
             generateReward(member, i);
         });
 
-        QueryMembersCond requestDto = QueryMembersCond.builder()
-                .email(email)
-                .from(LocalDate.of(2020, 05, 11))
-                .to(LocalDate.of(2020, 05, 10))
-                .build();
+        String from = LocalDate.now().toString();
+        String to = LocalDate.of(2020, 05, 11).toString();
 
         //when & then
         mockMvc.perform(get("/api/admin/rewards")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
+                        .param("size", "5")
+                        .param("page", "1")
+                        .param("email", "")
+                        .param("name", "김회원")
+                        .param("from", from)
+                        .param("to", to))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }

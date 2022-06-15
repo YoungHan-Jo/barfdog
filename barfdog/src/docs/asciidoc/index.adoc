@@ -755,7 +755,7 @@ operation::query_code_coupons_in_publication[snippets='curl-request,request-head
 
 `GET` 요청을 사용해서 개인 쿠폰 발행할 유저를 검색할 수 있다.
 
-operation::query_members_in_publication[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+operation::query_members_in_publication[snippets='curl-request,request-headers,request-body,request-parameters,response-headers,response-body,response-fields,links']
 
 [[resources-publish-coupon-personal]]
 === 개인 쿠폰 발행하기
@@ -968,3 +968,17 @@ operation::delete_review[snippets='curl-request,request-headers,path-parameters,
 내가 작성한 리뷰가 아닐 경우 STATUS = 403
 
 operation::update_review[snippets='curl-request,request-headers,path-parameters,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+[[resources-admin-review-info]]
+== 관리자 리뷰
+
+관리자 리뷰 관련 리소스.
+
+[[resources-admin-query-reviews]]
+=== 관리자 리뷰 리스트 조회(페이징)
+
+`GET` 요청을 사용하여 페이징으로 조건에 맞는 리뷰 리스트를 조회할 수 있다.
+
+operation::query_admin_reviews[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+

@@ -19,6 +19,7 @@ import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,12 +45,12 @@ public class MemberAdminController {
     @GetMapping
     public ResponseEntity queryMembers(Pageable pageable,
                                        PagedResourcesAssembler<QueryMembersDto> assembler,
-                                       @RequestBody @Valid QueryMembersCond cond,
-                                       Errors errors
+                                       @ModelAttribute @Valid QueryMembersCond cond,
+                                       BindingResult bindingResult
     ){
-        if (errors.hasErrors()) return badRequest(errors);
-        memberValidator.wrongTerm(cond.getFrom(), cond.getTo(), errors);
-        if (errors.hasErrors()) return badRequest(errors);
+        if (bindingResult.hasErrors()) return badRequest(bindingResult);
+        memberValidator.wrongTerm(cond.getFrom(), cond.getTo(), bindingResult);
+        if (bindingResult.hasErrors()) return badRequest(bindingResult);
 
         Page<QueryMembersDto> page = memberRepository.findDtosByCond(pageable, cond);
 

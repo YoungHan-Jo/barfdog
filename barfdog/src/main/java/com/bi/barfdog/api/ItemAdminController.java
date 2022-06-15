@@ -18,6 +18,7 @@ import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -119,9 +120,9 @@ public class ItemAdminController {
     @GetMapping
     public ResponseEntity queryItems(Pageable pageable,
                                      PagedResourcesAssembler<QueryItemsAdminDto> assembler,
-                                     @RequestBody @Valid QueryItemsAdminRequestDto requestDto,
-                                     Errors errors) {
-        if(errors.hasErrors()) return badRequest(errors);
+                                     @ModelAttribute @Valid QueryItemsAdminRequestDto requestDto,
+                                     BindingResult bindingResult) {
+        if(bindingResult.hasErrors()) return badRequest(bindingResult);
 
         Page<QueryItemsAdminDto> page = itemRepository.findAdminDtoList(pageable, requestDto.getItemType());
 

@@ -110,10 +110,8 @@ public class MemberAdminControllerTest extends BaseTest {
             generateMember(i);
         });
 
-        QueryMembersCond cond = QueryMembersCond.builder()
-                .from(LocalDate.of(2020, 01, 01))
-                .to(LocalDate.now())
-                .build();
+        String from = LocalDate.of(2020, 01, 01).toString();
+        String to = LocalDate.now().toString();
 
         //when & then
         mockMvc.perform(get("/api/admin/members")
@@ -122,7 +120,10 @@ public class MemberAdminControllerTest extends BaseTest {
                         .accept(MediaTypes.HAL_JSON)
                         .param("page", "1")
                         .param("size", "5")
-                        .content(objectMapper.writeValueAsString(cond)))
+                        .param("email","")
+                        .param("name","")
+                        .param("from",from)
+                        .param("to",to))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(document("admin_query_members",
@@ -141,20 +142,18 @@ public class MemberAdminControllerTest extends BaseTest {
                         ),
                         requestParameters(
                                 parameterWithName("page").description("페이지 번호 [0번부터 시작 - 0번이 첫 페이지]"),
-                                parameterWithName("size").description("한 페이지 당 조회 개수")
-                        ),
-                        requestFields(
-                                fieldWithPath("email").type("String").description("검색할 유저 email"),
-                                fieldWithPath("name").type("String").description("검색할 유저 이름"),
-                                fieldWithPath("from").description("가입날짜 'yyyy-MM-dd' 부터 "),
-                                fieldWithPath("to").description("가입날짜 'yyyy-MM-dd' 까지 ")
+                                parameterWithName("size").description("한 페이지 당 조회 개수"),
+                                parameterWithName("email").description("검색할 유저 email"),
+                                parameterWithName("name").description("검색할 유저 이름"),
+                                parameterWithName("from").description("가입날짜 'yyyy-MM-dd' 부터 "),
+                                parameterWithName("to").description("가입날짜 'yyyy-MM-dd' 까지 ")
                         ),
                         responseHeaders(
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
                         ),
                         responseFields(
                                 fieldWithPath("_embedded.queryMembersDtoList[0].id").description("유저 인덱스 번호"),
-                                fieldWithPath("_embedded.queryMembersDtoList[0].grade").description("유저 등급 [BRONZE, SILVER, GOLD, PLATINUM, DIAMOND, BARF]"),
+                                fieldWithPath("_embedded.queryMembersDtoList[0].grade").description("유저 등급 [브론즈, 실버, 골드, 플래티넘, 다이아몬드, 더바프]"),
                                 fieldWithPath("_embedded.queryMembersDtoList[0].name").description("유저 이름"),
                                 fieldWithPath("_embedded.queryMembersDtoList[0].email").description("유저 이메일"),
                                 fieldWithPath("_embedded.queryMembersDtoList[0].phoneNumber").description("전화번호"),
@@ -187,20 +186,21 @@ public class MemberAdminControllerTest extends BaseTest {
             generateMember(i);
         });
 
-        QueryMembersCond cond = QueryMembersCond.builder()
-                .from(LocalDate.of(2020, 01, 01))
-                .to(LocalDate.now())
-                .build();
+        String from = LocalDate.of(2020, 01, 01).toString();
+        String to = LocalDate.now().toString();
 
         //when & then
         mockMvc.perform(get("/api/admin/members")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
-                        .content(objectMapper.writeValueAsString(cond)))
+                        .param("email", "")
+                        .param("name", "")
+                        .param("from", from)
+                        .param("to", to))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("_embedded.queryMembersDtoList",hasSize(20)))
+                .andExpect(jsonPath("_embedded.queryMembersDtoList", hasSize(20)))
                 .andExpect(jsonPath("page.number").value(0))
         ;
     }
@@ -213,17 +213,18 @@ public class MemberAdminControllerTest extends BaseTest {
             generateMember(i);
         });
 
-        QueryMembersCond cond = QueryMembersCond.builder()
-                .from(LocalDate.of(2020, 01, 01))
-                .to(LocalDate.now().plusDays(1))
-                .build();
+        String from = LocalDate.of(2020, 01, 01).toString();
+        String to = LocalDate.now().plusDays(1).toString();
 
         //when & then
         mockMvc.perform(get("/api/admin/members")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
-                        .content(objectMapper.writeValueAsString(cond)))
+                        .param("email", "")
+                        .param("name", "")
+                        .param("from", from)
+                        .param("to", to))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
         ;
@@ -237,17 +238,18 @@ public class MemberAdminControllerTest extends BaseTest {
             generateMember(i);
         });
 
-        QueryMembersCond cond = QueryMembersCond.builder()
-                .to(LocalDate.of(2020, 01, 01))
-                .from(LocalDate.now())
-                .build();
+        String to = LocalDate.of(2020, 01, 01).toString();
+        String from = LocalDate.now().toString();
 
         //when & then
         mockMvc.perform(get("/api/admin/members")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
-                        .content(objectMapper.writeValueAsString(cond)))
+                        .param("email", "")
+                        .param("name", "")
+                        .param("from", from)
+                        .param("to", to))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
         ;
@@ -262,15 +264,14 @@ public class MemberAdminControllerTest extends BaseTest {
             generateMember(i);
         });
 
-        QueryMembersCond cond = QueryMembersCond.builder()
-                .build();
 
         //when & then
         mockMvc.perform(get("/api/admin/members")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
-                        .content(objectMapper.writeValueAsString(cond)))
+                        .param("email", "")
+                        .param("name", ""))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
         ;

@@ -662,10 +662,6 @@ public class ItemAdminControllerTest extends BaseTest {
             }
         });
 
-        QueryItemsAdminRequestDto requestDto = QueryItemsAdminRequestDto.builder()
-                .itemType(ItemType.RAW)
-                .build();
-
         //when & then
         mockMvc.perform(get("/api/admin/items")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
@@ -673,7 +669,7 @@ public class ItemAdminControllerTest extends BaseTest {
                         .accept(MediaTypes.HAL_JSON)
                         .param("size","5")
                         .param("page","1")
-                        .content(objectMapper.writeValueAsString(requestDto)))
+                        .param("itemType","RAW"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(document("admin_query_items",
@@ -693,10 +689,8 @@ public class ItemAdminControllerTest extends BaseTest {
                         ),
                         requestParameters(
                                 parameterWithName("page").description("페이지 번호 [0번부터 시작 - 0번이 첫 페이지]"),
-                                parameterWithName("size").description("한 페이지 당 조회 개수")
-                        ),
-                        requestFields(
-                                fieldWithPath("itemType").description("상품 카테고리 [RAW, TOPPING, GOODS]")
+                                parameterWithName("size").description("한 페이지 당 조회 개수"),
+                                parameterWithName("itemType").description("상품 카테고리 [RAW, TOPPING, GOODS]")
                         ),
                         responseHeaders(
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
@@ -748,9 +742,6 @@ public class ItemAdminControllerTest extends BaseTest {
             generateItemGoods(i);
         });
 
-        QueryItemsAdminRequestDto requestDto = QueryItemsAdminRequestDto.builder()
-                .itemType(ItemType.TOPPING)
-                .build();
 
         //when & then
         mockMvc.perform(get("/api/admin/items")
@@ -759,7 +750,7 @@ public class ItemAdminControllerTest extends BaseTest {
                         .accept(MediaTypes.HAL_JSON)
                         .param("size","5")
                         .param("page","1")
-                        .content(objectMapper.writeValueAsString(requestDto)))
+                        .param("itemType","TOPPING"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("page.totalElements").value(6))
@@ -795,7 +786,7 @@ public class ItemAdminControllerTest extends BaseTest {
                         .accept(MediaTypes.HAL_JSON)
                         .param("size","5")
                         .param("page","0")
-                        .content(objectMapper.writeValueAsString(requestDto)))
+                        .param("itemType","GOODS"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("page.totalElements").value(2))
@@ -820,16 +811,12 @@ public class ItemAdminControllerTest extends BaseTest {
             }
         });
 
-        QueryItemsAdminRequestDto requestDto = QueryItemsAdminRequestDto.builder()
-                .itemType(ItemType.RAW)
-                .build();
-
         //when & then
         mockMvc.perform(get("/api/admin/items")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
+                        .param("itemType","RAW"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.queryItemsAdminDtoList", hasSize(20)))

@@ -116,9 +116,6 @@ public class AppConfig {
                 }
                 createMyPageBanner();
 
-
-
-
                 Member admin = makeMember(appProperties.getAdminEmail(), "관리자", appProperties.getAdminPassword(), "01056785678", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,USER");
                 Member manager = makeMember("develope07@binter.co.kr", "관리자계정", appProperties.getAdminPassword(), "01056781234", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,USER");
 
@@ -169,47 +166,8 @@ public class AppConfig {
                 makeMemberCoupon(member, dogBirthCoupon);
                 makeMemberCoupon(member, memberBirthCoupon);
 
-                createDogAndGetSurveyReport(admin, recipe);
-
-
             }
 
-
-
-            private void generateBlogImage(Blog blog1, int i) {
-                BlogImage blogImage = BlogImage.builder()
-                        .blog(blog1)
-                        .folder("/folder/folder/")
-                        .filename("blogImage" + i + ".jpg")
-                        .build();
-
-                blogImageRepository.save(blogImage);
-            }
-
-
-
-            private SurveyReport createDogAndGetSurveyReport(Member admin, Recipe recipe) {
-                DogSaveRequestDto requestDto = DogSaveRequestDto.builder()
-                        .name("김바프")
-                        .gender(Gender.MALE)
-                        .birth("202102")
-                        .oldDog(false)
-                        .dogType("포메라니안")
-                        .dogSize(DogSize.SMALL)
-                        .weight("3.5")
-                        .neutralization(true)
-                        .activityLevel(ActivityLevel.NORMAL)
-                        .walkingCountPerWeek("10")
-                        .walkingTimePerOneTime("1.1")
-                        .dogStatus(DogStatus.HEALTHY)
-                        .snackCountLevel(SnackCountLevel.NORMAL)
-                        .inedibleFood("NONE")
-                        .inedibleFoodEtc("NONE")
-                        .recommendRecipeId(recipe.getId())
-                        .caution("NONE")
-                        .build();
-                return dogService.createDogAndGetSurveyReport(requestDto, admin);
-            }
 
             private void makeMemberCoupon(Member member, Coupon subsCoupon) {
                 MemberCoupon memberCoupon = MemberCoupon.builder()

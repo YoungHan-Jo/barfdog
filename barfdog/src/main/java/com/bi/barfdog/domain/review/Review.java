@@ -41,5 +41,10 @@ public abstract class Review extends BaseTimeEntity {
     public void update(UpdateReviewDto requestDto) {
         this.star = requestDto.getStar();
         this.contents = requestDto.getContents();
+        this.status = ReviewStatus.REQUEST;
+    }
+
+    public boolean isRequest() {
+        return this.status == ReviewStatus.REQUEST;
     }
 }

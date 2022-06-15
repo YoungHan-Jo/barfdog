@@ -22,11 +22,14 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.hateoas.TemplateVariable.requestParameter;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -340,16 +343,15 @@ public class MemberApiControllerTest extends BaseTest {
     @DisplayName("쿠폰 발행 시 이메일로 검색한 유저 조회하는 테스트")
     public void queryMembersInPublishCoupon() throws Exception {
        //given
-        MemberConditionToPublish condition = MemberConditionToPublish.builder()
-                .email(appProperties.getAdminEmail())
-                .build();
 
         //when & then
+        String adminEmail = appProperties.getUserEmail();
         mockMvc.perform(get("/api/members/publication")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
-                        .content(objectMapper.writeValueAsString(condition)))
+                        .param("email", appProperties.getAdminEmail())
+                        .param("name",""))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.memberPublishResponseDtoList[0].dogName").value("대표견"))
@@ -364,9 +366,9 @@ public class MemberApiControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
                                 headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
                         ),
-                        requestFields(
-                                fieldWithPath("email").description("검색할 email"),
-                                fieldWithPath("name").description("검색할 유저 이름 [email과 name 둘 중 하나만 입력 해야 함, 입력하지 않은 값은 null 로 ]")
+                        requestParameters(
+                                parameterWithName("email").description("검색할 email"),
+                                parameterWithName("name").description("검색할 유저 이름 [email과 name 둘 중 하나만 입력 해야 함, 입력하지 않을 값은 빈 문자열로 ]")
                         ),
                         responseHeaders(
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
@@ -393,17 +395,12 @@ public class MemberApiControllerTest extends BaseTest {
         //given
 
 
-
-        MemberConditionToPublish condition = MemberConditionToPublish.builder()
-                .email("abc@gmail.com")
-                .build();
-
         //when & then
         mockMvc.perform(get("/api/members/publication")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
-                        .content(objectMapper.writeValueAsString(condition)))
+                        .param("email","abc@gmail.com"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.memberPublishResponseDtoList[0].dogName").isEmpty())
@@ -414,16 +411,13 @@ public class MemberApiControllerTest extends BaseTest {
     @DisplayName("쿠폰 발행 시 이름으로 검색한 유저 조회하는 테스트")
     public void queryMembersInPublishCoupon_search_by_name() throws Exception {
         //given
-        MemberConditionToPublish condition = MemberConditionToPublish.builder()
-                .name("관리자")
-                .build();
 
         //when & then
         mockMvc.perform(get("/api/members/publication")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
-                        .content(objectMapper.writeValueAsString(condition)))
+                        .param("name","관리자"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.memberPublishResponseDtoList[0].dogName").value("대표견"))
@@ -435,16 +429,13 @@ public class MemberApiControllerTest extends BaseTest {
     @DisplayName("일반 유저가 쿠폰 발행 시 검색한 유저 조회 api 호출하면 forbidden 나오는 테스트")
     public void queryMembersInPublishCoupon_forbidden() throws Exception {
         //given
-        MemberConditionToPublish condition = MemberConditionToPublish.builder()
-                .email(appProperties.getAdminEmail())
-                .build();
 
         //when & then
         mockMvc.perform(get("/api/members/publication")
                         .header(HttpHeaders.AUTHORIZATION, getUserToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
-                        .content(objectMapper.writeValueAsString(condition)))
+                        .param("name","관리자"))
                 .andDo(print())
                 .andExpect(status().isForbidden())
         ;
@@ -454,17 +445,12 @@ public class MemberApiControllerTest extends BaseTest {
     @DisplayName("검색조건이 하나도 없으면 bad request 나오는 테스트")
     public void queryMembersInPublishCoupon_emptyCondition() throws Exception {
         //given
-        MemberConditionToPublish condition = MemberConditionToPublish.builder()
-                .email("")
-                .name("")
-                .build();
 
         //when & then
         mockMvc.perform(get("/api/members/publication")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaTypes.HAL_JSON)
-                        .content(objectMapper.writeValueAsString(condition)))
+                        .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
         ;

@@ -2,6 +2,7 @@ package com.bi.barfdog.service;
 
 import com.bi.barfdog.api.InfoController;
 import com.bi.barfdog.api.blogDto.UploadedImageAdminDto;
+import com.bi.barfdog.api.reviewDto.ApprovalReviewsRequestDto;
 import com.bi.barfdog.api.reviewDto.ReviewType;
 import com.bi.barfdog.api.reviewDto.UpdateReviewDto;
 import com.bi.barfdog.api.reviewDto.WriteReviewDto;
@@ -146,6 +147,16 @@ public class ReviewService {
         List<ReviewImage> addImages = reviewImageRepository.findAllById(requestDto.getAddImageIdList());
         for (ReviewImage reviewImage : addImages) {
             reviewImage.setImageToReview(review);
+        }
+    }
+
+    @Transactional
+    public void approvalReviews(ApprovalReviewsRequestDto requestDto) {
+        List<Review> reviews = reviewRepository.findAllById(requestDto.getReviewIdList());
+        for (Review review : reviews) {
+            if (review.isRequest()) {
+
+            }
         }
     }
 }
