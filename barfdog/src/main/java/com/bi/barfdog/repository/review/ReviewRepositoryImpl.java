@@ -32,7 +32,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.bi.barfdog.domain.item.QItem.*;
+import static com.bi.barfdog.domain.review.QBestReview.*;
 import static com.bi.barfdog.domain.review.QItemReview.itemReview;
+import static com.bi.barfdog.domain.review.QReview.*;
 import static com.bi.barfdog.domain.review.QReview.review;
 import static com.bi.barfdog.domain.review.QReviewImage.*;
 import static com.bi.barfdog.domain.review.QSubscribeReview.subscribeReview;
@@ -200,6 +202,50 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom{
                 .fetchOne();
 
         return new PageImpl<>(result, pageable, totalCount);
+    }
+
+    @Override
+    public QueryAdminReviewDto findAdminReviewDto(Long id) {
+
+        QueryAdminReviewDto.ReviewDto reviewDto = queryFactory
+                .select(Projections.constructor(QueryAdminReviewDto.ReviewDto.class,
+                        review.id,
+                        review.status,
+                        review.writtenDate,
+                        review.star,
+                        review.username,
+                        review.contents
+                        ))
+                .from(review)
+                .where(review.id.eq(id))
+                .fetchOne();
+
+        List<BestReview> bestReviews = queryFactory
+                .select(bestReview)
+                .from(bestReview)
+                .where(bestReview.review.id.eq(id))
+                .fetch();
+
+
+        List<QueryAdminReviewDto.ImageUrl> imageUrlList = queryFactory
+                .select(Projections.constructor(QueryAdminReviewDto.ImageUrl.class,
+                        reviewImage.filename,
+                        reviewImage.filename
+                ))
+                .from(reviewImage)
+                .where(reviewImage.review.id.eq(id))
+                .fetch();
+        for (QueryAdminReviewDto.ImageUrl imageUrl : imageUrlList) {
+            imageUrl.changeUrl(imageUrl.getFilename());
+        }
+
+        QueryAdminReviewDto result = QueryAdminReviewDto.builder()
+                .reviewDto(reviewDto)
+                .isBestReview(bestReviews.size() > 0 ? true : false)
+                .imageUrlList(imageUrlList)
+                .build();
+
+        return result;
     }
 
     private List<QueryAdminReviewsDto> getQueryAdminReviewsDtos(List<Review> reviews) {

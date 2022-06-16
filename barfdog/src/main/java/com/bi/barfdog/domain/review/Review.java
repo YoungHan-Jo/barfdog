@@ -1,5 +1,6 @@
 package com.bi.barfdog.domain.review;
 
+import com.bi.barfdog.api.reviewDto.ReturnReviewDto;
 import com.bi.barfdog.api.reviewDto.UpdateReviewDto;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.member.Member;
@@ -46,5 +47,19 @@ public abstract class Review extends BaseTimeEntity {
 
     public boolean isRequest() {
         return this.status == ReviewStatus.REQUEST;
+    }
+
+    public void approval() {
+        this.status = ReviewStatus.APPROVAL;
+        this.returnReason = "";
+    }
+
+    public void returnReview(ReturnReviewDto requestDto) {
+        this.status = ReviewStatus.RETURN;
+        this.returnReason = requestDto.getReturnReason();
+    }
+
+    public boolean isApproval() {
+        return this.status == ReviewStatus.APPROVAL;
     }
 }

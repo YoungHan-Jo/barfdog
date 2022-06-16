@@ -1,6 +1,8 @@
 package com.bi.barfdog.api;
 
-import com.bi.barfdog.api.reviewDto.ApprovalReviewsRequestDto;
+import com.bi.barfdog.api.reviewDto.ReturnReviewDto;
+import com.bi.barfdog.api.reviewDto.ReviewIdListDto;
+import com.bi.barfdog.api.reviewDto.UpdateBestReviewLeakedOrderDto;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.coupon.DiscountType;
@@ -16,8 +18,11 @@ import com.bi.barfdog.domain.order.Order;
 import com.bi.barfdog.domain.order.SubscribeOrder;
 import com.bi.barfdog.domain.orderItem.OrderItem;
 import com.bi.barfdog.domain.orderItem.OrderItemStatus;
+import com.bi.barfdog.domain.recipe.Leaked;
 import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.review.*;
+import com.bi.barfdog.domain.reward.Reward;
+import com.bi.barfdog.domain.reward.RewardPoint;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.domain.subscribe.SubscribeStatus;
 import com.bi.barfdog.jwt.JwtLoginDto;
@@ -29,9 +34,11 @@ import com.bi.barfdog.repository.item.ItemRepository;
 import com.bi.barfdog.repository.member.MemberRepository;
 import com.bi.barfdog.repository.order.OrderRepository;
 import com.bi.barfdog.repository.orderItem.OrderItemRepository;
+import com.bi.barfdog.repository.review.BestReviewRepository;
 import com.bi.barfdog.repository.review.ItemReviewRepository;
 import com.bi.barfdog.repository.review.ReviewRepository;
 import com.bi.barfdog.repository.review.SubscribeReviewRepository;
+import com.bi.barfdog.repository.reward.RewardRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -40,6 +47,7 @@ import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,17 +56,18 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
-import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
-import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
-import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -95,6 +104,10 @@ public class ReviewAdminControllerTest extends BaseTest {
     ItemReviewRepository itemReviewRepository;
     @Autowired
     SubscribeReviewRepository subscribeReviewRepository;
+    @Autowired
+    RewardRepository rewardRepository;
+    @Autowired
+    BestReviewRepository bestReviewRepository;
 
     @Test
     @DisplayName("정상적으로 전체 리뷰 조회")
@@ -138,7 +151,7 @@ public class ReviewAdminControllerTest extends BaseTest {
                                 linkWithRel("self").description("현재 페이지 링크"),
                                 linkWithRel("next").description("다음 페이지 링크"),
                                 linkWithRel("last").description("마지막 페이지 링크"),
-                                linkWithRel("approval_reviews").description("리뷰 승인 링크"),
+                                linkWithRel("approve_reviews").description("리뷰 승인 링크"),
                                 linkWithRel("create_best_reviews").description("베스트 리뷰 선정 링크"),
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
                         ),
@@ -176,7 +189,7 @@ public class ReviewAdminControllerTest extends BaseTest {
                                 fieldWithPath("_links.self.href").description("현재 페이지 링크"),
                                 fieldWithPath("_links.next.href").description("다음 페이지 링크"),
                                 fieldWithPath("_links.last.href").description("마지막 페이지 링크"),
-                                fieldWithPath("_links.approval_reviews.href").description("리뷰 승인 링크"),
+                                fieldWithPath("_links.approve_reviews.href").description("리뷰 승인 링크"),
                                 fieldWithPath("_links.create_best_reviews.href").description("베스트 리뷰 선정 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
@@ -386,7 +399,7 @@ public class ReviewAdminControllerTest extends BaseTest {
             reviewIdList.add(subscribeReview.getId());
         });
 
-        ApprovalReviewsRequestDto requestDto = ApprovalReviewsRequestDto.builder()
+        ReviewIdListDto requestDto = ReviewIdListDto.builder()
                 .reviewIdList(reviewIdList)
                 .build();
 
@@ -398,7 +411,38 @@ public class ReviewAdminControllerTest extends BaseTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isOk())
-        ;
+                .andDo(document("approve_reviews",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_reviews").description("리뷰 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt token")
+                        ),
+                        requestFields(
+                                fieldWithPath("reviewIdList").description("승인할 리뷰 id 리스트")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_reviews.href").description("리뷰 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        List<Review> approvalReviews = reviewRepository.findAllByStatus(ReviewStatus.APPROVAL);
+        assertThat(approvalReviews.size()).isEqualTo(4);
+        for (Review review : approvalReviews) {
+            assertThat(review.getReturnReason().equals("")).isTrue();
+        }
 
     }
 
@@ -416,14 +460,12 @@ public class ReviewAdminControllerTest extends BaseTest {
         });
 
         List<Long> reviewIdList = new ArrayList<>();
-        IntStream.range(1,3).forEach(i -> {
-            ItemReview itemReview = generateItemReview(member, item, i, ReviewStatus.REQUEST);
-            SubscribeReview subscribeReview = (SubscribeReview) generateSubscribeReview(member, i, ReviewStatus.REQUEST);
+        IntStream.range(1,5).forEach(i -> {
+            ItemReview itemReview = generateItemReview_Over50_EmptyImage(member, item, i, ReviewStatus.REQUEST);
             reviewIdList.add(itemReview.getId());
-            reviewIdList.add(subscribeReview.getId());
         });
 
-        ApprovalReviewsRequestDto requestDto = ApprovalReviewsRequestDto.builder()
+        ReviewIdListDto requestDto = ReviewIdListDto.builder()
                 .reviewIdList(reviewIdList)
                 .build();
 
@@ -436,6 +478,19 @@ public class ReviewAdminControllerTest extends BaseTest {
                 .andDo(print())
                 .andExpect(status().isOk())
         ;
+
+        em.flush();
+        em.clear();
+
+        Member findMember = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        assertThat(findMember.getReward()).isEqualTo(RewardPoint.REVIEW_CONTENTS * 4);
+        List<Review> reviews = reviewRepository.findAllById(reviewIdList);
+        for (Review review : reviews) {
+            assertThat(review.getStatus()).isEqualTo(ReviewStatus.APPROVAL);
+        }
+        List<Reward> rewardList = rewardRepository.findByMember(member);
+        assertThat(rewardList.size()).isEqualTo(4);
+
 
     }
 
@@ -453,14 +508,12 @@ public class ReviewAdminControllerTest extends BaseTest {
         });
 
         List<Long> reviewIdList = new ArrayList<>();
-        IntStream.range(1,3).forEach(i -> {
-            ItemReview itemReview = generateItemReview(member, item, i, ReviewStatus.REQUEST);
-            SubscribeReview subscribeReview = (SubscribeReview) generateSubscribeReview(member, i, ReviewStatus.REQUEST);
+        IntStream.range(1,5).forEach(i -> {
+            ItemReview itemReview = generateItemReview_OnlyImage(member, item, i, ReviewStatus.REQUEST);
             reviewIdList.add(itemReview.getId());
-            reviewIdList.add(subscribeReview.getId());
         });
 
-        ApprovalReviewsRequestDto requestDto = ApprovalReviewsRequestDto.builder()
+        ReviewIdListDto requestDto = ReviewIdListDto.builder()
                 .reviewIdList(reviewIdList)
                 .build();
 
@@ -474,11 +527,23 @@ public class ReviewAdminControllerTest extends BaseTest {
                 .andExpect(status().isOk())
         ;
 
+        em.flush();
+        em.clear();
+
+        Member findMember = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        assertThat(findMember.getReward()).isEqualTo(RewardPoint.REVIEW_IMAGE * 4);
+        List<Review> reviews = reviewRepository.findAllById(reviewIdList);
+        for (Review review : reviews) {
+            assertThat(review.getStatus()).isEqualTo(ReviewStatus.APPROVAL);
+        }
+        List<Reward> rewardList = rewardRepository.findByMember(member);
+        assertThat(rewardList.size()).isEqualTo(4);
+
     }
 
     @Test
     @DisplayName("리뷰 승인 이미지 삽입 50글자 이상 적립금 800")
-    public void approvalReviews_Image() throws Exception {
+    public void approvalReviews_Image_50length() throws Exception {
         //given
 
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
@@ -490,14 +555,12 @@ public class ReviewAdminControllerTest extends BaseTest {
         });
 
         List<Long> reviewIdList = new ArrayList<>();
-        IntStream.range(1,3).forEach(i -> {
-            ItemReview itemReview = generateItemReview(member, item, i, ReviewStatus.REQUEST);
-            SubscribeReview subscribeReview = (SubscribeReview) generateSubscribeReview(member, i, ReviewStatus.REQUEST);
+        IntStream.range(1,5).forEach(i -> {
+            ItemReview itemReview = generateItemReview_Over50AndImage(member, item, i, ReviewStatus.REQUEST);
             reviewIdList.add(itemReview.getId());
-            reviewIdList.add(subscribeReview.getId());
         });
 
-        ApprovalReviewsRequestDto requestDto = ApprovalReviewsRequestDto.builder()
+        ReviewIdListDto requestDto = ReviewIdListDto.builder()
                 .reviewIdList(reviewIdList)
                 .build();
 
@@ -511,6 +574,938 @@ public class ReviewAdminControllerTest extends BaseTest {
                 .andExpect(status().isOk())
         ;
 
+        em.flush();
+        em.clear();
+
+        Member findMember = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        assertThat(findMember.getReward()).isEqualTo((RewardPoint.REVIEW_IMAGE + RewardPoint.REVIEW_CONTENTS) * 4);
+        List<Review> reviews = reviewRepository.findAllById(reviewIdList);
+        for (Review review : reviews) {
+            assertThat(review.getStatus()).isEqualTo(ReviewStatus.APPROVAL);
+        }
+        List<Reward> rewardList = rewardRepository.findByMember(member);
+        assertThat(rewardList.size()).isEqualTo(4);
+
+    }
+
+    @Test
+    @DisplayName("승인할 리뷰가 존재하지 않을 경우 400")
+    public void approvalReviews_400() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        List<Long> reviewIdList = new ArrayList<>();
+        IntStream.range(1,5).forEach(i -> {
+            ItemReview itemReview = generateItemReview_Over50AndImage(member, item, i, ReviewStatus.REQUEST);
+            reviewIdList.add(itemReview.getId());
+        });
+        reviewIdList.add(999999L);
+
+        ReviewIdListDto requestDto = ReviewIdListDto.builder()
+                .reviewIdList(reviewIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(put("/api/admin/reviews/approval")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+    }
+
+    @Test
+    @DisplayName("정상적으로 리뷰 삭제")
+    public void deleteReview() throws Exception {
+       //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        ItemReview review = generateItemReview(member, item, 1, ReviewStatus.REQUEST);
+
+       //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.delete("/api/admin/reviews/{id}", review.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("admin_delete_review",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_reviews").description("리뷰 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("삭제할 리뷰 id")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt token")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_reviews.href").description("리뷰 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        Optional<Review> optionalReview = reviewRepository.findById(review.getId());
+        assertThat(optionalReview.isPresent()).isFalse();
+        List<ReviewImage> reviewImages = reviewImageRepository.findByReview(review);
+        assertThat(reviewImages.size()).isEqualTo(0);
+
+    }
+
+    @Test
+    @DisplayName("삭제할 리뷰가 없을 경우 404")
+    public void deleteReview_notFound() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        ItemReview review = generateItemReview(member, item, 1, ReviewStatus.REQUEST);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.delete("/api/admin/reviews/999999")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("정상적으로 베스트리뷰 신청")
+    public void createBestReview() throws Exception {
+       //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+        List<Long> reviewIdList = new ArrayList<>();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        IntStream.range(1,6).forEach(i -> {
+            ItemReview requestReview = generateItemReview(member, item, i, ReviewStatus.REQUEST);
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            reviewIdList.add(requestReview.getId());
+            reviewIdList.add(adminReview.getId());
+        });
+
+        IntStream.range(1,6).forEach(i -> {
+            Review returnReview = generateSubscribeReview(member, i, ReviewStatus.RETURN);
+            Review approvalReview = generateSubscribeReview(admin, i, ReviewStatus.APPROVAL);
+            reviewIdList.add(returnReview.getId());
+            reviewIdList.add(approvalReview.getId());
+        });
+
+        ReviewIdListDto requestDto = ReviewIdListDto.builder()
+                .reviewIdList(reviewIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/reviews/best")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("create_best_reviews",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_reviews").description("리뷰 리스트 조회 링크"),
+                                linkWithRel("query_best_reviews").description("베스트 리뷰 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt token")
+                        ),
+                        requestFields(
+                                fieldWithPath("reviewIdList").description("베스트로 등록할 리뷰 id 리스트")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_reviews.href").description("리뷰 리스트 조회 링크"),
+                                fieldWithPath("_links.query_best_reviews.href").description("베스트 리뷰 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+
+        em.flush();
+        em.clear();
+
+        List<BestReview> all = bestReviewRepository.findAllByOrderByLeakedOrderAsc();
+        assertThat(all.size()).isEqualTo(5);
+        assertThat(all.get(0).getReview().getStatus()).isEqualTo(ReviewStatus.APPROVAL);
+        assertThat(all.get(0).getLeakedOrder()).isEqualTo(1);
+        assertThat(all.get(1).getLeakedOrder()).isEqualTo(2);
+        assertThat(all.get(2).getLeakedOrder()).isEqualTo(3);
+        assertThat(all.get(3).getLeakedOrder()).isEqualTo(4);
+        assertThat(all.get(4).getLeakedOrder()).isEqualTo(5);
+
+    }
+
+    @Test
+    @DisplayName("첫번째 이후의 베스트리뷰 신청")
+    public void createBestReview_fromSecond() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+        List<Long> reviewIdList = new ArrayList<>();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        IntStream.range(1,6).forEach(i -> {
+            ItemReview requestReview = generateItemReview(member, item, i, ReviewStatus.REQUEST);
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            reviewIdList.add(requestReview.getId());
+            reviewIdList.add(adminReview.getId());
+        });
+
+        Review review = generateSubscribeReview(admin, 11, ReviewStatus.APPROVAL);
+        generateBestReview(review, 1);
+
+        IntStream.range(1,6).forEach(i -> {
+            Review returnReview = generateSubscribeReview(member, i, ReviewStatus.RETURN);
+            Review approvalReview = generateSubscribeReview(admin, i, ReviewStatus.APPROVAL);
+            reviewIdList.add(returnReview.getId());
+            reviewIdList.add(approvalReview.getId());
+        });
+
+        ReviewIdListDto requestDto = ReviewIdListDto.builder()
+                .reviewIdList(reviewIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/reviews/best")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+        ;
+
+        em.flush();
+        em.clear();
+
+        List<BestReview> all = bestReviewRepository.findAllByOrderByLeakedOrderAsc();
+        assertThat(all.size()).isEqualTo(6);
+        assertThat(all.get(0).getReview().getStatus()).isEqualTo(ReviewStatus.APPROVAL);
+        assertThat(all.get(0).getLeakedOrder()).isEqualTo(1);
+        assertThat(all.get(0).getReview().getId()).isEqualTo(review.getId());
+        assertThat(all.get(1).getLeakedOrder()).isEqualTo(2);
+        assertThat(all.get(2).getLeakedOrder()).isEqualTo(3);
+        assertThat(all.get(3).getLeakedOrder()).isEqualTo(4);
+        assertThat(all.get(4).getLeakedOrder()).isEqualTo(5);
+        assertThat(all.get(5).getLeakedOrder()).isEqualTo(6);
+
+    }
+
+    @Test
+    @DisplayName("베스트리뷰 신청 시 이미 베스트리뷰인 리뷰는 무시")
+    public void createBestReview_alreadyBestReview() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+        List<Long> reviewIdList = new ArrayList<>();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        IntStream.range(1,6).forEach(i -> {
+            ItemReview requestReview = generateItemReview(member, item, i, ReviewStatus.REQUEST);
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            reviewIdList.add(requestReview.getId());
+            reviewIdList.add(adminReview.getId());
+        });
+
+        Review review = generateSubscribeReview(admin, 9999, ReviewStatus.APPROVAL);
+        generateBestReview(review, 1);
+
+        reviewIdList.add(review.getId());
+
+        IntStream.range(1,6).forEach(i -> {
+            Review returnReview = generateSubscribeReview(member, i, ReviewStatus.RETURN);
+            Review approvalReview = generateSubscribeReview(admin, i, ReviewStatus.APPROVAL);
+            reviewIdList.add(returnReview.getId());
+            reviewIdList.add(approvalReview.getId());
+        });
+
+        ReviewIdListDto requestDto = ReviewIdListDto.builder()
+                .reviewIdList(reviewIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/reviews/best")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+        ;
+
+        em.flush();
+        em.clear();
+
+        List<BestReview> all = bestReviewRepository.findAllByOrderByLeakedOrderAsc();
+        assertThat(all.size()).isEqualTo(6);
+        assertThat(all.get(0).getReview().getStatus()).isEqualTo(ReviewStatus.APPROVAL);
+        assertThat(all.get(0).getReview().getId()).isEqualTo(review.getId());
+
+    }
+
+    @Test
+    @DisplayName("베스트 리뷰 신청할 리뷰 id 리스트가 잘못됨")
+    public void createBestReview_wrongId() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+        List<Long> reviewIdList = new ArrayList<>();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        IntStream.range(1,6).forEach(i -> {
+            ItemReview requestReview = generateItemReview(member, item, i, ReviewStatus.REQUEST);
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            reviewIdList.add(requestReview.getId());
+            reviewIdList.add(adminReview.getId());
+        });
+
+        Review review = generateSubscribeReview(admin, 11, ReviewStatus.APPROVAL);
+        generateBestReview(review, 1);
+
+        IntStream.range(1,6).forEach(i -> {
+            Review returnReview = generateSubscribeReview(member, i, ReviewStatus.RETURN);
+            Review approvalReview = generateSubscribeReview(admin, i, ReviewStatus.APPROVAL);
+            reviewIdList.add(returnReview.getId());
+            reviewIdList.add(approvalReview.getId());
+        });
+
+        reviewIdList.add(9999L);
+
+        ReviewIdListDto requestDto = ReviewIdListDto.builder()
+                .reviewIdList(reviewIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/reviews/best")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+    }
+
+    @Test
+    @DisplayName("정상적으로 쿼리 하나 조회")
+    public void queryReview() throws Exception {
+       //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        IntStream.range(1,6).forEach(i -> {
+            ItemReview requestReview = generateItemReview(member, item, i, ReviewStatus.REQUEST);
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+        });
+
+        Review review = generateSubscribeReview(admin, 11, ReviewStatus.APPROVAL);
+        generateBestReview(review, 1);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/admin/reviews/{id}", review.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("bestReview").value(true))
+                .andDo(document("admin_query_review",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("create_best_reviews").description("베스트 리뷰 등록 링크"),
+                                linkWithRel("approve_reviews").description("리뷰 승인 링크"),
+                                linkWithRel("return_review").description("리뷰 반려 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("조회할 리뷰 id")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt token")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("reviewDto.id").description("리뷰 id"),
+                                fieldWithPath("reviewDto.status").description("리뷰 상태 [REQUEST,RETURN,APPROVAL,ADMIN]"),
+                                fieldWithPath("reviewDto.createdDate").description("리뷰 등록일"),
+                                fieldWithPath("reviewDto.star").description("리뷰 평점"),
+                                fieldWithPath("reviewDto.username").description("리뷰 작성자 이름"),
+                                fieldWithPath("reviewDto.contents").description("리뷰 내용"),
+                                fieldWithPath("imageUrlList[0].filename").description("리뷰 이미지 파일 이름"),
+                                fieldWithPath("imageUrlList[0].url").description("리뷰 이미지 url"),
+                                fieldWithPath("bestReview").description("베스트리뷰 여부 true/false"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.create_best_reviews.href").description("베스트 리뷰 등록 링크"),
+                                fieldWithPath("_links.approve_reviews.href").description("리뷰 승인 링크"),
+                                fieldWithPath("_links.return_review.href").description("리뷰 반려 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+        ;
+
+    }
+
+    @Test
+    @DisplayName("정상적으로 쿼리 하나 조회-베스트 리뷰 false")
+    public void queryReview_not_BestReview() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        IntStream.range(1,6).forEach(i -> {
+            ItemReview requestReview = generateItemReview(member, item, i, ReviewStatus.REQUEST);
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+        });
+
+        Review review = generateSubscribeReview(admin, 11, ReviewStatus.APPROVAL);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/admin/reviews/{id}", review.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("bestReview").value(false))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("조회할 리뷰가 존재하지 않음 404")
+    public void queryReview_not_found() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        IntStream.range(1,6).forEach(i -> {
+            ItemReview requestReview = generateItemReview(member, item, i, ReviewStatus.REQUEST);
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+        });
+
+        Review review = generateSubscribeReview(admin, 11, ReviewStatus.APPROVAL);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/admin/reviews/999999")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+        ;
+
+    }
+
+    @Test
+    @DisplayName("정상적으로 리뷰 반려")
+    public void returnReview() throws Exception {
+       //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        ItemReview review = generateItemReview(member, item, 99, ReviewStatus.REQUEST);
+
+        String returnReason = "적합하지않은 리뷰 입니다.";
+        ReturnReviewDto requestDto = ReturnReviewDto.builder()
+                .returnReason(returnReason)
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/admin/reviews/{id}/return", review.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("return_review",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_review").description("리뷰 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("반려할 리뷰 id")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt token")
+                        ),
+                        requestFields(
+                                fieldWithPath("returnReason").description("반려 사유")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_review.href").description("리뷰 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+
+        em.flush();
+        em.clear();
+
+        Review findReview = reviewRepository.findById(review.getId()).get();
+        assertThat(findReview.getStatus()).isEqualTo(ReviewStatus.RETURN);
+        assertThat(findReview.getReturnReason()).isEqualTo(returnReason);
+
+    }
+
+    @Test
+    @DisplayName("반려할 리뷰가 이미 승인된 리뷰일 경우 400")
+    public void returnReview_already_approval() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        ItemReview review = generateItemReview(member, item, 99, ReviewStatus.APPROVAL);
+
+        String returnReason = "적합하지않은 리뷰 입니다.";
+        ReturnReviewDto requestDto = ReturnReviewDto.builder()
+                .returnReason(returnReason)
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/admin/reviews/{id}/return", review.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+    }
+
+    @Test
+    @DisplayName("반려할 리뷰가 존재하지않음 404")
+    public void returnReview_404() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        ItemReview review = generateItemReview(member, item, 99, ReviewStatus.REQUEST);
+
+        String returnReason = "적합하지않은 리뷰 입니다.";
+        ReturnReviewDto requestDto = ReturnReviewDto.builder()
+                .returnReason(returnReason)
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/admin/reviews/999999/return")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("정상적으로 베스트리뷰 리스트 조회하는 테스트")
+    public void queryBestReviews() throws Exception {
+       //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        IntStream.range(6,11).forEach(i -> {
+            Review approvalReview = generateSubscribeReview(member, i, ReviewStatus.APPROVAL);
+            generateBestReview(approvalReview, i);
+        });
+
+        IntStream.range(1,6).forEach(i -> {
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            generateBestReview(adminReview, i);
+        });
+
+       //when & then
+        mockMvc.perform(get("/api/admin/reviews/best")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("_embedded.queryAdminBestReviewsDtoList", hasSize(10)))
+
+                .andDo(document("query_admin_best_reviews",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("update_leakedOrder").description("베스트 리뷰 순서 수정 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt token")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_embedded.queryAdminBestReviewsDtoList[0].id").description("베스트 리뷰 id"),
+                                fieldWithPath("_embedded.queryAdminBestReviewsDtoList[0].leakedOrder").description("노출 순서"),
+                                fieldWithPath("_embedded.queryAdminBestReviewsDtoList[0].reviewId").description("리뷰 id"),
+                                fieldWithPath("_embedded.queryAdminBestReviewsDtoList[0].title").description("리뷰 상품 이름"),
+                                fieldWithPath("_embedded.queryAdminBestReviewsDtoList[0].star").description("리뷰 평점"),
+                                fieldWithPath("_embedded.queryAdminBestReviewsDtoList[0].contents").description("리뷰 내용"),
+                                fieldWithPath("_embedded.queryAdminBestReviewsDtoList[0].createdDate").description("리뷰 등록날짜"),
+                                fieldWithPath("_embedded.queryAdminBestReviewsDtoList[0].name").description("리뷰 작성자 이름"),
+                                fieldWithPath("_embedded.queryAdminBestReviewsDtoList[0].email").description("작성자 이메일"),
+                                fieldWithPath("_embedded.queryAdminBestReviewsDtoList[0]._links.query_review.href").description("리뷰 하나 조회 링크"),
+                                fieldWithPath("_embedded.queryAdminBestReviewsDtoList[0]._links.delete_best_review.href").description("베스트 리뷰 삭제 링크"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.update_leakedOrder.href").description("베스트 리뷰 순서 수정 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+    }
+
+    @Test
+    @DisplayName("정상적으로 베스트 리뷰 삭제")
+    public void deleteBestReview() throws Exception {
+       //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        IntStream.range(6,11).forEach(i -> {
+            Review approvalReview = generateSubscribeReview(member, i, ReviewStatus.APPROVAL);
+            generateBestReview(approvalReview, i);
+        });
+
+        IntStream.range(1,6).forEach(i -> {
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            generateBestReview(adminReview, i);
+        });
+
+        BestReview bestReview = bestReviewRepository.findByLeakedOrder(3).get();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.delete("/api/admin/reviews/{id}/best", bestReview.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("admin_delete_best_review",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_best_reviews").description("베스트 리뷰 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("삭제할 베스트 리뷰 id")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt token")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_best_reviews.href").description("베스트 리뷰 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        Optional<BestReview> optionalBestReview = bestReviewRepository.findById(bestReview.getId());
+        assertThat(optionalBestReview.isPresent()).isFalse();
+
+        List<BestReview> bestReviews = bestReviewRepository.findAllByOrderByLeakedOrderAsc();
+        assertThat(bestReviews.size()).isEqualTo(9);
+        int leakedOrder = 1;
+        for (BestReview review : bestReviews) {
+            assertThat(review.getLeakedOrder()).isEqualTo(leakedOrder++);
+        }
+
+    }
+
+    @Test
+    @DisplayName("삭제할 베스트 리뷰가 존재하지않음 404")
+    public void deleteBestReview_notFound() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        IntStream.range(6,11).forEach(i -> {
+            Review approvalReview = generateSubscribeReview(member, i, ReviewStatus.APPROVAL);
+            generateBestReview(approvalReview, i);
+        });
+
+        IntStream.range(1,6).forEach(i -> {
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            generateBestReview(adminReview, i);
+        });
+
+        BestReview bestReview = bestReviewRepository.findByLeakedOrder(3).get();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.delete("/api/admin/reviews/999999/best")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+
+    }
+
+    @Test
+    @DisplayName("정상적으로 베스트 리뷰 순서 변경")
+    public void updateBestReviewLeakedOrder() throws Exception {
+       //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        List<UpdateBestReviewLeakedOrderDto.LeakedOrderDto> leakedOrderDtoList = new ArrayList<>();
+
+        Review approvalReview1 = generateSubscribeReview(member, 1, ReviewStatus.APPROVAL);
+        Review approvalReview2 = generateSubscribeReview(member, 2, ReviewStatus.APPROVAL);
+        Review approvalReview3 = generateSubscribeReview(member, 3, ReviewStatus.APPROVAL);
+        BestReview bestReview1to2 = generateBestReview(approvalReview1, 1);
+        BestReview bestReview2to3 = generateBestReview(approvalReview2, 2);
+        BestReview bestReview3to1 = generateBestReview(approvalReview3, 3);
+        UpdateBestReviewLeakedOrderDto.LeakedOrderDto leakedOrderDto1 = getLeakedOrderDto(bestReview1to2, 2);
+        UpdateBestReviewLeakedOrderDto.LeakedOrderDto leakedOrderDto2 = getLeakedOrderDto(bestReview2to3, 3);
+        UpdateBestReviewLeakedOrderDto.LeakedOrderDto leakedOrderDto3 = getLeakedOrderDto(bestReview3to1, 1);
+        leakedOrderDtoList.add(leakedOrderDto1);
+        leakedOrderDtoList.add(leakedOrderDto2);
+        leakedOrderDtoList.add(leakedOrderDto3);
+        
+        em.flush();
+        em.clear();
+
+        BestReview beforeChange1 = bestReviewRepository.findById(bestReview1to2.getId()).get();
+        BestReview beforeChange2 = bestReviewRepository.findById(bestReview2to3.getId()).get();
+        BestReview beforeChange3 = bestReviewRepository.findById(bestReview3to1.getId()).get();
+        assertThat(beforeChange1.getLeakedOrder()).isEqualTo(1);
+        assertThat(beforeChange2.getLeakedOrder()).isEqualTo(2);
+        assertThat(beforeChange3.getLeakedOrder()).isEqualTo(3);
+
+
+        UpdateBestReviewLeakedOrderDto requestDto = UpdateBestReviewLeakedOrderDto.builder()
+                .leakedOrderDtoList(leakedOrderDtoList)
+                .build();
+
+        //when & then
+        mockMvc.perform(put("/api/admin/reviews/best/leakedOrder")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("update_best_reviews_leakedOrder",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_best_reviews").description("베스트 리뷰 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt token")
+                        ),
+                        requestFields(
+                                fieldWithPath("leakedOrderDtoList[0].id").description("베스트 리뷰 id"),
+                                fieldWithPath("leakedOrderDtoList[0].leakedOrder").description("변경 시킬 노출 순서")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_best_reviews.href").description("베스트 리뷰 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        ;
+
+        em.flush();
+        em.clear();
+
+        BestReview afterChange1 = bestReviewRepository.findById(bestReview1to2.getId()).get();
+        BestReview afterChange2 = bestReviewRepository.findById(bestReview2to3.getId()).get();
+        BestReview afterChange3 = bestReviewRepository.findById(bestReview3to1.getId()).get();
+        assertThat(afterChange1.getLeakedOrder()).isEqualTo(2);
+        assertThat(afterChange2.getLeakedOrder()).isEqualTo(3);
+        assertThat(afterChange3.getLeakedOrder()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("베스트 리뷰 순서 변경 시 존재하지않는 베스트 리뷰 id일 경우 400")
+    public void updateBestReviewLeakedOrder_wrongId() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        List<UpdateBestReviewLeakedOrderDto.LeakedOrderDto> leakedOrderDtoList = new ArrayList<>();
+
+        Review approvalReview1 = generateSubscribeReview(member, 1, ReviewStatus.APPROVAL);
+        Review approvalReview2 = generateSubscribeReview(member, 2, ReviewStatus.APPROVAL);
+        Review approvalReview3 = generateSubscribeReview(member, 3, ReviewStatus.APPROVAL);
+        BestReview bestReview1to2 = generateBestReview(approvalReview1, 1);
+        BestReview bestReview2to3 = generateBestReview(approvalReview2, 2);
+        BestReview bestReview3to1 = generateBestReview(approvalReview3, 3);
+        UpdateBestReviewLeakedOrderDto.LeakedOrderDto leakedOrderDto1 = getLeakedOrderDto(bestReview1to2, 2);
+        UpdateBestReviewLeakedOrderDto.LeakedOrderDto leakedOrderDto2 = getLeakedOrderDto(bestReview2to3, 3);
+        UpdateBestReviewLeakedOrderDto.LeakedOrderDto leakedOrderDto3 = getLeakedOrderDto(bestReview3to1, 1);
+        UpdateBestReviewLeakedOrderDto.LeakedOrderDto wrongId = UpdateBestReviewLeakedOrderDto.LeakedOrderDto.builder()
+                .id(9999L)
+                .leakedOrder(4)
+                .build();
+        leakedOrderDtoList.add(leakedOrderDto1);
+        leakedOrderDtoList.add(leakedOrderDto2);
+        leakedOrderDtoList.add(leakedOrderDto3);
+        leakedOrderDtoList.add(wrongId);
+
+        UpdateBestReviewLeakedOrderDto requestDto = UpdateBestReviewLeakedOrderDto.builder()
+                .leakedOrderDtoList(leakedOrderDtoList)
+                .build();
+
+        //when & then
+        mockMvc.perform(put("/api/admin/reviews/best/leakedOrder")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
     }
 
 
@@ -519,13 +1514,22 @@ public class ReviewAdminControllerTest extends BaseTest {
 
 
 
+    private UpdateBestReviewLeakedOrderDto.LeakedOrderDto getLeakedOrderDto(BestReview bestReview1to2, int leakedOrder) {
+        UpdateBestReviewLeakedOrderDto.LeakedOrderDto leakedOrderDto = UpdateBestReviewLeakedOrderDto.LeakedOrderDto.builder()
+                .id(bestReview1to2.getId())
+                .leakedOrder(leakedOrder)
+                .build();
+        return leakedOrderDto;
+    }
 
 
-
-
-
-
-
+    private BestReview generateBestReview(Review approvalReview, int i) {
+        BestReview bestReview = BestReview.builder()
+                .review(approvalReview)
+                .leakedOrder(i)
+                .build();
+        return bestReviewRepository.save(bestReview);
+    }
 
 
     private Review generateSubscribeReview(Member member, int i, ReviewStatus reviewStatus) {
@@ -548,6 +1552,7 @@ public class ReviewAdminControllerTest extends BaseTest {
                 .status(reviewStatus)
                 .returnReason("상품에 맞지 않은 리뷰 내용"+i)
                 .subscribe(subscribe)
+                .returnReason("적합하지않은 리뷰 내용")
                 .build();
         reviewRepository.save(subscribeReview);
 
@@ -564,7 +1569,60 @@ public class ReviewAdminControllerTest extends BaseTest {
                 .writtenDate(LocalDate.now().minusDays(30L))
                 .username(member.getName())
                 .star((i + 5) % 5)
-                .contents("열글자 이상의 내용"+i)
+                .contents("열글자 이상의 내용 "+i)
+                .status(reviewStatus)
+                .item(item)
+                .build();
+        itemReviewRepository.save(itemReview);
+
+        IntStream.range(1,4).forEach(j -> {
+            generateReviewImage(j, itemReview);
+        });
+
+        return itemReview;
+    }
+
+    private ItemReview generateItemReview_Over50_EmptyImage(Member member, Item item, int i, ReviewStatus reviewStatus) {
+        ItemReview itemReview = ItemReview.builder()
+                .member(member)
+                .writtenDate(LocalDate.now().minusDays(30L))
+                .username(member.getName())
+                .star((i + 5) % 5)
+                .contents("오십글자 이상의 내용 오십글자 이상의 내용 오십글자 이상의 내용 오십글자 이상의 내용 오십글자 이상의 내용 "+i)
+                .status(reviewStatus)
+                .item(item)
+                .build();
+        itemReviewRepository.save(itemReview);
+
+        return itemReview;
+    }
+
+    private ItemReview generateItemReview_OnlyImage(Member member, Item item, int i, ReviewStatus reviewStatus) {
+        ItemReview itemReview = ItemReview.builder()
+                .member(member)
+                .writtenDate(LocalDate.now().minusDays(30L))
+                .username(member.getName())
+                .star((i + 5) % 5)
+                .contents("열글자 이상의 내용 "+i)
+                .status(reviewStatus)
+                .item(item)
+                .build();
+        itemReviewRepository.save(itemReview);
+
+        IntStream.range(1,4).forEach(j -> {
+            generateReviewImage(j, itemReview);
+        });
+
+        return itemReview;
+    }
+
+    private ItemReview generateItemReview_Over50AndImage(Member member, Item item, int i, ReviewStatus reviewStatus) {
+        ItemReview itemReview = ItemReview.builder()
+                .member(member)
+                .writtenDate(LocalDate.now().minusDays(30L))
+                .username(member.getName())
+                .star((i + 5) % 5)
+                .contents("오십글자 이상의 내용 오십글자 이상의 내용 오십글자 이상의 내용 오십글자 이상의 내용 오십글자 이상의 내용 "+i)
                 .status(reviewStatus)
                 .item(item)
                 .build();

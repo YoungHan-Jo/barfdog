@@ -2,22 +2,22 @@ package com.bi.barfdog.service;
 
 import com.bi.barfdog.api.InfoController;
 import com.bi.barfdog.api.blogDto.UploadedImageAdminDto;
-import com.bi.barfdog.api.reviewDto.ApprovalReviewsRequestDto;
-import com.bi.barfdog.api.reviewDto.ReviewType;
-import com.bi.barfdog.api.reviewDto.UpdateReviewDto;
-import com.bi.barfdog.api.reviewDto.WriteReviewDto;
+import com.bi.barfdog.api.reviewDto.*;
 import com.bi.barfdog.domain.banner.ImgFilenamePath;
 import com.bi.barfdog.domain.item.Item;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.orderItem.OrderItem;
 import com.bi.barfdog.domain.review.*;
+import com.bi.barfdog.domain.reward.*;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.repository.ReviewImageRepository;
 import com.bi.barfdog.repository.item.ItemRepository;
 import com.bi.barfdog.repository.orderItem.OrderItemRepository;
+import com.bi.barfdog.repository.review.BestReviewRepository;
 import com.bi.barfdog.repository.review.ItemReviewRepository;
 import com.bi.barfdog.repository.review.ReviewRepository;
 import com.bi.barfdog.repository.review.SubscribeReviewRepository;
+import com.bi.barfdog.repository.reward.RewardRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
 import com.bi.barfdog.service.file.StorageService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
@@ -43,7 +44,8 @@ public class ReviewService {
     private final OrderItemRepository orderItemRepository;
     private final SubscribeRepository subscribeRepository;
     private final SubscribeReviewRepository subscribeReviewRepository;
-
+    private final RewardRepository rewardRepository;
+    private final BestReviewRepository bestReviewRepository;
 
     @Transactional
     public UploadedImageAdminDto uploadImage(MultipartFile file) {
@@ -151,12 +153,74 @@ public class ReviewService {
     }
 
     @Transactional
-    public void approvalReviews(ApprovalReviewsRequestDto requestDto) {
+    public void approvalReviews(ReviewIdListDto requestDto) {
         List<Review> reviews = reviewRepository.findAllById(requestDto.getReviewIdList());
         for (Review review : reviews) {
             if (review.isRequest()) {
-
+                review.approval();
+                int rewardPoint = 0;
+                if (review.getContents().length() >= 50) {
+                    rewardPoint += RewardPoint.REVIEW_CONTENTS;
+                }
+                if (reviewImageRepository.findByReview(review).size() > 0) {
+                    rewardPoint += RewardPoint.REVIEW_IMAGE;
+                }
+                if (rewardPoint > 0) {
+                    Reward reward = Reward.builder()
+                            .member(review.getMember())
+                            .name(RewardName.REVIEW)
+                            .rewardType(RewardType.REVIEW)
+                            .rewardStatus(RewardStatus.SAVED)
+                            .tradeReward(rewardPoint)
+                            .build();
+                    rewardRepository.save(reward);
+                    review.getMember().chargePoint(rewardPoint);
+                }
             }
+        }
+    }
+
+    @Transactional
+    public void createBestReviews(ReviewIdListDto requestDto) {
+
+        int nextLeakedOrder = bestReviewRepository.findNextLeakedOrder();
+
+        List<Review> reviews = reviewRepository.findAllById(requestDto.getReviewIdList());
+        for (Review review : reviews) {
+            Optional<BestReview> optionalBestReview = bestReviewRepository.findByReview(review);
+            if (review.getStatus() == ReviewStatus.APPROVAL && !optionalBestReview.isPresent()) {
+                BestReview bestReview = BestReview.builder()
+                        .leakedOrder(nextLeakedOrder++)
+                        .review(review)
+                        .build();
+                bestReviewRepository.save(bestReview);
+            }
+        }
+    }
+
+    @Transactional
+    public void returnReview(Long id, ReturnReviewDto requestDto) {
+        Review review = reviewRepository.findById(id).get();
+        review.returnReview(requestDto);
+    }
+
+    @Transactional
+    public void deleteBestReview(Long id) {
+        BestReview bestReview = bestReviewRepository.findById(id).get();
+        bestReviewRepository.delete(bestReview);
+
+        int leakedOrder = bestReview.getLeakedOrder();
+        bestReviewRepository.increaseLeakedOrder(leakedOrder);
+
+    }
+
+    @Transactional
+    public void updateBestReviewLeakedOrder(UpdateBestReviewLeakedOrderDto requestDto) {
+        List<UpdateBestReviewLeakedOrderDto.LeakedOrderDto> leakedOrderDtoList = requestDto.getLeakedOrderDtoList();
+        for (UpdateBestReviewLeakedOrderDto.LeakedOrderDto dto : leakedOrderDtoList) {
+            Long id = dto.getId();
+            BestReview bestReview = bestReviewRepository.findById(id).get();
+            bestReview.changeLeakedOrder(dto.getLeakedOrder());
         }
     }
 }

@@ -23,4 +23,7 @@ public class BestReview {
     private Review review;
 
 
+    public void changeLeakedOrder(int leakedOrder) {
+        this.leakedOrder = leakedOrder;
+    }
 }

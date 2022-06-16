@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ApprovalReviewsRequestDto {
+public class ReviewIdListDto {
 
     @Builder.Default
     private List<Long> reviewIdList = new ArrayList<>();
