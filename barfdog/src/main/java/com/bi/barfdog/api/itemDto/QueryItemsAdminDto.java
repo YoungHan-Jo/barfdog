@@ -19,6 +19,8 @@ public class QueryItemsAdminDto {
 
     private String name;
 
+    private String itemIcons; // 상품 아이콘 "BEST,NEW"
+
     private boolean option;
 
     private int originalPrice;

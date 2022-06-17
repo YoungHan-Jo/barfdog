@@ -72,7 +72,7 @@ public class EventAdminControllerTest extends BaseTest {
         mockMvc.perform(multipart("/api/admin/events/thumbnail")
                         .file(file)
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -118,7 +118,7 @@ public class EventAdminControllerTest extends BaseTest {
         //when & then
         mockMvc.perform(multipart("/api/admin/events/thumbnail")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
@@ -133,7 +133,7 @@ public class EventAdminControllerTest extends BaseTest {
         mockMvc.perform(multipart("/api/admin/events/image")
                         .file(file)
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -179,7 +179,7 @@ public class EventAdminControllerTest extends BaseTest {
         //when & then
         mockMvc.perform(multipart("/api/admin/events/image")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isBadRequest());

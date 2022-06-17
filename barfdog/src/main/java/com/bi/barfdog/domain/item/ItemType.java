@@ -3,7 +3,7 @@ package com.bi.barfdog.domain.item;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
 public enum ItemType {
-    RAW, TOPPING, GOODS;
+    ALL, RAW, TOPPING, GOODS;
 
     @JsonCreator
     public static ItemType from(String str) {

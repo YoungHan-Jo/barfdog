@@ -233,6 +233,7 @@ public class ItemService {
                 .inStock(requestDto.isInStock())
                 .remaining(requestDto.getRemaining())
                 .contents(requestDto.getContents())
+                .itemIcons(requestDto.getItemIcons())
                 .deliveryFree(requestDto.isDeliveryFree())
                 .status(requestDto.getItemStatus())
                 .build();

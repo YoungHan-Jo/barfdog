@@ -40,8 +40,12 @@ public class Item extends BaseTimeEntity {
 
     private int remaining;
 
+    private int totalSalesAmount;
+
     @Column(columnDefinition = "TEXT")
     private String contents; // 상세내용
+
+    private String itemIcons; // 상품 아이콘 "BEST,NEW"
 
     private boolean deliveryFree; // 배송비 무료 여부
 
@@ -58,6 +62,7 @@ public class Item extends BaseTimeEntity {
         salePrice = requestDto.getSalePrice();
         inStock = requestDto.isInStock();
         remaining = requestDto.getRemaining();
+        itemIcons = requestDto.getItemIcons();
         contents = requestDto.getContents();
         deliveryFree = requestDto.isDeliveryFree();
         status = requestDto.getItemStatus();

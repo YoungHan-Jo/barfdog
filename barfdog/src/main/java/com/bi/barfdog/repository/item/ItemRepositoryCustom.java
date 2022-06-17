@@ -1,8 +1,6 @@
 package com.bi.barfdog.repository.item;
 
-import com.bi.barfdog.api.itemDto.QueryItemAdminDto;
-import com.bi.barfdog.api.itemDto.QueryItemsAdminDto;
-import com.bi.barfdog.api.itemDto.QueryItemsAdminRequestDto;
+import com.bi.barfdog.api.itemDto.*;
 import com.bi.barfdog.domain.item.ItemType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,4 +12,6 @@ public interface ItemRepositoryCustom {
 
 
     Page<QueryItemsAdminDto> findAdminDtoList(Pageable pageable, ItemType itemType);
+
+    Page<QueryItemsDto> findItemsDto(Pageable pageable, ItemsCond cond);
 }

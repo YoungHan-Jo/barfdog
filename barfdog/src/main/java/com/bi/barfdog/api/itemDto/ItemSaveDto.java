@@ -46,6 +46,8 @@ public class ItemSaveDto {
     @NotNull
     private String contents; // 상세내용
     @NotNull
+    private String itemIcons; // 상품 아이콘 "BEST,NEW"
+    @NotNull
     private boolean deliveryFree; // 배송비 무료 여부
     @NotNull
     private ItemStatus itemStatus; // 상품 노출여부

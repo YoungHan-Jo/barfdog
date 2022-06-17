@@ -79,7 +79,7 @@ public class ItemAdminControllerTest extends BaseTest {
         mockMvc.perform(multipart("/api/admin/items/image/upload")
                         .file(file)
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -120,7 +120,7 @@ public class ItemAdminControllerTest extends BaseTest {
         //when & then
         mockMvc.perform(multipart("/api/admin/items/image/upload")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
@@ -137,7 +137,7 @@ public class ItemAdminControllerTest extends BaseTest {
         mockMvc.perform(multipart("/api/admin/items/contentImage/upload")
                         .file(file)
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -178,7 +178,7 @@ public class ItemAdminControllerTest extends BaseTest {
         //when & then
         mockMvc.perform(multipart("/api/admin/items/contentImage/upload")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
@@ -222,6 +222,7 @@ public class ItemAdminControllerTest extends BaseTest {
         String name = "상품 이름";
         String description = "상품 설명";
         String contents = "상세 내용";
+        String itemIcons = "BEST,NEW";
         ItemSaveDto requestDto = ItemSaveDto.builder()
                 .itemType(ItemType.RAW)
                 .name(name)
@@ -233,6 +234,7 @@ public class ItemAdminControllerTest extends BaseTest {
                 .inStock(true)
                 .remaining(9999)
                 .contents(contents)
+                .itemIcons(itemIcons)
                 .deliveryFree(true)
                 .itemStatus(ItemStatus.LEAKED)
                 .itemOptionSaveDtoList(itemOptionSaveDtoList)
@@ -270,6 +272,7 @@ public class ItemAdminControllerTest extends BaseTest {
                                 fieldWithPath("inStock").description("재고 여부 [true/false]"),
                                 fieldWithPath("remaining").description("재고 수량"),
                                 fieldWithPath("contents").description("상세 내용"),
+                                fieldWithPath("itemIcons").description("상품 아이콘 (공백 없이/내용 없으면 빈 문자열) ['' or 'BEST' or 'NEW' or 'BEST,NEW']"),
                                 fieldWithPath("deliveryFree").description("배송비 무료 여부 [true/false]"),
                                 fieldWithPath("itemStatus").description("노출여부 [LEAKED,HIDDEN]"),
                                 fieldWithPath("itemOptionSaveDtoList[0].name").description("옵션 이름"),
@@ -295,6 +298,8 @@ public class ItemAdminControllerTest extends BaseTest {
 
         List<Item> items = itemRepository.findByName(name);
         Item item = items.get(0);
+        assertThat(item.getItemIcons()).isEqualTo(itemIcons);
+        assertThat(item.getTotalSalesAmount()).isEqualTo(0);
 
         List<ItemOption> itemOptionList = itemOptionRepository.findByItem(item);
         assertThat(itemOptionList.size()).isEqualTo(3);
@@ -353,6 +358,7 @@ public class ItemAdminControllerTest extends BaseTest {
                 .inStock(true)
                 .remaining(9999)
                 .contents(contents)
+                .itemIcons("BEST,NEW")
                 .deliveryFree(true)
                 .itemStatus(ItemStatus.LEAKED)
                 .contentImageIdList(contentImageIdList)
@@ -698,6 +704,7 @@ public class ItemAdminControllerTest extends BaseTest {
                         responseFields(
                                 fieldWithPath("_embedded.queryItemsAdminDtoList[0].id").description("상품 인덱스 id"),
                                 fieldWithPath("_embedded.queryItemsAdminDtoList[0].name").description("상품 이름"),
+                                fieldWithPath("_embedded.queryItemsAdminDtoList[0].itemIcons").description("상품 아이콘 (공백 없이/내용 없으면 빈 문자열) ex)['' or 'BEST' or 'NEW' or 'BEST,NEW']"),
                                 fieldWithPath("_embedded.queryItemsAdminDtoList[0].option").description("상품 옵션 존재 여부 true/false"),
                                 fieldWithPath("_embedded.queryItemsAdminDtoList[0].originalPrice").description("원가"),
                                 fieldWithPath("_embedded.queryItemsAdminDtoList[0].discount").description("할인"),
@@ -897,6 +904,7 @@ public class ItemAdminControllerTest extends BaseTest {
         ItemType itemType = ItemType.TOPPING;
         int discountDegree = 1000;
         int salePrice = 19000;
+        String itemIcons = "";
         ItemUpdateDto requestDto = ItemUpdateDto.builder()
                 .itemType(itemType)
                 .name(name)
@@ -908,6 +916,7 @@ public class ItemAdminControllerTest extends BaseTest {
                 .inStock(inStock)
                 .remaining(remaining)
                 .contents(contents)
+                .itemIcons(itemIcons)
                 .deliveryFree(deliveryFree)
                 .itemStatus(status)
                 .addContentImageIdList(addContentImageIdList)
@@ -954,6 +963,7 @@ public class ItemAdminControllerTest extends BaseTest {
                                 fieldWithPath("inStock").description("재고 여부 [true/false]"),
                                 fieldWithPath("remaining").description("재고 수량"),
                                 fieldWithPath("contents").description("상세 내용"),
+                                fieldWithPath("itemIcons").description("상품 아이콘 (공백 없이/내용 없으면 빈 문자열) ['' or 'BEST' or 'NEW' or 'BEST,NEW']"),
                                 fieldWithPath("deliveryFree").description("배송비 무료 여부 [true/false]"),
                                 fieldWithPath("itemStatus").description("노출여부 [LEAKED,HIDDEN]"),
                                 fieldWithPath("addContentImageIdList").description("추가할 내용 이미지 인덱스 id 리스트"),
@@ -1003,6 +1013,7 @@ public class ItemAdminControllerTest extends BaseTest {
         assertThat(findItem.getOriginalPrice()).isEqualTo(originalPrice);
         assertThat(findItem.getContents()).isEqualTo(contents);
         assertThat(findItem.getStatus()).isEqualTo(status);
+        assertThat(findItem.getItemIcons()).isEqualTo(itemIcons);
         assertThat(findItem.isDeliveryFree()).isEqualTo(deliveryFree);
         assertThat(findItem.isInStock()).isEqualTo(inStock);
         assertThat(findItem.getRemaining()).isEqualTo(remaining);
@@ -1010,6 +1021,7 @@ public class ItemAdminControllerTest extends BaseTest {
         assertThat(findItem.getItemType()).isEqualTo(itemType);
         assertThat(findItem.getDiscountDegree()).isEqualTo(discountDegree);
         assertThat(findItem.getSalePrice()).isEqualTo(salePrice);
+        assertThat(findItem.getTotalSalesAmount()).isEqualTo(0);
     }
 
     @Test
@@ -1080,6 +1092,7 @@ public class ItemAdminControllerTest extends BaseTest {
                 .inStock(inStock)
                 .remaining(remaining)
                 .contents(contents)
+                .itemIcons("")
                 .deliveryFree(deliveryFree)
                 .itemStatus(status)
                 .addContentImageIdList(addContentImageIdList)
@@ -1170,6 +1183,7 @@ public class ItemAdminControllerTest extends BaseTest {
                 .inStock(inStock)
                 .remaining(remaining)
                 .contents(contents)
+                .itemIcons("")
                 .deliveryFree(deliveryFree)
                 .itemStatus(status)
                 .addContentImageIdList(addContentImageIdList)
@@ -1249,6 +1263,7 @@ public class ItemAdminControllerTest extends BaseTest {
                 .inStock(inStock)
                 .remaining(remaining)
                 .contents(contents)
+                .itemIcons("")
                 .deliveryFree(deliveryFree)
                 .itemStatus(status)
                 .addContentImageIdList(addContentImageIdList)
@@ -1318,6 +1333,7 @@ public class ItemAdminControllerTest extends BaseTest {
                 .discountDegree(discountDegree)
                 .salePrice(salePrice)
                 .inStock(inStock)
+                .itemIcons("")
                 .remaining(remaining)
                 .contents(contents)
                 .deliveryFree(deliveryFree)
@@ -1539,6 +1555,7 @@ public class ItemAdminControllerTest extends BaseTest {
                 .inStock(inStock)
                 .remaining(remaining)
                 .contents(contents)
+                .itemIcons("")
                 .deliveryFree(deliveryFree)
                 .itemStatus(status)
                 .addContentImageIdList(addContentImageIdList)
@@ -1707,6 +1724,7 @@ public class ItemAdminControllerTest extends BaseTest {
                 .inStock(true)
                 .remaining(999)
                 .contents("상세 내용" + i)
+                .itemIcons("BEST,NEW")
                 .deliveryFree(true)
                 .status(ItemStatus.LEAKED)
                 .build();
