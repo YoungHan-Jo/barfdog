@@ -1,20 +1,15 @@
 package com.bi.barfdog.repository.item;
 
-import com.bi.barfdog.api.InfoController;
-import com.bi.barfdog.api.itemDto.ItemsCond;
-import com.bi.barfdog.api.itemDto.QueryItemAdminDto;
-import com.bi.barfdog.api.itemDto.QueryItemsAdminDto;
-import com.bi.barfdog.api.itemDto.QueryItemsDto;
+import com.bi.barfdog.api.itemDto.*;
+import com.bi.barfdog.api.reviewDto.ReviewItemsDto;
 import com.bi.barfdog.domain.coupon.DiscountType;
 import com.bi.barfdog.domain.item.ItemStatus;
 import com.bi.barfdog.domain.item.ItemType;
-import com.bi.barfdog.domain.item.QItemImage;
-import com.bi.barfdog.domain.review.QItemReview;
-import com.bi.barfdog.domain.review.QReview;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.MathExpressions;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -30,7 +25,7 @@ import static com.bi.barfdog.domain.item.QItem.*;
 import static com.bi.barfdog.domain.item.QItemImage.*;
 import static com.bi.barfdog.domain.item.QItemOption.*;
 import static com.bi.barfdog.domain.review.QItemReview.*;
-import static com.bi.barfdog.domain.review.QReview.*;
+import static com.bi.barfdog.domain.setting.QSetting.*;
 import static com.querydsl.jpa.JPAExpressions.*;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
@@ -84,7 +79,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
                         item.createdDate
                 ))
                 .from(item)
-                .where(itemTypeEq(itemType))
+                .where(itemImageLeakOrderEq1AndItemTypeEq(itemType))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .orderBy(item.createdDate.desc())
@@ -93,7 +88,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
         Long totalCount = queryFactory
                 .select(item.count())
                 .from(item)
-                .where(itemTypeEq(itemType))
+                .where(itemImageLeakOrderEq1AndItemTypeEq(itemType))
                 .fetchOne();
 
         return new PageImpl<>(result, pageable, totalCount);
@@ -106,6 +101,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
                 .select(Projections.constructor(QueryItemsDto.class,
                         item.id,
                         itemImage.filename,
+                        item.itemIcons,
                         item.name,
                         item.originalPrice,
                         item.salePrice,
@@ -116,9 +112,9 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
                 .from(item)
                 .join(itemImage).on(itemImage.item.eq(item))
                 .leftJoin(itemReview).on(itemReview.item.eq(item))
-                .where(itemTypeEq(cond.getItemType()))
-                .groupBy(itemReview.item)
-                .orderBy(item.createdDate.asc())
+                .where(itemImageLeakOrderEq1AndItemTypeEq(cond.getItemType()))
+                .groupBy(item)
+                .orderBy(orderByCond(cond.getSortBy()))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -135,6 +131,121 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
         return new PageImpl<>(result, pageable, totalCount);
     }
 
+    @Override
+    public QueryItemDto findItemDtoById(Long id) {
+
+        QueryItemDto.ItemDto itemDto = queryFactory
+                .select(Projections.constructor(QueryItemDto.ItemDto.class,
+                        item.id,
+                        item.name,
+                        item.description,
+                        item.originalPrice,
+                        item.discountType,
+                        item.discountDegree,
+                        item.salePrice,
+                        item.inStock,
+                        item.remaining,
+                        item.totalSalesAmount,
+                        item.contents,
+                        item.itemIcons,
+                        item.deliveryFree
+                ))
+                .from(item)
+                .where(item.id.eq(id))
+                .fetchOne();
+
+        QueryItemDto.DeliveryCondDto deliveryCondDto = queryFactory
+                .select(Projections.constructor(QueryItemDto.DeliveryCondDto.class,
+                        setting.deliveryConstant.price,
+                        setting.deliveryConstant.freeCondition
+                ))
+                .from(setting)
+                .fetchOne();
+
+        List<QueryItemDto.ItemOptionDto> itemOptionDtoList = queryFactory
+                .select(Projections.constructor(QueryItemDto.ItemOptionDto.class,
+                        itemOption.id,
+                        itemOption.name,
+                        itemOption.optionPrice,
+                        itemOption.remaining
+                ))
+                .from(itemOption)
+                .where(itemOption.item.id.eq(id))
+                .fetch();
+
+        List<QueryItemDto.ItemImageDto> itemImageDtoList = queryFactory
+                .select(Projections.constructor(QueryItemDto.ItemImageDto.class,
+                        itemImage.id,
+                        itemImage.leakOrder,
+                        itemImage.filename,
+                        itemImage.filename
+                ))
+                .from(itemImage)
+                .where(itemImage.item.id.eq(id))
+                .fetch();
+        for (QueryItemDto.ItemImageDto dto : itemImageDtoList) {
+            dto.changeUrl(dto.getFilename());
+        }
+
+        QueryItemDto.ReviewDto reviewDto = queryFactory
+                .select(Projections.constructor(QueryItemDto.ReviewDto.class,
+                        MathExpressions.round(itemReview.star.avg(), 1),
+                        itemReview.count()
+                ))
+                .from(itemReview)
+                .where(itemReview.item.id.eq(id))
+                .fetchOne();
+
+
+        QueryItemDto result = QueryItemDto.builder()
+                .itemDto(itemDto)
+                .deliveryCondDto(deliveryCondDto)
+                .itemOptionDtoList(itemOptionDtoList)
+                .itemImageDtoList(itemImageDtoList)
+                .reviewDto(reviewDto)
+                .build();
+        return result;
+    }
+
+    @Override
+    public List<ReviewItemsDto> findReviewItemsDtoByItemType(ItemType itemType) {
+        return queryFactory
+                .select(Projections.constructor(ReviewItemsDto.class,
+                        item.id,
+                        item.name
+                ))
+                .from(item)
+                .where(itemTypeEq(itemType))
+                .orderBy(item.createdDate.desc())
+                .fetch();
+
+    }
+
+    private BooleanExpression itemTypeEq(ItemType itemType) {
+        switch (itemType) {
+            case GOODS:
+                return item.itemType.eq(ItemType.GOODS).and(item.status.eq(ItemStatus.LEAKED));
+            case RAW:
+                return item.itemType.eq(ItemType.RAW).and(item.status.eq(ItemStatus.LEAKED));
+            case TOPPING:
+                return item.itemType.eq(ItemType.TOPPING).and(item.status.eq(ItemStatus.LEAKED));
+            default:
+                return item.status.eq(ItemStatus.LEAKED);
+        }
+    }
+
+
+    private OrderSpecifier<? extends Comparable<? extends Comparable<?>>> orderByCond(String cond) { // recent, registration, saleAmount
+        switch (cond) {
+            case "registration":
+                return item.createdDate.asc();
+            case "saleAmount":
+                return item.totalSalesAmount.desc();
+            default:
+                return item.createdDate.desc();
+        }
+    }
+
     private BooleanExpression itemTypeEqForCount(ItemsCond cond) {
         switch (cond.getItemType()) {
             case GOODS:
@@ -148,9 +259,6 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
         }
     }
 
-    private BooleanExpression itemTypeEq() {
-        return item.itemType.eq(ItemType.RAW);
-    }
 
     private JPQLQuery<Long> getOptionCount() {
         return select(itemOption.count())
@@ -158,7 +266,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
                 .where(itemOption.item.id.eq(item.id));
     }
 
-    private BooleanExpression itemTypeEq(ItemType itemType) {
+    private BooleanExpression itemImageLeakOrderEq1AndItemTypeEq(ItemType itemType) {
         switch (itemType) {
             case GOODS:
                 return item.itemType.eq(ItemType.GOODS).and(leakedAndImageOrderFirst());

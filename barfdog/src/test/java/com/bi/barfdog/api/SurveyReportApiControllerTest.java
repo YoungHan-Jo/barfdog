@@ -14,7 +14,7 @@ import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.domain.subscribe.SubscribeStatus;
 import com.bi.barfdog.domain.surveyReport.*;
 import com.bi.barfdog.jwt.JwtLoginDto;
-import com.bi.barfdog.repository.RecipeRepository;
+import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.repository.SettingRepository;
 import com.bi.barfdog.repository.SurveyReportRepository;
 import com.bi.barfdog.repository.dog.DogRepository;

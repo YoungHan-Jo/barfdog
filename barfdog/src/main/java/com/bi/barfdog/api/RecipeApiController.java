@@ -8,7 +8,7 @@ import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.recipe.RecipeStatus;
-import com.bi.barfdog.repository.RecipeRepository;
+import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.service.RecipeService;
 import com.bi.barfdog.validator.CommonValidator;
 import lombok.RequiredArgsConstructor;

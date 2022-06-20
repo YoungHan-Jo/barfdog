@@ -10,7 +10,7 @@ import com.bi.barfdog.domain.dog.SnackCountLevel;
 import com.bi.barfdog.domain.member.Gender;
 import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.jwt.JwtLoginDto;
-import com.bi.barfdog.repository.RecipeRepository;
+import com.bi.barfdog.repository.recipe.RecipeRepository;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +29,6 @@ import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.li
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
-import static org.springframework.restdocs.request.RequestDocumentation.*;
-import static org.springframework.restdocs.request.RequestDocumentation.partWithName;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;

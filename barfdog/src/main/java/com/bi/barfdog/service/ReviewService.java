@@ -4,13 +4,19 @@ import com.bi.barfdog.api.InfoController;
 import com.bi.barfdog.api.blogDto.UploadedImageAdminDto;
 import com.bi.barfdog.api.reviewDto.*;
 import com.bi.barfdog.domain.banner.ImgFilenamePath;
+import com.bi.barfdog.domain.dog.*;
 import com.bi.barfdog.domain.item.Item;
+import com.bi.barfdog.domain.member.Gender;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.orderItem.OrderItem;
+import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.review.*;
 import com.bi.barfdog.domain.reward.*;
 import com.bi.barfdog.domain.subscribe.Subscribe;
+import com.bi.barfdog.domain.subscribe.SubscribeStatus;
+import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.repository.ReviewImageRepository;
+import com.bi.barfdog.repository.dog.DogRepository;
 import com.bi.barfdog.repository.item.ItemRepository;
 import com.bi.barfdog.repository.orderItem.OrderItemRepository;
 import com.bi.barfdog.repository.review.BestReviewRepository;
@@ -25,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -46,6 +53,8 @@ public class ReviewService {
     private final SubscribeReviewRepository subscribeReviewRepository;
     private final RewardRepository rewardRepository;
     private final BestReviewRepository bestReviewRepository;
+    private final RecipeRepository recipeRepository;
+    private final DogRepository dogRepository;
 
     @Transactional
     public UploadedImageAdminDto uploadImage(MultipartFile file) {
@@ -221,6 +230,80 @@ public class ReviewService {
             Long id = dto.getId();
             BestReview bestReview = bestReviewRepository.findById(id).get();
             bestReview.changeLeakedOrder(dto.getLeakedOrder());
+        }
+    }
+
+    @Transactional
+    public void createReview(SaveAdminReviewDto requestDto, Member member) {
+        ReviewType type = requestDto.getType();
+        if (type == ReviewType.ITEM) createItemReview(requestDto, member);
+        if (type == ReviewType.SUBSCRIBE) {
+            Recipe recipe = recipeRepository.findById(requestDto.getId()).get();
+
+            Dog dog = Dog.builder()
+                    .member(member)
+                    .name("관리자 강아지")
+                    .gender(Gender.MALE)
+                    .birth("202206")
+                    .startAgeMonth(4L)
+                    .oldDog(false)
+                    .dogType("포메라니안")
+                    .dogSize(DogSize.SMALL)
+                    .weight(BigDecimal.valueOf(5.2))
+                    .neutralization(false)
+                    .dogActivity(new DogActivity(ActivityLevel.VERY_LITTLE,3,3.5))
+                    .dogStatus(DogStatus.HEALTHY)
+                    .snackCountLevel(SnackCountLevel.LITTLE)
+                    .inedibleFood("NONE")
+                    .recommendRecipe(recipe)
+                    .build();
+
+            dogRepository.save(dog);
+
+            Subscribe subscribe = Subscribe.builder()
+                    .dog(dog)
+                    .status(SubscribeStatus.ADMIN)
+                    .writeableReview(false)
+                    .build();
+            subscribeRepository.save(subscribe);
+
+            dog.setSubscribe(subscribe);
+
+            SubscribeReview review = SubscribeReview.builder()
+                    .member(member)
+                    .writtenDate(requestDto.getWrittenDate())
+                    .username(requestDto.getUsername())
+                    .star(requestDto.getStar())
+                    .contents(requestDto.getContents())
+                    .status(ReviewStatus.ADMIN)
+                    .subscribe(subscribe)
+                    .build();
+
+            reviewRepository.save(review);
+            setReviewImagesToReview(requestDto, review);
+        }
+    }
+
+    private void createItemReview(SaveAdminReviewDto requestDto, Member member) {
+        Item item = itemRepository.findById(requestDto.getId()).get();
+        ItemReview review = ItemReview.builder()
+                .member(member)
+                .writtenDate(requestDto.getWrittenDate())
+                .username(requestDto.getUsername())
+                .star(requestDto.getStar())
+                .contents(requestDto.getContents())
+                .status(ReviewStatus.ADMIN)
+                .item(item)
+                .build();
+        reviewRepository.save(review);
+
+        setReviewImagesToReview(requestDto, review);
+    }
+
+    private void setReviewImagesToReview(SaveAdminReviewDto requestDto, Review review) {
+        List<ReviewImage> reviewImages = reviewImageRepository.findAllById(requestDto.getReviewImageIdList());
+        for (ReviewImage reviewImage : reviewImages) {
+            reviewImage.setImageToReview(review);
         }
     }
 }

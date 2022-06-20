@@ -1,19 +1,16 @@
 package com.bi.barfdog.repository.review;
 
-import ch.qos.logback.core.status.StatusBase;
 import com.bi.barfdog.api.InfoController;
+import com.bi.barfdog.api.itemDto.ItemReviewsDto;
 import com.bi.barfdog.api.reviewDto.*;
 import com.bi.barfdog.domain.item.Item;
 import com.bi.barfdog.domain.item.ItemImage;
-import com.bi.barfdog.domain.item.QItem;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.review.*;
-import com.bi.barfdog.repository.RecipeRepository;
+import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.repository.ReviewImageRepository;
 import com.bi.barfdog.repository.item.ItemImageRepository;
-import com.bi.barfdog.repository.item.ItemRepository;
-import com.querydsl.core.Tuple;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -31,10 +28,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.bi.barfdog.domain.item.QItem.*;
 import static com.bi.barfdog.domain.review.QBestReview.*;
 import static com.bi.barfdog.domain.review.QItemReview.itemReview;
-import static com.bi.barfdog.domain.review.QReview.*;
 import static com.bi.barfdog.domain.review.QReview.review;
 import static com.bi.barfdog.domain.review.QReviewImage.*;
 import static com.bi.barfdog.domain.review.QSubscribeReview.subscribeReview;
@@ -245,6 +240,61 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom{
                 .imageUrlList(imageUrlList)
                 .build();
 
+        return result;
+    }
+
+    @Override
+    public Page<ItemReviewsDto> findItemReviewsDtoByItemId(Pageable pageable, Long id) {
+
+        List<ItemReviewsDto.ReviewDto> reviewDtoList = queryFactory
+                .select(Projections.constructor(ItemReviewsDto.ReviewDto.class,
+                        itemReview.id,
+                        itemReview.star,
+                        itemReview.contents,
+                        itemReview.username,
+                        itemReview.writtenDate
+                ))
+                .from(itemReview)
+                .where(itemReview.item.id.eq(id).and(itemReview.status.in(ReviewStatus.APPROVAL, ReviewStatus.ADMIN)))
+                .orderBy(itemReview.writtenDate.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        List<ItemReviewsDto> result = getItemReviewsDtos(reviewDtoList);
+
+        Long totalCount = queryFactory
+                .select(itemReview.count())
+                .from(itemReview)
+                .where(itemReview.item.id.eq(id).and(itemReview.status.in(ReviewStatus.APPROVAL, ReviewStatus.ADMIN)))
+                .fetchOne();
+
+        return new PageImpl<>(result, pageable, totalCount);
+    }
+
+    private List<ItemReviewsDto> getItemReviewsDtos(List<ItemReviewsDto.ReviewDto> reviewDtoList) {
+        List<ItemReviewsDto> result = new ArrayList<>();
+
+        for (ItemReviewsDto.ReviewDto dto : reviewDtoList) {
+
+            List<ItemReviewsDto.ReviewImageDto> reviewImageDtoList = queryFactory
+                    .select(Projections.constructor(ItemReviewsDto.ReviewImageDto.class,
+                            reviewImage.filename,
+                            reviewImage.filename
+                    ))
+                    .from(reviewImage)
+                    .where(reviewImage.review.id.eq(dto.getId()))
+                    .fetch();
+            for (ItemReviewsDto.ReviewImageDto imageDto : reviewImageDtoList) {
+                imageDto.changeUrl(imageDto.getFilename());
+            }
+
+            ItemReviewsDto itemReviewsDto = ItemReviewsDto.builder()
+                    .reviewDto(dto)
+                    .reviewImageDtoList(reviewImageDtoList)
+                    .build();
+            result.add(itemReviewsDto);
+        }
         return result;
     }
 

@@ -9,7 +9,7 @@ import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.review.BestReview;
 import com.bi.barfdog.domain.review.Review;
 import com.bi.barfdog.domain.subscribe.Subscribe;
-import com.bi.barfdog.repository.RecipeRepository;
+import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.repository.item.ItemRepository;
 import com.bi.barfdog.repository.orderItem.OrderItemRepository;
 import com.bi.barfdog.repository.review.BestReviewRepository;

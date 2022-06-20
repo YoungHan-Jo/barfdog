@@ -2,9 +2,16 @@ package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.resource.ReviewsAdminDtoResource;
 import com.bi.barfdog.api.reviewDto.*;
+import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
+import com.bi.barfdog.domain.item.Item;
+import com.bi.barfdog.domain.item.ItemType;
+import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.review.BestReview;
 import com.bi.barfdog.domain.review.Review;
+import com.bi.barfdog.repository.recipe.RecipeRepository;
+import com.bi.barfdog.repository.item.ItemRepository;
 import com.bi.barfdog.repository.review.BestReviewRepository;
 import com.bi.barfdog.repository.review.ReviewRepository;
 import com.bi.barfdog.service.ReviewService;
@@ -37,8 +44,58 @@ public class ReviewAdminController {
     private final ReviewRepository reviewRepository;
     private final ReviewValidator reviewValidator;
     private final BestReviewRepository bestReviewRepository;
+    private final ItemRepository itemRepository;
+    private final RecipeRepository recipeRepository;
 
     WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
+
+    @GetMapping("/recipes")
+    public ResponseEntity queryRecipes() {
+
+        List<ReviewRecipesDto> responseDto = recipeRepository.findReviewRecipesDto();
+
+        CollectionModel<ReviewRecipesDto> collectionModel = CollectionModel.of(responseDto,
+                linkTo(ReviewAdminController.class).slash("recipes").withSelfRel(),
+                profileRootUrlBuilder.slash("index.html#resources-admin-query-review-recipes").withRel("profile")
+        );
+
+        return ResponseEntity.ok(collectionModel);
+    }
+
+    @GetMapping("/items/{itemType}")
+    public ResponseEntity queryItems(@PathVariable ItemType itemType) {
+
+        List<ReviewItemsDto> responseDto = itemRepository.findReviewItemsDtoByItemType(itemType);
+
+        CollectionModel<ReviewItemsDto> collectionModel = CollectionModel.of(responseDto,
+                linkTo(ReviewAdminController.class).slash("items").slash(itemType).withSelfRel(),
+                profileRootUrlBuilder.slash("index.html#resources-admin-query-review-items").withRel("profile")
+                );
+
+        return ResponseEntity.ok(collectionModel);
+    }
+
+
+
+    @PostMapping
+    public ResponseEntity createReview(@CurrentUser Member member,
+                                       @RequestBody @Valid SaveAdminReviewDto requestDto,
+                                       Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+        if (doesNotExistedTarget(requestDto)) return notFound();
+
+        reviewService.createReview(requestDto, member);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(ReviewAdminController.class).withSelfRel());
+        representationModel.add(linkTo(ReviewAdminController.class).withRel("admin_query_reviews"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-create-review").withRel("profile"));
+
+        return ResponseEntity.created(linkTo(ReviewAdminController.class).toUri()).body(representationModel);
+    }
+
+
+
 
     @GetMapping
     public ResponseEntity queryReviewsByCategory(Pageable pageable,
@@ -218,6 +275,31 @@ public class ReviewAdminController {
         return ResponseEntity.ok(representationModel);
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+    private boolean doesNotExistedTarget(SaveAdminReviewDto requestDto) {
+        boolean isExisted = false;
+        ReviewType type = requestDto.getType();
+        if (type == ReviewType.ITEM) {
+            Optional<Item> optionalItem = itemRepository.findById(requestDto.getId());
+            isExisted = optionalItem.isPresent();
+        }
+        if (type == ReviewType.SUBSCRIBE) {
+            Optional<Recipe> optionalRecipe = recipeRepository.findById(requestDto.getId());
+            isExisted = optionalRecipe.isPresent();
+        }
+        return !isExisted;
+    }
 
 
     private ResponseEntity<EntityModel<Errors>> badRequest(Errors errors) {

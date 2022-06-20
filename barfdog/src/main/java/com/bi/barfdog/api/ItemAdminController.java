@@ -78,7 +78,7 @@ public class ItemAdminController {
 
 
     @PostMapping
-    public ResponseEntity createProducts(@RequestBody @Valid ItemSaveDto requestDto,
+    public ResponseEntity createItem(@RequestBody @Valid ItemSaveDto requestDto,
                                          Errors errors) {
         if(errors.hasErrors()) return badRequest(errors);
         itemValidator.validateImage(requestDto, errors);

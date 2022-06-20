@@ -8,7 +8,7 @@ import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.recipe.RecipeStatus;
 import com.bi.barfdog.domain.recipe.ThumbnailImage;
 import com.bi.barfdog.jwt.JwtLoginDto;
-import com.bi.barfdog.repository.RecipeRepository;
+import com.bi.barfdog.repository.recipe.RecipeRepository;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -12,6 +12,7 @@ import com.bi.barfdog.domain.subscribe.SubscribeStatus;
 import com.bi.barfdog.domain.surveyReport.*;
 import com.bi.barfdog.repository.*;
 import com.bi.barfdog.repository.dog.DogRepository;
+import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

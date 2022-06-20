@@ -7,7 +7,7 @@ import com.bi.barfdog.api.surveyReportDto.SurveyResultResponseDto;
 import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.recipe.RecipeStatus;
 import com.bi.barfdog.domain.surveyReport.SurveyReport;
-import com.bi.barfdog.repository.RecipeRepository;
+import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.repository.SurveyReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;

@@ -1,7 +1,6 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
-import com.bi.barfdog.api.memberDto.QueryMembersCond;
 import com.bi.barfdog.api.memberDto.UpdateBirthdayRequestDto;
 import com.bi.barfdog.api.memberDto.UpdateGradeRequestDto;
 import com.bi.barfdog.common.AppProperties;
@@ -26,6 +25,7 @@ import com.bi.barfdog.repository.blog.BlogImageRepository;
 import com.bi.barfdog.repository.blog.BlogRepository;
 import com.bi.barfdog.repository.dog.DogRepository;
 import com.bi.barfdog.repository.member.MemberRepository;
+import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
 import com.bi.barfdog.repository.subscribeRecipe.SubscribeRecipeRepository;
 import com.bi.barfdog.service.DogService;

@@ -17,6 +17,7 @@ import com.bi.barfdog.repository.blog.BlogRepository;
 import com.bi.barfdog.repository.blog.BlogThumbnailRepository;
 import com.bi.barfdog.repository.dog.DogRepository;
 import com.bi.barfdog.repository.member.MemberRepository;
+import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
 import com.bi.barfdog.repository.subscribeRecipe.SubscribeRecipeRepository;
 import com.bi.barfdog.service.DogService;

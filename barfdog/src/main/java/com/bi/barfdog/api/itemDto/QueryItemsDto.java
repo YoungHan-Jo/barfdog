@@ -16,6 +16,7 @@ public class QueryItemsDto {
 
     private Long id;
     private String thumbnailUrl;
+    private String itemIcons; // 상품 아이콘 "BEST,NEW"
     private String name;
     private int originalPrice; // 원가
     private int salePrice; // 판매가

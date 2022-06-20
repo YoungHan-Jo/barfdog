@@ -1,8 +1,6 @@
 package com.bi.barfdog.api;
 
-import com.bi.barfdog.api.reviewDto.ReturnReviewDto;
-import com.bi.barfdog.api.reviewDto.ReviewIdListDto;
-import com.bi.barfdog.api.reviewDto.UpdateBestReviewLeakedOrderDto;
+import com.bi.barfdog.api.reviewDto.*;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.coupon.DiscountType;
@@ -18,7 +16,6 @@ import com.bi.barfdog.domain.order.Order;
 import com.bi.barfdog.domain.order.SubscribeOrder;
 import com.bi.barfdog.domain.orderItem.OrderItem;
 import com.bi.barfdog.domain.orderItem.OrderItemStatus;
-import com.bi.barfdog.domain.recipe.Leaked;
 import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.review.*;
 import com.bi.barfdog.domain.reward.Reward;
@@ -26,7 +23,7 @@ import com.bi.barfdog.domain.reward.RewardPoint;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.domain.subscribe.SubscribeStatus;
 import com.bi.barfdog.jwt.JwtLoginDto;
-import com.bi.barfdog.repository.RecipeRepository;
+import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.repository.ReviewImageRepository;
 import com.bi.barfdog.repository.dog.DogRepository;
 import com.bi.barfdog.repository.item.ItemImageRepository;
@@ -59,10 +56,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
-import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
@@ -108,6 +104,450 @@ public class ReviewAdminControllerTest extends BaseTest {
     RewardRepository rewardRepository;
     @Autowired
     BestReviewRepository bestReviewRepository;
+
+    
+    @Test
+    @DisplayName("정상적으로 레시피 이름 리스트 조회")
+    public void queryReviewRecipes() throws Exception {
+       //given
+       
+       //when & then
+        mockMvc.perform(get("/api/admin/reviews/recipes")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("_embedded.reviewRecipesDtoList", hasSize(4)))
+                .andDo(document("admin_query_review_recipes",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt token")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_embedded.reviewRecipesDtoList[0].id").description(""),
+                                fieldWithPath("_embedded.reviewRecipesDtoList[0].name").description(""),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("정상적으로 리뷰작성시 모든 아이템 조회하는 테스트")
+    public void queryReviewItems() throws Exception {
+       //given
+
+        IntStream.range(1,4).forEach(i -> {
+            Item item = generateItem(i, ItemType.RAW);
+            generateItemImage(item, i);
+        });
+        IntStream.range(1,5).forEach(i -> {
+            Item item = generateItem(i, ItemType.GOODS);
+            generateItemImage(item, i);
+        });
+        IntStream.range(1,6).forEach(i -> {
+            Item item = generateItem(i, ItemType.TOPPING);
+            generateItemImage(item, i);
+        });
+
+
+        //when & then
+        String itemType = "ALL"; // [ALL, RAW, TOPPING, GOODS]
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/admin/reviews/items/{itemType}", itemType)
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("_embedded.reviewItemsDtoList", hasSize(12)))
+                .andDo(document("admin_query_review_items",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        pathParameters(
+                                parameterWithName("itemType").description("조회할 아이템 카테고리 [ALL, RAW, TOPPING, GOODS] 반드시 '대문자'로")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt token")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_embedded.reviewItemsDtoList[0].id").description("단일 상품 id"),
+                                fieldWithPath("_embedded.reviewItemsDtoList[0].name").description("단일 상품 이름"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+    }
+
+    @Test
+    @DisplayName("정상적으로 리뷰작성시 RAW 아이템 조회하는 테스트")
+    public void queryReviewItems_RAW() throws Exception {
+        //given
+
+        IntStream.range(1,4).forEach(i -> {
+            Item item = generateItem(i, ItemType.RAW);
+            generateItemImage(item, i);
+        });
+        IntStream.range(1,5).forEach(i -> {
+            Item item = generateItem(i, ItemType.GOODS);
+            generateItemImage(item, i);
+        });
+        IntStream.range(1,6).forEach(i -> {
+            Item item = generateItem(i, ItemType.TOPPING);
+            generateItemImage(item, i);
+        });
+
+
+        //when & then
+        String itemType = "RAW"; // [ALL, RAW, TOPPING, GOODS]
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/admin/reviews/items/{itemType}", itemType)
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("_embedded.reviewItemsDtoList", hasSize(3)))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("정상적으로 리뷰작성시 TOPPING 아이템 조회하는 테스트")
+    public void queryReviewItems_TOPPING() throws Exception {
+        //given
+
+        IntStream.range(1,4).forEach(i -> {
+            Item item = generateItem(i, ItemType.RAW);
+            generateItemImage(item, i);
+        });
+        IntStream.range(1,5).forEach(i -> {
+            Item item = generateItem(i, ItemType.GOODS);
+            generateItemImage(item, i);
+        });
+        IntStream.range(1,6).forEach(i -> {
+            Item item = generateItem(i, ItemType.TOPPING);
+            generateItemImage(item, i);
+        });
+
+
+        //when & then
+        String itemType = "TOPPING"; // [ALL, RAW, TOPPING, GOODS]
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/admin/reviews/items/{itemType}", itemType)
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("_embedded.reviewItemsDtoList", hasSize(5)))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("정상적으로 리뷰작성시 GOODS 아이템 조회하는 테스트")
+    public void queryReviewItems_GOODS() throws Exception {
+        //given
+
+        IntStream.range(1,4).forEach(i -> {
+            Item item = generateItem(i, ItemType.RAW);
+            generateItemImage(item, i);
+        });
+        IntStream.range(1,5).forEach(i -> {
+            Item item = generateItem(i, ItemType.GOODS);
+            generateItemImage(item, i);
+        });
+        IntStream.range(1,6).forEach(i -> {
+            Item item = generateItem(i, ItemType.TOPPING);
+            generateItemImage(item, i);
+        });
+
+
+        //when & then
+        String itemType = "GOODS"; // [ALL, RAW, TOPPING, GOODS]
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/admin/reviews/items/{itemType}", itemType)
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("_embedded.reviewItemsDtoList", hasSize(4)))
+        ;
+
+    }
+
+    
+
+    @Test
+    @DisplayName("정상적으로 아이템 리뷰 생성")
+    public void createReview_item() throws Exception {
+       //given
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, i);
+        });
+
+        List<Long> reviewImageIdList = new ArrayList<>();
+        IntStream.range(1,5).forEach(i -> {
+            ReviewImage reviewImage = generateReviewImage(i);
+            reviewImageIdList.add(reviewImage.getId());
+        });
+
+        String username = "마재윤";
+        String contents = "열 글자 이상의 내용";
+        int star = 5;
+
+        LocalDate writtenDate = LocalDate.now();
+        SaveAdminReviewDto requestDto = SaveAdminReviewDto.builder()
+                .type(ReviewType.ITEM)
+                .id(item.getId())
+                .writtenDate(writtenDate)
+                .star(star)
+                .contents(contents)
+                .username(username)
+                .reviewImageIdList(reviewImageIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/reviews")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andDo(document("admin_create_review",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("admin_query_reviews").description("관리자 리뷰 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt token")
+                        ),
+                        requestFields(
+                                fieldWithPath("type").description("리뷰 타입 [ITEM,SUBSCRIBE]"),
+                                fieldWithPath("id").description("리뷰 대상 id [상품리뷰 -> 아이템 id / 구독리뷰 -> 레시피 id]"),
+                                fieldWithPath("writtenDate").description("리뷰 작성일 ['yyyy-MM-dd']"),
+                                fieldWithPath("star").description("리뷰 평점 1~5 int"),
+                                fieldWithPath("contents").description("리뷰 내용"),
+                                fieldWithPath("username").description("리뷰 작성자 이름"),
+                                fieldWithPath("reviewImageIdList").description("리뷰 이미지 id 리스트")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.LOCATION).description("location header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.admin_query_reviews.href").description("관리자 리뷰 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ))
+        ;
+
+        em.flush();
+        em.clear();
+
+        List<Review> reviewList = reviewRepository.findAll();
+        ItemReview findReview = (ItemReview) reviewList.get(0);
+        assertThat(findReview.getItem().getId()).isEqualTo(item.getId());
+        assertThat(findReview.getStatus()).isEqualTo(ReviewStatus.ADMIN);
+        assertThat(findReview.getContents()).isEqualTo(contents);
+        assertThat(findReview.getUsername()).isEqualTo(username);
+        assertThat(findReview.getWrittenDate()).isEqualTo(writtenDate);
+        assertThat(findReview.getStar()).isEqualTo(star);
+    }
+
+    @Test
+    @DisplayName("정상적으로 구독 리뷰 생성")
+    public void createReview_subscribe() throws Exception {
+        //given
+
+        List<Recipe> recipes = recipeRepository.findAll();
+        Recipe recipe = recipes.get(0);
+
+        List<Long> reviewImageIdList = new ArrayList<>();
+        IntStream.range(1,5).forEach(i -> {
+            ReviewImage reviewImage = generateReviewImage(i);
+            reviewImageIdList.add(reviewImage.getId());
+        });
+
+        String username = "마재윤";
+        String contents = "열 글자 이상의 내용";
+        int star = 5;
+
+        LocalDate writtenDate = LocalDate.now();
+        SaveAdminReviewDto requestDto = SaveAdminReviewDto.builder()
+                .type(ReviewType.SUBSCRIBE)
+                .id(recipe.getId())
+                .writtenDate(writtenDate)
+                .star(star)
+                .contents(contents)
+                .username(username)
+                .reviewImageIdList(reviewImageIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/reviews")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isCreated())
+        ;
+
+        em.flush();
+        em.clear();
+
+        List<Review> reviewList = reviewRepository.findAll();
+        SubscribeReview findReview = (SubscribeReview) reviewList.get(0);
+        assertThat(findReview.getSubscribe().getDog().getRecommendRecipe().getId()).isEqualTo(recipe.getId());
+        assertThat(findReview.getStatus()).isEqualTo(ReviewStatus.ADMIN);
+        assertThat(findReview.getContents()).isEqualTo(contents);
+        assertThat(findReview.getUsername()).isEqualTo(username);
+        assertThat(findReview.getWrittenDate()).isEqualTo(writtenDate);
+        assertThat(findReview.getStar()).isEqualTo(star);
+
+        mockMvc.perform(get("/api/admin/reviews")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("size", "5")
+                        .param("page", "0")
+                        .param("status", "ADMIN")
+                        .param("order", "desc"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("page.totalElements").value(1))
+        ;
+
+        mockMvc.perform(get("/api/admin/reviews")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("size", "5")
+                        .param("page", "0")
+                        .param("status", "APPROVAL")
+                        .param("order", "desc"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("page.totalElements").value(0))
+        ;
+
+        mockMvc.perform(get("/api/reviews")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("page.totalElements").value(1))
+        ;
+    }
+
+    @Test
+    @DisplayName("리뷰 생성시 아이템이 존재하지않음 404")
+    public void createReview_not_exist_item() throws Exception {
+        //given
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, i);
+        });
+
+        List<Long> reviewImageIdList = new ArrayList<>();
+        IntStream.range(1,5).forEach(i -> {
+            ReviewImage reviewImage = generateReviewImage(i);
+            reviewImageIdList.add(reviewImage.getId());
+        });
+
+        String username = "마재윤";
+        String contents = "열 글자 이상의 내용";
+        int star = 5;
+
+        LocalDate writtenDate = LocalDate.now();
+        SaveAdminReviewDto requestDto = SaveAdminReviewDto.builder()
+                .type(ReviewType.ITEM)
+                .id(999999L)
+                .writtenDate(writtenDate)
+                .star(star)
+                .contents(contents)
+                .username(username)
+                .reviewImageIdList(reviewImageIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/reviews")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("리뷰 생성시 레시피가 존재하지않음 404")
+    public void createReview_not_exist_recipe() throws Exception {
+        //given
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, i);
+        });
+
+        List<Long> reviewImageIdList = new ArrayList<>();
+        IntStream.range(1,5).forEach(i -> {
+            ReviewImage reviewImage = generateReviewImage(i);
+            reviewImageIdList.add(reviewImage.getId());
+        });
+
+        String username = "마재윤";
+        String contents = "열 글자 이상의 내용";
+        int star = 5;
+
+        LocalDate writtenDate = LocalDate.now();
+        SaveAdminReviewDto requestDto = SaveAdminReviewDto.builder()
+                .type(ReviewType.ITEM)
+                .id(999999L)
+                .writtenDate(writtenDate)
+                .star(star)
+                .contents(contents)
+                .username(username)
+                .reviewImageIdList(reviewImageIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/reviews")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+
 
     @Test
     @DisplayName("정상적으로 전체 리뷰 조회")
@@ -1716,8 +2156,12 @@ public class ReviewAdminControllerTest extends BaseTest {
     }
 
     private Item generateItem(int i) {
+        return generateItem(i, ItemType.RAW);
+    }
+
+    private Item generateItem(int i, ItemType itemType) {
         Item item = Item.builder()
-                .itemType(ItemType.RAW)
+                .itemType(itemType)
                 .name("상품" + i)
                 .description("상품설명" + i)
                 .originalPrice(10000)

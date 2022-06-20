@@ -975,6 +975,29 @@ operation::update_review[snippets='curl-request,request-headers,path-parameters,
 
 관리자 리뷰 관련 리소스.
 
+[[resources-admin-query-review-recipes]]
+=== 관리자 리뷰 생성시 필요한 레시피 리스트 조회
+
+`GET` 요청을 사용하여 리뷰 생성시 필요한 레시피 리스트를 조회할 수 있다.
+
+operation::admin_query_review_recipes[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-admin-query-review-items]]
+=== 관리자 리뷰 생성시 필요한 일반상품 리스트 조회
+
+`GET` 요청을 사용하여 리뷰 생성시 필요한 일반상품 리스트를 조회할 수 있다.
+
+operation::admin_query_review_items[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+
+[[resources-admin-create-review]]
+=== 관리자 리뷰 생성
+
+`POST` 요청을 사용하여 리뷰를 생성할 수 있다.
+
+operation::admin_create_review[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
 [[resources-admin-query-reviews]]
 === 관리자 리뷰 리스트 조회(페이징)
 
@@ -1037,3 +1060,33 @@ operation::admin_delete_best_review[snippets='curl-request,request-headers,path-
 `PUT` 요청을 사용하여 베스트 리뷰 노출 순서를 변경할 수 있다.
 
 operation::update_best_reviews_leakedOrder[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+
+
+
+[[resources-item-info]]
+== 일반 상품
+
+일반 상품 관련 리소스.
+
+[[resources-query-items]]
+=== 일반 상품 리스트 조회(페이징)
+
+`GET` 요청을 사용하여 페이징으로 조건에 맞는 일반 상품 리스트를 조회할 수 있다.
+
+operation::query_items[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-query-item]]
+=== 일반 상품 하나 조회
+
+`GET` 요청을 사용하여 일반 상품 하나를 조회할 수 있다.
+
+operation::query_item[snippets='curl-request,request-headers,path-parameters,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-query-item-reviews]]
+=== 특정 일반 상품의 리뷰 리스트 조회(페이징)
+
+`GET` 요청을 사용하여 페이징으로 특정 일반 상품의 리뷰 리스트를 조회할 수 있다.
+
+operation::query_item_reviews[snippets='curl-request,path-parameters,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']

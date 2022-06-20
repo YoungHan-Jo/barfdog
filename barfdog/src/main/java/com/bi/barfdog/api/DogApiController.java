@@ -7,7 +7,7 @@ import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.surveyReport.SurveyReport;
 import com.bi.barfdog.repository.dog.DogRepository;
-import com.bi.barfdog.repository.RecipeRepository;
+import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.service.DogService;
 import com.bi.barfdog.validator.CommonValidator;
 import lombok.RequiredArgsConstructor;
