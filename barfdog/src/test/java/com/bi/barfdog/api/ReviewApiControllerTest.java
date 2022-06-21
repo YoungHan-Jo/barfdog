@@ -31,6 +31,7 @@ import com.bi.barfdog.repository.item.ItemRepository;
 import com.bi.barfdog.repository.member.MemberRepository;
 import com.bi.barfdog.repository.order.OrderRepository;
 import com.bi.barfdog.repository.orderItem.OrderItemRepository;
+import com.bi.barfdog.repository.review.BestReviewRepository;
 import com.bi.barfdog.repository.review.ItemReviewRepository;
 import com.bi.barfdog.repository.review.ReviewRepository;
 import com.bi.barfdog.repository.review.SubscribeReviewRepository;
@@ -56,6 +57,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
@@ -100,6 +102,8 @@ public class ReviewApiControllerTest extends BaseTest {
     ItemReviewRepository itemReviewRepository;
     @Autowired
     SubscribeReviewRepository subscribeReviewRepository;
+    @Autowired
+    BestReviewRepository bestReviewRepository;
 
 
     @Test
@@ -1438,6 +1442,210 @@ public class ReviewApiControllerTest extends BaseTest {
                 .andExpect(status(). isForbidden());
     }
 
+    @Test
+    @DisplayName("정상적으로 커뮤니티 베스트리뷰 리스트 조회")
+    public void queryBestReviews() throws Exception {
+       //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        IntStream.range(6,11).forEach(i -> {
+            Review approvalReview = generateSubscribeReview(member, i, ReviewStatus.APPROVAL);
+            generateBestReview(approvalReview, i);
+        });
+
+        IntStream.range(1,6).forEach(i -> {
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            generateBestReview(adminReview, i);
+        });
+
+       //when & then
+        mockMvc.perform(get("/api/reviews/best")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("_embedded.queryBestReviewsDtoList", hasSize(10)))
+                .andDo(document("query_best_reviews",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_reviews_community").description("커뮤니티 리뷰 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_embedded.queryBestReviewsDtoList[0].id").description("리뷰 id"),
+                                fieldWithPath("_embedded.queryBestReviewsDtoList[0].imageUrl").description("리뷰 이미지 url"),
+                                fieldWithPath("_embedded.queryBestReviewsDtoList[0].leakedOrder").description("베스트 리뷰 노출 순서"),
+                                fieldWithPath("_embedded.queryBestReviewsDtoList[0].contents").description("리뷰 내용"),
+                                fieldWithPath("_embedded.queryBestReviewsDtoList[0]._links.query_review_community.href").description("리뷰 하나 조회 링크"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_reviews_community.href").description("커뮤니티 리뷰 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+    }
+
+    @Test
+    @DisplayName("정상적으로 커뮤니티 리뷰 리스트 조회")
+    public void queryReviewsCommunity() throws Exception {
+       //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        IntStream.range(1,8).forEach(i -> {
+            generateSubscribeReview(member, i, ReviewStatus.APPROVAL);
+            generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+        });
+        IntStream.range(1,3).forEach(i -> {
+            generateSubscribeReview(member, i, ReviewStatus.REQUEST);
+            generateSubscribeReview(member, i, ReviewStatus.RETURN);
+            generateItemReview(admin, item, i, ReviewStatus.REQUEST);
+            generateItemReview(admin, item, i, ReviewStatus.RETURN);
+        });
+
+
+       //when & then
+        mockMvc.perform(get("/api/reviews/community")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("page", "1")
+                        .param("size", "5"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("page.totalElements").value(14))
+                .andDo(document("query_community_reviews",
+                        links(
+                                linkWithRel("first").description("첫 페이지 링크"),
+                                linkWithRel("prev").description("이전 페이지 링크"),
+                                linkWithRel("self").description("현재 페이지 링크"),
+                                linkWithRel("next").description("다음 페이지 링크"),
+                                linkWithRel("last").description("마지막 페이지 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        requestParameters(
+                                parameterWithName("page").description("페이지 번호 [0번부터 시작 - 0번이 첫 페이지]"),
+                                parameterWithName("size").description("한 페이지 당 조회 개수")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_embedded.queryCommunityReviewsDtoList[0].reviewDto.id").description("리뷰 id"),
+                                fieldWithPath("_embedded.queryCommunityReviewsDtoList[0].reviewDto.thumbnailUrl").description("상품 썸네일 url"),
+                                fieldWithPath("_embedded.queryCommunityReviewsDtoList[0].reviewDto.star").description("리뷰 평점 1~5 int"),
+                                fieldWithPath("_embedded.queryCommunityReviewsDtoList[0].reviewDto.contents").description("리뷰 내용"),
+                                fieldWithPath("_embedded.queryCommunityReviewsDtoList[0].reviewDto.username").description("리뷰 작성자 이름"),
+                                fieldWithPath("_embedded.queryCommunityReviewsDtoList[0].reviewDto.writtenDate").description("리뷰 작성일 'yyyy-MM-dd"),
+                                fieldWithPath("_embedded.queryCommunityReviewsDtoList[0].reviewImageDtoList[0].filename").description("리뷰이미지 파일이름"),
+                                fieldWithPath("_embedded.queryCommunityReviewsDtoList[0].reviewImageDtoList[0].url").description("리뷰이미지 url"),
+                                fieldWithPath("page.size").description("한 페이지 당 개수"),
+                                fieldWithPath("page.totalElements").description("검색 총 결과 수"),
+                                fieldWithPath("page.totalPages").description("총 페이지 수"),
+                                fieldWithPath("page.number").description("페이지 번호 [0페이지 부터 시작]"),
+                                fieldWithPath("_links.first.href").description("첫 페이지 링크"),
+                                fieldWithPath("_links.prev.href").description("이전 페이지 링크"),
+                                fieldWithPath("_links.self.href").description("현재 페이지 링크"),
+                                fieldWithPath("_links.next.href").description("다음 페이지 링크"),
+                                fieldWithPath("_links.last.href").description("마지막 페이지 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ))
+        ;
+    }
+
+    @Test
+    @DisplayName("정상적으로 커뮤니티에서 베스트 리뷰 하나 조회")
+    public void queryReviewCommunity() throws Exception {
+       //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        ItemReview review = generateItemReview(admin, item, 1, ReviewStatus.ADMIN);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/reviews/{id}/community", review.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("reviewDto.id").value(review.getId()))
+                .andDo(document("query_review_community",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("리뷰 id")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                                ),
+                        responseFields(
+                                fieldWithPath("reviewDto.id").description("리뷰 id"),
+                                fieldWithPath("reviewDto.writtenDate").description("리뷰 작성일"),
+                                fieldWithPath("reviewDto.star").description("리뷰 평점 1~5 int"),
+                                fieldWithPath("reviewDto.username").description("리뷰 작성자 이름"),
+                                fieldWithPath("reviewDto.contents").description("리뷰 내용"),
+                                fieldWithPath("reviewImageDtoList[0].filename").description("리뷰 이미지 파일 이름"),
+                                fieldWithPath("reviewImageDtoList[0].url").description("리뷰 이미지 url"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+    }
+
+    @Test
+    @DisplayName("조회할 커뮤니티 베스트 리뷰가 존재하지않음 404")
+    public void queryReviewCommunity_notFound() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        ItemReview review = generateItemReview(admin, item, 1, ReviewStatus.ADMIN);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/reviews/999999/community")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
 
 
 
@@ -1445,9 +1653,28 @@ public class ReviewApiControllerTest extends BaseTest {
 
 
 
+
+
+
+
+
+
+    private BestReview generateBestReview(Review review, int i) {
+        BestReview bestReview = BestReview.builder()
+                .review(review)
+                .leakedOrder(i)
+                .build();
+        return bestReviewRepository.save(bestReview);
+    }
 
 
     private Review generateSubscribeReview(Member member,int i) {
+        Review subscribeReview = generateSubscribeReview(member, i, ReviewStatus.RETURN);
+
+        return subscribeReview;
+    }
+
+    private Review generateSubscribeReview(Member member, int i, ReviewStatus status) {
         List<Recipe> recipes = recipeRepository.findAll();
 
         Subscribe subscribe = Subscribe.builder()
@@ -1464,7 +1691,7 @@ public class ReviewApiControllerTest extends BaseTest {
                 .username(member.getName())
                 .star(3)
                 .contents("열글자 이상의 구독 리뷰"+i)
-                .status(ReviewStatus.RETURN)
+                .status(status)
                 .returnReason("상품에 맞지 않은 리뷰 내용"+i)
                 .subscribe(subscribe)
                 .build();
@@ -1478,13 +1705,19 @@ public class ReviewApiControllerTest extends BaseTest {
     }
 
     private ItemReview generateItemReview(Member member, Item item,int i) {
+        ItemReview itemReview = generateItemReview(member, item, i, ReviewStatus.REQUEST);
+
+        return itemReview;
+    }
+
+    private ItemReview generateItemReview(Member member, Item item, int i, ReviewStatus status) {
         ItemReview itemReview = ItemReview.builder()
                 .member(member)
                 .writtenDate(LocalDate.now().minusDays(30L))
                 .username(member.getName())
                 .star((i + 5) % 5)
                 .contents("열글자 이상의 내용"+i)
-                .status(ReviewStatus.REQUEST)
+                .status(status)
                 .item(item)
                 .build();
         itemReviewRepository.save(itemReview);

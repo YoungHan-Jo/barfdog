@@ -3,7 +3,6 @@ package com.bi.barfdog.repository.review;
 import com.bi.barfdog.api.itemDto.ItemReviewsDto;
 import com.bi.barfdog.api.reviewDto.*;
 import com.bi.barfdog.domain.member.Member;
-import com.bi.barfdog.domain.review.Review;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -20,4 +19,8 @@ public interface ReviewRepositoryCustom {
     QueryAdminReviewDto findAdminReviewDto(Long id);
 
     Page<ItemReviewsDto> findItemReviewsDtoByItemId(Pageable pageable, Long id);
+
+    Page<QueryCommunityReviewsDto> findCommunityReviewsDto(Pageable pageable);
+
+    QueryCommunityReviewDto findCommunityReviewDtoById(Long id);
 }

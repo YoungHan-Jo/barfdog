@@ -906,6 +906,28 @@ operation::query_blog[snippets='curl-request,request-headers,path-parameters,req
 
 리뷰 관련 리소스.
 
+[[resources-query-best-reviews]]
+=== 커뮤니티 리뷰 베스트 리뷰 리스트 조회
+
+`GET` 요청을 사용하여 커뮤니티 페이지의 베스트 리뷰 리스트를 조회할 수 있다.
+
+operation::query_best_reviews[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-query-reviews-community]]
+=== 커뮤니티 리뷰 리스트 조회(페이징)
+
+`GET` 요청을 사용하여 페이징으로 커뮤니티 리뷰 리스트를 조회할 수 있다.
+
+operation::query_community_reviews[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-query-review-community]]
+===  커뮤니티 베스트 리뷰 하나를 조회
+
+`GET` 요청을 사용하여 커뮤니티 베스트 리뷰 하나를 조회할 수 있다.
+
+operation::query_review_community[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+
 [[resources-query-writeable-reviews]]
 === 작성 가능한 리뷰 리스트 조회(페이징)
 
@@ -988,7 +1010,6 @@ operation::admin_query_review_recipes[snippets='curl-request,request-headers,req
 `GET` 요청을 사용하여 리뷰 생성시 필요한 일반상품 리스트를 조회할 수 있다.
 
 operation::admin_query_review_items[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
-
 
 [[resources-admin-create-review]]
 === 관리자 리뷰 생성
@@ -1090,3 +1111,15 @@ operation::query_item[snippets='curl-request,request-headers,path-parameters,req
 `GET` 요청을 사용하여 페이징으로 특정 일반 상품의 리뷰 리스트를 조회할 수 있다.
 
 operation::query_item_reviews[snippets='curl-request,path-parameters,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-basket-info]]
+== 장바구니
+
+장바구니 관련 리소스.
+
+[[resources-create-basket]]
+=== 장바구니 담기
+
+`POST` 요청을 사용하여 상품과 상품 옵션을 장바구니에 담을 수 있다.
+
+operation::create_basket[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']

@@ -1,6 +1,7 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.blogDto.UploadedImageAdminDto;
+import com.bi.barfdog.api.resource.CommunityReviewsDtoResource;
 import com.bi.barfdog.api.resource.ReviewsDtoResource;
 import com.bi.barfdog.api.resource.WriteableReviewsDtoResource;
 import com.bi.barfdog.api.reviewDto.*;
@@ -8,8 +9,8 @@ import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.review.Review;
-import com.bi.barfdog.domain.review.ReviewImage;
 import com.bi.barfdog.repository.ReviewImageRepository;
+import com.bi.barfdog.repository.review.BestReviewRepository;
 import com.bi.barfdog.repository.review.ReviewRepository;
 import com.bi.barfdog.service.ReviewService;
 import com.bi.barfdog.validator.ReviewValidator;
@@ -27,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,6 +43,7 @@ public class ReviewApiController {
     private final ReviewService reviewService;
     private final ReviewValidator reviewValidator;
     private final ReviewImageRepository reviewImageRepository;
+    private final BestReviewRepository bestReviewRepository;
 
     WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
 
@@ -183,6 +186,56 @@ public class ReviewApiController {
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-review").withRel("profile"));
 
         return ResponseEntity.ok(representationModel);
+    }
+
+    @GetMapping("/best")
+    public ResponseEntity queryBestReviews() {
+        List<QueryBestReviewsDto> responseDto = bestReviewRepository.findBestReviewsDto();
+
+        List<EntityModel<QueryBestReviewsDto>> entityModelList = new ArrayList<>();
+
+        for (QueryBestReviewsDto dto : responseDto) {
+            EntityModel<QueryBestReviewsDto> entityModel = EntityModel.of(dto,
+                    linkTo(ReviewApiController.class).slash(dto.getId()).slash("community").withRel("query_review_community")
+            );
+            entityModelList.add(entityModel);
+        }
+
+        CollectionModel<EntityModel<QueryBestReviewsDto>> collectionModel = CollectionModel.of(entityModelList,
+                linkTo(ReviewApiController.class).slash("best").withSelfRel(),
+                linkTo(ReviewApiController.class).slash("community").withRel("query_reviews_community"),
+                profileRootUrlBuilder.slash("index.html#resources-query-best-reviews").withRel("profile")
+        );
+
+        return ResponseEntity.ok(collectionModel);
+    }
+
+    @GetMapping("/community")
+    public ResponseEntity queryReviewsCommunity(Pageable pageable,
+                                                PagedResourcesAssembler<QueryCommunityReviewsDto> assembler) {
+
+        Page<QueryCommunityReviewsDto> page = reviewRepository.findCommunityReviewsDto(pageable);
+
+        PagedModel<CommunityReviewsDtoResource> pagedModel = assembler.toModel(page, e -> new CommunityReviewsDtoResource(e));
+        pagedModel.add(profileRootUrlBuilder.slash("index.html#resources-query-reviews-community").withRel("profile"));
+
+
+        return ResponseEntity.ok(pagedModel);
+    }
+
+    @GetMapping("/{id}/community")
+    public ResponseEntity queryReviewCommunity(@PathVariable Long id) {
+        Optional<Review> optionalReview = reviewRepository.findById(id);
+        if (!optionalReview.isPresent()) return notFound();
+
+        QueryCommunityReviewDto responseDto = reviewRepository.findCommunityReviewDtoById(id);
+
+        EntityModel<QueryCommunityReviewDto> entityModel = EntityModel.of(responseDto,
+                linkTo(ReviewApiController.class).slash(id).slash("community").withSelfRel(),
+                profileRootUrlBuilder.slash("index.html#resources-query-review-community").withRel("profile")
+        );
+
+        return ResponseEntity.ok(entityModel);
     }
 
 

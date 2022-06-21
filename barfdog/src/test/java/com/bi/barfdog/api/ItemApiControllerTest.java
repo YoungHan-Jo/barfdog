@@ -588,6 +588,8 @@ public class ItemApiControllerTest extends BaseTest {
                                 linkWithRel("self").description("현재 페이지 링크"),
                                 linkWithRel("next").description("다음 페이지 링크"),
                                 linkWithRel("last").description("마지막 페이지 링크"),
+                                linkWithRel("query_review_recipes").description("관리자 생성 리뷰에 필요한 레시피 리스트 조회 링크"),
+                                linkWithRel("query_review_items").description("관리자 생성 리뷰에 필요한 아이템 리스트 조회 링크"),
                                 linkWithRel("admin_create_review").description("관리자 토큰일때만 나오는 리뷰 생성 링크"),
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
                         ),
@@ -623,11 +625,12 @@ public class ItemApiControllerTest extends BaseTest {
                                 fieldWithPath("_links.self.href").description("현재 페이지 링크"),
                                 fieldWithPath("_links.next.href").description("다음 페이지 링크"),
                                 fieldWithPath("_links.last.href").description("마지막 페이지 링크"),
+                                fieldWithPath("_links.query_review_recipes.href").description("관리자 생성 리뷰에 필요한 레시피 리스트 조회 링크"),
+                                fieldWithPath("_links.query_review_items.href").description("관리자 생성 리뷰에 필요한 아이템 리스트 조회 링크"),
                                 fieldWithPath("_links.admin_create_review.href").description("관리자 토큰일때만 나오는 리뷰 생성 링크. 즉,이 링크가 없으면 관리자 계정이 아님"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
-                ))
-        ;
+                ));
     }
 
     @Test

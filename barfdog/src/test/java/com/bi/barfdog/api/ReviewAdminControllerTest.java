@@ -1963,9 +1963,9 @@ public class ReviewAdminControllerTest extends BaseTest {
     }
 
 
-    private BestReview generateBestReview(Review approvalReview, int i) {
+    private BestReview generateBestReview(Review review, int i) {
         BestReview bestReview = BestReview.builder()
-                .review(approvalReview)
+                .review(review)
                 .leakedOrder(i)
                 .build();
         return bestReviewRepository.save(bestReview);

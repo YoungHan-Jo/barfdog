@@ -272,6 +272,134 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom{
         return new PageImpl<>(result, pageable, totalCount);
     }
 
+    @Override
+    public Page<QueryCommunityReviewsDto> findCommunityReviewsDto(Pageable pageable) {
+        List<Review> reviews = queryFactory
+                .select(review)
+                .from(review)
+                .leftJoin(itemReview).on(itemReview.eq(review))
+                .leftJoin(subscribeReview).on(subscribeReview.eq(review))
+                .where(viewable())
+                .orderBy(review.writtenDate.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        List<QueryCommunityReviewsDto> result = getQueryCommunityReviewsDtos(reviews);
+
+        Long totalCount = queryFactory
+                .select(review.count())
+                .from(review)
+                .where(viewable())
+                .fetchOne();
+
+        return new PageImpl<>(result, pageable, totalCount);
+    }
+
+    @Override
+    public QueryCommunityReviewDto findCommunityReviewDtoById(Long id) {
+
+        QueryCommunityReviewDto.ReviewDto reviewDto = queryFactory
+                .select(Projections.constructor(QueryCommunityReviewDto.ReviewDto.class,
+                        review.id,
+                        review.writtenDate,
+                        review.star,
+                        review.username,
+                        review.contents
+                ))
+                .from(review)
+                .where(review.id.eq(id))
+                .fetchOne();
+
+        List<QueryCommunityReviewDto.ReviewImageDto> reviewImageDtoList = getReviewImageDtoList(id);
+
+        QueryCommunityReviewDto result = QueryCommunityReviewDto.builder()
+                .reviewDto(reviewDto)
+                .reviewImageDtoList(reviewImageDtoList)
+                .build();
+        return result;
+    }
+
+    private List<QueryCommunityReviewDto.ReviewImageDto> getReviewImageDtoList(Long id) {
+        List<QueryCommunityReviewDto.ReviewImageDto> reviewImageDtoList = queryFactory
+                .select(Projections.constructor(QueryCommunityReviewDto.ReviewImageDto.class,
+                        reviewImage.filename,
+                        reviewImage.filename
+                ))
+                .from(reviewImage)
+                .where(reviewImage.review.id.eq(id))
+                .fetch();
+        for (QueryCommunityReviewDto.ReviewImageDto dto : reviewImageDtoList) {
+            dto.changeUrl(dto.getFilename());
+        }
+        return reviewImageDtoList;
+    }
+
+    private BooleanExpression viewable() {
+        return review.status.in(ReviewStatus.APPROVAL, ReviewStatus.ADMIN);
+    }
+
+    private List<QueryCommunityReviewsDto> getQueryCommunityReviewsDtos(List<Review> reviews) {
+        List<QueryCommunityReviewsDto> result = new ArrayList<>();
+
+        for (Review review : reviews) {
+            if (review instanceof ItemReview) {
+                ItemReview itemreview = (ItemReview) review;
+                Item item = itemreview.getItem();
+                String thumbnailUrl = getThumbnailUrl(item);
+
+                QueryCommunityReviewsDto queryCommunityReviewsDto = getQueryCommunityReviewsDto(review, thumbnailUrl);
+
+                result.add(queryCommunityReviewsDto);
+            }
+            if (review instanceof SubscribeReview) {
+                SubscribeReview subscribeReview = (SubscribeReview) review;
+                String thumbnailUrl = getThumbnailUrl(subscribeReview);
+
+                QueryCommunityReviewsDto queryCommunityReviewsDto = getQueryCommunityReviewsDto(review, thumbnailUrl);
+
+                result.add(queryCommunityReviewsDto);
+            }
+        }
+        return result;
+    }
+
+    private QueryCommunityReviewsDto getQueryCommunityReviewsDto(Review review, String thumbnailUrl) {
+        QueryCommunityReviewsDto.ReviewDto reviewDto = getReviewDto(review, thumbnailUrl);
+
+        List<QueryCommunityReviewsDto.ReviewImageDto> reviewImageDtoList = getReviewImageDtoList(review);
+
+        QueryCommunityReviewsDto queryCommunityReviewsDto = QueryCommunityReviewsDto.builder()
+                .reviewDto(reviewDto)
+                .reviewImageDtoList(reviewImageDtoList)
+                .build();
+        return queryCommunityReviewsDto;
+    }
+
+    private QueryCommunityReviewsDto.ReviewDto getReviewDto(Review review, String thumbnailUrl) {
+        QueryCommunityReviewsDto.ReviewDto reviewDto = QueryCommunityReviewsDto.ReviewDto.builder()
+                .id(review.getId())
+                .thumbnailUrl(thumbnailUrl)
+                .star(review.getStar())
+                .contents(review.getContents())
+                .username(review.getUsername())
+                .writtenDate(review.getWrittenDate())
+                .build();
+        return reviewDto;
+    }
+
+    private List<QueryCommunityReviewsDto.ReviewImageDto> getReviewImageDtoList(Review review) {
+        List<QueryCommunityReviewsDto.ReviewImageDto> reviewImageDtoList = queryFactory
+                .select(Projections.constructor(QueryCommunityReviewsDto.ReviewImageDto.class,
+                        reviewImage.filename,
+                        reviewImage.filename
+                ))
+                .from(reviewImage)
+                .where(reviewImage.review.eq(review))
+                .fetch();
+        return reviewImageDtoList;
+    }
+
     private List<ItemReviewsDto> getItemReviewsDtos(List<ItemReviewsDto.ReviewDto> reviewDtoList) {
         List<ItemReviewsDto> result = new ArrayList<>();
 

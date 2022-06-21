@@ -86,6 +86,8 @@ public class ItemApiController {
 
         PagedModel<ItemReviewsResource> pagedModel = assembler.toModel(page, e -> new ItemReviewsResource(e));
         if (member.getRoleList().contains("ADMIN")) {
+            pagedModel.add(linkTo(ReviewAdminController.class).slash("recipes").withRel("query_review_recipes"));
+            pagedModel.add(linkTo(ReviewAdminController.class).slash("items").slash("ALL").withRel("query_review_items"));
             pagedModel.add(linkTo(ReviewAdminController.class).withRel("admin_create_review"));
         }
         pagedModel.add(profileRootUrlBuilder.slash("index.html#resources-query-item-reviews").withRel("profile"));

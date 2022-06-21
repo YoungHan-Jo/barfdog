@@ -3,8 +3,10 @@ package com.bi.barfdog.service;
 import com.bi.barfdog.api.InfoController;
 import com.bi.barfdog.api.blogDto.UploadedImageAdminDto;
 import com.bi.barfdog.api.itemDto.*;
+import com.bi.barfdog.domain.basket.Basket;
 import com.bi.barfdog.domain.banner.ImgFilenamePath;
 import com.bi.barfdog.domain.item.*;
+import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.repository.item.ItemContentImageRepository;
 import com.bi.barfdog.repository.item.ItemImageRepository;
 import com.bi.barfdog.repository.item.ItemOptionRepository;
@@ -241,7 +243,5 @@ public class ItemService {
         Item savedItem = itemRepository.save(item);
         return savedItem;
     }
-
-
 
 }
