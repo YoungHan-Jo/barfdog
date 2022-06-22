@@ -20,6 +20,7 @@ public class ItemReviewsDto {
 
     private ReviewDto reviewDto;
 
+    @Builder.Default
     private List<ReviewImageDto> reviewImageDtoList = new ArrayList<>();
 
     @Data

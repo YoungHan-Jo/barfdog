@@ -19,6 +19,7 @@ import java.util.List;
 @Builder
 public class PersonalPublishRequestDto{
 
+    @Builder.Default
     @Size(min = 1)
     private List<Long> memberIdList = new ArrayList<>();
 

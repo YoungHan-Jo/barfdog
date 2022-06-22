@@ -703,10 +703,10 @@ operation::query_surveyReport[snippets='curl-request,path-parameters,request-hea
 operation::query_surveyResult[snippets='curl-request,path-parameters,request-headers,response-headers,response-body,response-fields,links']
 
 
-[[resources-coupon-info]]
-== 쿠폰
+[[resources-admin-coupon-info]]
+== 관리자 쿠폰
 
-쿠폰 관련 리소스.
+관리자 쿠폰 관련 리소스.
 
 [[resources-create-coupon]]
 === 쿠폰 등록
@@ -1123,3 +1123,51 @@ operation::query_item_reviews[snippets='curl-request,path-parameters,request-hea
 `POST` 요청을 사용하여 상품과 상품 옵션을 장바구니에 담을 수 있다.
 
 operation::create_basket[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-query-baskets]]
+=== 장바구니 목록 조회
+
+`GET` 요청을 사용하여 장바구니 목록을 조회할 수 있다.
+
+operation::query_baskets[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-delete-basket]]
+=== 장바구니 목록 하나 삭제
+
+`DELETE` 요청을 사용하여 장바구니 목록을 삭제할 수 있다.
+
+operation::delete_basket[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-delete-baskets]]
+=== 장바구니 목목 여러개 삭제
+
+`DELETE` 요청을 사용하여 장바구니 목록을 여러개 삭제할 수 있다.
+
+operation::delete_baskets[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-increase-basket]]
+=== 장바구니 품목 개수 1개 추가
+
+`PUT` 요청을 사용하여 장바구니 품목 개수를 1개 추가할 수 있다.
+
+operation::increase_basket[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-decrease-basket]]
+=== 장바구니 품목 개수 1개 감소
+
+`PUT` 요청을 사용하여 장바구니 품목 개수를 1개 추가시킬 수 있다.
+
+operation::decrease_basket[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+
+[[resources-coupon-info]]
+== 유저 쿠폰
+
+유저 쿠폰 관련 리소스.
+
+[[resources-query-coupons]]
+=== 장바구니 목록 조회
+
+`GET` 요청을 사용하여 보유 쿠폰 리스트를 조회할 수 있다.
+
+operation::query_coupons[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']

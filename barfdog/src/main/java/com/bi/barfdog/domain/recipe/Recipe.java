@@ -48,6 +48,7 @@ public class Recipe extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private RecipeStatus status;
 
+    @Builder.Default
     @OneToMany(mappedBy = "recipe")
     private List<SubscribeRecipe> subscribeRecipes = new ArrayList<>();
 

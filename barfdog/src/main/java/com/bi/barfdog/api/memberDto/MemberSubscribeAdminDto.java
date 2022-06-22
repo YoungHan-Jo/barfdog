@@ -16,6 +16,7 @@ public class MemberSubscribeAdminDto {
 
     private QuerySubscribeAdminDto querySubscribeAdminDto;
 
+    @Builder.Default
     private List<String> recipeNames = new ArrayList<>();
 
 }

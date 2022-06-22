@@ -21,6 +21,7 @@ public class OrderSheetSubscribeResponseDto {
 
     private Address address;
 
+    @Builder.Default
     private List<OrderSheetSubsCouponDto> coupons = new ArrayList();
 
     private int reward;

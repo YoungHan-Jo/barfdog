@@ -1,5 +1,6 @@
 package com.bi.barfdog.validator;
 
+import com.bi.barfdog.api.couponDto.CodeCouponRequestDto;
 import com.bi.barfdog.api.couponDto.CouponSaveRequestDto;
 import com.bi.barfdog.api.couponDto.GroupPublishRequestDto;
 import com.bi.barfdog.api.couponDto.PersonalPublishRequestDto;
@@ -7,13 +8,18 @@ import com.bi.barfdog.domain.coupon.Coupon;
 import com.bi.barfdog.domain.coupon.CouponStatus;
 import com.bi.barfdog.domain.coupon.CouponType;
 import com.bi.barfdog.domain.coupon.DiscountType;
+import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.repository.coupon.CouponRepository;
+import com.bi.barfdog.repository.memberCoupon.MemberCouponRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -21,6 +27,9 @@ import java.util.Optional;
 public class CouponValidator {
 
     private final CouponRepository couponRepository;
+    private final MemberCouponRepository memberCouponRepository;
+
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     public void validateDto(CouponSaveRequestDto requestDto, Errors errors) {
         if (requestDto.getDiscountDegree() > requestDto.getAvailableMaxDiscount()) {
@@ -84,4 +93,22 @@ public class CouponValidator {
     }
 
 
+    public void validateCodeAndPassword(Member member, CodeCouponRequestDto requestDto, Errors errors) {
+        String code = requestDto.getCode();
+        String password = requestDto.getPassword();
+        List<MemberCoupon> memberCoupons = memberCouponRepository.findByMemberAndCode(member, code);
+
+        if (memberCoupons.size() == 0) {
+            errors.reject("invalid coupon","사용할 수 없는 쿠폰 코드입니다.");
+        }
+
+        if (wrongPassword(member, password)) {
+            errors.reject("wrong password","잘못된 비밀번호 입니다.");
+        }
+
+    }
+
+    private boolean wrongPassword(Member member, String password) {
+        return bCryptPasswordEncoder.matches(password, member.getPassword()) == false;
+    }
 }

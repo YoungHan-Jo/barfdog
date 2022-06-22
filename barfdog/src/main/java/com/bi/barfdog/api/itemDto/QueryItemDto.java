@@ -22,8 +22,10 @@ public class QueryItemDto {
 
     private DeliveryCondDto deliveryCondDto;
 
+    @Builder.Default
     private List<ItemOptionDto> itemOptionDtoList = new ArrayList<>();
 
+    @Builder.Default
     private List<ItemImageDto> itemImageDtoList = new ArrayList<>();
 
     private ReviewDto reviewDto;

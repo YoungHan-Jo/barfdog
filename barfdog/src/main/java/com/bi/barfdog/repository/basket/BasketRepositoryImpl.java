@@ -4,7 +4,9 @@ import com.bi.barfdog.api.basketDto.QueryBasketsDto;
 import com.bi.barfdog.domain.basket.QBasketOption;
 import com.bi.barfdog.domain.item.QItemOption;
 import com.bi.barfdog.domain.member.Member;
+import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -27,7 +29,6 @@ public class BasketRepositoryImpl implements BasketRepositoryCustom{
     @Override
     public List<QueryBasketsDto> findBasketsDto(Member member) {
 
-
         List<QueryBasketsDto.ItemDto> itemDtoList = queryFactory
                 .select(Projections.constructor(QueryBasketsDto.ItemDto.class,
                         basket.id,
@@ -42,7 +43,7 @@ public class BasketRepositoryImpl implements BasketRepositoryCustom{
                 .from(basket)
                 .join(basket.item, item)
                 .join(itemImage).on(itemImage.item.eq(item))
-                .where(basket.member.eq(member))
+                .where(basket.member.eq(member).and(itemImage.leakOrder.eq(1)))
                 .orderBy(basket.createdDate.asc())
                 .fetch();
         List<QueryBasketsDto> result = getQueryBasketsDtos(itemDtoList);

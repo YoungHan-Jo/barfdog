@@ -1,6 +1,7 @@
 package com.bi.barfdog.service;
 
 import com.bi.barfdog.api.couponDto.*;
+import com.bi.barfdog.api.resource.CouponsDtoResource;
 import com.bi.barfdog.directsend.DirectSendUtils;
 import com.bi.barfdog.domain.coupon.Coupon;
 import com.bi.barfdog.domain.coupon.CouponStatus;
@@ -11,6 +12,10 @@ import com.bi.barfdog.repository.coupon.CouponRepository;
 import com.bi.barfdog.repository.memberCoupon.MemberCouponRepository;
 import com.bi.barfdog.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -188,6 +193,15 @@ public class CouponService {
         }
     }
 
+    @Transactional
+    public void getCodeCoupon(Member member, CodeCouponRequestDto requestDto) {
+        String code = requestDto.getCode();
+        List<MemberCoupon> memberCoupons = memberCouponRepository.findByMemberAndCode(member, code);
+        for (MemberCoupon memberCoupon : memberCoupons) {
+            memberCoupon.active();
+        }
+    }
+
     private LocalDateTime getExpiredDate(String requestDto) {
         String dateStr = requestDto;
         dateStr += " 23:59:59";
@@ -207,4 +221,6 @@ public class CouponService {
 
         memberCouponList.add(memberCoupon);
     }
+
+
 }

@@ -31,6 +31,7 @@ public class EventSaveDto {
     @NotNull
     private Long thumbnailId;
 
+    @Builder.Default
     @Size(min = 1)
     @NotNull
     @Valid

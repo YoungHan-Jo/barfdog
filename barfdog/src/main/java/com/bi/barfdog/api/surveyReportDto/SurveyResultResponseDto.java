@@ -28,5 +28,6 @@ public class SurveyResultResponseDto {
 
     private FoodAnalysis foodAnalysis;
 
+    @Builder.Default
     private List<SurveyResultRecipeDto> recipeDtoList = new ArrayList<>();
 }

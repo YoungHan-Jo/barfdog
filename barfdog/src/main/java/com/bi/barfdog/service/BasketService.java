@@ -1,6 +1,7 @@
 package com.bi.barfdog.service;
 
 import com.bi.barfdog.api.BasketApiController;
+import com.bi.barfdog.api.basketDto.DeleteBasketsDto;
 import com.bi.barfdog.api.basketDto.QueryBasketsDto;
 import com.bi.barfdog.api.basketDto.QueryBasketsPageDto;
 import com.bi.barfdog.api.basketDto.SaveBasketDto;
@@ -70,7 +71,7 @@ public class BasketService {
     }
 
     public QueryBasketsPageDto getQueryBasketsPage(Member member) {
-        List<EntityModel<QueryBasketsDto>> entityModels = new ArrayList<>();
+        List<EntityModel<QueryBasketsDto>> basketDtoList = new ArrayList<>();
 
         List<QueryBasketsDto> responseDto = basketRepository.findBasketsDto(member);
 
@@ -80,7 +81,7 @@ public class BasketService {
                     linkTo(BasketApiController.class).slash(dto.getItemDto().getBasketId()).slash("decrease").withRel("decrease_basket"),
                     linkTo(BasketApiController.class).slash(dto.getItemDto().getBasketId()).withRel("delete_basket")
             );
-            entityModels.add(entityModel);
+            basketDtoList.add(entityModel);
         }
 
 
@@ -88,7 +89,34 @@ public class BasketService {
 
         return QueryBasketsPageDto.builder()
                 .deliveryConstant(deliveryConstant)
-                .entityModels(entityModels)
+                .basketDtoList(basketDtoList)
                 .build();
+    }
+
+    @Transactional
+    public void deleteBasket(Long id) {
+        Basket basket = basketRepository.findById(id).get();
+        List<BasketOption> basketOptions = basketOptionRepository.findAllByBasket(basket);
+        basketOptionRepository.deleteAll(basketOptions);
+        basketRepository.delete(basket);
+    }
+
+    @Transactional
+    public void deleteBaskets(DeleteBasketsDto requestDto) {
+        List<Long> deleteBasketIdList = requestDto.getDeleteBasketIdList();
+        basketOptionRepository.deleteAllByBasketIdList(deleteBasketIdList);
+        basketRepository.deleteAllById(deleteBasketIdList);
+    }
+
+    @Transactional
+    public void increaseBasket(Long id) {
+        Basket basket = basketRepository.findById(id).get();
+        basket.increase();
+    }
+
+    @Transactional
+    public void decreaseBasket(Long id) {
+        Basket basket = basketRepository.findById(id).get();
+        basket.decrease();
     }
 }

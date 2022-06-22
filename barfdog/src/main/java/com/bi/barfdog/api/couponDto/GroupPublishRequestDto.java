@@ -25,6 +25,7 @@ public class GroupPublishRequestDto {
     @NotNull
     private boolean longUnconnected;
 
+    @Builder.Default
     @NotNull
     @Size(min = 1)
     private List<Grade> gradeList = new ArrayList<>(); // [BRONZE, SILVER, GOLD, PLATINUM, DIAMOND, BARF]

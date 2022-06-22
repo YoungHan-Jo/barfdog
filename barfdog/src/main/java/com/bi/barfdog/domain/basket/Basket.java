@@ -29,4 +29,13 @@ public class Basket extends BaseTimeEntity {
 
     private int amount;
 
+    public void increase() {
+        amount++;
+    }
+
+    public void decrease() {
+        if (amount > 1) {
+            amount--;
+        }
+    }
 }

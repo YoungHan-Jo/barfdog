@@ -4,6 +4,7 @@ import com.bi.barfdog.api.orderDto.OrderSheetSubsCouponDto;
 import com.bi.barfdog.domain.coupon.CouponStatus;
 import com.bi.barfdog.domain.coupon.CouponTarget;
 import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -41,6 +42,17 @@ public class MemberCouponRepositoryImpl implements MemberCouponRepositoryCustom{
                         .and(validSubscribeCoupon())
                 )
                 .fetch();
+    }
+
+    @Override
+    public List<MemberCoupon> findByMemberAndCode(Member member, String code) {
+        return queryFactory
+                .select(memberCoupon)
+                .from(memberCoupon)
+                .join(memberCoupon.coupon, coupon)
+                .where(memberCoupon.member.eq(member).and(coupon.code.eq(code)))
+                .fetch()
+                ;
     }
 
     private BooleanExpression validSubscribeCoupon() {

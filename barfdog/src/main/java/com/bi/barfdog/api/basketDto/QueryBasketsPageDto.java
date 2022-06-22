@@ -16,5 +16,5 @@ import java.util.List;
 public class QueryBasketsPageDto {
 
     private DeliveryConstant deliveryConstant;
-    private List<EntityModel<QueryBasketsDto>> entityModels;
+    private List<EntityModel<QueryBasketsDto>> basketDtoList;
 }

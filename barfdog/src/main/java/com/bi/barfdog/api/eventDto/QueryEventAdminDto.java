@@ -20,6 +20,7 @@ public class QueryEventAdminDto {
 
     private EventAdminDto eventAdminDto;
 
+    @Builder.Default
     private List<EventImageDto> eventImageDtoList = new ArrayList();
 
     @Data

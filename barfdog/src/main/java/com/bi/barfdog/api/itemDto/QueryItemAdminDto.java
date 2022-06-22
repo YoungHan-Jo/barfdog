@@ -22,10 +22,13 @@ public class QueryItemAdminDto {
 
     private ItemAdminDto itemAdminDto;
 
+    @Builder.Default
     private List<ItemOptionAdminDto> itemOptionAdminDtoList = new ArrayList<>();
 
+    @Builder.Default
     private List<ItemImageAdminDto> itemImageAdminDtoList = new ArrayList<>();
 
+    @Builder.Default
     private List<ItemContentImageDto> itemContentImageDtoList = new ArrayList<>();
 
     @Data

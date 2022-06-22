@@ -1,9 +1,11 @@
 package com.bi.barfdog.api;
 
+import com.bi.barfdog.api.basketDto.DeleteBasketsDto;
 import com.bi.barfdog.api.basketDto.QueryBasketsPageDto;
 import com.bi.barfdog.api.basketDto.SaveBasketDto;
 import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
+import com.bi.barfdog.domain.basket.Basket;
 import com.bi.barfdog.domain.item.Item;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.repository.basket.BasketRepository;
@@ -60,10 +62,72 @@ public class BasketApiController {
 
         EntityModel<QueryBasketsPageDto> entityModel = EntityModel.of(queryBasketsPageDto,
                 linkTo(BasketApiController.class).withSelfRel(),
+                linkTo(BasketApiController.class).withRel("delete_baskets"),
                 profileRootUrlBuilder.slash("index.html#resources-query-baskets").withRel("profile")
         );
 
         return ResponseEntity.ok(entityModel);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity deleteBasket(@PathVariable Long id) {
+        Optional<Basket> optionalBasket = basketRepository.findById(id);
+        if(!optionalBasket.isPresent()) return notFound();
+
+        basketService.deleteBasket(id);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(BasketApiController.class).withSelfRel());
+        representationModel.add(linkTo(BasketApiController.class).withRel("query_baskets"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-delete-basket").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @DeleteMapping
+    public ResponseEntity deleteBaskets(@CurrentUser Member member,
+                                        @RequestBody @Valid DeleteBasketsDto requestDto,
+                                        Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+
+        basketService.deleteBaskets(requestDto);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(BasketApiController.class).withSelfRel());
+        representationModel.add(linkTo(BasketApiController.class).withRel("query_baskets"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-delete-baskets").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @PutMapping("/{id}/increase")
+    public ResponseEntity increaseBasket(@PathVariable Long id) {
+        Optional<Basket> optionalBasket = basketRepository.findById(id);
+        if (!optionalBasket.isPresent()) return notFound();
+
+        basketService.increaseBasket(id);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(BasketApiController.class).withSelfRel());
+        representationModel.add(linkTo(BasketApiController.class).withRel("query_baskets"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-increase-basket").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @PutMapping("/{id}/decrease")
+    public ResponseEntity decreaseBasket(@PathVariable Long id) {
+        Optional<Basket> optionalBasket = basketRepository.findById(id);
+        if (!optionalBasket.isPresent()) return notFound();
+
+        basketService.decreaseBasket(id);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(BasketApiController.class).withSelfRel());
+        representationModel.add(linkTo(BasketApiController.class).withRel("query_baskets"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-decrease-basket").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
     }
 
 

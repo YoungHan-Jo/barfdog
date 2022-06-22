@@ -1,4 +1,4 @@
-package com.bi.barfdog.api.recipeDto;
+package com.bi.barfdog.api.basketDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,11 +12,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class RecipeSurveyResponseDto {
+public class DeleteBasketsDto {
 
-    private Long id;
-    private String descriptionForSurvey;
     @Builder.Default
-    private List<String> ingredients = new ArrayList<>();
-
+    private List<Long> deleteBasketIdList = new ArrayList<>();
 }
