@@ -1166,8 +1166,15 @@ operation::decrease_basket[snippets='curl-request,path-parameters,request-header
 유저 쿠폰 관련 리소스.
 
 [[resources-query-coupons]]
-=== 장바구니 목록 조회
+=== 쿠폰 목록 조회
 
 `GET` 요청을 사용하여 보유 쿠폰 리스트를 조회할 수 있다.
 
 operation::query_coupons[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-get-code-coupon]]
+=== 쿠폰 코드 등록
+
+`PUT` 요청을 사용하여 쿠폰 코드를 등록해 쿠폰을 얻을 수 있다.
+
+operation::get_code_coupon[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']

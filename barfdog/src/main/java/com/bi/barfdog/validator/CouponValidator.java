@@ -98,17 +98,30 @@ public class CouponValidator {
         String password = requestDto.getPassword();
         List<MemberCoupon> memberCoupons = memberCouponRepository.findByMemberAndCode(member, code);
 
+
         if (memberCoupons.size() == 0) {
             errors.reject("invalid coupon","사용할 수 없는 쿠폰 코드입니다.");
+            return;
+        }
+
+        for (MemberCoupon memberCoupon : memberCoupons) {
+            if (memberCoupon.getMemberCouponStatus() == CouponStatus.ACTIVE) {
+                errors.reject("coupon has already been used","이미 사용된 쿠폰 입니다.");
+                return;
+            }
         }
 
         if (wrongPassword(member, password)) {
             errors.reject("wrong password","잘못된 비밀번호 입니다.");
+            return;
         }
+
 
     }
 
     private boolean wrongPassword(Member member, String password) {
         return bCryptPasswordEncoder.matches(password, member.getPassword()) == false;
     }
+
+
 }

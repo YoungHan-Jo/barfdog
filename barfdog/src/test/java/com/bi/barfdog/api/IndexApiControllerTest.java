@@ -18,6 +18,7 @@ import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.jwt.JwtProperties;
 import com.bi.barfdog.repository.member.MemberRepository;
 import com.bi.barfdog.repository.reward.RewardRepository;
+import com.bi.barfdog.snsLogin.NaverLoginDto;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -940,6 +941,29 @@ public class IndexApiControllerTest extends BaseTest {
                 .andExpect(status().isNotFound())
         ;
     }
+
+    @Test
+    @DisplayName("정상적으로 네이버 회원 정보 호출")
+    public void naverLogin() throws Exception {
+       //given
+
+        String token = "AAAAObuBBRT_7Wsgyu49EQIjnOzwo4KSsWE1FcwFcfEGhAyoesggydGmOPMyjkmsGvaUaBeyLfGV4su8Wspx25IAGRQ";
+
+        NaverLoginDto requestDto = NaverLoginDto.builder()
+                .token(token)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/login/naver")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+        ;
+
+    }
+
 
 
 

@@ -31,8 +31,7 @@ import static org.springframework.restdocs.headers.HeaderDocumentation.headerWit
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
-import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -167,7 +166,30 @@ public class CouponApiControllerTest extends BaseTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isOk())
-        ;
+                .andDo(document("get_code_coupon",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_coupons").description("보유 쿠폰 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer jwt 토큰")
+                        ),
+                        requestFields(
+                                fieldWithPath("code").description("쿠폰 코드"),
+                                fieldWithPath("password").description("유저 비밀번호")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_coupons.href").description("보유 쿠폰 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
 
         em.flush();
         em.clear();
@@ -178,17 +200,17 @@ public class CouponApiControllerTest extends BaseTest {
     }
 
     @Test
-    @DisplayName("등록한 코드가 존재하지않는 경우 404")
-    public void getCodeCoupon_notFound() throws Exception {
+    @DisplayName("이미 사용된 쿠폰입니다.")
+    public void getCodeCoupon_already_used() throws Exception {
         //given
 
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
         Coupon coupon = generateCodeCoupon(1);
-        MemberCoupon memberCoupon = generateMemberCoupon(member, coupon, 1, CouponStatus.INACTIVE);
+        MemberCoupon memberCoupon = generateMemberCoupon(member, coupon, 1, CouponStatus.ACTIVE);
 
         CodeCouponRequestDto requestDto = CodeCouponRequestDto.builder()
-                .code("code112")
+                .code(coupon.getCode())
                 .password(appProperties.getUserPassword())
                 .build();
 
@@ -199,8 +221,7 @@ public class CouponApiControllerTest extends BaseTest {
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
-                .andExpect(status().isNotFound());
-
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -212,6 +233,30 @@ public class CouponApiControllerTest extends BaseTest {
 
         Coupon coupon = generateCodeCoupon(1);
         MemberCoupon memberCoupon = generateMemberCoupon(member, coupon, 1, CouponStatus.INACTIVE);
+
+        CodeCouponRequestDto requestDto = CodeCouponRequestDto.builder()
+                .code(coupon.getCode())
+                .password(appProperties.getAdminPassword())
+                .build();
+
+        //when & then
+        mockMvc.perform(put("/api/coupons/code")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("보유한 쿠폰이 아닐 경우")
+    public void getCodeCoupon_have_no_coupon() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        Coupon coupon = generateCodeCoupon(1);
 
         CodeCouponRequestDto requestDto = CodeCouponRequestDto.builder()
                 .code(coupon.getCode())

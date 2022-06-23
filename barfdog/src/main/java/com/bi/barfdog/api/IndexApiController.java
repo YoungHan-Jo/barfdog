@@ -11,7 +11,12 @@ import com.bi.barfdog.jwt.JwtProperties;
 import com.bi.barfdog.jwt.JwtTokenProvider;
 import com.bi.barfdog.repository.member.MemberRepository;
 import com.bi.barfdog.service.MemberService;
+import com.bi.barfdog.snsLogin.NaverLoginDto;
+import com.bi.barfdog.snsLogin.NaverResponseDto;
+import com.bi.barfdog.snsLogin.SnsLogin;
 import com.bi.barfdog.validator.MemberValidator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.MediaTypes;
@@ -243,6 +248,31 @@ public class IndexApiController {
 
         response.addHeader(JwtProperties.HEADER_STRING, jwtToken);
         return ResponseEntity.ok(null);
+    }
+
+    @PostMapping("/api/login/naver")
+    public ResponseEntity loginNaver(@RequestBody @Valid NaverLoginDto requestDto,
+                                     Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+
+        String str = SnsLogin.Naver(requestDto.getToken());
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        NaverResponseDto naverResponseDto = null;
+        try {
+            naverResponseDto = objectMapper.readValue(str, NaverResponseDto.class);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        String mobile = naverResponseDto.getResponse().getMobile().replace("-","");
+
+        if (!memberRepository.findByPhoneNumber(mobile).isPresent()) {
+            naverResponseDto.newMember();
+            return ResponseEntity.ok(naverResponseDto);
+        }
+
+        return ResponseEntity.ok(mobile);
     }
 
 

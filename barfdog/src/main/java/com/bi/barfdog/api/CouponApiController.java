@@ -62,10 +62,8 @@ public class CouponApiController {
                                         @RequestBody @Valid CodeCouponRequestDto requestDto,
                                         Errors errors) {
         if(errors.hasErrors()) return badRequest(errors);
-        Optional<Coupon> optionalCoupon = couponRepository.findByCode(requestDto.getCode());
-        if (!optionalCoupon.isPresent()) return notFound();
-
         couponValidator.validateCodeAndPassword(member, requestDto, errors);
+        if (errors.hasErrors()) return badRequest(errors);
 
         couponService.getCodeCoupon(member, requestDto);
 
