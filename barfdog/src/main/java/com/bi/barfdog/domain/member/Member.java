@@ -69,7 +69,7 @@ public class Member extends BaseTimeEntity {
 
     private LocalDateTime lastLoginDate;
 
-    private boolean withdrawal;
+    private boolean withdrawal; // 탈퇴여부
 
     private String roles; // USER,ADMIN
 
@@ -129,6 +129,22 @@ public class Member extends BaseTimeEntity {
 
     public void updateGrade(Grade grade) {
         this.grade = grade;
+    }
+
+    public void withdrawal() {
+        withdrawal = true;
+        provider = "";
+        providerId = "";
+    }
+
+    public void connectSns(String provider, String providerId) {
+        this.provider = provider;
+        this.providerId = providerId;
+    }
+
+    public void unconnectSns() {
+        this.provider = "";
+        this.providerId = "";
     }
 }
 

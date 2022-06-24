@@ -193,4 +193,13 @@ public class MemberService {
         member.updateGrade(requestDto.getGrade());
     }
 
+    @Transactional
+    public void deleteMember(Member member) {
+        member.withdrawal();
+    }
+
+    @Transactional
+    public void unconnectSns(Member member) {
+        member.unconnectSns();
+    }
 }

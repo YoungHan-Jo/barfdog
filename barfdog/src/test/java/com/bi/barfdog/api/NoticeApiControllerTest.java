@@ -8,6 +8,7 @@ import com.bi.barfdog.domain.blog.BlogStatus;
 import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.blog.BlogRepository;
 import org.assertj.core.api.Assertions;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -118,6 +119,7 @@ public class NoticeApiControllerTest extends BaseTest {
 
 
     @Test
+    @Ignore
     @DisplayName("정상적으로 공지사항 하나 조회")
     public void queryNotice() throws Exception {
        //given

@@ -11,9 +11,7 @@ import com.bi.barfdog.jwt.JwtProperties;
 import com.bi.barfdog.jwt.JwtTokenProvider;
 import com.bi.barfdog.repository.member.MemberRepository;
 import com.bi.barfdog.service.MemberService;
-import com.bi.barfdog.snsLogin.NaverLoginDto;
-import com.bi.barfdog.snsLogin.NaverResponseDto;
-import com.bi.barfdog.snsLogin.SnsLogin;
+import com.bi.barfdog.snsLogin.*;
 import com.bi.barfdog.validator.MemberValidator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,6 +45,7 @@ public class IndexApiController {
     private final MemberValidator memberValidator;
     private final MemberRepository memberRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final LoginService loginService;
     private final JwtTokenProvider jwtTokenProvider;
 
 
@@ -227,18 +226,24 @@ public class IndexApiController {
     }
 
     @PostMapping("/api/login")
-    public ResponseEntity login(@RequestBody LoginDto loginDto, HttpServletResponse response) {
+    public ResponseEntity login(HttpServletResponse response,
+                                @RequestBody @Valid LoginDto loginDto,
+                                Errors errors) {
         Optional<Member> optional = memberRepository.findByEmail(loginDto.getEmail());
         if (!optional.isPresent()) return ResponseEntity.notFound().build();
-
         Member member = optional.get();
-
-        if (!bCryptPasswordEncoder.matches(loginDto.getPassword(), member.getPassword())) {
-            return ResponseEntity.status(401).body(null);
-        }
+        memberValidator.isWithdrawalMember(member, errors);
+        if (errors.hasErrors()) return badRequest(errors);
+        memberValidator.validatePassword(member, loginDto.getPassword(), errors);
+        if (errors.hasErrors()) return badRequest(errors);
 
         memberService.login(member);
+        generateAccessToken(response, member);
 
+        return ResponseEntity.ok(null);
+    }
+
+    private void generateAccessToken(HttpServletResponse response, Member member) {
         String jwtToken = JwtProperties.TOKEN_PREFIX + JWT.create()
                 .withSubject("토큰 이름")
                 .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperties.EXPIRATION_TIME))
@@ -247,35 +252,31 @@ public class IndexApiController {
                 .sign(Algorithm.HMAC512(JwtProperties.SECRET));
 
         response.addHeader(JwtProperties.HEADER_STRING, jwtToken);
-        return ResponseEntity.ok(null);
     }
 
     @PostMapping("/api/login/naver")
-    public ResponseEntity loginNaver(@RequestBody @Valid NaverLoginDto requestDto,
+    public ResponseEntity loginNaver(HttpServletResponse response,
+                                     @RequestBody @Valid NaverLoginDto requestDto,
                                      Errors errors) {
         if (errors.hasErrors()) return badRequest(errors);
 
-        String str = SnsLogin.Naver(requestDto.getToken());
+        NaverResponseDto responseDto = loginService.naver(requestDto);
+        EntityModel<NaverResponseDto> entityModel = EntityModel.of(responseDto,
+                linkTo(IndexApiController.class).slash("api/login/naver").withSelfRel(),
+                profileRootUrlBuilder.slash("index.html#resources-login-naver").withRel("profile")
+        );
 
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        NaverResponseDto naverResponseDto = null;
-        try {
-            naverResponseDto = objectMapper.readValue(str, NaverResponseDto.class);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        String mobile = naverResponseDto.getResponse().getMobile().replace("-","");
-
-        if (!memberRepository.findByPhoneNumber(mobile).isPresent()) {
-            naverResponseDto.newMember();
-            return ResponseEntity.ok(naverResponseDto);
+        String resultcode = responseDto.getResultcode();
+        if (resultcode.equals(SnsResponse.SUCCESS_CODE)) {
+            String providerId = responseDto.getResponse().getId();
+            Member member = memberRepository.findByProviderAndProviderId(SnsProvider.NAVER, providerId).get();
+            generateAccessToken(response, member);
         }
 
-        return ResponseEntity.ok(mobile);
+
+
+        return ResponseEntity.ok(entityModel);
     }
-
-
 
 
 

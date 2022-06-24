@@ -80,8 +80,9 @@ public class BlogAdminController {
     public ResponseEntity createBlog(@RequestBody @Valid BlogSaveDto requestDto,
                                      Errors errors) {
         if(errors.hasErrors()) return badRequest(errors);
-
         blogValidator.validateWrongImgId(requestDto.getBlogImageIdList(),errors);
+        if (errors.hasErrors()) return badRequest(errors);
+        blogValidator.validateDuplicateThumbnail(requestDto, errors);
         if (errors.hasErrors()) return badRequest(errors);
 
 

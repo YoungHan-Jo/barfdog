@@ -238,7 +238,7 @@ public class BlogAdminControllerTest extends BaseTest {
                 .title(title)
                 .category(category)
                 .contents(contents)
-                .blogThumbnailId(blogThumbnail.getId())
+                .thumbnailId(blogThumbnail.getId())
                 .blogImageIdList(blogImageIdList)
                 .build();
 
@@ -266,7 +266,7 @@ public class BlogAdminControllerTest extends BaseTest {
                                 fieldWithPath("title").description("블로그 제목"),
                                 fieldWithPath("category").description("블로그 카테고리 [NUTRITION,HEALTH,LIFE]"),
                                 fieldWithPath("contents").description("블로그 컨텐츠 html"),
-                                fieldWithPath("blogThumbnailId").description("블로그 썸네일 id"),
+                                fieldWithPath("thumbnailId").description("블로그 썸네일 id"),
                                 fieldWithPath("blogImageIdList").description("블로그 이미지 ID 리스트")
                         ),
                         responseHeaders(
@@ -317,7 +317,7 @@ public class BlogAdminControllerTest extends BaseTest {
                 .title(title)
                 .category(category)
                 .contents(contents)
-                .blogThumbnailId(blogThumbnail.getId())
+                .thumbnailId(blogThumbnail.getId())
                 .build();
 
         //when & then
@@ -338,6 +338,42 @@ public class BlogAdminControllerTest extends BaseTest {
         assertThat(findBlog.getTitle()).isEqualTo(title);
         assertThat(findBlog.getCategory()).isEqualTo(category);
         assertThat(findBlog.getContents()).isEqualTo(contents);
+
+    }
+
+    @Test
+    @DisplayName("블로그 생성 시 이미 사용중인 썸네일은 중복으로 들어갈 시 400")
+    public void createBlog_duplicateThumbnailImage() throws Exception {
+        //given
+        List<Long> blogImageIdList = getBlogImgIdList();
+
+        Blog blog = generateBlog(1);
+
+        Long thumbnailId = blog.getBlogThumbnail().getId();
+        List<Blog> blogs = blogRepository.findByBlogThumbnailId(thumbnailId);
+        assertThat(blogs.size()).isEqualTo(1);
+
+        String title = "건강 블로그 제목";
+        BlogStatus status = BlogStatus.LEAKED;
+        BlogCategory category = BlogCategory.HEALTH;
+        String contents = "컨텐츠 내용";
+        BlogSaveDto requestDto = BlogSaveDto.builder()
+                .status(status)
+                .title(title)
+                .category(category)
+                .contents(contents)
+                .thumbnailId(thumbnailId)
+                .blogImageIdList(blogImageIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/blogs")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
 
     }
 
@@ -414,7 +450,7 @@ public class BlogAdminControllerTest extends BaseTest {
                 .title(title)
                 .category(category)
                 .contents(contents)
-                .blogThumbnailId(blogThumbnail.getId())
+                .thumbnailId(blogThumbnail.getId())
                 .blogImageIdList(blogImageIdList)
                 .build();
 
@@ -960,8 +996,16 @@ public class BlogAdminControllerTest extends BaseTest {
     }
 
 
-
-
+    private Blog generateBlog(int i, BlogThumbnail blogThumbnail) {
+        Blog blog = Blog.builder()
+                .status(BlogStatus.LEAKED)
+                .title("제목" + i)
+                .category(BlogCategory.HEALTH)
+                .contents("컨텐츠 내용")
+                .blogThumbnail(blogThumbnail)
+                .build();
+        return blogRepository.save(blog);
+    }
 
     private Blog generateBlog(int i) {
         BlogThumbnail thumbnail = BlogThumbnail.builder()

@@ -79,7 +79,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
                         item.createdDate
                 ))
                 .from(item)
-                .where(itemImageLeakOrderEq1AndItemTypeEq(itemType))
+                .where(itemTypeEq(itemType))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .orderBy(item.createdDate.desc())
@@ -88,7 +88,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
         Long totalCount = queryFactory
                 .select(item.count())
                 .from(item)
-                .where(itemImageLeakOrderEq1AndItemTypeEq(itemType))
+                .where(itemTypeEq(itemType))
                 .fetchOne();
 
         return new PageImpl<>(result, pageable, totalCount);
@@ -112,7 +112,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
                 .from(item)
                 .join(itemImage).on(itemImage.item.eq(item))
                 .leftJoin(itemReview).on(itemReview.item.eq(item))
-                .where(itemImageLeakOrderEq1AndItemTypeEq(cond.getItemType()))
+                .where(itemTypeEq(cond.getItemType()))
                 .groupBy(item)
                 .orderBy(orderByCond(cond.getSortBy()))
                 .offset(pageable.getOffset())
@@ -125,7 +125,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
         Long totalCount = queryFactory
                 .select(item.count())
                 .from(item)
-                .where(itemTypeEqForCount(cond))
+                .where(itemTypeEq(cond.getItemType()))
                 .fetchOne();
 
         return new PageImpl<>(result, pageable, totalCount);

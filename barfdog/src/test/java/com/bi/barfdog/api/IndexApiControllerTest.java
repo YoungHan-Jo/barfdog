@@ -19,6 +19,7 @@ import com.bi.barfdog.jwt.JwtProperties;
 import com.bi.barfdog.repository.member.MemberRepository;
 import com.bi.barfdog.repository.reward.RewardRepository;
 import com.bi.barfdog.snsLogin.NaverLoginDto;
+import com.bi.barfdog.snsLogin.SnsResponse;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -764,20 +765,16 @@ public class IndexApiControllerTest extends BaseTest {
                         )
                 ));
     }
-    
+
     @Test
-    @DisplayName("로그인 실패 시 Unauthorized 401 에러 나오는 테스트")
-    public void login_Unauthorized() throws Exception {
-       //Given
+    @DisplayName("로그인 비밀번호 잘못된 경우 400")
+    public void login_wrongPassword() throws Exception {
+        //Given
         Member member = generateSampleMember();
-
-        Member findMember = memberRepository.findById(member.getId()).get();
-
-        System.out.println("findMember = " + findMember.getEmail());
 
         JwtLoginDto requestDto = JwtLoginDto.builder()
                 .email(member.getEmail())
-                .password("5678")
+                .password("wrongPassword")
                 .build();
 
         //when & then
@@ -786,7 +783,29 @@ public class IndexApiControllerTest extends BaseTest {
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("로그인한 유저가 탈퇴한 유저일 경우")
+    public void login_withdrawnMember() throws Exception {
+        //Given
+        String password = "1234";
+        Member member = generateSampleMember(password);
+        member.withdrawal();
+
+        JwtLoginDto requestDto = JwtLoginDto.builder()
+                .email(member.getEmail())
+                .password(password)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
     }
 
 
@@ -944,13 +963,13 @@ public class IndexApiControllerTest extends BaseTest {
 
     @Test
     @DisplayName("정상적으로 네이버 회원 정보 호출")
-    public void naverLogin() throws Exception {
+    public void naverLogin_newMember() throws Exception {
        //given
 
-        String token = "AAAAObuBBRT_7Wsgyu49EQIjnOzwo4KSsWE1FcwFcfEGhAyoesggydGmOPMyjkmsGvaUaBeyLfGV4su8Wspx25IAGRQ";
+        String accessToken = SnsResponse.TEST_ACCESS_CODE;
 
         NaverLoginDto requestDto = NaverLoginDto.builder()
-                .token(token)
+                .accessToken(accessToken)
                 .build();
 
         //when & then
@@ -960,8 +979,118 @@ public class IndexApiControllerTest extends BaseTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isOk())
-        ;
+                .andExpect(jsonPath("resultcode").value(SnsResponse.NEW_MEMBER_CODE))
+                .andExpect(jsonPath("message").value(SnsResponse.NEW_MEMBER_MESSAGE))
+                .andDo(document("login_naver",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        requestFields(
+                                fieldWithPath("accessToken").description("엑세스 토큰")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("resultcode").description("결과 코드"),
+                                fieldWithPath("message").description("결과 메세지"),
+                                fieldWithPath("response.id").description("네이버 고유 식별 provider id"),
+                                fieldWithPath("response.gender").description("성별 ['F' or 'M' or 'U'] 각 여성/남성/확인불가"),
+                                fieldWithPath("response.email").description("네이버 내정보에 등록된 이메일"),
+                                fieldWithPath("response.mobile").description("휴대전화번호 'xxx-xxxx-xxxx'"),
+                                fieldWithPath("response.mobile_e164").description("국제번호포함 휴대전화번호 '+8210xxxxxxxx'"),
+                                fieldWithPath("response.name").description("사용자 이름"),
+                                fieldWithPath("response.birthday").description("사용자 태어난 월-일 'MM-dd'"),
+                                fieldWithPath("response.birthyear").description("사용자 태어난 년도 'yyyy'"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
 
+    }
+
+    @Test
+    @DisplayName("기존회원은 있지만 간편로그인 연동이 되어있지않음")
+    public void naverLogin_connectSns() throws Exception {
+        //given
+
+        Member member = generateSampleMember();
+        
+
+        String accessToken = SnsResponse.TEST_ACCESS_CODE;
+
+        NaverLoginDto requestDto = NaverLoginDto.builder()
+                .accessToken(accessToken)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/login/naver")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("resultcode").value(SnsResponse.CONNECT_NEW_SNS_CODE))
+                .andExpect(jsonPath("message").value(SnsResponse.CONNECT_NEW_SNS_MESSAGE))
+        ;
+    }
+
+    @Test
+    @DisplayName("네이버가 아닌 카카오로 이미 연동되어있음")
+    public void naverLogin_connectedByKakao() throws Exception {
+        //given
+
+        Member member = generateSampleMember();
+        member.connectSns("kakao","sdjfaksdlfjaksdjfiasldf");
+
+        String accessToken = SnsResponse.TEST_ACCESS_CODE;
+
+        NaverLoginDto requestDto = NaverLoginDto.builder()
+                .accessToken(accessToken)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/login/naver")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("resultcode").value(SnsResponse.CONNECTED_BY_KAKAO_CODE))
+                .andExpect(jsonPath("message").value(SnsResponse.CONNECTED_BY_KAKAO_MESSAGE))
+        ;
+    }
+
+    @Test
+    @DisplayName("연동이되어있고 로그인 성공해서 토큰을 받음")
+    public void naverLogin_success() throws Exception {
+        //given
+
+        Member member = generateSampleMember();
+        member.connectSns("naver","p4N4jAY5Q0qszLDW8Wx2W30K3eKkRUlHEVivAHgR0XQ");
+
+        String accessToken = SnsResponse.TEST_ACCESS_CODE;
+
+        NaverLoginDto requestDto = NaverLoginDto.builder()
+                .accessToken(accessToken)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/login/naver")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("resultcode").value(SnsResponse.SUCCESS_CODE))
+                .andExpect(jsonPath("message").value(SnsResponse.SUCCESS_MESSAGE))
+                .andExpect(header().exists(JwtProperties.HEADER_STRING))
+        ;
     }
 
 
@@ -974,10 +1103,14 @@ public class IndexApiControllerTest extends BaseTest {
 
 
     private Member generateSampleMember() {
+        return generateSampleMember("1234");
+    }
+
+    private Member generateSampleMember(String password) {
         Member member = Member.builder()
                 .name("샘플Member")
                 .email("jo.younghan8544@gmail.com")
-                .password(bCryptPasswordEncoder.encode("1234"))
+                .password(bCryptPasswordEncoder.encode(password))
                 .phoneNumber("01099038544")
                 .address(new Address("48060","부산시","해운대구 센텀2로 19","브리티시인터내셔널"))
                 .birthday("20000521")

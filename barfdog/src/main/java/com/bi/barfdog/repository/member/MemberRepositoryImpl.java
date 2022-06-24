@@ -7,6 +7,7 @@ import com.bi.barfdog.api.rewardDto.PublishToGroupDto;
 import com.bi.barfdog.config.finalVariable.BarfCity;
 import com.bi.barfdog.domain.member.Grade;
 import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.domain.member.QMember;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
@@ -196,6 +197,18 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
                 .select(member.count())
                 .from(member)
                 .where(member.recommendCode.eq(myRecommendationCode))
+                .fetchOne()
+                ;
+    }
+
+    @Override
+    public QuerySnsDto findProviderByMember(Member currentMember) {
+        return queryFactory
+                .select(Projections.constructor(QuerySnsDto.class,
+                        member.provider
+                ))
+                .from(member)
+                .where(member.eq(currentMember))
                 .fetchOne()
                 ;
     }

@@ -29,4 +29,6 @@ public interface MemberRepositoryCustom {
     int findRewardById(Long id);
 
     Long findCountByMyCode(String myRecommendationCode);
+
+    QuerySnsDto findProviderByMember(Member member);
 }

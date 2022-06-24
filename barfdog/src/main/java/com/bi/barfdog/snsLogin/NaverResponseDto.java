@@ -17,9 +17,40 @@ public class NaverResponseDto {
 
     private ResponseDto response;
 
-    public void newMember() {
-        resultcode = "1001";
-        message = "new member";
+    public NaverResponseDto newMember() {
+        resultcode = SnsResponse.NEW_MEMBER_CODE;
+        message = SnsResponse.NEW_MEMBER_MESSAGE;
+        return this;
+    }
+
+    public NaverResponseDto internalServerError() {
+        resultcode = SnsResponse.INTERNAL_ERROR_CODE;
+        message = SnsResponse.INTERNAL_ERROR_MESSAGE;
+        return this;
+    }
+
+    public NaverResponseDto connectNewSns() {
+        resultcode = SnsResponse.CONNECT_NEW_SNS_CODE;
+        message = SnsResponse.CONNECT_NEW_SNS_MESSAGE;
+        return this;
+    }
+
+    public NaverResponseDto naver() {
+        resultcode = SnsResponse.CONNECTED_BY_NAVER_CODE;
+        message = SnsResponse.CONNECTED_BY_NAVER_MESSAGE;
+        return this;
+    }
+
+    public NaverResponseDto kakao() {
+        resultcode = SnsResponse.CONNECTED_BY_KAKAO_CODE;
+        message = SnsResponse.CONNECTED_BY_KAKAO_MESSAGE;
+        return this;
+    }
+
+    public NaverResponseDto success() {
+        resultcode = SnsResponse.SUCCESS_CODE;
+        message = SnsResponse.SUCCESS_MESSAGE;
+        return this;
     }
 
     @Data

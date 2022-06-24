@@ -26,7 +26,6 @@ public class UpdateBlogRequestDto {
     private BlogCategory category; // [NUTRITION,HEALTH,LIFE]
     @NotEmpty
     private String contents; // 상세내용
-
     @NotNull
     private Long thumbnailId;
 

@@ -31,6 +31,7 @@ import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.repository.setting.SettingRepository;
 import com.bi.barfdog.service.BannerService;
 import com.bi.barfdog.service.DogService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItem;
 import org.apache.commons.io.IOUtils;
@@ -64,7 +65,6 @@ public class AppConfig {
     public BCryptPasswordEncoder encoderPwd() {
         return new BCryptPasswordEncoder();
     }
-
 
     @Bean
     public ApplicationRunner applicationRunner() {

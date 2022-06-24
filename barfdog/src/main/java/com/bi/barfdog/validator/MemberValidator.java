@@ -63,14 +63,8 @@ public class MemberValidator {
         }
     }
 
-    public void validatePassword(Member member, MemberUpdateRequestDto requestDto, Errors errors) {
-        if (!bCryptPasswordEncoder.matches(requestDto.getPassword(), member.getPassword())) {
-            errors.reject("Wrong Password","잘못된 비밀번호 입니다.");
-        }
-    }
-
-    public void validatePassword(Member member, UpdatePasswordRequestDto requestDto, Errors errors) {
-        if (!bCryptPasswordEncoder.matches(requestDto.getPassword(), member.getPassword())) {
+    public void validatePassword(Member member, String password, Errors errors) {
+        if (!bCryptPasswordEncoder.matches(password, member.getPassword())) {
             errors.reject("Wrong Password","잘못된 비밀번호 입니다.");
         }
     }
@@ -103,6 +97,12 @@ public class MemberValidator {
     public void validateHadRecommended(Member member, Errors errors) {
         if (member.getFirstReward().isRecommend()) {
             errors.reject("already have recommended","이미 추천한 적이 있습니다.");
+        }
+    }
+
+    public void isWithdrawalMember(Member member, Errors errors) {
+        if (member.isWithdrawal() == true) {
+            errors.reject("withdrawn user","탈퇴한 유저입니다.");
         }
     }
 }

@@ -215,7 +215,7 @@ public class BlogService {
     }
 
     private Blog saveBlogAndReturn(BlogSaveDto requestDto) {
-        BlogThumbnail blogThumbnail = blogThumbnailRepository.findById(requestDto.getBlogThumbnailId()).get();
+        BlogThumbnail blogThumbnail = blogThumbnailRepository.findById(requestDto.getThumbnailId()).get();
 
         Blog blog = Blog.builder()
                 .status(requestDto.getStatus())

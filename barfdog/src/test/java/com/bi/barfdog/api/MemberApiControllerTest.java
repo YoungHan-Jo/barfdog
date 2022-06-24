@@ -1,5 +1,6 @@
 package com.bi.barfdog.api;
 
+import com.bi.barfdog.api.memberDto.DeleteMemberDto;
 import com.bi.barfdog.api.memberDto.MemberConditionToPublish;
 import com.bi.barfdog.api.memberDto.MemberUpdateRequestDto;
 import com.bi.barfdog.api.memberDto.UpdatePasswordRequestDto;
@@ -21,6 +22,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.hateoas.TemplateVariable.requestParameter;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
@@ -37,6 +40,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Transactional
 public class MemberApiControllerTest extends BaseTest {
+
+    @Autowired
+    EntityManager em;
 
     @Autowired
     MemberRepository memberRepository;
@@ -236,9 +242,89 @@ public class MemberApiControllerTest extends BaseTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isConflict());
-
     }
-    
+
+    @Test
+    @DisplayName("정상적으로 회원 탈퇴하는 테스트")
+    public void deleteMember() throws Exception {
+       //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        String provider = "naver";
+        String providerId = "sldkfjwoigjlxkcjcfoisedjfl";
+
+        member.connectSns(provider, providerId);
+        em.flush();
+        em.clear();
+
+        Member findMember = memberRepository.findById(member.getId()).get();
+        assertThat(findMember.isWithdrawal()).isFalse();
+        assertThat(findMember.getProvider()).isEqualTo(provider);
+        assertThat(findMember.getProviderId()).isEqualTo(providerId);
+
+        DeleteMemberDto requestDto = DeleteMemberDto.builder()
+                .password(appProperties.getUserPassword())
+                .build();
+
+        //when & then
+        mockMvc.perform(delete("/api/members")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("withdrawal",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestFields(
+                                fieldWithPath("password").description("회원 비밀번호")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        Member member1 = memberRepository.findById(member.getId()).get();
+
+        assertThat(member1.isWithdrawal()).isTrue();
+        assertThat(member1.getProvider()).isEqualTo("");
+        assertThat(member1.getProviderId()).isEqualTo("");
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴시 비밀번호 잘못된 경우 400")
+    public void deleteMember_wrongPassword() throws Exception {
+        //given
+        DeleteMemberDto requestDto = DeleteMemberDto.builder()
+                .password("wrongPassword")
+                .build();
+
+        //when & then
+        mockMvc.perform(delete("/api/members")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+
     @Test
     @DisplayName("정상적으로 비밀번호 변경하는 테스트")
     public void updatePassword() throws Exception {
@@ -338,6 +424,101 @@ public class MemberApiControllerTest extends BaseTest {
                 .andExpect(status().isBadRequest())
         ;
     }
+
+
+    @Test
+    @DisplayName("정상적으로 연동왼 sns 검색하는 테스트")
+    public void querySns() throws Exception {
+       //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        String provider = "naver";
+        member.connectSns(provider,"aslsdjfklweigjksldf");
+
+        //when & then
+        mockMvc.perform(get("/api/members/sns")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("provider").value(provider))
+                .andDo(document("query_snsProvider",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("unconnect_sns").description("sns 연동해제 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("provider").description("연동된 sns 제공사 ['naver','kakao'] 연동된 sns가 없으면 [null or '' 빈문자열] "),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.unconnect_sns.href").description("sns 연동해제 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+    }
+
+    @Test
+    @DisplayName("정상적으로 sns 연결해제")
+    public void unconnectSns() throws Exception {
+       //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        String provider = "naver";
+        member.connectSns(provider,"alsdkjfsdlkfjsldkfj");
+
+        assertThat(member.getProvider()).isEqualTo(provider);
+
+        //when & then
+        mockMvc.perform(delete("/api/members/sns")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("unconnect_sns",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_sns").description("sns 연동해제 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_sns.href").description("연동된 sns 제공사 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        Member findMember = memberRepository.findById(member.getId()).get();
+        assertThat(findMember.getProvider()).isEqualTo("");
+        assertThat(findMember.getProviderId()).isEqualTo("");
+
+
+    }
+
+
+
+
+
 
     @Test
     @DisplayName("쿠폰 발행 시 이메일로 검색한 유저 조회하는 테스트")

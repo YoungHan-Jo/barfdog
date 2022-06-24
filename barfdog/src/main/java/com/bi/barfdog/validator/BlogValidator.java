@@ -1,5 +1,6 @@
 package com.bi.barfdog.validator;
 
+import com.bi.barfdog.api.blogDto.BlogSaveDto;
 import com.bi.barfdog.api.blogDto.UpdateArticlesRequestDto;
 import com.bi.barfdog.domain.blog.Blog;
 import com.bi.barfdog.domain.blog.BlogCategory;
@@ -53,6 +54,14 @@ public class BlogValidator {
             if (!optionalBlogImage.isPresent()) {
                 errors.reject("image id doesn't exist","존재하지 않는 이미지 id 입니다.");
             }
+        }
+    }
+
+    public void validateDuplicateThumbnail(BlogSaveDto requestDto, Errors errors) {
+        Long blogThumbnailId = requestDto.getThumbnailId();
+        List<Blog> blogs = blogRepository.findByBlogThumbnailId(blogThumbnailId);
+        if (blogs.size() > 0) {
+            errors.reject("duplicated blog","블로그 중복 등록 에러.");
         }
     }
 }

@@ -65,7 +65,7 @@ public class MemberApiController {
             return badRequest(errors);
         }
 
-        memberValidator.validatePassword(member, requestDto, errors);
+        memberValidator.validatePassword(member, requestDto.getPassword(), errors);
         if (errors.hasErrors()) {
             return badRequest(errors);
         }
@@ -92,6 +92,23 @@ public class MemberApiController {
         return ResponseEntity.ok(representationModel);
     }
 
+    @DeleteMapping
+    public ResponseEntity deleteMember(@CurrentUser Member member,
+                                       @RequestBody @Valid DeleteMemberDto requestDto,
+                                       Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+        memberValidator.validatePassword(member, requestDto.getPassword(), errors);
+        if (errors.hasErrors()) return badRequest(errors);
+
+        memberService.deleteMember(member);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(MemberApiController.class).withSelfRel());
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-withdrawal").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
     @PutMapping("/password")
     public ResponseEntity updatePassword(@CurrentUser Member member,
                                          @RequestBody @Valid UpdatePasswordRequestDto requestDto,
@@ -99,7 +116,7 @@ public class MemberApiController {
         if (errors.hasErrors()) {
             return badRequest(errors);
         }
-        memberValidator.validatePassword(member, requestDto, errors);
+        memberValidator.validatePassword(member, requestDto.getPassword(), errors);
         if (errors.hasErrors()) {
             return badRequest(errors);
         }
@@ -113,6 +130,33 @@ public class MemberApiController {
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(selfLinkBuilder.withSelfRel());
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-password").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @GetMapping("/sns")
+    public ResponseEntity querySnsProvider(@CurrentUser Member member) {
+
+        QuerySnsDto responseDto = memberRepository.findProviderByMember(member);
+
+        EntityModel<QuerySnsDto> entityModel = EntityModel.of(responseDto,
+                linkTo(MemberApiController.class).slash("sns").withSelfRel(),
+                linkTo(MemberApiController.class).slash("sns").withRel("unconnect_sns"),
+                profileRootUrlBuilder.slash("index.html#resources-query-snsProvider").withRel("profile")
+        );
+
+        return ResponseEntity.ok(entityModel);
+    }
+
+    @DeleteMapping("/sns")
+    public ResponseEntity unconnectSns(@CurrentUser Member member) {
+
+        memberService.unconnectSns(member);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(MemberApiController.class).slash("sns").withSelfRel());
+        representationModel.add(linkTo(MemberApiController.class).slash("sns").withRel("query_sns"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-unconnect-sns").withRel("profile"));
 
         return ResponseEntity.ok(representationModel);
     }
