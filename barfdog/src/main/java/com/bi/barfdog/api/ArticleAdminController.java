@@ -29,7 +29,7 @@ public class ArticleAdminController {
     private final BlogRepository blogRepository;
     private final BlogService blogService;
 
-    private final BlogValidator blogValidator;
+    private final BlogValidator blogValidator; assdfg
 
     WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
 
