@@ -33,22 +33,22 @@ public class BlogService {
 
 
     @Transactional
-    public UploadedImageAdminDto uploadThumbnail(MultipartFile file) {
+    public UploadedImageDto uploadThumbnail(MultipartFile file) {
 
         ImgFilenamePath path = storageService.storeBlogImg(file);
 
-        UploadedImageAdminDto blogImageDto = saveBlogThumbnailAndGetBlogImageDto(path);
+        UploadedImageDto blogImageDto = saveBlogThumbnailAndGetBlogImageDto(path);
 
         return blogImageDto;
     }
 
 
     @Transactional
-    public UploadedImageAdminDto uploadImage(MultipartFile file) {
+    public UploadedImageDto uploadImage(MultipartFile file) {
 
         ImgFilenamePath path = storageService.storeBlogImg(file);
 
-        UploadedImageAdminDto blogImageDto = saveBlogImageAndGetBlogImageDto(path);
+        UploadedImageDto blogImageDto = saveBlogImageAndGetBlogImageDto(path);
 
         return blogImageDto;
     }
@@ -160,7 +160,7 @@ public class BlogService {
     }
 
 
-    private UploadedImageAdminDto saveBlogImageAndGetBlogImageDto(ImgFilenamePath path) {
+    private UploadedImageDto saveBlogImageAndGetBlogImageDto(ImgFilenamePath path) {
         String filename = path.getFilename();
 
         BlogImage blogImage = BlogImage.builder()
@@ -172,14 +172,14 @@ public class BlogService {
 
         String url = linkTo(InfoController.class).slash("display").slash("blogs?filename=" + filename).toString();
 
-        UploadedImageAdminDto blogImageDto = UploadedImageAdminDto.builder()
+        UploadedImageDto blogImageDto = UploadedImageDto.builder()
                 .id(savedBlogImage.getId())
                 .url(url)
                 .build();
         return blogImageDto;
     }
 
-    private UploadedImageAdminDto saveBlogThumbnailAndGetBlogImageDto(ImgFilenamePath path) {
+    private UploadedImageDto saveBlogThumbnailAndGetBlogImageDto(ImgFilenamePath path) {
         String filename = path.getFilename();
 
         BlogThumbnail blogThumbnail = BlogThumbnail.builder()
@@ -190,7 +190,7 @@ public class BlogService {
 
         String url = linkTo(InfoController.class).slash("display").slash("blogs?filename=" + filename).toString();
 
-        UploadedImageAdminDto blogImageDto = UploadedImageAdminDto.builder()
+        UploadedImageDto blogImageDto = UploadedImageDto.builder()
                 .id(savedThumbnail.getId())
                 .url(url)
                 .build();

@@ -1,6 +1,6 @@
 package com.bi.barfdog.api;
 
-import com.bi.barfdog.api.blogDto.UploadedImageAdminDto;
+import com.bi.barfdog.api.blogDto.UploadedImageDto;
 import com.bi.barfdog.api.resource.CommunityReviewsDtoResource;
 import com.bi.barfdog.api.resource.ReviewsDtoResource;
 import com.bi.barfdog.api.resource.WriteableReviewsDtoResource;
@@ -64,11 +64,11 @@ public class ReviewApiController {
     public ResponseEntity uploadImage(@RequestPart MultipartFile file) {
         if(file.isEmpty()) return ResponseEntity.badRequest().build();
 
-        UploadedImageAdminDto responseDto = reviewService.uploadImage(file);
+        UploadedImageDto responseDto = reviewService.uploadImage(file);
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(ReviewApiController.class).slash("upload");
 
-        EntityModel<UploadedImageAdminDto> entityModel = EntityModel.of(responseDto,
+        EntityModel<UploadedImageDto> entityModel = EntityModel.of(responseDto,
                 selfLinkBuilder.withSelfRel(),
                 profileRootUrlBuilder.slash("index.html#resources-upload-reviewImage").withRel("profile")
         );

@@ -30,8 +30,8 @@ public class NaverResponseDto {
     }
 
     public NaverResponseDto connectNewSns() {
-        resultcode = SnsResponse.CONNECT_NEW_SNS_CODE;
-        message = SnsResponse.CONNECT_NEW_SNS_MESSAGE;
+        resultcode = SnsResponse.NEED_TO_CONNECT_NEW_SNS_CODE;
+        message = SnsResponse.NEED_TO_CONNECT_NEW_SNS_MESSAGE;
         return this;
     }
 

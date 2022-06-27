@@ -1,7 +1,7 @@
 package com.bi.barfdog.service;
 
 import com.bi.barfdog.api.InfoController;
-import com.bi.barfdog.api.blogDto.UploadedImageAdminDto;
+import com.bi.barfdog.api.blogDto.UploadedImageDto;
 import com.bi.barfdog.api.eventDto.EventSaveDto;
 import com.bi.barfdog.api.eventDto.QueryEventAdminDto;
 import com.bi.barfdog.api.eventDto.QueryEventDto;
@@ -39,7 +39,7 @@ public class EventService {
     private final StorageService storageService;
 
     @Transactional
-    public UploadedImageAdminDto uploadThumbnailFile(MultipartFile file) {
+    public UploadedImageDto uploadThumbnailFile(MultipartFile file) {
 
         ImgFilenamePath path = storageService.storeEventImg(file);
 
@@ -53,15 +53,15 @@ public class EventService {
 
         String url = linkTo(InfoController.class).slash("display").slash("events?filename=" + filename).toString();
 
-        UploadedImageAdminDto uploadedImageAdminDto = UploadedImageAdminDto.builder()
+        UploadedImageDto uploadedImageDto = UploadedImageDto.builder()
                 .id(savedEventThumbnail.getId())
                 .url(url)
                 .build();
-        return uploadedImageAdminDto;
+        return uploadedImageDto;
     }
 
     @Transactional
-    public UploadedImageAdminDto uploadImage(MultipartFile file) {
+    public UploadedImageDto uploadImage(MultipartFile file) {
         ImgFilenamePath path = storageService.storeEventImg(file);
 
         String filename = path.getFilename();
@@ -76,12 +76,12 @@ public class EventService {
 
         String url = linkTo(InfoController.class).slash("display").slash("events?filename=" + filename).toString();
 
-        UploadedImageAdminDto uploadedImageAdminDto = UploadedImageAdminDto.builder()
+        UploadedImageDto uploadedImageDto = UploadedImageDto.builder()
                 .id(savedEventImage.getId())
                 .url(url)
                 .build();
 
-        return uploadedImageAdminDto;
+        return uploadedImageDto;
     }
 
     @Transactional

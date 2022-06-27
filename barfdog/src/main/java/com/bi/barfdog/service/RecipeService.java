@@ -1,5 +1,6 @@
 package com.bi.barfdog.service;
 
+import com.bi.barfdog.service.file.StorageService;
 import com.bi.barfdog.api.recipeDto.RecipeRequestDto;
 import com.bi.barfdog.api.recipeDto.RecipeSurveyResponseDto;
 import com.bi.barfdog.domain.banner.ImgFilenamePath;
@@ -7,7 +8,6 @@ import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.recipe.RecipeStatus;
 import com.bi.barfdog.domain.recipe.ThumbnailImage;
 import com.bi.barfdog.repository.recipe.RecipeRepository;
-import com.bi.barfdog.service.file.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;

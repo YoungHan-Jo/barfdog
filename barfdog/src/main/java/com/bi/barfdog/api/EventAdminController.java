@@ -1,6 +1,6 @@
 package com.bi.barfdog.api;
 
-import com.bi.barfdog.api.blogDto.UploadedImageAdminDto;
+import com.bi.barfdog.api.blogDto.UploadedImageDto;
 import com.bi.barfdog.api.eventDto.EventSaveDto;
 import com.bi.barfdog.api.eventDto.QueryEventAdminDto;
 import com.bi.barfdog.api.eventDto.QueryEventsAdminDto;
@@ -49,11 +49,11 @@ public class EventAdminController {
     public ResponseEntity uploadThumbnail(@RequestPart MultipartFile file) {
         if(file.isEmpty()) return ResponseEntity.badRequest().build();
 
-        UploadedImageAdminDto responseDto = eventService.uploadThumbnailFile(file);
+        UploadedImageDto responseDto = eventService.uploadThumbnailFile(file);
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(EventAdminController.class).slash("thumbnail");
 
-        EntityModel<UploadedImageAdminDto> entityModel = EntityModel.of(responseDto,
+        EntityModel<UploadedImageDto> entityModel = EntityModel.of(responseDto,
                 selfLinkBuilder.withSelfRel(),
                 profileRootUrlBuilder.slash("index.html#resources-upload-eventThumbnail").withRel("profile")
         );
@@ -65,11 +65,11 @@ public class EventAdminController {
     public ResponseEntity uploadImage(@RequestPart MultipartFile file) {
         if(file.isEmpty()) return ResponseEntity.badRequest().build();
 
-        UploadedImageAdminDto responseDto = eventService.uploadImage(file);
+        UploadedImageDto responseDto = eventService.uploadImage(file);
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(EventAdminController.class).slash("image");
 
-        EntityModel<UploadedImageAdminDto> entityModel = EntityModel.of(responseDto,
+        EntityModel<UploadedImageDto> entityModel = EntityModel.of(responseDto,
                 selfLinkBuilder.withSelfRel(),
                 profileRootUrlBuilder.slash("index.html#resources-upload-eventImage").withRel("profile")
         );

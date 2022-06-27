@@ -559,6 +559,46 @@ operation::join_phoneAuth[snippets='curl-request,request-headers,request-body,re
 
 operation::login[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body']
 
+[[resources-login-naver]]
+=== 네이버 로그인 하기
+
+`POST` 요청을 사용해서 네이버 간편 로그인을 할 수 있다.
+
+response body에 resultcode, message 값 / 설명 +
+251, new member / 기존회원 존재하지않고 처음 방문한 사용자 -> 네이버 api 회원 정보 이용해서 회원가입 페이지로 가서 추가 입력 +
+252, need to connect new sns / 기존회원 존재하나 sns 연동 되지 않음 -> sns 연동 페이지로 이동 +
+253, has already been connected by kakao / 이미 카카오로 연동되어있는 계정 (카카오 로그인시 200 success 로그인 처리) +
+254, has already been connected by naver / 이미 네이버로 연동되어있는 계정 (네이버 로그인시 200 success 로그인 처리) +
++
+200, success / 간편로그인 성공 - 응답 header에 'Authorization' 존재함 +
++
+500, internal error / 내부 에러 +
++
+기타 네이버 api 에러 +
+024, Authentication failed / 인증에 실패했습니다. +
+028, Authentication header not exists / OAuth 인증 헤더(authorization header)가 없습니다. +
+403, Forbidden / 호출 권한이 없습니다.	API 요청 헤더에 클라이언트 ID와 Secret 값을 정확히 전송했는지 확인해보시길 바랍니다. +
+404, Not Found / 검색 결과가 없습니다.	- +
+500, Internal Server Error / 데이터베이스 오류입니다.	서버 내부 에러가 발생하였습니다. 포럼에 올려주시면 신속히 조치하겠습니다. +
+
+operation::login_naver[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields']
+
+[[resources-connect-sns]]
+=== sns 연동 하기
+
+`POST` 요청을 사용해서 네이버 간편 로그인을 할 수 있다.
+
+연동 성공 시 200, 로그인 처리 - response header Authorization jwt 토큰 +
+비밀번호 잘못됨 400 +
+휴대번호에 해당하는 계정 존재하지않음 404 +
+
+operation::connect_sns[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields']
+
+
+
+
+
+
 [[resources-find-email]]
 === 이메일 찾기
 

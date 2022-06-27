@@ -1,5 +1,6 @@
 package com.bi.barfdog.api;
 
+import com.bi.barfdog.api.blogDto.UploadedImageDto;
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
 import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
@@ -18,10 +19,8 @@ import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.util.Optional;
@@ -69,6 +68,26 @@ public class DogApiController {
         return ResponseEntity.created(querySurveyReportLinkBuilder.toUri()).body(representationModel);
     }
 
+
+    @GetMapping
+    public ResponseEntity queryDogs(@CurrentUser Member member) {
+
+        return ResponseEntity.ok(null);
+    }
+
+    @PostMapping("/picture/upload")
+    public ResponseEntity uploadPicture(@RequestPart MultipartFile file) {
+        if(file.isEmpty()) return ResponseEntity.badRequest().build();
+
+        UploadedImageDto responseDto = dogService.uploadPicture(file);
+
+        EntityModel<UploadedImageDto> entityModel = EntityModel.of(responseDto,
+                linkTo(DogApiController.class).slash("picture/upload").withSelfRel(),
+                profileRootUrlBuilder.slash("index.html#resources-upload-dogPicture").withRel("profile")
+        );
+
+        return ResponseEntity.ok(entityModel);
+    }
 
 
 

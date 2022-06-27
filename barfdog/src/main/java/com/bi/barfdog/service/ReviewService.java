@@ -1,7 +1,8 @@
 package com.bi.barfdog.service;
 
 import com.bi.barfdog.api.InfoController;
-import com.bi.barfdog.api.blogDto.UploadedImageAdminDto;
+import com.bi.barfdog.api.blogDto.UploadedImageDto;
+import com.bi.barfdog.service.file.StorageService;
 import com.bi.barfdog.api.reviewDto.*;
 import com.bi.barfdog.domain.banner.ImgFilenamePath;
 import com.bi.barfdog.domain.dog.*;
@@ -25,7 +26,6 @@ import com.bi.barfdog.repository.review.ReviewRepository;
 import com.bi.barfdog.repository.review.SubscribeReviewRepository;
 import com.bi.barfdog.repository.reward.RewardRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
-import com.bi.barfdog.service.file.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,15 +57,15 @@ public class ReviewService {
     private final DogRepository dogRepository;
 
     @Transactional
-    public UploadedImageAdminDto uploadImage(MultipartFile file) {
+    public UploadedImageDto uploadImage(MultipartFile file) {
         ImgFilenamePath path = storageService.storeReviewImg(file);
 
-        UploadedImageAdminDto reviewImageDto = saveReviewImageAndGetReviewImageDto(path);
+        UploadedImageDto reviewImageDto = saveReviewImageAndGetReviewImageDto(path);
 
         return reviewImageDto;
     }
 
-    private UploadedImageAdminDto saveReviewImageAndGetReviewImageDto(ImgFilenamePath path) {
+    private UploadedImageDto saveReviewImageAndGetReviewImageDto(ImgFilenamePath path) {
         String filename = path.getFilename();
 
         ReviewImage reviewImage = ReviewImage.builder()
@@ -76,7 +76,7 @@ public class ReviewService {
 
         String url = linkTo(InfoController.class).slash("display/reviews?filename=" + filename).toString();
 
-        UploadedImageAdminDto reviewImageDto = UploadedImageAdminDto.builder()
+        UploadedImageDto reviewImageDto = UploadedImageDto.builder()
                 .id(savedImage.getId())
                 .url(url)
                 .build();

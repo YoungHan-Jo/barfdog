@@ -1,6 +1,6 @@
 package com.bi.barfdog.api;
 
-import com.bi.barfdog.api.blogDto.UploadedImageAdminDto;
+import com.bi.barfdog.api.blogDto.UploadedImageDto;
 import com.bi.barfdog.api.itemDto.*;
 import com.bi.barfdog.api.resource.ItemAdminDtoResource;
 import com.bi.barfdog.common.ErrorsResource;
@@ -47,11 +47,11 @@ public class ItemAdminController {
     public ResponseEntity uploadItemImage(@RequestPart MultipartFile file) {
         if (file.isEmpty()) return ResponseEntity.badRequest().build();
 
-        UploadedImageAdminDto responseDto = itemService.uploadItemImageFile(file);
+        UploadedImageDto responseDto = itemService.uploadItemImageFile(file);
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(ItemAdminController.class).slash("image").slash("upload");
 
-        EntityModel<UploadedImageAdminDto> entityModel = EntityModel.of(responseDto,
+        EntityModel<UploadedImageDto> entityModel = EntityModel.of(responseDto,
                 selfLinkBuilder.withSelfRel(),
                 profileRootUrlBuilder.slash("index.html#resources-upload-itemImage").withRel("profile")
         );
@@ -63,11 +63,11 @@ public class ItemAdminController {
     public ResponseEntity uploadItemContentImage(@RequestPart MultipartFile file) {
         if (file.isEmpty()) return ResponseEntity.badRequest().build();
 
-        UploadedImageAdminDto responseDto = itemService.uploadItemContentImageFile(file);
+        UploadedImageDto responseDto = itemService.uploadItemContentImageFile(file);
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(ItemAdminController.class).slash("contentImage").slash("upload");
 
-        EntityModel<UploadedImageAdminDto> entityModel = EntityModel.of(responseDto,
+        EntityModel<UploadedImageDto> entityModel = EntityModel.of(responseDto,
                 selfLinkBuilder.withSelfRel(),
                 profileRootUrlBuilder.slash("index.html#resources-upload-itemContentImage").withRel("profile")
         );

@@ -89,7 +89,6 @@ public class NoticeAdminControllerTest extends BaseTest {
     EntityManager em;
 
 
-
     @Test
     @DisplayName("정상적으로 공지사항 등록")
     public void createNotice() throws Exception {

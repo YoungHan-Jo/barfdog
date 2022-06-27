@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UploadedImageAdminDto {
+public class UploadedImageDto {
 
     private Long id;
     private String url;

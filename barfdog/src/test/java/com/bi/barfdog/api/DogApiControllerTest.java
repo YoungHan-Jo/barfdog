@@ -18,9 +18,11 @@ import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.FileInputStream;
 import java.nio.charset.Charset;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -29,6 +31,7 @@ import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.li
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -44,6 +47,27 @@ public class DogApiControllerTest extends BaseTest {
     RecipeRepository recipeRepository;
 
     MediaType contentType = new MediaType("application", "hal+json", Charset.forName("UTF-8"));
+
+    @Test
+    @DisplayName("정상적으로 강아지 사진 업로드")
+    public void uploadPicture() throws Exception {
+       //given
+
+        MockMultipartFile file = new MockMultipartFile("file", "file1.jpg", "image/jpg", new FileInputStream("src/test/resources/uploadTest/file1.jpg"));
+
+
+        //when & then
+        mockMvc.perform(multipart("/api/dogs/picture/upload")
+                        .file(file)
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+        ;
+
+    }
+
 
     
     @Test

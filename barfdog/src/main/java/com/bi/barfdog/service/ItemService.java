@@ -1,12 +1,10 @@
 package com.bi.barfdog.service;
 
 import com.bi.barfdog.api.InfoController;
-import com.bi.barfdog.api.blogDto.UploadedImageAdminDto;
+import com.bi.barfdog.api.blogDto.UploadedImageDto;
 import com.bi.barfdog.api.itemDto.*;
-import com.bi.barfdog.domain.basket.Basket;
 import com.bi.barfdog.domain.banner.ImgFilenamePath;
 import com.bi.barfdog.domain.item.*;
-import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.repository.item.ItemContentImageRepository;
 import com.bi.barfdog.repository.item.ItemImageRepository;
 import com.bi.barfdog.repository.item.ItemOptionRepository;
@@ -35,17 +33,17 @@ public class ItemService {
     private final StorageService storageService;
 
     @Transactional
-    public UploadedImageAdminDto uploadItemImageFile(MultipartFile file) {
+    public UploadedImageDto uploadItemImageFile(MultipartFile file) {
         ImgFilenamePath path = storageService.storeItemImg(file);
-        UploadedImageAdminDto itemImageDto = saveItemImageAndGetItemImageDto(path);
+        UploadedImageDto itemImageDto = saveItemImageAndGetItemImageDto(path);
 
         return itemImageDto;
     }
 
     @Transactional
-    public UploadedImageAdminDto uploadItemContentImageFile(MultipartFile file) {
+    public UploadedImageDto uploadItemContentImageFile(MultipartFile file) {
         ImgFilenamePath path = storageService.storeItemImg(file);
-        UploadedImageAdminDto itemContentImageDto = saveItemContentImageAndGetItemContentImageDto(path);
+        UploadedImageDto itemContentImageDto = saveItemContentImageAndGetItemContentImageDto(path);
 
         return itemContentImageDto;
     }
@@ -172,7 +170,7 @@ public class ItemService {
     }
 
 
-    private UploadedImageAdminDto saveItemImageAndGetItemImageDto(ImgFilenamePath path) {
+    private UploadedImageDto saveItemImageAndGetItemImageDto(ImgFilenamePath path) {
         String filename = path.getFilename();
 
         ItemImage itemImage = ItemImage.builder()
@@ -184,14 +182,14 @@ public class ItemService {
 
         String url = linkTo(InfoController.class).slash("display").slash("items?filename=" + filename).toString();
 
-        UploadedImageAdminDto itemImageDto = UploadedImageAdminDto.builder()
+        UploadedImageDto itemImageDto = UploadedImageDto.builder()
                 .id(savedItemImage.getId())
                 .url(url)
                 .build();
         return itemImageDto;
     }
 
-    private UploadedImageAdminDto saveItemContentImageAndGetItemContentImageDto(ImgFilenamePath path) {
+    private UploadedImageDto saveItemContentImageAndGetItemContentImageDto(ImgFilenamePath path) {
         String filename = path.getFilename();
 
         ItemContentImage itemContentImage = ItemContentImage.builder()
@@ -203,7 +201,7 @@ public class ItemService {
 
         String url = linkTo(InfoController.class).slash("display").slash("items?filename=" + filename).toString();
 
-        UploadedImageAdminDto itemContentImageDto = UploadedImageAdminDto.builder()
+        UploadedImageDto itemContentImageDto = UploadedImageDto.builder()
                 .id(savedImage.getId())
                 .url(url)
                 .build();

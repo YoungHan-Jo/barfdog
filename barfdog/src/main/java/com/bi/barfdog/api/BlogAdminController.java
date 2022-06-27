@@ -45,11 +45,11 @@ public class BlogAdminController {
     public ResponseEntity uploadBlogThumbnail(@RequestPart MultipartFile file) {
         if (file.isEmpty()) return ResponseEntity.badRequest().build();
 
-        UploadedImageAdminDto responseDto = blogService.uploadThumbnail(file);
+        UploadedImageDto responseDto = blogService.uploadThumbnail(file);
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(BlogAdminController.class).slash("thumbnail").slash("upload");
 
-        EntityModel<UploadedImageAdminDto> entityModel = EntityModel.of(responseDto,
+        EntityModel<UploadedImageDto> entityModel = EntityModel.of(responseDto,
                 selfLinkBuilder.withSelfRel(),
                 profileRootUrlBuilder.slash("index.html#resources-upload-blogThumbnail").withRel("profile")
         );
@@ -61,11 +61,11 @@ public class BlogAdminController {
     public ResponseEntity uploadBlogImage(@RequestPart MultipartFile file) {
         if(file.isEmpty()) return ResponseEntity.badRequest().build();
 
-        UploadedImageAdminDto responseDto = blogService.uploadImage(file);
+        UploadedImageDto responseDto = blogService.uploadImage(file);
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(BlogAdminController.class).slash("image").slash("upload");
 
-        EntityModel<UploadedImageAdminDto> entityModel = EntityModel.of(responseDto,
+        EntityModel<UploadedImageDto> entityModel = EntityModel.of(responseDto,
                 selfLinkBuilder.withSelfRel(),
                 profileRootUrlBuilder.slash("index.html#resources-upload-blogImage").withRel("profile")
         );

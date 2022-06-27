@@ -2,7 +2,9 @@ package com.bi.barfdog.api;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.bi.barfdog.api.barfDto.HomePageDto;
 import com.bi.barfdog.api.memberDto.*;
+import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.directsend.PhoneAuthRequestDto;
 import com.bi.barfdog.directsend.DirectSendResponseDto;
@@ -10,11 +12,10 @@ import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.jwt.JwtProperties;
 import com.bi.barfdog.jwt.JwtTokenProvider;
 import com.bi.barfdog.repository.member.MemberRepository;
+import com.bi.barfdog.service.BarfService;
 import com.bi.barfdog.service.MemberService;
 import com.bi.barfdog.snsLogin.*;
 import com.bi.barfdog.validator.MemberValidator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.MediaTypes;
@@ -30,7 +31,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.Date;
 import java.util.Optional;
 
@@ -47,9 +47,23 @@ public class IndexApiController {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final LoginService loginService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final BarfService barfService;
 
 
     WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
+
+    @GetMapping("/api/home")
+    public ResponseEntity home(@CurrentUser Member member) {
+
+        HomePageDto responseDto = barfService.getHome(member);
+
+        EntityModel<HomePageDto> entityModel = EntityModel.of(responseDto,
+                linkTo(IndexApiController.class).slash("api/home").withSelfRel(),
+                profileRootUrlBuilder.slash("index.html#resources-home-page").withRel("profile")
+        );
+
+        return ResponseEntity.ok(entityModel);
+    }
 
     @GetMapping("/api")
     public RepresentationModel index(){
@@ -70,30 +84,21 @@ public class IndexApiController {
 
     @PostMapping("/api/join")
     public ResponseEntity join(@RequestBody @Valid MemberSaveRequestDto requestDto, Errors errors) {
-        if (errors.hasErrors()) {
-            return badRequest(errors);
-        }
+        if (errors.hasErrors()) return badRequest(errors);
         memberValidator.validatePasswordConfirm(requestDto.getConfirmPassword(), requestDto.getPassword(), errors);
-        if (errors.hasErrors()) {
-            return badRequest(errors);
-        }
-
+        if (errors.hasErrors()) return badRequest(errors);
         memberValidator.duplicateValidate(requestDto, errors);
-        if (errors.hasErrors()) {
-            return conflict(errors);
-        }
+        if (errors.hasErrors()) return conflict(errors);
 
-        memberService.join(requestDto);
+        JoinResponseDto responseDto = memberService.join(requestDto);
 
-        WebMvcLinkBuilder selfLinkBuilder = linkTo(IndexApiController.class).slash("join");
-        URI createUri = selfLinkBuilder.toUri();
+        EntityModel<JoinResponseDto> entityModel = EntityModel.of(responseDto);
 
-        RepresentationModel representationModel = new RepresentationModel();
-        representationModel.add(selfLinkBuilder.withSelfRel());
-        representationModel.add(linkTo(IndexApiController.class).slash("login").withRel("login"));
-        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-join").withRel("profile"));
+        entityModel.add(linkTo(IndexApiController.class).slash("join").withSelfRel());
+        entityModel.add(linkTo(IndexApiController.class).slash("login").withRel("login"));
+        entityModel.add(profileRootUrlBuilder.slash("index.html#resources-join").withRel("profile"));
 
-        return ResponseEntity.created(createUri).body(representationModel);
+        return ResponseEntity.created(linkTo(IndexApiController.class).slash("api/login").toUri()).body(entityModel);
     }
 
     @PostMapping("/api/join/phoneAuth")
@@ -267,17 +272,43 @@ public class IndexApiController {
         );
 
         String resultcode = responseDto.getResultcode();
+        if (resultcode.equals(SnsResponse.NEED_TO_CONNECT_NEW_SNS_CODE)) {
+            entityModel.add(linkTo(IndexApiController.class).slash("api/connectSns").withRel("connect_sns"));
+        }
         if (resultcode.equals(SnsResponse.SUCCESS_CODE)) {
             String providerId = responseDto.getResponse().getId();
             Member member = memberRepository.findByProviderAndProviderId(SnsProvider.NAVER, providerId).get();
             generateAccessToken(response, member);
         }
 
-
-
         return ResponseEntity.ok(entityModel);
     }
 
+    @PostMapping("/api/connectSns")
+    public ResponseEntity connectSns(HttpServletResponse response,
+                                     @RequestBody @Valid ConnectSnsRequestDto requestDto,
+                                     Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+        Optional<Member> optionalMember = memberRepository.findByPhoneNumber(requestDto.getPhoneNumber());
+        if (!optionalMember.isPresent()) return notfound();
+        Member member = optionalMember.get();
+        memberValidator.validatePassword(member, requestDto.getPassword(), errors);
+        if (errors.hasErrors()) return badRequest(errors);
+
+        ConnectSnsResponseDto responseDto = memberService.connectSns(requestDto);
+        generateAccessToken(response, member);
+
+        EntityModel<ConnectSnsResponseDto> entityModel = EntityModel.of(responseDto);
+        entityModel.add(linkTo(IndexApiController.class).slash("api/connectSns").withSelfRel());
+        entityModel.add(profileRootUrlBuilder.slash("index.html#resources-connect-sns").withRel("profile"));
+
+        return ResponseEntity.ok(entityModel);
+
+    }
+
+    private ResponseEntity notfound() {
+        return ResponseEntity.notFound().build();
+    }
 
 
     private ResponseEntity<EntityModel<Errors>> badRequest(Errors errors) {
@@ -287,5 +318,4 @@ public class IndexApiController {
     private ResponseEntity<EntityModel<Errors>> conflict(Errors errors) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorsResource(errors));
     }
-
 }

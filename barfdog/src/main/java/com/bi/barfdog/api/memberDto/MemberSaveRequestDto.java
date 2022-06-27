@@ -14,6 +14,8 @@ import javax.validation.constraints.NotEmpty;
 @Builder
 public class MemberSaveRequestDto {
 
+    private String provider;
+    private String providerId;
     @NotEmpty
     private String name;
     @NotEmpty

@@ -1,21 +1,17 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.couponDto.*;
-import com.bi.barfdog.api.resource.CouponsDtoResource;
 import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
-import com.bi.barfdog.domain.coupon.Coupon;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.repository.coupon.CouponRepository;
 import com.bi.barfdog.service.CouponService;
 import com.bi.barfdog.validator.CouponValidator;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.MediaTypes;
-import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
@@ -24,8 +20,6 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-
-import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 

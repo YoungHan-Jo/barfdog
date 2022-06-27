@@ -1,16 +1,16 @@
 package com.bi.barfdog.repository.banner;
 
 import com.bi.barfdog.api.bannerDto.*;
-import com.bi.barfdog.domain.banner.MainBanner;
-import com.bi.barfdog.domain.banner.MyPageBanner;
-import com.bi.barfdog.domain.banner.PopupBanner;
-import com.bi.barfdog.domain.banner.TopBanner;
+import com.bi.barfdog.api.barfDto.HomePageDto;
+import com.bi.barfdog.domain.banner.*;
+import com.bi.barfdog.domain.member.Member;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -217,6 +217,57 @@ public class BannerRepositoryImpl implements BannerRepositoryCustom{
                 .selectFrom(mainBanner)
                 .where(mainBanner.name.eq(name))
                 .fetch();
+    }
+
+    @Override
+    public HomePageDto.TopBannerDto findTopBannerDto() {
+        return queryFactory
+                .select(Projections.constructor(HomePageDto.TopBannerDto.class,
+                        topBanner.name,
+                        topBanner.backgroundColor,
+                        topBanner.fontColor,
+                        topBanner.pcLinkUrl,
+                        topBanner.mobileLinkUrl
+                ))
+                .from(topBanner)
+                .fetchOne();
+    }
+
+    @Override
+    public List<HomePageDto.MainBannerDto> findMainBannerDtoListByMember(Member member) {
+        List<BannerTargets> bannerTargetsList = new ArrayList<>();
+        bannerTargetsList.add(BannerTargets.ALL);
+        if (member != null) {
+            List<String> roleList = member.getRoleList();
+            for (String str : roleList) {
+                BannerTargets bannerTargets = BannerTargets.valueOf(str.toUpperCase());
+                bannerTargetsList.add(bannerTargets);
+            }
+        } else {
+            bannerTargetsList.add(BannerTargets.GUEST);
+        }
+
+        List<HomePageDto.MainBannerDto> result = queryFactory
+                .select(Projections.constructor(HomePageDto.MainBannerDto.class,
+                        mainBanner.id,
+                        mainBanner.leakedOrder,
+                        mainBanner.name,
+                        mainBanner.imgFile.filenamePc,
+                        mainBanner.imgFile.filenamePc,
+                        mainBanner.pcLinkUrl,
+                        mainBanner.imgFile.filenameMobile,
+                        mainBanner.imgFile.filenameMobile,
+                        mainBanner.mobileLinkUrl
+                ))
+                .from(mainBanner)
+                .where(mainBanner.targets.in(bannerTargetsList).and(mainBanner.status.eq(BannerStatus.LEAKED)))
+                .orderBy(mainBanner.leakedOrder.asc())
+                .fetch();
+        for (HomePageDto.MainBannerDto dto : result) {
+            dto.changeUrl();
+        }
+
+        return result;
     }
 
     @Override

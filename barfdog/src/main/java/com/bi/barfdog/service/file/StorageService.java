@@ -14,7 +14,7 @@ public interface StorageService {
 
     ImgFilenamePath storeBannerImg(MultipartFile file);
 
-    ImgFilenamePath storeDogProfilePic(MultipartFile file);
+    ImgFilenamePath storeDogPictureImg(MultipartFile file);
 
     ImgFilenamePath storeRecipeImg(MultipartFile file);
 

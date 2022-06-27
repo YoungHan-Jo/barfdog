@@ -1,6 +1,9 @@
 package com.bi.barfdog.service;
 
+import com.bi.barfdog.api.InfoController;
+import com.bi.barfdog.api.blogDto.UploadedImageDto;
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
+import com.bi.barfdog.domain.banner.ImgFilenamePath;
 import com.bi.barfdog.domain.dog.*;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.recipe.Recipe;
@@ -11,13 +14,16 @@ import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.domain.subscribe.SubscribeStatus;
 import com.bi.barfdog.domain.surveyReport.*;
 import com.bi.barfdog.repository.*;
+import com.bi.barfdog.repository.dog.DogPictureRepository;
 import com.bi.barfdog.repository.dog.DogRepository;
 import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.repository.setting.SettingRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
+import com.bi.barfdog.service.file.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -26,6 +32,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static com.bi.barfdog.config.finalVariable.StandardVar.*;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -37,7 +44,30 @@ public class DogService {
     private final SubscribeRepository subscribeRepository;
     private final SettingRepository settingRepository;
     private final SurveyReportRepository surveyReportRepository;
+    private final DogPictureRepository dogPictureRepository;
+    private final StorageService storageService;
 
+    @Transactional
+    public UploadedImageDto uploadPicture(MultipartFile file) {
+        ImgFilenamePath path = storageService.storeDogPictureImg(file);
+
+        String filename = path.getFilename();
+
+        DogPicture dogPicture = DogPicture.builder()
+                .folder(path.getFolder())
+                .filename(filename)
+                .build();
+
+        DogPicture savedPicture = dogPictureRepository.save(dogPicture);
+
+        String url = linkTo(InfoController.class).slash("display/dogs?filename=" + filename).toString();
+
+        UploadedImageDto dogProfileDto = UploadedImageDto.builder()
+                .id(savedPicture.getId())
+                .url(url)
+                .build();
+        return dogProfileDto;
+    }
 
     @Transactional
     public SurveyReport createDogAndGetSurveyReport(DogSaveRequestDto requestDto, Member member) {
@@ -502,5 +532,6 @@ public class DogService {
         }
         return month;
     }
+
 
 }

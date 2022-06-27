@@ -9,10 +9,10 @@ import javax.persistence.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder @Getter
 @Entity
-public class DogProfile {
+public class DogPicture {
 
     @Id @GeneratedValue
-    @Column(name = "dog_profile_id")
+    @Column(name = "dog_picture_id")
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)

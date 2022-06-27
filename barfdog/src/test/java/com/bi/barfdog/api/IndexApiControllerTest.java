@@ -9,16 +9,47 @@ import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.directsend.PhoneAuthRequestDto;
 import com.bi.barfdog.domain.Address;
+import com.bi.barfdog.domain.banner.*;
+import com.bi.barfdog.domain.coupon.DiscountType;
+import com.bi.barfdog.domain.dog.*;
+import com.bi.barfdog.domain.item.Item;
+import com.bi.barfdog.domain.item.ItemImage;
+import com.bi.barfdog.domain.item.ItemStatus;
+import com.bi.barfdog.domain.item.ItemType;
 import com.bi.barfdog.domain.member.Agreement;
 import com.bi.barfdog.domain.member.FirstReward;
 import com.bi.barfdog.domain.member.Gender;
 import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.domain.order.GeneralOrder;
+import com.bi.barfdog.domain.order.Order;
+import com.bi.barfdog.domain.order.SubscribeOrder;
+import com.bi.barfdog.domain.orderItem.OrderItem;
+import com.bi.barfdog.domain.orderItem.OrderItemStatus;
+import com.bi.barfdog.domain.recipe.Recipe;
+import com.bi.barfdog.domain.review.*;
 import com.bi.barfdog.domain.reward.*;
+import com.bi.barfdog.domain.subscribe.Subscribe;
+import com.bi.barfdog.domain.subscribe.SubscribeStatus;
 import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.jwt.JwtProperties;
+import com.bi.barfdog.repository.ReviewImageRepository;
+import com.bi.barfdog.repository.banner.BannerRepository;
+import com.bi.barfdog.repository.dog.DogRepository;
+import com.bi.barfdog.repository.item.ItemImageRepository;
+import com.bi.barfdog.repository.item.ItemRepository;
 import com.bi.barfdog.repository.member.MemberRepository;
+import com.bi.barfdog.repository.order.OrderRepository;
+import com.bi.barfdog.repository.orderItem.OrderItemRepository;
+import com.bi.barfdog.repository.recipe.RecipeRepository;
+import com.bi.barfdog.repository.review.BestReviewRepository;
+import com.bi.barfdog.repository.review.ItemReviewRepository;
+import com.bi.barfdog.repository.review.ReviewRepository;
+import com.bi.barfdog.repository.review.SubscribeReviewRepository;
 import com.bi.barfdog.repository.reward.RewardRepository;
+import com.bi.barfdog.repository.subscribe.SubscribeRepository;
+import com.bi.barfdog.snsLogin.ConnectSnsRequestDto;
 import com.bi.barfdog.snsLogin.NaverLoginDto;
+import com.bi.barfdog.snsLogin.SnsProvider;
 import com.bi.barfdog.snsLogin.SnsResponse;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -34,9 +65,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 
 import javax.persistence.EntityManager;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
@@ -54,19 +90,312 @@ public class IndexApiControllerTest extends BaseTest {
 
     @Autowired
     EntityManager em;
-
+    @Autowired
+    AppProperties appProperties;
     @Autowired
     MemberRepository memberRepository;
+    @Autowired
+    ItemRepository itemRepository;
+    @Autowired
+    ItemImageRepository itemImageRepository;
+    @Autowired
+    OrderItemRepository orderItemRepository;
+    @Autowired
+    OrderRepository orderRepository;
+    @Autowired
+    RecipeRepository recipeRepository;
+    @Autowired
+    DogRepository dogRepository;
+    @Autowired
+    SubscribeRepository subscribeRepository;
+    @Autowired
+    ReviewImageRepository reviewImageRepository;
+    @Autowired
+    ReviewRepository reviewRepository;
+    @Autowired
+    ItemReviewRepository itemReviewRepository;
+    @Autowired
+    SubscribeReviewRepository subscribeReviewRepository;
+    @Autowired
+    BestReviewRepository bestReviewRepository;
 
     @Autowired
     RewardRepository rewardRepository;
-
     @Autowired
-    AppProperties appProperties;
+    BannerRepository bannerRepository;
 
     @Autowired BCryptPasswordEncoder bCryptPasswordEncoder;
 
     MediaType contentType = new MediaType("application", "hal+json", Charset.forName("UTF-8"));
+
+    @Test
+    @DisplayName("정상적으로 home 화면에 필요한 값 조회")
+    public void homePage() throws Exception {
+       //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        IntStream.range(1,4).forEach(i -> {
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            generateBestReview(adminReview, i);
+        });
+        IntStream.range(4,7).forEach(i -> {
+            Review approvalReview = generateSubscribeReview(member, i, ReviewStatus.APPROVAL);
+            generateBestReview(approvalReview, i);
+        });
+
+        TopBanner topBanner = TopBanner.builder()
+                .name("top Banner name")
+                .pcLinkUrl("pc link url")
+                .mobileLinkUrl("mobile link url")
+                .status(BannerStatus.LEAKED)
+                .backgroundColor("red")
+                .fontColor("write")
+                .build();
+        bannerRepository.save(topBanner);
+
+        //when & then
+        mockMvc.perform(get("/api/home")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("home_page",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt token")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("topBannerDto.name").description("상단 배너 이름"),
+                                fieldWithPath("topBannerDto.backgroundColor").description("상단 배너 배경 색"),
+                                fieldWithPath("topBannerDto.fontColor").description("상단 배너 폰트 색"),
+                                fieldWithPath("topBannerDto.pcLinkUrl").description("상단 배너 클릭 pc 링크 url"),
+                                fieldWithPath("topBannerDto.mobileLinkUrl").description("상단 배너 클릭 mobile 링크 url"),
+                                fieldWithPath("mainBannerDtoList[0].id").description("메인 배너 id"),
+                                fieldWithPath("mainBannerDtoList[0].leakedOrder").description("메인 배너 노출 순서"),
+                                fieldWithPath("mainBannerDtoList[0].name").description("메인 배너 이름"),
+                                fieldWithPath("mainBannerDtoList[0].pcFilename").description("pc 파일 파일 이름"),
+                                fieldWithPath("mainBannerDtoList[0].pcImageUrl").description("pc 이미지 url"),
+                                fieldWithPath("mainBannerDtoList[0].pcLinkUrl").description("메인배너 클릭 pc 링크 url"),
+                                fieldWithPath("mainBannerDtoList[0].mobileFilename").description("mobile 이미지 파일 이름"),
+                                fieldWithPath("mainBannerDtoList[0].mobileImageUrl").description("mobile 이미지 url"),
+                                fieldWithPath("mainBannerDtoList[0].mobileLinkUrl").description("메인배너 클릭 mobile 링크 url"),
+                                fieldWithPath("recipeDtoList[0].id").description("레시피 id"),
+                                fieldWithPath("recipeDtoList[0].name").description("레시피 이름"),
+                                fieldWithPath("recipeDtoList[0].description").description("레시피 설명"),
+                                fieldWithPath("recipeDtoList[0].uiNameKorean").description("레시피 한글 UI"),
+                                fieldWithPath("recipeDtoList[0].uiNameEnglish").description("레시피 영어 UI"),
+                                fieldWithPath("recipeDtoList[0].filename1").description("레시피 썸네일1 이미지 파일 이름"),
+                                fieldWithPath("recipeDtoList[0].imageUrl1").description("레시피 썸네일1 이미지 url "),
+                                fieldWithPath("recipeDtoList[0].filename2").description("레시피 썸네일2 이미지 파일 이름"),
+                                fieldWithPath("recipeDtoList[0].imageUrl2").description("레시피 썸네일2 이미지 url"),
+                                fieldWithPath("queryBestReviewsDtoList[0].id").description("리뷰 id"),
+                                fieldWithPath("queryBestReviewsDtoList[0].imageUrl").description("리뷰 이미지 url"),
+                                fieldWithPath("queryBestReviewsDtoList[0].leakedOrder").description("리뷰 노출 순서"),
+                                fieldWithPath("queryBestReviewsDtoList[0].contents").description("리뷰 내용"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+    }
+
+    @Test
+    @DisplayName("홈 화면 조회 시 메인 배너 GUEST 일 경우")
+    public void homePage_guest() throws Exception {
+        //given
+
+        bannerRepository.deleteAll();
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        IntStream.range(1,4).forEach(i -> {
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            generateBestReview(adminReview, i);
+        });
+        IntStream.range(4,7).forEach(i -> {
+            Review approvalReview = generateSubscribeReview(member, i, ReviewStatus.APPROVAL);
+            generateBestReview(approvalReview, i);
+        });
+
+        TopBanner topBanner = TopBanner.builder()
+                .name("top Banner name")
+                .pcLinkUrl("pc link url")
+                .mobileLinkUrl("mobile link url")
+                .status(BannerStatus.LEAKED)
+                .backgroundColor("red")
+                .fontColor("write")
+                .build();
+        bannerRepository.save(topBanner);
+
+        IntStream.range(1, 5).forEach(i -> {
+            generateMainBanner(i, BannerTargets.ALL);
+        });
+        IntStream.range(5, 8).forEach(i -> {
+            generateMainBanner(i, BannerTargets.GUEST);
+        });
+        IntStream.range(8, 12).forEach(i -> {
+            generateMainBanner(i, BannerTargets.USER);
+        });
+        IntStream.range(13, 17).forEach(i -> {
+            generateMainBanner(i, BannerTargets.SUBSCRIBER);
+        });
+
+
+
+
+        //when & then
+        mockMvc.perform(get("/api/home")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("mainBannerDtoList", hasSize(7)))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("홈 화면 조회 시 메인 배너 일반 USER 일 경우")
+    public void homePage_USER() throws Exception {
+        //given
+
+        bannerRepository.deleteAll();
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        IntStream.range(1,4).forEach(i -> {
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            generateBestReview(adminReview, i);
+        });
+        IntStream.range(4,7).forEach(i -> {
+            Review approvalReview = generateSubscribeReview(member, i, ReviewStatus.APPROVAL);
+            generateBestReview(approvalReview, i);
+        });
+
+        TopBanner topBanner = TopBanner.builder()
+                .name("top Banner name")
+                .pcLinkUrl("pc link url")
+                .mobileLinkUrl("mobile link url")
+                .status(BannerStatus.LEAKED)
+                .backgroundColor("red")
+                .fontColor("write")
+                .build();
+        bannerRepository.save(topBanner);
+
+        IntStream.range(1, 5).forEach(i -> {
+            generateMainBanner(i, BannerTargets.ALL);
+        });
+        IntStream.range(5, 8).forEach(i -> {
+            generateMainBanner(i, BannerTargets.GUEST);
+        });
+        IntStream.range(8, 12).forEach(i -> {
+            generateMainBanner(i, BannerTargets.USER);
+        });
+        IntStream.range(13, 17).forEach(i -> {
+            generateMainBanner(i, BannerTargets.SUBSCRIBER);
+        });
+
+
+
+
+        //when & then
+        mockMvc.perform(get("/api/home")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("mainBannerDtoList", hasSize(8)))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("홈 화면 조회 시 메인 배너 SUBSCRIBER 일 경우")
+    public void homePage_SUBSCRIBER() throws Exception {
+        //given
+
+        bannerRepository.deleteAll();
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        member.subscribe();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        IntStream.range(1,4).forEach(i -> {
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            generateBestReview(adminReview, i);
+        });
+        IntStream.range(4,7).forEach(i -> {
+            Review approvalReview = generateSubscribeReview(member, i, ReviewStatus.APPROVAL);
+            generateBestReview(approvalReview, i);
+        });
+
+        TopBanner topBanner = TopBanner.builder()
+                .name("top Banner name")
+                .pcLinkUrl("pc link url")
+                .mobileLinkUrl("mobile link url")
+                .status(BannerStatus.LEAKED)
+                .backgroundColor("red")
+                .fontColor("write")
+                .build();
+        bannerRepository.save(topBanner);
+
+        IntStream.range(1, 5).forEach(i -> {
+            generateMainBanner(i, BannerTargets.ALL);
+        });
+        IntStream.range(5, 8).forEach(i -> {
+            generateMainBanner(i, BannerTargets.GUEST);
+        });
+        IntStream.range(8, 12).forEach(i -> {
+            generateMainBanner(i, BannerTargets.USER);
+        });
+        IntStream.range(12, 17).forEach(i -> {
+            generateMainBanner(i, BannerTargets.SUBSCRIBER);
+        });
+
+        //when & then
+        mockMvc.perform(get("/api/home")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("mainBannerDtoList", hasSize(13)))
+        ;
+    }
+
 
     @Test
     @DisplayName("추천인 코드ㅇ/수신동의ㅇ 적립금 3000원으로 회원 가입이 완료되는 테스트")
@@ -107,6 +436,8 @@ public class IndexApiControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
                         ),
                         requestFields(
+                                fieldWithPath("provider").description("간편로그인 제공사 ['naver'/'kakao'] , 연동 없으면 null"),
+                                fieldWithPath("providerId").description("간편로그인 제공사 회원 고유id값, 없으면 null"),
                                 fieldWithPath("name").description("회원 이름"),
                                 fieldWithPath("email").description("회원 이메일(로그인 ID)"),
                                 fieldWithPath("password").description("회원 비밀번호"),
@@ -130,6 +461,8 @@ public class IndexApiControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
                         ),
                         responseFields(
+                                fieldWithPath("name").description("가입한 유저 이름"),
+                                fieldWithPath("email").description("가입한 유저 이메일"),
                                 fieldWithPath("_links.self.href").description("self 링크"),
                                 fieldWithPath("_links.login.href").description("로그인 요청 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
@@ -141,6 +474,8 @@ public class IndexApiControllerTest extends BaseTest {
 
         Member targetMember = memberRepository.findByMyRecommendationCode(sampleMember.getMyRecommendationCode()).get();
         Member findMember = memberRepository.findByEmail("verin4494@gmail.com").get();
+        assertThat(findMember.getProvider()).isNull();
+        assertThat(findMember.getProviderId()).isNull();
 
         Reward reward = rewardRepository.findByMember(findMember).get(0);
         assertThat(reward.getRewardType()).isEqualTo(RewardType.RECOMMEND);
@@ -258,6 +593,44 @@ public class IndexApiControllerTest extends BaseTest {
                 .andExpect(header().exists(HttpHeaders.LOCATION));
 
         Member findMember = memberRepository.findByEmail("verin4494@gmail.com").get();
+        assertThat(findMember.getReward()).isEqualTo(0);
+        assertThat(findMember.getAgreement().isReceiveSms()).isFalse();
+        assertThat(findMember.getAgreement().isReceiveEmail()).isFalse();
+    }
+
+    @Test
+    @DisplayName("간편로그인으로 회원 가입 하기")
+    public void join_sns() throws Exception {
+        //Given
+        String provider = SnsProvider.NAVER;
+        String providerId = "alskdjfolsdigjlssdlkfj";
+        MemberSaveRequestDto requestDto = MemberSaveRequestDto.builder()
+                .provider(provider)
+                .providerId(providerId)
+                .name("이름")
+                .email("verin4494@gmail.com")
+                .password("12341234")
+                .confirmPassword("12341234")
+                .phoneNumber("01099038544")
+                .address(new Address("48060","부산시","해운대구 센텀2로 19","브리티시인터내셔널"))
+                .birthday("19930521")
+                .gender(Gender.MALE)
+                .agreement(new Agreement(true,true,false,false,true))
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/join")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, contentType.toString()))
+                .andExpect(header().exists(HttpHeaders.LOCATION));
+
+        Member findMember = memberRepository.findByEmail("verin4494@gmail.com").get();
+        assertThat(findMember.getProvider()).isEqualTo(provider);
+        assertThat(findMember.getProviderId()).isEqualTo(providerId);
         assertThat(findMember.getReward()).isEqualTo(0);
         assertThat(findMember.getAgreement().isReceiveSms()).isFalse();
         assertThat(findMember.getAgreement().isReceiveEmail()).isFalse();
@@ -991,7 +1364,7 @@ public class IndexApiControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
                         ),
                         requestFields(
-                                fieldWithPath("accessToken").description("엑세스 토큰")
+                                fieldWithPath("accessToken").description("네이버 api 엑세스 토큰")
                         ),
                         responseHeaders(
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
@@ -1011,16 +1384,14 @@ public class IndexApiControllerTest extends BaseTest {
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
-
     }
 
     @Test
     @DisplayName("기존회원은 있지만 간편로그인 연동이 되어있지않음")
-    public void naverLogin_connectSns() throws Exception {
+    public void naverLogin_needToconnectSns() throws Exception {
         //given
 
         Member member = generateSampleMember();
-        
 
         String accessToken = SnsResponse.TEST_ACCESS_CODE;
 
@@ -1035,8 +1406,8 @@ public class IndexApiControllerTest extends BaseTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("resultcode").value(SnsResponse.CONNECT_NEW_SNS_CODE))
-                .andExpect(jsonPath("message").value(SnsResponse.CONNECT_NEW_SNS_MESSAGE))
+                .andExpect(jsonPath("resultcode").value(SnsResponse.NEED_TO_CONNECT_NEW_SNS_CODE))
+                .andExpect(jsonPath("message").value(SnsResponse.NEED_TO_CONNECT_NEW_SNS_MESSAGE))
         ;
     }
 
@@ -1094,6 +1465,120 @@ public class IndexApiControllerTest extends BaseTest {
     }
 
 
+    @Test
+    @DisplayName("정상적으로 sns 연동")
+    public void connectSns() throws Exception {
+       //given
+        String password = "password1234";
+        Member member = generateSampleMember(password);
+
+        String providerId = "asldkfjoiwejglskjsodifj";
+        String provider = SnsProvider.NAVER;
+        ConnectSnsRequestDto requestDto = ConnectSnsRequestDto.builder()
+                .phoneNumber("01099038544")
+                .password(password)
+                .provider(provider)
+                .providerId(providerId)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/connectSns")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("connect_sns",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        requestFields(
+                                fieldWithPath("phoneNumber").description("휴대전화 번호 '010xxxxxxxx' "),
+                                fieldWithPath("password").description("유저 비밀번호"),
+                                fieldWithPath("provider").description("sns api 제공사 ['naver'/'kakao']"),
+                                fieldWithPath("providerId").description("sns api 제공사 해당 유저 고유 id 값")
+                        ),
+                        responseHeaders(
+                                headerWithName("Authorization").description("bearer 방식 JWT 토큰")
+                        ),
+                        responseFields(
+                                fieldWithPath("email").description("연동된 이메일"),
+                                fieldWithPath("provider").description("연동된 sns ['naver','kakao']"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        Member findMember = memberRepository.findById(member.getId()).get();
+        assertThat(findMember.getProvider()).isEqualTo(provider);
+        assertThat(findMember.getProviderId()).isEqualTo(providerId);
+
+    }
+
+    @Test
+    @DisplayName("sns 연동 요청 시 전화번호 존재하지않음")
+    public void connectSns_phoneNumber_notFound() throws Exception {
+        //given
+        generateSampleMember();
+
+        ConnectSnsRequestDto requestDto = ConnectSnsRequestDto.builder()
+                .phoneNumber("01022222222")
+                .password("sldkfjsdlkfj")
+                .provider(SnsProvider.NAVER)
+                .providerId("asldkfjoiwejglskjsodifj")
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/connectSns")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+        ;
+    }
+
+    @Test
+    @DisplayName("sns 연동 시 잘못된 비밀번호 입력 404")
+    public void connectSns_wrong_password() throws Exception {
+        //given
+        String password = "password1234";
+        Member member = generateSampleMember(password);
+
+        String providerId = "asldkfjoiwejglskjsodifj";
+        String provider = SnsProvider.NAVER;
+        ConnectSnsRequestDto requestDto = ConnectSnsRequestDto.builder()
+                .phoneNumber("01099038544")
+                .password("wrongPassword")
+                .provider(provider)
+                .providerId(providerId)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/connectSns")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+        em.flush();
+        em.clear();
+
+        Member findMember = memberRepository.findById(member.getId()).get();
+        assertThat(findMember.getProvider()).isNull();
+        assertThat(findMember.getProviderId()).isNull();
+
+    }
+
 
 
 
@@ -1124,6 +1609,185 @@ public class IndexApiControllerTest extends BaseTest {
 
         return memberRepository.save(member);
     }
+
+
+    private BestReview generateBestReview(Review review, int i) {
+        BestReview bestReview = BestReview.builder()
+                .review(review)
+                .leakedOrder(i)
+                .build();
+        return bestReviewRepository.save(bestReview);
+    }
+
+
+    private Review generateSubscribeReview(Member member, int i, ReviewStatus status) {
+        List<Recipe> recipes = recipeRepository.findAll();
+
+        Subscribe subscribe = Subscribe.builder()
+                .build();
+        subscribeRepository.save(subscribe);
+
+        Dog dog = generateDog(member, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE,
+                1, 1, SnackCountLevel.NORMAL, recipes.get(0));
+        dog.setSubscribe(subscribe);
+
+        SubscribeReview subscribeReview = SubscribeReview.builder()
+                .member(member)
+                .writtenDate(LocalDate.now())
+                .username(member.getName())
+                .star(3)
+                .contents("열글자 이상의 구독 리뷰"+i)
+                .status(status)
+                .returnReason("상품에 맞지 않은 리뷰 내용"+i)
+                .subscribe(subscribe)
+                .build();
+        reviewRepository.save(subscribeReview);
+
+        IntStream.range(1,4).forEach(j -> {
+            generateReviewImage(j, subscribeReview);
+        });
+
+        return subscribeReview;
+    }
+
+
+    private ItemReview generateItemReview(Member member, Item item, int i, ReviewStatus status) {
+        ItemReview itemReview = ItemReview.builder()
+                .member(member)
+                .writtenDate(LocalDate.now().minusDays(30L))
+                .username(member.getName())
+                .star((i + 5) % 5)
+                .contents("열글자 이상의 내용"+i)
+                .status(status)
+                .item(item)
+                .build();
+        itemReviewRepository.save(itemReview);
+
+        IntStream.range(1,4).forEach(j -> {
+            generateReviewImage(j, itemReview);
+        });
+
+        return itemReview;
+    }
+
+    private ReviewImage generateReviewImage(int i, Review review) {
+        ReviewImage reviewImage = ReviewImage.builder()
+                .review(review)
+                .folder("folder" + i)
+                .filename("filename" + i + ".jpg")
+                .build();
+        return reviewImageRepository.save(reviewImage);
+    }
+
+
+    private ReviewImage generateReviewImage(int i) {
+        ReviewImage reviewImage = ReviewImage.builder()
+                .folder("folder" + i)
+                .filename("filename" + i +".jpg")
+                .build();
+        return reviewImageRepository.save(reviewImage);
+    }
+
+
+
+    private void generateOrderItem(Item item1, GeneralOrder savedOrder) {
+        OrderItem orderItem = OrderItem.builder()
+                .generalOrder(savedOrder)
+                .item(item1)
+                .status(OrderItemStatus.CONFIRM)
+                .build();
+        orderItemRepository.save(orderItem);
+    }
+
+    private Order generateOrder(Member member, Subscribe savedSubscribe) {
+        Order order = SubscribeOrder.builder()
+                .member(member)
+                .subscribe(savedSubscribe)
+                .build();
+        Order savedOrder = orderRepository.save(order);
+        return savedOrder;
+    }
+
+    private Subscribe generateSubscribe() {
+        Subscribe subscribe = Subscribe.builder()
+                .status(SubscribeStatus.SUBSCRIBING)
+                .writeableReview(true)
+                .build();
+        return subscribeRepository.save(subscribe);
+    }
+
+    private Item generateItem(int i) {
+        Item item = Item.builder()
+                .itemType(ItemType.RAW)
+                .name("상품" + i)
+                .description("상품설명" + i)
+                .originalPrice(10000)
+                .discountType(DiscountType.FLAT_RATE)
+                .discountDegree(1000)
+                .salePrice(9000)
+                .inStock(true)
+                .remaining(999)
+                .contents("상세 내용" + i)
+                .deliveryFree(true)
+                .status(ItemStatus.LEAKED)
+                .build();
+        return itemRepository.save(item);
+    }
+
+
+    private ItemImage generateItemImage(Item item, int i) {
+        ItemImage itemImage = ItemImage.builder()
+                .item(item)
+                .leakOrder(i)
+                .folder("folder" + i)
+                .filename("filename" + i + ".jpg")
+                .build();
+        return itemImageRepository.save(itemImage);
+    }
+
+
+
+    private Dog generateDog(Member member, long startAgeMonth, DogSize dogSize, String weight, ActivityLevel activitylevel, int walkingCountPerWeek, double walkingTimePerOneTime, SnackCountLevel snackCountLevel, Recipe recipe) {
+        Dog dog = Dog.builder()
+                .member(member)
+                .name("구독강아지")
+                .startAgeMonth(startAgeMonth)
+                .gender(Gender.MALE)
+                .oldDog(false)
+                .dogSize(dogSize)
+                .weight(new BigDecimal(weight))
+                .dogActivity(new DogActivity(activitylevel, walkingCountPerWeek, walkingTimePerOneTime))
+                .dogStatus(DogStatus.HEALTHY)
+                .snackCountLevel(snackCountLevel)
+                .recommendRecipe(recipe)
+                .build();
+        return dogRepository.save(dog);
+    }
+
+
+
+
+
+
+
+
+
+
+    private Banner generateMainBanner(int i, BannerTargets bannerTargets) {
+        MainBanner banner = MainBanner.builder()
+                .name("메인배너" + i)
+                .pcLinkUrl("pc link")
+                .mobileLinkUrl("mobile link")
+                .status(BannerStatus.LEAKED)
+                .leakedOrder(i)
+                .imgFile(new ImgFile("C:/Users/verin/jyh/upload/test/banners", "filenamePc.jpg", "filenameMobile.jpg"))
+                .targets(bannerTargets)
+                .build();
+        return bannerRepository.save(banner);
+    }
+
+
+
 
     private String getAdminToken() throws Exception {
         return getBearerToken(appProperties.getAdminEmail(), appProperties.getAdminPassword());

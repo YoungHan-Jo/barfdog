@@ -1,5 +1,6 @@
 package com.bi.barfdog.service;
 
+import com.bi.barfdog.api.barfDto.HomePageDto;
 import com.bi.barfdog.api.memberDto.*;
 import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.domain.reward.*;
@@ -14,6 +15,7 @@ import com.bi.barfdog.repository.member.MemberRepository;
 import com.bi.barfdog.repository.reward.RewardRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
 import com.bi.barfdog.repository.subscribeRecipe.SubscribeRecipeRepository;
+import com.bi.barfdog.snsLogin.ConnectSnsRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -38,11 +40,13 @@ public class MemberService {
 
 
     @Transactional
-    public Member join(MemberSaveRequestDto requestDto) {
+    public JoinResponseDto join(MemberSaveRequestDto requestDto) {
 
         String password = bCryptPasswordEncoder.encode(requestDto.getPassword());
 
         Member member = Member.builder()
+                .provider(requestDto.getProvider())
+                .providerId(requestDto.getProviderId())
                 .name(requestDto.getName())
                 .email(requestDto.getEmail())
                 .password(password)
@@ -58,6 +62,8 @@ public class MemberService {
                 .firstReward(new FirstReward(false,false))
                 .roles("USER")
                 .build();
+
+        memberRepository.save(member);
 
         String recommendCode = requestDto.getRecommendCode();
         if (recommendCode != null) {
@@ -85,8 +91,12 @@ public class MemberService {
 //            member.chargePoint(RewardPoint.RECEIVE_AGREEMENT);
 //        }
 
+        JoinResponseDto responseDto = JoinResponseDto.builder()
+                .name(member.getName())
+                .email(member.getEmail())
+                .build();
 
-        return memberRepository.save(member);
+        return responseDto;
     }
 
     public DirectSendResponseDto sendPhoneAuth(String phoneNumber) throws IOException {
@@ -202,4 +212,17 @@ public class MemberService {
     public void unconnectSns(Member member) {
         member.unconnectSns();
     }
+
+    @Transactional
+    public ConnectSnsResponseDto connectSns(ConnectSnsRequestDto requestDto) {
+        Member member = memberRepository.findByPhoneNumber(requestDto.getPhoneNumber()).get();
+        member.connectSns(requestDto.getProvider(), requestDto.getProviderId());
+
+        return ConnectSnsResponseDto.builder()
+                .email(member.getEmail())
+                .provider(member.getProvider())
+                .build();
+    }
+
+
 }

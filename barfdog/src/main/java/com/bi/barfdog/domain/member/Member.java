@@ -13,6 +13,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -71,7 +72,7 @@ public class Member extends BaseTimeEntity {
 
     private boolean withdrawal; // 탈퇴여부
 
-    private String roles; // USER,ADMIN
+    private String roles; // [USER,SUBSCRIBER,ADMIN] 띄워쓰기 없이
 
     private String provider;
     private String providerId;
@@ -138,13 +139,17 @@ public class Member extends BaseTimeEntity {
     }
 
     public void connectSns(String provider, String providerId) {
-        this.provider = provider;
+        this.provider = provider.toLowerCase();
         this.providerId = providerId;
     }
 
     public void unconnectSns() {
         this.provider = "";
         this.providerId = "";
+    }
+
+    public void subscribe() {
+        this.roles += ",SUBSCRIBER";
     }
 }
 
