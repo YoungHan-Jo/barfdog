@@ -176,7 +176,9 @@ public class BannerRepositoryImpl implements BannerRepositoryCustom{
                         popupBanner.status,
                         popupBanner.position,
                         popupBanner.imgFile.filenamePc,
-                        popupBanner.imgFile.filenameMobile
+                        popupBanner.imgFile.filenameMobile,
+                        popupBanner.pcLinkUrl,
+                        popupBanner.mobileLinkUrl
                 ))
                 .from(popupBanner)
                 .where(popupBanner.id.eq(id))

@@ -1856,6 +1856,8 @@ public class BannerApiControllerTest extends BaseTest {
                                 fieldWithPath("position").description("배너 노출 위치"),
                                 fieldWithPath("filenamePc").description("pc 배너 파일 이름"),
                                 fieldWithPath("filenameMobile").description("mobile 배너 파일 이름"),
+                                fieldWithPath("pcLinkUrl").description("pc 배너 클릭 링크"),
+                                fieldWithPath("mobileLinkUrl").description("mobile 배너 클릭 링크"),
                                 fieldWithPath("_links.thumbnail_pc.href").description("pc 썸네일 링크"),
                                 fieldWithPath("_links.thumbnail_mobile.href").description("mobile 썸네일 링크"),
                                 fieldWithPath("_links.self.href").description("self 링크"),

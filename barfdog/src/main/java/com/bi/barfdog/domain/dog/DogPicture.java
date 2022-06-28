@@ -22,4 +22,7 @@ public class DogPicture {
     private String folder;
     private String filename;
 
+    public void setDog(Dog dog) {
+        this.dog = dog;
+    }
 }

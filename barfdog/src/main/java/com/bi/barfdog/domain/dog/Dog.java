@@ -24,6 +24,8 @@ public class Dog extends BaseTimeEntity {
     @Column(name = "dog_id")
     private Long id;
 
+    private boolean isDeleted; // 삭제 여부
+
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
@@ -41,7 +43,7 @@ public class Dog extends BaseTimeEntity {
 
     private boolean oldDog; // 노령견 여부
 
-    private String dogType;
+    private String dogType; //  견종
 
     @Enumerated(EnumType.STRING)
     private DogSize dogSize; // [LARGE, MIDDLE, SMALL]
@@ -79,10 +81,19 @@ public class Dog extends BaseTimeEntity {
 
     public void setSurveyReport(SurveyReport surveyReport) {
         this.surveyReport = surveyReport;
+        surveyReport.setDog(this);
     }
 
     public void setSubscribe(Subscribe subscribe) {
         this.subscribe = subscribe;
         subscribe.setDog(this);
+    }
+
+    public void representative() {
+        this.representative = true;
+    }
+
+    public void delete() {
+        isDeleted = true;
     }
 }

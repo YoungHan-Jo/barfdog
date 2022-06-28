@@ -489,14 +489,6 @@ operation::update_popupBanner_down[snippets='curl-request,path-parameters,reques
 
 operation::delete_popupBanner[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
-
-[[resources-create-myPageBanner]]
-=== 마이페이지 배너 생성
-
-`POST` 요청을 사용해서 마이페이지 배너를 생성할 수 있다.
-
-operation::create_myPageBanner[snippets='curl-request,request-headers,request-body,request-parts,request-part-requestDto-fields,response-headers,response-body,response-fields,links']
-
 [[resources-query-myPageBanner]]
 === 마이페이지 배너 조회
 
@@ -507,7 +499,7 @@ operation::query_myPageBanner[snippets='curl-request,request-headers,request-bod
 [[resources-update-myPageBanner]]
 === 마이페이지 배너 수정
 
-`POST` 요청을 사용해서 마이페이지 배너를 수정할 수 있다.[파일+데이터 동시에 수정하기 때문에 POST 사용]
+`POST` 요청을 사용해서 마이페이지 배너를 수정할 수 있다.[파일+데이터 동시에 수정하기 때문에 수정이지만 POST 사용]
 
 operation::create_myPageBanner[snippets='curl-request,request-headers,request-body,request-parts,request-part-requestDto-fields,response-headers,response-body,response-fields,links']
 
@@ -749,6 +741,53 @@ operation::query_recipesForSurvey[snippets='curl-request,request-headers,request
 == 강아지
 
 강아지 관련 리소스.
+
+[[resources-upload-dogPicture]]
+=== 강아지 프로필사진 업로드
+
+`POST` 요청을 사용해서 강아지 사진을 업로드 할 수 있다.
+
+operation::upload_dogPicture[snippets='curl-request,request-headers,request-body,request-parts,response-headers,response-body,response-fields,links']
+
+[[resources-update-dogPicture]]
+=== 강아지 프로필사진 변경
+
+`PUT` 요청을 사용해서 강아지 사진을 변경 할 수 있다.
+
+operation::update_dogPicture[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-update-representative-dog]]
+=== 강아지 대표견 설정
+
+`PUT` 요청을 사용해서 해당 강아지를 대표견으로 설정 할 수 있다.
+
+operation::update_representative_dog[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-query-dog]]
+=== 수정할 강아지 정보 조회
+
+`GET` 요청을 사용해서 해당 강아지의 정보를 조회할 수 있다.
+
+operation::query_dog[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-query-dog-surveyReport]]
+=== 강아지 설문조사 리포트 조회
+
+`GET` 요청을 사용해서 해당 강아지의 설문조사 리포트를 조회할 수 있다.
+
+operation::query_dog_surveyReport[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-delete-dog]]
+=== 강아지 삭제
+
+`DELETE` 요청을 사용해서 해당 강아지를 삭제할 수 있다. +
+
+삭제할 강아지 존재하지 않음 404 +
+삭제할 강아지가 대표견일 경우 400(삭제 불가) +
+
+operation::delete_dog[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+
 
 [[resources-create-dog]]
 === 강아지 등록
@@ -1142,7 +1181,7 @@ operation::return_review[snippets='curl-request,request-headers,path-parameters,
 
 operation::query_admin_best_reviews[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
 
-[[resources-admin-query-best-reviews]]
+[[resources-admin-delete-review]]
 === 관리자 베스트 리뷰 삭제
 
 `DELETE` 요청을 사용하여 베스트 리뷰를 삭제할 수 있다.

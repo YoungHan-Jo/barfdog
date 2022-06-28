@@ -20,4 +20,7 @@ public class PopupBannerResponseDto {
     private String filenamePc;
     private String filenameMobile;
 
+    private String pcLinkUrl;
+    private String mobileLinkUrl;
+
 }

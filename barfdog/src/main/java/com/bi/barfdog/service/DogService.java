@@ -3,6 +3,7 @@ package com.bi.barfdog.service;
 import com.bi.barfdog.api.InfoController;
 import com.bi.barfdog.api.blogDto.UploadedImageDto;
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
+import com.bi.barfdog.api.dogDto.UpdateDogPictureDto;
 import com.bi.barfdog.domain.banner.ImgFilenamePath;
 import com.bi.barfdog.domain.dog.*;
 import com.bi.barfdog.domain.member.Member;
@@ -13,12 +14,12 @@ import com.bi.barfdog.domain.setting.SnackConstant;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.domain.subscribe.SubscribeStatus;
 import com.bi.barfdog.domain.surveyReport.*;
-import com.bi.barfdog.repository.*;
 import com.bi.barfdog.repository.dog.DogPictureRepository;
 import com.bi.barfdog.repository.dog.DogRepository;
 import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.repository.setting.SettingRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
+import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
 import com.bi.barfdog.service.file.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -72,9 +73,6 @@ public class DogService {
     @Transactional
     public SurveyReport createDogAndGetSurveyReport(DogSaveRequestDto requestDto, Member member) {
 
-        List<Dog> dogs = dogRepository.findByMember(member);
-        Recipe recipe = recipeRepository.findById(requestDto.getRecommendRecipeId()).get();
-
         String birth = requestDto.getBirth();
 
         Subscribe subscribe = Subscribe.builder()
@@ -90,6 +88,8 @@ public class DogService {
         SnackCountLevel snackCountLevel = requestDto.getSnackCountLevel();
         BigDecimal weight = new BigDecimal(requestDto.getWeight());
 
+        List<Dog> dogs = dogRepository.findByMember(member);
+        Recipe recipe = recipeRepository.findById(requestDto.getRecommendRecipeId()).get();
 
         Dog dog = Dog.builder()
                 .member(member)
@@ -123,7 +123,6 @@ public class DogService {
                 .foodAnalysis(getDogAnalysis(requestDto, recipe, dogSize, startAgeMonth, oldDog, neutralization, dogStatus, requestDto.getActivityLevel(), snackCountLevel))
                 .snackAnalysis(getSnackAnalysis(dog))
                 .build();
-
         surveyReportRepository.save(surveyReport);
 
         dog.setSurveyReport(surveyReport);
@@ -534,4 +533,25 @@ public class DogService {
     }
 
 
+    @Transactional
+    public void updatePicture(Long id, UpdateDogPictureDto requestDto) {
+        Dog dog = dogRepository.findById(id).get();
+        dogPictureRepository.deleteAllByDog(dog);
+        DogPicture dogPicture = dogPictureRepository.findById(requestDto.getDogPictureId()).get();
+        dogPicture.setDog(dog);
+
+    }
+
+    @Transactional
+    public void setRepresentative(Member member, Long id) {
+        dogRepository.updateAllDogRepresentativeFalse(member);
+        Dog dog = dogRepository.findById(id).get();
+        dog.representative();
+    }
+
+    @Transactional
+    public void deleteDog(Long id) {
+        Dog dog = dogRepository.findById(id).get();
+        dog.delete();
+    }
 }

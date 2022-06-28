@@ -8,7 +8,7 @@ import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.recipe.RecipeStatus;
 import com.bi.barfdog.domain.surveyReport.SurveyReport;
 import com.bi.barfdog.repository.recipe.RecipeRepository;
-import com.bi.barfdog.repository.SurveyReportRepository;
+import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;

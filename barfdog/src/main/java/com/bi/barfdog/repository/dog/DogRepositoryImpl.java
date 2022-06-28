@@ -1,17 +1,26 @@
 package com.bi.barfdog.repository.dog;
 
+import com.bi.barfdog.api.dogDto.QueryDogDto;
+import com.bi.barfdog.api.recipeDto.RecipeSurveyResponseDto;
 import com.bi.barfdog.domain.dog.ActivityLevel;
+import com.bi.barfdog.domain.dog.Dog;
 import com.bi.barfdog.domain.dog.DogSize;
 import com.bi.barfdog.domain.dog.SnackCountLevel;
+import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.repository.recipe.RecipeRepository;
+import com.bi.barfdog.service.RecipeService;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static com.bi.barfdog.domain.dog.QDog.dog;
 import static com.bi.barfdog.domain.member.QMember.*;
@@ -22,6 +31,8 @@ import static com.bi.barfdog.domain.member.QMember.*;
 public class DogRepositoryImpl implements DogRepositoryCustom{
 
     private final JPAQueryFactory queryFactory;
+
+    private final RecipeService recipeService;
 
 
     @Override
@@ -152,6 +163,55 @@ public class DogRepositoryImpl implements DogRepositoryCustom{
             results.add(tuple.get(dog.name));
         }
         return results;
+    }
+
+    @Override
+    public void updateAllDogRepresentativeFalse(Member member) {
+        queryFactory
+                .update(dog)
+                .set(dog.representative, false)
+                .where(dog.member.eq(member))
+                .execute();
+    }
+
+    @Override
+    public QueryDogDto findDogDtoByDog(Long id) {
+        QueryDogDto.DogDto dogDto = queryFactory
+                .select(Projections.constructor(QueryDogDto.DogDto.class,
+                        dog.id,
+                        dog.name,
+                        dog.gender,
+                        dog.birth,
+                        dog.oldDog,
+                        dog.dogType,
+                        dog.dogSize,
+                        dog.weight,
+                        dog.neutralization,
+                        dog.dogActivity.activityLevel,
+                        dog.dogActivity.walkingCountPerWeek,
+                        dog.dogActivity.walkingTimePerOneTime,
+                        dog.dogStatus,
+                        dog.snackCountLevel,
+                        dog.inedibleFood,
+                        dog.inedibleFoodEtc,
+                        dog.recommendRecipe.id,
+                        dog.caution
+                ))
+                .from(dog)
+                .where(dog.id.eq(id))
+                .fetchOne();
+
+        List<RecipeSurveyResponseDto> recipeDtoList = recipeService.getRecipesForSurvey();
+
+        List<String> ingredients = recipeService.getIngredients();
+
+        QueryDogDto queryDogDto = QueryDogDto.builder()
+                .dogDto(dogDto)
+                .recipeDtoList(recipeDtoList)
+                .ingredients(ingredients)
+                .build();
+
+        return queryDogDto;
     }
 
 

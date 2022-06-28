@@ -4,7 +4,7 @@ import com.bi.barfdog.api.surveyReportDto.SurveyReportResponseDto;
 import com.bi.barfdog.api.surveyReportDto.SurveyResultResponseDto;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.surveyReport.SurveyReport;
-import com.bi.barfdog.repository.SurveyReportRepository;
+import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
 import com.bi.barfdog.service.SurveyReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.hateoas.EntityModel;
@@ -35,9 +35,7 @@ public class SurveyReportApiController {
     @GetMapping("/{id}")
     public ResponseEntity querySurveyReport(@PathVariable Long id) {
         Optional<SurveyReport> optionalSurveyReport = surveyReportRepository.findById(id);
-        if (!optionalSurveyReport.isPresent()) {
-            return notFound();
-        }
+        if (!optionalSurveyReport.isPresent()) return notFound();
 
         SurveyReportResponseDto responseDto = surveyReportService.getSurveyReportResponseDto(id);
 

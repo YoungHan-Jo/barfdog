@@ -1,8 +1,12 @@
 package com.bi.barfdog.repository.dog;
 
+import com.bi.barfdog.api.dogDto.QueryDogDto;
+import com.bi.barfdog.domain.dog.Dog;
 import com.bi.barfdog.domain.dog.DogSize;
+import com.bi.barfdog.domain.member.Member;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface DogRepositoryCustom {
     double findAvgStartAgeMonth();
@@ -24,4 +28,8 @@ public interface DogRepositoryCustom {
     List<String> findSnackGroupByDogSize(DogSize dogSize);
 
     List<String> findDogNamesByMemberId(Long memberId);
+
+    void updateAllDogRepresentativeFalse(Member member);
+
+    QueryDogDto findDogDtoByDog(Long id);
 }
