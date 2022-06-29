@@ -80,7 +80,7 @@ public class ArticleAdminControllerTest extends BaseTest {
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("blogTitlesDtos",hasSize(6)))
+                .andExpect(jsonPath("blogTitlesDtos",hasSize(8)))
                 .andDo(document("admin_query_articles",
                         links(
                                 linkWithRel("self").description("self 링크"),
@@ -143,7 +143,7 @@ public class ArticleAdminControllerTest extends BaseTest {
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("blogTitlesDtos", hasSize(6)))
+                .andExpect(jsonPath("blogTitlesDtos", hasSize(8)))
         ;
     }
 
@@ -152,7 +152,7 @@ public class ArticleAdminControllerTest extends BaseTest {
     public void updateArticles() throws Exception {
         //given
 
-        IntStream.range(1,3).forEach(i -> {
+        IntStream.range(3,4).forEach(i -> {
             generateArticle(i);
         });
 
@@ -269,6 +269,9 @@ public class ArticleAdminControllerTest extends BaseTest {
         //given
 
         Blog blog1 = generateBlog(1);
+
+        generateArticle(1);
+        generateArticle(2);
 
         UpdateArticlesRequestDto requestDto = UpdateArticlesRequestDto.builder()
                 .firstBlogId(blog1.getId())

@@ -3,6 +3,7 @@ package com.bi.barfdog.api;
 import com.bi.barfdog.api.blogDto.UploadedImageDto;
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
 import com.bi.barfdog.api.dogDto.QueryDogDto;
+import com.bi.barfdog.api.dogDto.QueryDogsDto;
 import com.bi.barfdog.api.dogDto.UpdateDogPictureDto;
 import com.bi.barfdog.api.surveyReportDto.SurveyReportResponseDto;
 import com.bi.barfdog.auth.CurrentUser;
@@ -21,6 +22,7 @@ import com.bi.barfdog.service.SurveyReportService;
 import com.bi.barfdog.validator.CommonValidator;
 import com.bi.barfdog.validator.DogValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.RepresentationModel;
@@ -32,6 +34,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -83,7 +87,28 @@ public class DogApiController {
     @GetMapping
     public ResponseEntity queryDogs(@CurrentUser Member member) {
 
-        return ResponseEntity.ok(null);
+        List<EntityModel<QueryDogsDto>> entityModelList = new ArrayList<>();
+
+        List<QueryDogsDto> responseDto = dogRepository.findDogsDtoByMember(member);
+
+        for (QueryDogsDto dto : responseDto) {
+            EntityModel<QueryDogsDto> entityModel = EntityModel.of(dto,
+                    linkTo(DogApiController.class).slash(dto.getId()).slash("picture").withRel("update_picture"),
+                    linkTo(DogApiController.class).slash(dto.getId()).slash("representative").withRel("set_representative_dog"),
+                    linkTo(DogApiController.class).slash(dto.getId()).withRel("query_dog"),
+                    linkTo(DogApiController.class).slash(dto.getId()).slash("surveyReport").withRel("query_surveyReport"),
+                    linkTo(DogApiController.class).slash(dto.getId()).withRel("delete_dog")
+            );
+
+            entityModelList.add(entityModel);
+        }
+
+        CollectionModel<EntityModel<QueryDogsDto>> collectionModel = CollectionModel.of(entityModelList,
+                linkTo(DogApiController.class).withSelfRel(),
+                profileRootUrlBuilder.slash("index.html#resources-query-dogs").withRel("profile")
+                );
+
+        return ResponseEntity.ok(collectionModel);
     }
 
     @PostMapping("/picture/upload")
@@ -155,6 +180,23 @@ public class DogApiController {
 
 
         return ResponseEntity.ok(entityModel);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity updateDog(@CurrentUser Member member,
+                                    @PathVariable Long id,
+                                    @RequestBody @Valid DogSaveRequestDto requestDto,
+                                    Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+        Optional<Dog> optionalDog = dogRepository.findById(id);
+        if(!optionalDog.isPresent()) return notFound();
+        dogValidator.validateMyDog(member, id, errors);
+        if (errors.hasErrors()) return badRequest(errors);
+
+        dogService.updateDog(member, id, requestDto);
+
+
+        return ResponseEntity.ok(null);
     }
 
     @GetMapping("/{id}/surveyReport")

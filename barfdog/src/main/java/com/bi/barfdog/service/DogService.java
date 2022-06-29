@@ -554,4 +554,40 @@ public class DogService {
         Dog dog = dogRepository.findById(id).get();
         dog.delete();
     }
+
+    @Transactional
+    public void updateDog(Member member, Long id, DogSaveRequestDto requestDto) {
+        Dog dog = dogRepository.findById(id).get();
+        Long recipeId = requestDto.getRecommendRecipeId();
+        Recipe recipe = recipeRepository.findById(recipeId).get();
+        dog.update(requestDto, recipe);
+
+        SurveyReport surveyReport = surveyReportRepository.findByDogId(id);
+        SurveyReport newSurveyReport = getNewSurveyReport(member, requestDto, dog, recipe);
+        surveyReport.update(newSurveyReport);
+
+
+    }
+
+    private SurveyReport getNewSurveyReport(Member member, DogSaveRequestDto requestDto, Dog dog, Recipe recipe) {
+        DogSize dogSize = requestDto.getDogSize();
+        Long startAgeMonth = getTerm(requestDto.getBirth() + "01");
+        boolean oldDog = requestDto.isOldDog();
+        boolean neutralization = requestDto.isNeutralization();
+        DogStatus dogStatus = requestDto.getDogStatus();
+        SnackCountLevel snackCountLevel = requestDto.getSnackCountLevel();
+        BigDecimal weight = new BigDecimal(requestDto.getWeight());
+
+        SurveyReport surveyReport = SurveyReport.builder()
+                .dog(dog)
+                .ageAnalysis(getAgeAnalysis(startAgeMonth))
+                .weightAnalysis(getWeightAnalysis(dogSize, weight))
+                .activityAnalysis(getActivityAnalysis(dogSize, dog))
+                .walkingAnalysis(getWalkingAnalysis(member, dog))
+                .foodAnalysis(getDogAnalysis(requestDto, recipe, dogSize, startAgeMonth, oldDog, neutralization, dogStatus, requestDto.getActivityLevel(), snackCountLevel))
+                .snackAnalysis(getSnackAnalysis(dog))
+                .build();
+
+        return surveyReport;
+    }
 }

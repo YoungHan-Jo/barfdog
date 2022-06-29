@@ -47,4 +47,14 @@ public class SurveyReport extends BaseTimeEntity {
     public void setDog(Dog dog) {
         this.dog = dog;
     }
+
+    public void update(SurveyReport newSurveyReport) {
+        ageAnalysis = newSurveyReport.getAgeAnalysis();
+        weightAnalysis = newSurveyReport.getWeightAnalysis();
+        activityAnalysis = newSurveyReport.getActivityAnalysis();
+        walkingAnalysis = newSurveyReport.getWalkingAnalysis();
+        snackAnalysis = newSurveyReport.getSnackAnalysis();
+        foodAnalysis = newSurveyReport.getFoodAnalysis();
+    }
+
 }

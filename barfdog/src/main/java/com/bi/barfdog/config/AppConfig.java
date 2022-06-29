@@ -7,6 +7,10 @@ import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.domain.Address;
 import com.bi.barfdog.domain.banner.BannerStatus;
 import com.bi.barfdog.domain.banner.BannerTargets;
+import com.bi.barfdog.domain.blog.Article;
+import com.bi.barfdog.domain.blog.Blog;
+import com.bi.barfdog.domain.blog.BlogCategory;
+import com.bi.barfdog.domain.blog.BlogStatus;
 import com.bi.barfdog.domain.coupon.*;
 import com.bi.barfdog.domain.dog.*;
 import com.bi.barfdog.domain.member.*;
@@ -19,6 +23,8 @@ import com.bi.barfdog.domain.setting.ActivityConstant;
 import com.bi.barfdog.domain.setting.DeliveryConstant;
 import com.bi.barfdog.domain.setting.Setting;
 import com.bi.barfdog.domain.setting.SnackConstant;
+import com.bi.barfdog.domain.subscribe.Subscribe;
+import com.bi.barfdog.domain.subscribe.SubscribeStatus;
 import com.bi.barfdog.repository.article.ArticleRepository;
 import com.bi.barfdog.repository.banner.BannerRepository;
 import com.bi.barfdog.repository.blog.BlogImageRepository;
@@ -29,6 +35,7 @@ import com.bi.barfdog.repository.member.MemberRepository;
 import com.bi.barfdog.repository.memberCoupon.MemberCouponRepository;
 import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.repository.setting.SettingRepository;
+import com.bi.barfdog.repository.subscribe.SubscribeRepository;
 import com.bi.barfdog.service.BannerService;
 import com.bi.barfdog.service.DogService;
 import org.apache.commons.fileupload.FileItem;
@@ -97,6 +104,8 @@ public class AppConfig {
             ArticleRepository articleRepository;
             @Autowired
             BlogRepository blogRepository;
+            @Autowired
+            SubscribeRepository subscribeRepository;
 
             @Autowired
             AppProperties appProperties;
@@ -112,11 +121,15 @@ public class AppConfig {
                 }
                 generateBannerMyPage();
 
+                generateArticle(1);
+                generateArticle(2);
+
                 Member admin = generateMember(appProperties.getAdminEmail(), "관리자", appProperties.getAdminPassword(), "01056785678", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,USER");
                 Member manager = generateMember("develope07@binter.co.kr", "관리자계정", appProperties.getAdminPassword(), "01056781234", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,USER");
 
                 Member member = generateMember(appProperties.getUserEmail(), "김회원", appProperties.getUserPassword(), "01012341234", Gender.MALE, Grade.브론즈, 0, false, "USER");
                 generateMember("abc@gmail.com", "박회원", appProperties.getUserPassword(), "01012341111", Gender.MALE, Grade.브론즈, 0, false, "USER");
+
 
 
                 generateSetting();
@@ -126,9 +139,10 @@ public class AppConfig {
                 generateRecipe("덕램", "오리,양", "피부와 모질강화 필요", "덕램1.jpg", "덕램2.jpg");
                 generateRecipe("램비프", "양,소", "건강한 성장과 영양보충", "램비프1.jpg", "램비프2.jpg");
 
-                generateDogRepresentative(admin, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
-                generateDogRepresentative(manager, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
-                generateDogRepresentative(member, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+//                Subscribe subscribe = generateSubscribe();
+//                Dog memberRepresentativeDog = generateDogRepresentative(member, subscribe,18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+                generateDogRepresentative(admin, null,18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+                generateDogRepresentative(manager,null, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
                 generateDog(admin, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
                 generateDog(admin, 42L, DogSize.LARGE, "14.5", ActivityLevel.MUCH, 2, 0.5, SnackCountLevel.LITTLE);
                 generateDog(admin, 46L, DogSize.LARGE, "13.4", ActivityLevel.VERY_MUCH, 3, 1, SnackCountLevel.NORMAL);
@@ -147,6 +161,7 @@ public class AppConfig {
                 generateDog(admin, 46L, DogSize.SMALL, "8.2", ActivityLevel.MUCH, 5, 0.5, SnackCountLevel.LITTLE);
                 generateDog(admin, 36L, DogSize.SMALL, "8.2", ActivityLevel.MUCH, 4, 2, SnackCountLevel.NORMAL);
 
+
                 Coupon subsCoupon = generateCouponAuto(SUBSCRIBE_COUPON, "정기구독 할인 쿠폰", DiscountType.FIXED_RATE, 50, 0, CouponTarget.SUBSCRIBE);
                 Coupon dogBirthCoupon = generateCouponAuto(DOG_BIRTH_COUPON, "반려견 생일 쿠폰", DiscountType.FIXED_RATE, 10, 0, CouponTarget.ALL);
                 Coupon memberBirthCoupon = generateCouponAuto(MEMBER_BIRTH_COUPON, "견주 생일 쿠폰", DiscountType.FIXED_RATE, 15, 0, CouponTarget.ALL);
@@ -164,6 +179,31 @@ public class AppConfig {
 
             }
 
+            private Subscribe generateSubscribe() {
+                Subscribe subscribe = Subscribe.builder()
+                        .status(SubscribeStatus.BEFORE_PAYMENT)
+                        .build();
+                return subscribeRepository.save(subscribe);
+            }
+
+
+            private void generateArticle(int i) {
+                Blog blog = generateBlog(i);
+                Article article = Article.builder()
+                        .number(i)
+                        .blog(blog)
+                        .build();
+                articleRepository.save(article);
+            }
+            private Blog generateBlog(int i) {
+                Blog blog = Blog.builder()
+                        .status(BlogStatus.LEAKED)
+                        .title("제목" + i)
+                        .category(BlogCategory.HEALTH)
+                        .contents("컨텐츠 내용")
+                        .build();
+                return blogRepository.save(blog);
+            }
 
             private void generateMemberCoupon(Member member, Coupon subsCoupon) {
                 MemberCoupon memberCoupon = MemberCoupon.builder()
@@ -284,10 +324,11 @@ public class AppConfig {
                 return recipeRepository.save(recipe);
             }
 
-            private Dog generateDogRepresentative(Member admin, long startAgeMonth, DogSize dogSize, String weight, ActivityLevel activitylevel, int walkingCountPerWeek, double walkingTimePerOneTime, SnackCountLevel snackCountLevel) {
+            private Dog generateDogRepresentative(Member admin,Subscribe subscribe, long startAgeMonth, DogSize dogSize, String weight, ActivityLevel activitylevel, int walkingCountPerWeek, double walkingTimePerOneTime, SnackCountLevel snackCountLevel) {
                 Dog dog = Dog.builder()
                         .member(admin)
                         .name("대표견")
+                        .subscribe(subscribe)
                         .representative(true)
                         .startAgeMonth(startAgeMonth)
                         .gender(Gender.MALE)

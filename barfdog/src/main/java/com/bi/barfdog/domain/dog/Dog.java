@@ -1,5 +1,6 @@
 package com.bi.barfdog.domain.dog;
 
+import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.member.Gender;
 import com.bi.barfdog.domain.member.Member;
@@ -95,5 +96,31 @@ public class Dog extends BaseTimeEntity {
 
     public void delete() {
         isDeleted = true;
+    }
+
+    public void update(DogSaveRequestDto requestDto, Recipe recommendRecipe) {
+        name = requestDto.getName();
+        gender = requestDto.getGender();
+        birth = requestDto.getBirth();
+        oldDog = requestDto.isOldDog();
+        dogType = requestDto.getDogType();
+        dogSize = requestDto.getDogSize();
+        weight = new BigDecimal(requestDto.getWeight());
+        neutralization = requestDto.isNeutralization();
+
+        DogActivity dogActivity = DogActivity.builder()
+                .activityLevel(requestDto.getActivityLevel())
+                .walkingCountPerWeek(Integer.parseInt(requestDto.getWalkingCountPerWeek()))
+                .walkingTimePerOneTime(Double.valueOf(requestDto.getWalkingTimePerOneTime()))
+                .build();
+        this.dogActivity = dogActivity;
+
+        dogStatus = requestDto.getDogStatus();
+        snackCountLevel = requestDto.getSnackCountLevel();
+        inedibleFood = requestDto.getInedibleFood();
+        inedibleFoodEtc = requestDto.getInedibleFoodEtc();
+        this.recommendRecipe = recommendRecipe;
+        caution = requestDto.getCaution();
+
     }
 }

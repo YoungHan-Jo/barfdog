@@ -1,17 +1,18 @@
 package com.bi.barfdog.repository.dog;
 
 import com.bi.barfdog.api.dogDto.QueryDogDto;
+import com.bi.barfdog.api.dogDto.QueryDogsDto;
 import com.bi.barfdog.api.recipeDto.RecipeSurveyResponseDto;
-import com.bi.barfdog.domain.dog.ActivityLevel;
-import com.bi.barfdog.domain.dog.Dog;
-import com.bi.barfdog.domain.dog.DogSize;
-import com.bi.barfdog.domain.dog.SnackCountLevel;
+import com.bi.barfdog.domain.dog.*;
 import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.domain.subscribe.QSubscribe;
 import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.service.RecipeService;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.bi.barfdog.domain.dog.QDog.dog;
+import static com.bi.barfdog.domain.dog.QDogPicture.*;
 import static com.bi.barfdog.domain.member.QMember.*;
+import static com.bi.barfdog.domain.subscribe.QSubscribe.*;
 
 
 @RequiredArgsConstructor
@@ -212,6 +215,55 @@ public class DogRepositoryImpl implements DogRepositoryCustom{
                 .build();
 
         return queryDogDto;
+    }
+
+    @Override
+    public List<QueryDogsDto> findDogsDtoByMember(Member member) {
+        List<QueryDogsDto> result = queryFactory
+                .select(Projections.constructor(QueryDogsDto.class,
+                        dog.id,
+                        dogPicture.filename,
+                        dog.name,
+                        dog.birth,
+                        dog.gender,
+                        dog.representative,
+                        subscribe.status
+                ))
+                .from(dog)
+                .leftJoin(dogPicture).on(dogPicture.dog.eq(dog))
+                .join(dog.subscribe, subscribe)
+                .where(validDogsByMember(member).and(dog.representative.eq(true)))
+                .fetch();
+
+        List<QueryDogsDto> addResult = queryFactory
+                .select(Projections.constructor(QueryDogsDto.class,
+                        dog.id,
+                        dogPicture.filename,
+                        dog.name,
+                        dog.birth,
+                        dog.gender,
+                        dog.representative,
+                        subscribe.status
+                ))
+                .from(dog)
+                .leftJoin(dogPicture).on(dogPicture.dog.eq(dog))
+                .join(dog.subscribe, subscribe)
+                .where(validDogsByMember(member).and(dog.representative.eq(false)))
+                .orderBy(dog.createdDate.asc())
+                .fetch();
+        result.addAll(addResult);
+
+        for (QueryDogsDto dto : result) {
+            if (dto.getPictureUrl() != null) {
+                dto.changeUrl(dto.getPictureUrl());
+            }
+        }
+
+        return result;
+    }
+
+    private BooleanExpression validDogsByMember(Member member) {
+        return dog.member.eq(member).and(dog.isDeleted.eq(false));
     }
 
 

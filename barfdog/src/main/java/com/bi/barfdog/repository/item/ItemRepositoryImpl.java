@@ -112,7 +112,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
                 .from(item)
                 .join(itemImage).on(itemImage.item.eq(item))
                 .leftJoin(itemReview).on(itemReview.item.eq(item))
-                .where(itemTypeEq(cond.getItemType()))
+                .where(itemTypeEq(cond.getItemType()).and(itemImage.leakOrder.eq(1)))
                 .groupBy(item)
                 .orderBy(orderByCond(cond.getSortBy()))
                 .offset(pageable.getOffset())

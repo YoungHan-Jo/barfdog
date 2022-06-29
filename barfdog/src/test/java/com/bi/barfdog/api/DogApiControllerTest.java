@@ -41,6 +41,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static com.bi.barfdog.config.finalVariable.StandardVar.*;
 import static com.bi.barfdog.config.finalVariable.StandardVar.LACTATING;
@@ -466,8 +467,9 @@ public class DogApiControllerTest extends BaseTest {
     @DisplayName("정상적으로 설문조사 레포트 조회")
     public void querySurveyReport() throws Exception {
        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-        SurveyReport surveyReport = generateSurveyReport();
+        SurveyReport surveyReport = generateSurveyReport(member);
         Dog dog = surveyReport.getDog();
 
         List<SurveyReport> reports = surveyReportRepository.findAll();
@@ -549,8 +551,9 @@ public class DogApiControllerTest extends BaseTest {
     @DisplayName("설문조사 레포트 조회할 강아지가 존재하지않음")
     public void querySurveyReport_dog_notFound() throws Exception {
         //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-        SurveyReport surveyReport = generateSurveyReport();
+        SurveyReport surveyReport = generateSurveyReport(member);
         Dog dog = surveyReport.getDog();
 
         List<SurveyReport> reports = surveyReportRepository.findAll();
@@ -656,8 +659,240 @@ public class DogApiControllerTest extends BaseTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    @DisplayName("정상적으로 강아지 리스트 조회")
+    public void queryDogs() throws Exception {
+       //given
 
 
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+        Dog dogRepresentative = generateDogRepresentative(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+        DogPicture dogPicture = generateDogPicture(1);
+        dogPicture.setDog(dogRepresentative);
+        generateSubscribe(dogRepresentative);
+
+        IntStream.range(1,4).forEach(i -> {
+            Dog dog = generateDog(i, member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+            generateSubscribe(dog);
+            Dog adminDog = generateDog(i, admin, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+            generateSubscribe(adminDog);
+        });
+
+        em.flush();
+        em.clear();
+
+        //when & then
+        mockMvc.perform(get("/api/dogs")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("_embedded.queryDogsDtoList", hasSize(4)))
+                .andDo(document("query_dogs",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt 토큰")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_embedded.queryDogsDtoList[0].id").description("강아지 id"),
+                                fieldWithPath("_embedded.queryDogsDtoList[0].pictureUrl").description("강아지 프로필사진 url, 사진없으면 null").optional(),
+                                fieldWithPath("_embedded.queryDogsDtoList[0].name").description("강아지 이름"),
+                                fieldWithPath("_embedded.queryDogsDtoList[0].birth").description("강아지 생일 'yyyyMM'"),
+                                fieldWithPath("_embedded.queryDogsDtoList[0].gender").description("강아지 성별 [MALE, FEMALE]"),
+                                fieldWithPath("_embedded.queryDogsDtoList[0].representative").description("대표견 여부 true/false"),
+                                fieldWithPath("_embedded.queryDogsDtoList[0].subscribeStatus").description("구독 상태 [BEFORE_PAYMENT, SUBSCRIBING, SUBSCRIBE_PENDING, ADMIN] 각 결제 전/ 구독 중/ 구독 보류 / 관리자구독"),
+                                fieldWithPath("_embedded.queryDogsDtoList[0]._links.update_picture.href").description("강아지 사진 수정 링크"),
+                                fieldWithPath("_embedded.queryDogsDtoList[0]._links.set_representative_dog.href").description("대표견 설정 링크"),
+                                fieldWithPath("_embedded.queryDogsDtoList[0]._links.query_dog.href").description("강아지 정보 조회 링크"),
+                                fieldWithPath("_embedded.queryDogsDtoList[0]._links.query_surveyReport.href").description("설문조사 리포트 조회 링크"),
+                                fieldWithPath("_embedded.queryDogsDtoList[0]._links.delete_dog.href").description("강아지 삭제 링크"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+    }
+
+    @Test
+    @DisplayName("정상적으로 강아지 수정")
+    public void updateDog() throws Exception {
+       //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        SurveyReport surveyReport = generateSurveyReport(member);
+
+        Recipe recipe = recipeRepository.findAll().get(0);
+        String name = "수정된이름";
+        String birth = "202205";
+        String dogType = "불독";
+        String weight = "3.70";
+        String walkingCountPerWeek = "5";
+        DogSaveRequestDto requestDto = DogSaveRequestDto.builder()
+                .name(name)
+                .gender(Gender.MALE)
+                .birth(birth)
+                .oldDog(false)
+                .dogType(dogType)
+                .dogSize(DogSize.SMALL)
+                .weight(weight)
+                .neutralization(true)
+                .activityLevel(ActivityLevel.NORMAL)
+                .walkingCountPerWeek(walkingCountPerWeek)
+                .walkingTimePerOneTime("1.1")
+                .dogStatus(DogStatus.HEALTHY)
+                .snackCountLevel(SnackCountLevel.NORMAL)
+                .inedibleFood("NONE")
+                .inedibleFoodEtc("NONE")
+                .recommendRecipeId(recipe.getId())
+                .caution("NONE")
+                .build();
+
+       //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/dogs/{id}", surveyReport.getDog().getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto))
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+        ;
+
+        em.flush();
+        em.clear();
+
+        Dog findDog = dogRepository.findById(surveyReport.getDog().getId()).get();
+        assertThat(findDog.getRecommendRecipe().getId()).isEqualTo(recipe.getId());
+        assertThat(findDog.getName()).isEqualTo(name);
+        assertThat(findDog.getBirth()).isEqualTo(birth);
+        assertThat(findDog.getDogType()).isEqualTo(dogType);
+        assertThat(findDog.getWeight()).isEqualTo(new BigDecimal(weight));
+        assertThat(findDog.getDogActivity().getWalkingCountPerWeek()).isEqualTo(Integer.valueOf(walkingCountPerWeek));
+
+        SnackAnalysis snackAnalysis = getSnackAnalysis(findDog);
+        ActivityAnalysis activityAnalysis = getActivityAnalysis(findDog.getDogSize(), findDog);
+        WeightAnalysis weightAnalysis = getWeightAnalysis(findDog.getDogSize(), findDog.getWeight());
+        AgeAnalysis ageAnalysis = getAgeAnalysis(findDog.getStartAgeMonth());
+
+        Long surveyReportId = surveyReport.getId();
+
+        SurveyReport findSurveyReport = surveyReportRepository.findById(surveyReportId).get();
+        AgeAnalysis findAgeAnalysis = findSurveyReport.getAgeAnalysis();
+        assertThat(findSurveyReport.getAgeAnalysis().getAvgAgeMonth()).isEqualTo(ageAnalysis.getAvgAgeMonth());
+//        assertThat(findSurveyReport.getAgeAnalysis().getMyAgeGroup()).isEqualTo(ageAnalysis.getMyAgeGroup());
+//        assertThat(findSurveyReport.getAgeAnalysis().getMyStartAgeMonth()).isEqualTo(ageAnalysis.getMyStartAgeMonth());
+
+        assertThat(findSurveyReport.getSnackAnalysis().getAvgSnackCountInLargeDog()).isEqualTo(snackAnalysis.getAvgSnackCountInLargeDog());
+        assertThat(findSurveyReport.getSnackAnalysis().getMySnackCount()).isEqualTo(snackAnalysis.getMySnackCount());
+
+        assertThat(findSurveyReport.getActivityAnalysis().getMyActivityGroup()).isEqualTo(activityAnalysis.getMyActivityGroup());
+        assertThat(findSurveyReport.getActivityAnalysis().getMyActivityGroup()).isEqualTo(activityAnalysis.getMyActivityGroup());
+
+        assertThat(findSurveyReport.getWeightAnalysis().getAvgWeight()).isEqualTo(weightAnalysis.getAvgWeight());
+        assertThat(findSurveyReport.getWeightAnalysis().getMyWeightGroup()).isEqualTo(weightAnalysis.getMyWeightGroup());
+        assertThat(findSurveyReport.getWeightAnalysis().getWeightInLastReport()).isEqualTo(weightAnalysis.getWeightInLastReport());
+
+
+
+    }
+
+    @Test
+    @DisplayName("수정할 강아지가 내 강아지가 아닐 경우 400")
+    public void updateDog_isNotMyDog() throws Exception {
+        //given
+
+        Recipe recipe = recipeRepository.findAll().get(0);
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        Dog dog = generateDogRepresentative(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+
+        DogSaveRequestDto requestDto = DogSaveRequestDto.builder()
+                .name("김바프")
+                .gender(Gender.MALE)
+                .birth("202102")
+                .oldDog(false)
+                .dogType("포메라니안")
+                .dogSize(DogSize.SMALL)
+                .weight("3.5")
+                .neutralization(true)
+                .activityLevel(ActivityLevel.NORMAL)
+                .walkingCountPerWeek("10")
+                .walkingTimePerOneTime("1.1")
+                .dogStatus(DogStatus.HEALTHY)
+                .snackCountLevel(SnackCountLevel.NORMAL)
+                .inedibleFood("NONE")
+                .inedibleFoodEtc("NONE")
+                .recommendRecipeId(recipe.getId())
+                .caution("NONE")
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/dogs/{id}", dog.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto))
+                )
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+        ;
+
+    }
+
+    @Test
+    @DisplayName("수정할 강아지가 존재하지않음 404")
+    public void updateDog_dog_notFound() throws Exception {
+        //given
+
+        Recipe recipe = recipeRepository.findAll().get(0);
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        Dog dog = generateDogRepresentative(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+
+        DogSaveRequestDto requestDto = DogSaveRequestDto.builder()
+                .name("김바프")
+                .gender(Gender.MALE)
+                .birth("202102")
+                .oldDog(false)
+                .dogType("포메라니안")
+                .dogSize(DogSize.SMALL)
+                .weight("3.5")
+                .neutralization(true)
+                .activityLevel(ActivityLevel.NORMAL)
+                .walkingCountPerWeek("10")
+                .walkingTimePerOneTime("1.1")
+                .dogStatus(DogStatus.HEALTHY)
+                .snackCountLevel(SnackCountLevel.NORMAL)
+                .inedibleFood("NONE")
+                .inedibleFoodEtc("NONE")
+                .recommendRecipeId(recipe.getId())
+                .caution("NONE")
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/dogs/999999")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto))
+                )
+                .andDo(print())
+                .andExpect(status().isNotFound())
+        ;
+
+    }
 
 
 
@@ -800,8 +1035,17 @@ public class DogApiControllerTest extends BaseTest {
 
 
 
-    private SurveyReport generateSurveyReport() {
-        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+    private void generateSubscribe(Dog dog) {
+        Subscribe subscribe = Subscribe.builder()
+                .status(SubscribeStatus.BEFORE_PAYMENT)
+                .build();
+        subscribeRepository.save(subscribe);
+
+        dog.setSubscribe(subscribe);
+    }
+
+    private SurveyReport generateSurveyReport(Member member) {
 
         Recipe recipe = recipeRepository.findAll().get(0);
 
@@ -1297,6 +1541,7 @@ public class DogApiControllerTest extends BaseTest {
         Dog dog = Dog.builder()
                 .member(admin)
                 .name("대표견")
+                .birth("202103")
                 .representative(true)
                 .startAgeMonth(startAgeMonth)
                 .gender(Gender.MALE)
@@ -1306,6 +1551,29 @@ public class DogApiControllerTest extends BaseTest {
                 .dogActivity(new DogActivity(activitylevel, walkingCountPerWeek, walkingTimePerOneTime))
                 .dogStatus(DogStatus.HEALTHY)
                 .snackCountLevel(snackCountLevel)
+                .build();
+        return dogRepository.save(dog);
+    }
+
+    private Dog generateDog(int i, Member member, long startAgeMonth, DogSize dogSize, String weight, ActivityLevel activitylevel, int walkingCountPerWeek, double walkingTimePerOneTime, SnackCountLevel snackCountLevel) {
+        List<Recipe> recipes = recipeRepository.findAll();
+        Dog dog = Dog.builder()
+                .member(member)
+                .name("샘플독" + i)
+                .birth("202005")
+                .startAgeMonth(startAgeMonth)
+                .gender(Gender.MALE)
+                .oldDog(false)
+                .dogType("포메라니안")
+                .dogSize(dogSize)
+                .weight(new BigDecimal(weight))
+                .dogActivity(new DogActivity(activitylevel, walkingCountPerWeek, walkingTimePerOneTime))
+                .dogStatus(DogStatus.HEALTHY)
+                .snackCountLevel(snackCountLevel)
+                .recommendRecipe(recipes.get(0))
+                .inedibleFood("NONE")
+                .inedibleFoodEtc("NONE")
+                .caution("NONE")
                 .build();
         return dogRepository.save(dog);
     }

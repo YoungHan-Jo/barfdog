@@ -101,6 +101,21 @@ operation::home_page[snippets='curl-request,request-headers,request-body,respons
 
 관리자 관련 api
 
+[[resources-query-setting]]
+=== 관리자 설정 조회
+
+`GET` 요청을 사용해서 관리자 설정을 조회할 수 있다.
+
+operation::query_setting[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-update-setting]]
+=== 관리자 설정 수정
+
+`PUT` 요청을 사용해서 관리자 설정을 수정할 수 있다.
+
+operation::update_setting[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
 [[resources-admin-queryMembers]]
 === 회원 리스트 조회(페이징)
 
@@ -741,6 +756,14 @@ operation::query_recipesForSurvey[snippets='curl-request,request-headers,request
 == 강아지
 
 강아지 관련 리소스.
+
+[[resources-query-dogs]]
+=== 강아지 리스트 조회
+
+`GET` 요청을 사용해서 내 강아지 리스트를 조회 할 수 있다.
+
+operation::query_dogs[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
+
 
 [[resources-upload-dogPicture]]
 === 강아지 프로필사진 업로드

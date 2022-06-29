@@ -1,6 +1,7 @@
 package com.bi.barfdog.domain.dog;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -9,7 +10,7 @@ import javax.persistence.Embeddable;
 @Embeddable
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
+@Getter @Builder
 public class DogActivity {
 
     private ActivityLevel activityLevel; // [VERY_LITTLE, LITTLE, NORMAL, MUCH, VERY_MUCH]
