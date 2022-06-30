@@ -4,8 +4,10 @@ import com.bi.barfdog.api.InfoController;
 import com.bi.barfdog.api.surveyReportDto.SurveyReportResponseDto;
 import com.bi.barfdog.api.surveyReportDto.SurveyResultRecipeDto;
 import com.bi.barfdog.api.surveyReportDto.SurveyResultResponseDto;
+import com.bi.barfdog.domain.dog.Dog;
 import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.recipe.RecipeStatus;
+import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.domain.surveyReport.SurveyReport;
 import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
@@ -41,7 +43,8 @@ public class SurveyReportService {
     public SurveyResultResponseDto getSurveyResultResponseDto(Long id) {
         SurveyReport surveyReport = surveyReportRepository.findById(id).get();
 
-        Recipe recommendRecipe = surveyReport.getDog().getRecommendRecipe();
+        Dog dog = surveyReport.getDog();
+        Recipe recommendRecipe = dog.getRecommendRecipe();
 
         String filename = recommendRecipe.getThumbnailImage().getFilename1();
 
@@ -68,8 +71,12 @@ public class SurveyReportService {
             recipeDtoList.add(recipeDto);
         }
 
+        Subscribe subscribe = dog.getSubscribe();
         SurveyResultResponseDto responseDto = SurveyResultResponseDto.builder()
-                .dogName(surveyReport.getDog().getName())
+                .dogId(dog.getId())
+                .dogName(dog.getName())
+                .subscribeId(subscribe.getId())
+                .subscribeStatus(subscribe.getStatus())
                 .recommendRecipeId(recommendRecipe.getId())
                 .recommendRecipeName(recommendRecipe.getName())
                 .recommendRecipeDescription(recommendRecipe.getDescription())

@@ -571,6 +571,85 @@ public class DogApiControllerTest extends BaseTest {
     }
 
     @Test
+    @DisplayName("설문조사 리포트의 결과 조회 하는 테스트")
+    public void querySurveyReportResult() throws Exception {
+       //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        SurveyReport surveyReport = generateSurveyReport(member);
+        Dog dog = surveyReport.getDog();
+
+       //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/dogs/{id}/surveyReportResult",dog.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("query_dog_surveyReportResult",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer jwt 토큰")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("강아지 id")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("dogId").description("강아지 id"),
+                                fieldWithPath("dogName").description("강아지 이름"),
+                                fieldWithPath("subscribeId").description("구독 id"),
+                                fieldWithPath("subscribeStatus").description("구독 상태 [BEFORE_PAYMENT, SUBSCRIBING, SUBSCRIBE_PENDING, ADMIN]"),
+                                fieldWithPath("recommendRecipeId").description("추천 레시피 id"),
+                                fieldWithPath("recommendRecipeName").description("추천 레시피 이름"),
+                                fieldWithPath("recommendRecipeDescription").description("추천 레시피 설명"),
+                                fieldWithPath("recommendRecipeImgUrl").description("추천 레시피 썸네일"),
+                                fieldWithPath("uiNameKorean").description("한글 ui 이름"),
+                                fieldWithPath("uiNameEnglish").description("영어 ui 이름"),
+                                fieldWithPath("foodAnalysis.oneDayRecommendKcal").description("하루 권장 칼로리"),
+                                fieldWithPath("foodAnalysis.oneDayRecommendGram").description("하루 권장 식사량"),
+                                fieldWithPath("foodAnalysis.oneMealRecommendGram").description("한끼 권장 식사량"),
+                                fieldWithPath("recipeDtoList[0].id").description("레시피 id"),
+                                fieldWithPath("recipeDtoList[0].name").description("레시피 이름"),
+                                fieldWithPath("recipeDtoList[0].description").description("레시피 설명"),
+                                fieldWithPath("recipeDtoList[0].pricePerGram").description("그램 당 가격"),
+                                fieldWithPath("recipeDtoList[0].gramPerKcal").description("칼로리 당 그램"),
+                                fieldWithPath("recipeDtoList[0].inStock").description("재고 여부 true/false"),
+                                fieldWithPath("recipeDtoList[0].imgUrl").description("썸네일 url"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+    }
+
+    @Test
+    @DisplayName("설문조사리포트 결과를 조회할 강아지가 없음 404")
+    public void querySurveyReportResult_dog_notFound() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        SurveyReport surveyReport = generateSurveyReport(member);
+        Dog dog = surveyReport.getDog();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/dogs/999999/surveyReportResult")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+
+    @Test
     @DisplayName("정상적으로 강아지 삭제")
     public void deleteDog() throws Exception {
        //given
@@ -762,11 +841,49 @@ public class DogApiControllerTest extends BaseTest {
                         .header(HttpHeaders.AUTHORIZATION, getUserToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto))
-                )
+                        .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isOk())
-        ;
+                .andDo(document("update_dog",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_surveyReport").description("설문조사 레포트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer jwt 토큰")
+                        ),
+                        requestFields(
+                                fieldWithPath("name").description("강아지 이름"),
+                                fieldWithPath("gender").description("강아지 성별 [MALE, FEMALE]"),
+                                fieldWithPath("birth").description("강아지 생월 'yyyyMM'"),
+                                fieldWithPath("oldDog").description("노견 여부 true/false"),
+                                fieldWithPath("dogType").description("강아지 종"),
+                                fieldWithPath("dogSize").description("강아지 체급 [LARGE, MIDDLE, SMALL]"),
+                                fieldWithPath("weight").description("강아지 몸무게"),
+                                fieldWithPath("neutralization").description("중성화 여부 true/false"),
+                                fieldWithPath("activityLevel").description("활동량 레벨 [VERY_LITTLE, LITTLE, NORMAL, MUCH, VERY_MUCH]"),
+                                fieldWithPath("walkingCountPerWeek").description("주 당 산책 횟수"),
+                                fieldWithPath("walkingTimePerOneTime").description("한 번 산책 할 때 산책 시간"),
+                                fieldWithPath("dogStatus").description("강아지 상태 [HEALTHY, NEED_DIET, OBESITY, PREGNANT, LACTATING]"),
+                                fieldWithPath("snackCountLevel").description("간식 먹는 정도 [LITTLE, NORMAL, MUCH]"),
+                                fieldWithPath("inedibleFood").description("못 먹는 음식 [없으면 'NONE', 기타일 경우 'ETC']"),
+                                fieldWithPath("inedibleFoodEtc").description("기타('ETC') 일 경우 못 먹는 음식 입력 [없으면 'NONE']"),
+                                fieldWithPath("recommendRecipeId").description("특별히 챙겨주고싶은 부분에 해당하는 레시피 id"),
+                                fieldWithPath("caution").description("기타 특이사항 [없으면 'NONE']")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_surveyReport.href").description("설문조사 레포트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
 
         em.flush();
         em.clear();
@@ -779,18 +896,17 @@ public class DogApiControllerTest extends BaseTest {
         assertThat(findDog.getWeight()).isEqualTo(new BigDecimal(weight));
         assertThat(findDog.getDogActivity().getWalkingCountPerWeek()).isEqualTo(Integer.valueOf(walkingCountPerWeek));
 
+        AgeAnalysis ageAnalysis = getAgeAnalysis(findDog.getStartAgeMonth());
         SnackAnalysis snackAnalysis = getSnackAnalysis(findDog);
         ActivityAnalysis activityAnalysis = getActivityAnalysis(findDog.getDogSize(), findDog);
         WeightAnalysis weightAnalysis = getWeightAnalysis(findDog.getDogSize(), findDog.getWeight());
-        AgeAnalysis ageAnalysis = getAgeAnalysis(findDog.getStartAgeMonth());
 
         Long surveyReportId = surveyReport.getId();
 
         SurveyReport findSurveyReport = surveyReportRepository.findById(surveyReportId).get();
-        AgeAnalysis findAgeAnalysis = findSurveyReport.getAgeAnalysis();
         assertThat(findSurveyReport.getAgeAnalysis().getAvgAgeMonth()).isEqualTo(ageAnalysis.getAvgAgeMonth());
-//        assertThat(findSurveyReport.getAgeAnalysis().getMyAgeGroup()).isEqualTo(ageAnalysis.getMyAgeGroup());
-//        assertThat(findSurveyReport.getAgeAnalysis().getMyStartAgeMonth()).isEqualTo(ageAnalysis.getMyStartAgeMonth());
+        assertThat(findSurveyReport.getAgeAnalysis().getMyAgeGroup()).isEqualTo(ageAnalysis.getMyAgeGroup());
+        assertThat(findSurveyReport.getAgeAnalysis().getMyStartAgeMonth()).isEqualTo(ageAnalysis.getMyStartAgeMonth());
 
         assertThat(findSurveyReport.getSnackAnalysis().getAvgSnackCountInLargeDog()).isEqualTo(snackAnalysis.getAvgSnackCountInLargeDog());
         assertThat(findSurveyReport.getSnackAnalysis().getMySnackCount()).isEqualTo(snackAnalysis.getMySnackCount());
@@ -801,7 +917,6 @@ public class DogApiControllerTest extends BaseTest {
         assertThat(findSurveyReport.getWeightAnalysis().getAvgWeight()).isEqualTo(weightAnalysis.getAvgWeight());
         assertThat(findSurveyReport.getWeightAnalysis().getMyWeightGroup()).isEqualTo(weightAnalysis.getMyWeightGroup());
         assertThat(findSurveyReport.getWeightAnalysis().getWeightInLastReport()).isEqualTo(weightAnalysis.getWeightInLastReport());
-
 
 
     }

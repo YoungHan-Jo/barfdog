@@ -6,6 +6,7 @@ import com.bi.barfdog.api.dogDto.QueryDogDto;
 import com.bi.barfdog.api.dogDto.QueryDogsDto;
 import com.bi.barfdog.api.dogDto.UpdateDogPictureDto;
 import com.bi.barfdog.api.surveyReportDto.SurveyReportResponseDto;
+import com.bi.barfdog.api.surveyReportDto.SurveyResultResponseDto;
 import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.dog.Dog;
@@ -111,6 +112,23 @@ public class DogApiController {
         return ResponseEntity.ok(collectionModel);
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity deleteDog(@PathVariable Long id) {
+        Optional<Dog> optionalDog = dogRepository.findById(id);
+        if (!optionalDog.isPresent()) return notFound();
+        Dog dog = optionalDog.get();
+        if(dog.isRepresentative()) return ResponseEntity.badRequest().build();
+
+        dogService.deleteDog(id);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(DogApiController.class).withSelfRel());
+        representationModel.add(linkTo(DogApiController.class).withRel("query_dogs"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-delete-dog").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
     @PostMapping("/picture/upload")
     public ResponseEntity uploadPicture(@RequestPart MultipartFile file) {
         if(file.isEmpty()) return ResponseEntity.badRequest().build();
@@ -195,8 +213,12 @@ public class DogApiController {
 
         dogService.updateDog(member, id, requestDto);
 
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(DogApiController.class).slash(id).withSelfRel());
+        representationModel.add(linkTo(DogApiController.class).slash(id).slash("surveyReport").withRel("query_surveyReport"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-dog").withRel("profile"));
 
-        return ResponseEntity.ok(null);
+        return ResponseEntity.ok(representationModel);
     }
 
     @GetMapping("/{id}/surveyReport")
@@ -218,22 +240,30 @@ public class DogApiController {
         return ResponseEntity.ok(entityModel);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity deleteDog(@PathVariable Long id) {
+    @GetMapping("/{id}/surveyReportResult")
+    public ResponseEntity querySurveyReportResult(@PathVariable Long id) {
         Optional<Dog> optionalDog = dogRepository.findById(id);
         if (!optionalDog.isPresent()) return notFound();
-        Dog dog = optionalDog.get();
-        if(dog.isRepresentative()) return ResponseEntity.badRequest().build();
+        SurveyReport surveyReport = optionalDog.get().getSurveyReport();
+        SurveyResultResponseDto responseDto = surveyReportService.getSurveyResultResponseDto(surveyReport.getId());
 
-        dogService.deleteDog(id);
+        EntityModel<SurveyResultResponseDto> entityModel = EntityModel.of(responseDto,
+                linkTo(DogApiController.class).slash(id).slash("surveyReportResult").withSelfRel(),
+                profileRootUrlBuilder.slash("index.html#resources-query-dog-surveyReportResult").withRel("profile")
+                );
 
-        RepresentationModel representationModel = new RepresentationModel();
-        representationModel.add(linkTo(DogApiController.class).withSelfRel());
-        representationModel.add(linkTo(DogApiController.class).withRel("query_dogs"));
-        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-delete-dog").withRel("profile"));
-
-        return ResponseEntity.ok(representationModel);
+        return ResponseEntity.ok(entityModel);
     }
+
+    @PutMapping("/{id}/subscribe")
+    public ResponseEntity updateSubscribe(@PathVariable Long id) {
+
+        return ResponseEntity.ok(null);
+    }
+
+
+
+
 
 
 

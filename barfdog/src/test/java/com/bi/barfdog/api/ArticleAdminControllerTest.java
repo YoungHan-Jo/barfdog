@@ -107,7 +107,6 @@ public class ArticleAdminControllerTest extends BaseTest {
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
-
     }
 
     private void generateArticle(int i) {
@@ -268,14 +267,14 @@ public class ArticleAdminControllerTest extends BaseTest {
     public void updateArticles_duplicateBlog_400() throws Exception {
         //given
 
-        Blog blog1 = generateBlog(1);
+        Blog blog = generateBlog(1);
 
-        generateArticle(1);
-        generateArticle(2);
+//        generateArticle(3);
+//        generateArticle(4);
 
         UpdateArticlesRequestDto requestDto = UpdateArticlesRequestDto.builder()
-                .firstBlogId(blog1.getId())
-                .secondBlogId(blog1.getId())
+                .firstBlogId(blog.getId())
+                .secondBlogId(blog.getId())
                 .build();
 
         //when & then

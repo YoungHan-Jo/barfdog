@@ -109,7 +109,7 @@ public class BlogApiControllerTest extends BaseTest {
                         .param("size", "5"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("page.totalElements").value(13))
+                .andExpect(jsonPath("page.totalElements").value(15))
                 .andDo(document("query_blogs",
                         links(
                                 linkWithRel("first").description("첫 페이지 링크"),
@@ -280,7 +280,7 @@ public class BlogApiControllerTest extends BaseTest {
                         .param("size", "5"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("page.totalElements").value(13));
+                .andExpect(jsonPath("page.totalElements").value(15));
 
     }
 

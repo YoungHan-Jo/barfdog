@@ -793,12 +793,28 @@ operation::update_representative_dog[snippets='curl-request,path-parameters,requ
 
 operation::query_dog[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
+[[resources-update-dog]]
+=== 강아지 설문조사 수정
+
+`PUT` 요청을 사용해서 해당 강아지의 설문조사를 수정할 수 있다.
+
+operation::update_dog[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+
 [[resources-query-dog-surveyReport]]
 === 강아지 설문조사 리포트 조회
 
 `GET` 요청을 사용해서 해당 강아지의 설문조사 리포트를 조회할 수 있다.
 
 operation::query_dog_surveyReport[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-query-dog-surveyReportResult]]
+=== 강아지 설문조사 리포트 결과 조회
+
+`GET` 요청을 사용해서 해당 강아지의 설문조사 리포트의 결과를 조회할 수 있다.
+
+operation::query_dog_surveyReportResult[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
 
 [[resources-delete-dog]]
 === 강아지 삭제

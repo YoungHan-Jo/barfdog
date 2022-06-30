@@ -486,7 +486,7 @@ public class BlogAdminControllerTest extends BaseTest {
                         .param("size", "5"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("page.totalElements").value(17))
+                .andExpect(jsonPath("page.totalElements").value(19))
                 .andDo(document("admin_query_blogs",
                         links(
                                 linkWithRel("first").description("첫 페이지 링크"),
@@ -942,7 +942,7 @@ public class BlogAdminControllerTest extends BaseTest {
     @DisplayName("삭제할 블로그가 아티클로 설정되어있을 경우 400")
     public void deleteBlog_isArticle_400() throws Exception {
         //given
-        createBlogsAndArticles();
+//        createBlogsAndArticles();
 
         Article article = articleRepository.findByNumber(1).get();
 
@@ -966,8 +966,8 @@ public class BlogAdminControllerTest extends BaseTest {
 
 
     private void createBlogsAndArticles() {
-        Blog blog1 = makeBlog(1);
-        Blog blog2 = makeBlog(2);
+        Blog blog1 = makeBlog(3);
+        Blog blog2 = makeBlog(4);
 
 
         Article article1 = Article.builder()

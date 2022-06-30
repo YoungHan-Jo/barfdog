@@ -21,8 +21,8 @@ public class GeneralOrder extends Order{
     private List<OrderItem> orderItemList = new ArrayList<>();
 
     @Builder
-    public GeneralOrder(Long id, String orderNumber, OrderStatus orderStatus, Member member, int orderPrice, int deliveryPrice, int discountTotal, int discountReward, int discountCoupon, int paymentPrice, int saveReward, boolean isSavedReward, PaymentMethod paymentMethod, Delivery delivery, List<OrderItem> orderItemList) {
-        super(id, orderNumber, orderStatus, member, orderPrice, deliveryPrice, discountTotal, discountReward, discountCoupon, paymentPrice, saveReward, isSavedReward, paymentMethod, delivery);
+    public GeneralOrder(Long id, String impUid, String merchantUid, OrderStatus orderStatus, Member member, int orderPrice, int deliveryPrice, int discountTotal, int discountReward, int discountCoupon, int paymentPrice, int saveReward, boolean isSavedReward, PaymentMethod paymentMethod, Delivery delivery, List<OrderItem> orderItemList) {
+        super(id, impUid, merchantUid, orderStatus, member, orderPrice, deliveryPrice, discountTotal, discountReward, discountCoupon, paymentPrice, saveReward, isSavedReward, paymentMethod, delivery);
         this.orderItemList = orderItemList;
     }
 

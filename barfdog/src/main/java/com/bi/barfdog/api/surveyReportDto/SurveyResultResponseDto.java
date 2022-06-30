@@ -1,6 +1,7 @@
 package com.bi.barfdog.api.surveyReportDto;
 
 import com.bi.barfdog.domain.recipe.Recipe;
+import com.bi.barfdog.domain.subscribe.SubscribeStatus;
 import com.bi.barfdog.domain.surveyReport.FoodAnalysis;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +17,10 @@ import java.util.List;
 @Builder
 public class SurveyResultResponseDto {
 
+    private Long dogId;
     private String dogName;
+    private Long subscribeId;
+    private SubscribeStatus subscribeStatus;
 
     private Long recommendRecipeId;
     private String recommendRecipeName;

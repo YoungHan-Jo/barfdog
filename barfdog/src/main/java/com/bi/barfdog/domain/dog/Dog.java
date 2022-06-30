@@ -11,6 +11,9 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 
 import static javax.persistence.FetchType.*;
 
@@ -102,6 +105,7 @@ public class Dog extends BaseTimeEntity {
         name = requestDto.getName();
         gender = requestDto.getGender();
         birth = requestDto.getBirth();
+        startAgeMonth = getTerm(requestDto.getBirth() + "01");
         oldDog = requestDto.isOldDog();
         dogType = requestDto.getDogType();
         dogSize = requestDto.getDogSize();
@@ -122,5 +126,19 @@ public class Dog extends BaseTimeEntity {
         this.recommendRecipe = recommendRecipe;
         caution = requestDto.getCaution();
 
+    }
+
+    public Long getTerm(String birthday) {
+        Long month = 0L;
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+            LocalDate startDate = LocalDate.parse(birthday, formatter);
+            LocalDate endDate = LocalDate.now();
+            month = ChronoUnit.MONTHS.between(startDate, endDate);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return month;
     }
 }

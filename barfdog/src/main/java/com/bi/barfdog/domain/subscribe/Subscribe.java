@@ -1,5 +1,6 @@
 package com.bi.barfdog.domain.subscribe;
 
+import com.bi.barfdog.api.subscribeDto.UpdateSubscribeDto;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.dog.Dog;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
@@ -33,6 +34,8 @@ public class Subscribe extends BaseTimeEntity {
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "order_id")
     private SubscribeOrder subscribeOrder;
+
+    private int subscribeCount;
 
     @Enumerated(EnumType.STRING)
     private SubscribePlan plan; // [FULL, HALF, TOPPING]
@@ -77,5 +80,10 @@ public class Subscribe extends BaseTimeEntity {
 
     public void writeReview() {
         this.writeableReview = false;
+    }
+
+    public void update(UpdateSubscribeDto requestDto) {
+        this.plan = requestDto.getPlan();
+        this.nextPaymentPrice = requestDto.getNextPaymentPrice();
     }
 }

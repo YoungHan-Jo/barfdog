@@ -195,7 +195,10 @@ public class SurveyReportApiControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
                         ),
                         responseFields(
+                                fieldWithPath("dogId").description("강아지 id"),
                                 fieldWithPath("dogName").description("강아지 이름"),
+                                fieldWithPath("subscribeId").description("구독 id"),
+                                fieldWithPath("subscribeStatus").description("구독 상태 [BEFORE_PAYMENT, SUBSCRIBING, SUBSCRIBE_PENDING, ADMIN]"),
                                 fieldWithPath("recommendRecipeId").description("추천 레시피 id"),
                                 fieldWithPath("recommendRecipeName").description("추천 레시피 이름"),
                                 fieldWithPath("recommendRecipeDescription").description("추천 레시피 설명"),
