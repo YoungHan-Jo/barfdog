@@ -2,6 +2,7 @@ package com.bi.barfdog.api.itemDto;
 
 import com.bi.barfdog.domain.coupon.DiscountType;
 import com.bi.barfdog.domain.item.ItemStatus;
+import com.bi.barfdog.domain.item.ItemType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +17,8 @@ import java.time.LocalDateTime;
 public class QueryItemsAdminDto {
 
     private Long id;
+
+    private ItemType itemType; // [RAW, TOPPING, GOODS]
 
     private String name;
 

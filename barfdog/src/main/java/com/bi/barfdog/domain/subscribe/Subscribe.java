@@ -31,10 +31,6 @@ public class Subscribe extends BaseTimeEntity {
     @OneToOne(mappedBy = "subscribe")
     private Dog dog;
 
-    @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "order_id")
-    private SubscribeOrder subscribeOrder;
-
     private int subscribeCount;
 
     @Enumerated(EnumType.STRING)
@@ -73,10 +69,6 @@ public class Subscribe extends BaseTimeEntity {
         this.dog = dog;
     }
 
-    public void setOrder(SubscribeOrder subscribeOrder) {
-        this.subscribeOrder = subscribeOrder;
-        this.subscribeOrder.setSubscribe(this);
-    }
 
     public void writeReview() {
         this.writeableReview = false;
@@ -86,4 +78,5 @@ public class Subscribe extends BaseTimeEntity {
         this.plan = requestDto.getPlan();
         this.nextPaymentPrice = requestDto.getNextPaymentPrice();
     }
+
 }

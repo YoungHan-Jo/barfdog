@@ -52,6 +52,8 @@ public class Item extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private ItemStatus status; // [LEAKED,HIDDEN]
 
+    private boolean isDeleted;
+
     public void update(ItemUpdateDto requestDto) {
         itemType = requestDto.getItemType();
         name = requestDto.getName();
@@ -66,5 +68,9 @@ public class Item extends BaseTimeEntity {
         contents = requestDto.getContents();
         deliveryFree = requestDto.isDeliveryFree();
         status = requestDto.getItemStatus();
+    }
+
+    public void delete() {
+        isDeleted = true;
     }
 }

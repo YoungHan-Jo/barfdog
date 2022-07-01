@@ -66,8 +66,10 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom{
                 "\t\tUNION\n" +
                 "\t\tSELECT s.subscribe_id AS id, r.recipe_id AS targetId, 'SUBSCRIBE' AS reviewType, r.filename1 AS imageUrl, '구독상품' AS title, o.created_date AS orderedDate\n" +
                 "\t\tFROM orders o\n" +
+                "\t\tJoin subscribe_order so\n" +
+                "\t\tON o.order_id = so.order_id\n" +
                 "\t\tJOIN subscribe s\n" +
-                "\t\tON o.order_id = s.order_id\n" +
+                "\t\tON so.subscribe_id = s.subscribe_id\n" +
                 "\t\tJOIN dog d\n" +
                 "\t\tON d.subscribe_id = s.subscribe_id\n" +
                 "\t\tJOIN recipe r\n" +

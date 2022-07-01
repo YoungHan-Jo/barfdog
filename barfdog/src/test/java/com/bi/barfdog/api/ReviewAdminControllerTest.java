@@ -2091,7 +2091,6 @@ public class ReviewAdminControllerTest extends BaseTest {
         Subscribe savedSubscribe = generateSubscribe();
 
         Order savedOrder = generateOrder(member, savedSubscribe);
-        savedSubscribe.setOrder((SubscribeOrder) savedOrder);
 
         Dog savedDog = generateDog(member, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE,
                 1, 1, SnackCountLevel.NORMAL, recipes.get(0));

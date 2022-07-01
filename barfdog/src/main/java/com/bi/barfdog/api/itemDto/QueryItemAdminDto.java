@@ -58,6 +58,8 @@ public class QueryItemAdminDto {
 
         private String contents; // 상세내용
 
+        private String itemIcons; // 상품 아이콘 "BEST,NEW"
+
         private boolean deliveryFree; // 배송비 무료 여부
 
         private ItemStatus status; // [LEAKED,HIDDEN]

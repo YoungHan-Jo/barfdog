@@ -20,7 +20,7 @@ import static javax.persistence.FetchType.*;
 @Entity
 public class SubscribeOrder extends Order{
 
-    @OneToOne(fetch = LAZY)
+    @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "subscribe_id")
     private Subscribe subscribe;
 
@@ -29,10 +29,9 @@ public class SubscribeOrder extends Order{
     private MemberCoupon memberCoupon;
 
     @Builder
-    public SubscribeOrder(Long id, String impUid, String merchantUid, OrderStatus orderStatus, Member member, int orderPrice, int deliveryPrice, int discountTotal, int discountReward, int discountCoupon, int paymentPrice, int saveReward, boolean isSavedReward, PaymentMethod paymentMethod, Delivery delivery, Subscribe subscribe, MemberCoupon memberCoupon) {
-        super(id, impUid, merchantUid, orderStatus, member, orderPrice, deliveryPrice, discountTotal, discountReward, discountCoupon, paymentPrice, saveReward, isSavedReward, paymentMethod, delivery);
+    public SubscribeOrder(Long id, String impUid, String merchantUid, OrderStatus orderStatus, Member member, int orderPrice, int deliveryPrice, int discountTotal, int discountReward, int discountCoupon, int paymentPrice, int saveReward, boolean isSavedReward, PaymentMethod paymentMethod, boolean isPackage, Delivery delivery, Subscribe subscribe) {
+        super(id, impUid, merchantUid, orderStatus, member, orderPrice, deliveryPrice, discountTotal, discountReward, discountCoupon, paymentPrice, saveReward, isSavedReward, paymentMethod, isPackage, delivery);
         this.subscribe = subscribe;
-        this.memberCoupon = memberCoupon;
     }
 
     public void setSubscribe(Subscribe subscribe) {

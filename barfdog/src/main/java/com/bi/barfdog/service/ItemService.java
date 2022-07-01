@@ -91,10 +91,7 @@ public class ItemService {
     @Transactional
     public void deleteItem(Long id) {
         Item item = itemRepository.findById(id).get();
-        itemOptionRepository.deleteByItem(item);
-        itemImageRepository.deleteByItem(item);
-        itemContentImageRepository.deleteByItem(item);
-        itemRepository.delete(item);
+        item.delete();
     }
 
 

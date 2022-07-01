@@ -50,6 +50,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
                         item.inStock,
                         item.remaining,
                         item.contents,
+                        item.itemIcons,
                         item.deliveryFree,
                         item.status
                         ))
@@ -64,6 +65,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
         List<QueryItemsAdminDto> result = queryFactory
                 .select(Projections.constructor(QueryItemsAdminDto.class,
                         item.id,
+                        item.itemType,
                         item.name,
                         item.itemIcons,
                         new CaseBuilder()
@@ -79,7 +81,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
                         item.createdDate
                 ))
                 .from(item)
-                .where(itemTypeEq(itemType))
+                .where(adminItemTypesEq(itemType))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .orderBy(item.createdDate.desc())
@@ -88,10 +90,27 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
         Long totalCount = queryFactory
                 .select(item.count())
                 .from(item)
-                .where(itemTypeEq(itemType))
+                .where(adminItemTypesEq(itemType))
                 .fetchOne();
 
         return new PageImpl<>(result, pageable, totalCount);
+    }
+
+    private BooleanExpression adminItemTypesEq(ItemType itemType) {
+        switch (itemType) {
+            case GOODS:
+                return item.itemType.eq(ItemType.GOODS).and(itemIsDeletedFalse());
+            case RAW:
+                return item.itemType.eq(ItemType.RAW).and(itemIsDeletedFalse());
+            case TOPPING:
+                return item.itemType.eq(ItemType.TOPPING).and(itemIsDeletedFalse());
+            default:
+                return itemIsDeletedFalse();
+        }
+    }
+
+    private BooleanExpression itemIsDeletedFalse() {
+        return item.isDeleted.eq(false);
     }
 
     @Override

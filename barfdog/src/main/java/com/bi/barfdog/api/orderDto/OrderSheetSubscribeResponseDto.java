@@ -1,6 +1,7 @@
 package com.bi.barfdog.api.orderDto;
 
 import com.bi.barfdog.domain.Address;
+import com.bi.barfdog.domain.subscribe.SubscribePlan;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,6 +16,10 @@ import java.util.List;
 @Builder
 public class OrderSheetSubscribeResponseDto {
 
+    private SubscribeDto subscribeDto;
+
+    private List<String> recipeNameList;
+
     private String name;
     private String email;
     private String phoneNumber;
@@ -27,4 +32,15 @@ public class OrderSheetSubscribeResponseDto {
     private int reward;
 
     private boolean brochure;
+
+    @Data
+    @AllArgsConstructor
+    public static class SubscribeDto {
+
+        private Long id;
+        private SubscribePlan plan;
+        private int nextPaymentPrice;
+
+    }
+
 }

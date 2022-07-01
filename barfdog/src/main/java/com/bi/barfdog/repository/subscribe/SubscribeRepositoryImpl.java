@@ -2,8 +2,11 @@ package com.bi.barfdog.repository.subscribe;
 
 import com.bi.barfdog.api.memberDto.MemberSubscribeAdminDto;
 import com.bi.barfdog.api.memberDto.QuerySubscribeAdminDto;
+import com.bi.barfdog.api.orderDto.OrderSheetSubscribeResponseDto;
 import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.domain.recipe.QRecipe;
 import com.bi.barfdog.domain.subscribe.Subscribe;
+import com.bi.barfdog.domain.subscribeRecipe.QSubscribeRecipe;
 import com.bi.barfdog.repository.subscribeRecipe.SubscribeRecipeRepository;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -18,7 +21,9 @@ import java.util.List;
 
 import static com.bi.barfdog.domain.dog.QDog.dog;
 import static com.bi.barfdog.domain.member.QMember.member;
+import static com.bi.barfdog.domain.recipe.QRecipe.*;
 import static com.bi.barfdog.domain.subscribe.QSubscribe.subscribe;
+import static com.bi.barfdog.domain.subscribeRecipe.QSubscribeRecipe.*;
 import static com.bi.barfdog.domain.surveyReport.QSurveyReport.surveyReport;
 
 @RequiredArgsConstructor
@@ -86,5 +91,31 @@ public class SubscribeRepositoryImpl implements SubscribeRepositoryCustom{
                 .where(subscribe.dog.member.eq(member).and(subscribe.writeableReview.isTrue()))
                 .fetch()
                 ;
+    }
+
+    @Override
+    public OrderSheetSubscribeResponseDto.SubscribeDto findOrderSheetSubscribeDtoById(Long subscribeId) {
+        return queryFactory
+                .select(Projections.constructor(OrderSheetSubscribeResponseDto.SubscribeDto.class,
+                        subscribe.id,
+                        subscribe.plan,
+                        subscribe.nextPaymentPrice
+                ))
+                .from(subscribe)
+                .where(subscribe.id.eq(subscribeId))
+                .fetchOne()
+                ;
+    }
+
+    @Override
+    public List<String> findRecipeNamesById(Long subscribeId) {
+        return queryFactory
+                .select(recipe.name)
+                .from(subscribeRecipe)
+                .join(subscribeRecipe.recipe, recipe)
+                .where(subscribeRecipe.subscribe.id.eq(subscribeId))
+                .fetch()
+                ;
+
     }
 }

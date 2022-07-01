@@ -194,6 +194,50 @@ public class ReviewApiControllerTest extends BaseTest {
     }
 
     @Test
+    @DisplayName("페이지 정보 없으면 0페이지 20개 조회")
+    public void queryWriteableReviews_noPage() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Item item1 = generateItem(1);
+        Item item2 = generateItem(2);
+        Item item3 = generateItem(3);
+        Item item4 = generateItem(4);
+
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item1, i);
+            generateItemImage(item2, i);
+            generateItemImage(item3, i);
+            generateItemImage(item4, i);
+        });
+
+        IntStream.range(1,4).forEach(i -> {
+            generateOrderItemsAndOrder(member, item3, item4);
+            generateOrderItemsAndOrder(admin, item1, item2);
+        });
+
+        IntStream.range(1,7).forEach(i -> {
+            generateWriteableReviewSubscribe(member);
+        });
+
+        em.flush();
+        em.clear();
+
+        //when & then
+        mockMvc.perform(get("/api/reviews/writeable")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("_embedded.queryWriteableReviewsDtoList", hasSize(12)))
+                .andExpect(jsonPath("page.totalElements").value(12));
+    }
+
+    @Test
     @DisplayName("정상적으로 리뷰 이미지 업로드")
     public void uploadImage() throws Exception {
        //given
@@ -1745,7 +1789,6 @@ public class ReviewApiControllerTest extends BaseTest {
         Subscribe savedSubscribe = generateSubscribe();
 
         Order savedOrder = generateOrder(member, savedSubscribe);
-        savedSubscribe.setOrder((SubscribeOrder) savedOrder);
 
         Dog savedDog = generateDog(member, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE,
                 1, 1, SnackCountLevel.NORMAL, recipes.get(0));

@@ -44,7 +44,8 @@ public class SubscribeApiController {
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(SubscribeApiController.class).slash(id).withSelfRel());
-        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-recommend-friend").withRel("profile"));
+        representationModel.add(linkTo(OrderApiController.class).slash("sheet/subscribe").slash(id).withRel("query_orderSheet_subscribe"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-query-subscribe").withRel("profile"));
 
         return ResponseEntity.ok(representationModel);
     }

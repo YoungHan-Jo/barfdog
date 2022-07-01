@@ -815,6 +815,15 @@ operation::query_dog_surveyReport[snippets='curl-request,path-parameters,request
 
 operation::query_dog_surveyReportResult[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
+[[resources-query-subscribe]]
+=== 구독정보 수정
+
+`PUT` 요청을 사용해서 구독정보를 수정할 수 있다.
+
+operation::update_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+
 
 [[resources-delete-dog]]
 === 강아지 삭제

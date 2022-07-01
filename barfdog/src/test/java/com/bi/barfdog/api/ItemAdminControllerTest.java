@@ -28,7 +28,6 @@ import javax.persistence.EntityManager;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.*;
@@ -612,6 +611,7 @@ public class ItemAdminControllerTest extends BaseTest {
                                 fieldWithPath("itemAdminDto.inStock").description("재고 여부 true/false"),
                                 fieldWithPath("itemAdminDto.remaining").description("잔여 수량"),
                                 fieldWithPath("itemAdminDto.contents").description("상세 내용"),
+                                fieldWithPath("itemAdminDto.itemIcons").description("상품 아이콘 (공백 없이/내용 없으면 빈 문자열) ex)['' or 'BEST' or 'NEW' or 'BEST,NEW']"),
                                 fieldWithPath("itemAdminDto.deliveryFree").description("배송비 무료 여부 true/false"),
                                 fieldWithPath("itemAdminDto.status").description("상품 노출 상태 [LEAKED,HIDDEN]"),
                                 fieldWithPath("itemOptionAdminDtoList[0].id").description("상품 옵션 인덱스 id"),
@@ -704,6 +704,7 @@ public class ItemAdminControllerTest extends BaseTest {
                         responseFields(
                                 fieldWithPath("_embedded.queryItemsAdminDtoList[0].id").description("상품 인덱스 id"),
                                 fieldWithPath("_embedded.queryItemsAdminDtoList[0].name").description("상품 이름"),
+                                fieldWithPath("_embedded.queryItemsAdminDtoList[0].itemType").description("상품 타입 [RAW, TOPPING, GOODS]"),
                                 fieldWithPath("_embedded.queryItemsAdminDtoList[0].itemIcons").description("상품 아이콘 (공백 없이/내용 없으면 빈 문자열) ex)['' or 'BEST' or 'NEW' or 'BEST,NEW']"),
                                 fieldWithPath("_embedded.queryItemsAdminDtoList[0].option").description("상품 옵션 존재 여부 true/false"),
                                 fieldWithPath("_embedded.queryItemsAdminDtoList[0].originalPrice").description("원가"),
@@ -740,10 +741,43 @@ public class ItemAdminControllerTest extends BaseTest {
 
     @Test
     @DisplayName("정상적으로 상품 리스트 topping 만 조회하는 테스트")
+    public void queryItems_HIDDEN() throws Exception {
+        //given
+        IntStream.range(1,7).forEach(i -> {
+            generateItemTopping(i, ItemStatus.LEAKED);
+            generateItemTopping(i, ItemStatus.HIDDEN);
+        });
+        IntStream.range(1,3).forEach(i -> {
+            generateItemGoods(i);
+        });
+
+
+        //when & then
+        mockMvc.perform(get("/api/admin/items")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("size","5")
+                        .param("page","1")
+                        .param("itemType","TOPPING"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("page.totalElements").value(12))
+        ;
+
+        em.flush();
+        em.clear();
+
+        List<Item> itemList = itemRepository.findAll();
+        assertThat(itemList.size()).isEqualTo(14);
+    }
+
+    @Test
+    @DisplayName("정상적으로 상품 리스트 topping 만 조회하는 테스트")
     public void queryItems_topping() throws Exception {
         //given
         IntStream.range(1,7).forEach(i -> {
-            generateItemTopping(i);
+            generateItemTopping(i, ItemStatus.LEAKED);
         });
         IntStream.range(1,3).forEach(i -> {
             generateItemGoods(i);
@@ -776,7 +810,7 @@ public class ItemAdminControllerTest extends BaseTest {
     public void queryItems_goods() throws Exception {
         //given
         IntStream.range(1,7).forEach(i -> {
-            generateItemTopping(i);
+            generateItemTopping(i, ItemStatus.LEAKED);
         });
         IntStream.range(1,3).forEach(i -> {
             generateItemGoods(i);
@@ -1628,15 +1662,8 @@ public class ItemAdminControllerTest extends BaseTest {
         em.flush();
         em.clear();
 
-        Optional<Item> optionalItem = itemRepository.findById(item.getId());
-        assertThat(optionalItem.isPresent()).isFalse();
-
-        List<ItemOption> allOptions = itemOptionRepository.findByItem(item);
-        assertThat(allOptions.size()).isEqualTo(0);
-        List<ItemImage> allImages = itemImageRepository.findByItem(item);
-        assertThat(allImages.size()).isEqualTo(0);
-        List<ItemContentImage> allContentImages = itemContentImageRepository.findByItem(item);
-        assertThat(allContentImages.size()).isEqualTo(0);
+        Item findItem = itemRepository.findById(item.getId()).get();
+        assertThat(findItem.isDeleted()).isTrue();
 
     }
 
@@ -1749,7 +1776,7 @@ public class ItemAdminControllerTest extends BaseTest {
         return itemRepository.save(item);
     }
 
-    private Item generateItemTopping(int i) {
+    private Item generateItemTopping(int i, ItemStatus status) {
         Item item = Item.builder()
                 .itemType(ItemType.TOPPING)
                 .name("상품" + i)
@@ -1762,7 +1789,7 @@ public class ItemAdminControllerTest extends BaseTest {
                 .remaining(999)
                 .contents("상세 내용" + i)
                 .deliveryFree(true)
-                .status(ItemStatus.LEAKED)
+                .status(status)
                 .build();
         return itemRepository.save(item);
     }
