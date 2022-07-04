@@ -13,7 +13,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -59,18 +58,18 @@ public class Member extends BaseTimeEntity {
     
     private int accumulatedAmount; // 누적 금액
 
-    private boolean subscribe; // 정기 구독 여부
+    private boolean isSubscribe; // 정기 구독 여부
 
     private int accumulatedSubscribe; // 누적 구독 수
 
-    private boolean brochure; // 브로슈어 받은적 있는지 여부
+    private boolean isBrochure; // 브로슈어 받은적 있는지 여부
 
     @Embedded
     private FirstReward firstReward;
 
     private LocalDateTime lastLoginDate;
 
-    private boolean withdrawal; // 탈퇴여부
+    private boolean isWithdrawal; // 탈퇴여부
 
     private String roles; // [USER,SUBSCRIBER,ADMIN] 띄워쓰기 없이
 
@@ -133,7 +132,7 @@ public class Member extends BaseTimeEntity {
     }
 
     public void withdrawal() {
-        withdrawal = true;
+        isWithdrawal = true;
         provider = "";
         providerId = "";
     }

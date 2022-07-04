@@ -108,7 +108,7 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
     }
 
     private BooleanExpression subscribeEq(PublishToGroupDto requestDto) {
-        return member.subscribe.eq(requestDto.isSubscribe());
+        return member.isSubscribe.eq(requestDto.isSubscribe());
     }
 
     @Override
@@ -122,7 +122,7 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
                         member.phoneNumber,
                         dog.name,
                         member.accumulatedAmount,
-                        member.subscribe,
+                        member.isSubscribe,
                         new CaseBuilder()
                                 .when(member.lastLoginDate.before(LocalDateTime.now().minusYears(1L))).then(true)
                                 .otherwise(false)
@@ -166,13 +166,13 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
                         member.birthday,
                         member.accumulatedAmount,
                         member.grade,
-                        member.subscribe,
+                        member.isSubscribe,
                         member.accumulatedSubscribe,
                         member.lastLoginDate,
                         new CaseBuilder()
                                 .when(member.lastLoginDate.before(LocalDateTime.now().minusYears(1L))).then(true)
                                 .otherwise(false),
-                        member.withdrawal
+                        member.isWithdrawal
                 ))
                 .from(member)
                 .where(member.id.eq(id))

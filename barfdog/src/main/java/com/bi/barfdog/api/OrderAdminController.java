@@ -4,6 +4,7 @@ import com.bi.barfdog.api.orderDto.OrderAdminCond;
 import com.bi.barfdog.api.orderDto.QueryAdminOrdersDto;
 import com.bi.barfdog.api.resource.AdminOrdersDtoResource;
 import com.bi.barfdog.common.ErrorsResource;
+import com.bi.barfdog.domain.order.Order;
 import com.bi.barfdog.repository.order.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,12 +17,11 @@ import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+
+import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
@@ -37,17 +37,39 @@ public class OrderAdminController {
     @GetMapping
     public ResponseEntity queryOrders(Pageable pageable,
                                       PagedResourcesAssembler<QueryAdminOrdersDto> assembler,
-                                      @ModelAttribute@Valid OrderAdminCond cond,
+                                      @ModelAttribute @Valid OrderAdminCond cond,
                                       BindingResult bindingResult) {
         if (bindingResult.hasErrors()) return badRequest(bindingResult);
 
         Page<QueryAdminOrdersDto> page = orderRepository.findAdminOrdersDto(pageable, cond);
 
         PagedModel<AdminOrdersDtoResource> pagedModel = assembler.toModel(page, e -> new AdminOrdersDtoResource(e));
+
         pagedModel.add(profileRootUrlBuilder.slash("index.html#resources-query-admin-orders").withRel("profile"));
 
         return ResponseEntity.ok(pagedModel);
     }
+
+    @GetMapping("/{id}/general")
+    public ResponseEntity queryGeneralOrder(@PathVariable Long id) {
+        Optional<Order> optionalOrder = orderRepository.findById(id);
+        if (!optionalOrder.isPresent()) return notFound();
+
+
+
+        return ResponseEntity.ok(null);
+    }
+
+    @GetMapping("/{id}/subscribe")
+    public ResponseEntity querySubscribeOrder(@PathVariable Long id) {
+        Optional<Order> optionalOrder = orderRepository.findById(id);
+        if (!optionalOrder.isPresent()) return notFound();
+
+
+
+        return ResponseEntity.ok(null);
+    }
+
 
 
 

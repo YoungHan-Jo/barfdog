@@ -4,6 +4,7 @@ import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.item.Item;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.domain.order.GeneralOrder;
+import com.bi.barfdog.domain.order.OrderStatus;
 import lombok.*;
 
 import javax.persistence.*;
@@ -37,7 +38,7 @@ public class OrderItem extends BaseTimeEntity {
     private int finalPrice;
 
     @Enumerated(EnumType.STRING)
-    private OrderItemStatus status;
+    private OrderStatus status;
 
     @Builder.Default
     private boolean writeableReview = true; //  true 일 때 리뷰 작성 가능

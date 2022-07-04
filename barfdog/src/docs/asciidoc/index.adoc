@@ -1339,3 +1339,15 @@ operation::query_coupons[snippets='curl-request,request-headers,request-paramete
 `PUT` 요청을 사용하여 쿠폰 코드를 등록해 쿠폰을 얻을 수 있다.
 
 operation::get_code_coupon[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-admin-order-info]]
+== 관리자 페이지 주문 배송 관리
+
+관리자 페이지 주문 배송 관리 관련 리소스.
+
+[[resources-query-admin-orders]]
+=== 주문 리스트 검색(페이징)
+
+`GET` 요청을 사용하여 페이징으로 조건에 맞는 주문 리스트를 조회할 수 있다.
+
+operation::query_admin_orders[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']

@@ -2,8 +2,6 @@ package com.bi.barfdog.repository.orderItem;
 
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.orderItem.OrderItem;
-import com.bi.barfdog.domain.orderItem.OrderItemStatus;
-import com.bi.barfdog.domain.orderItem.QOrderItem;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;

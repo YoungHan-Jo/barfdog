@@ -31,6 +31,6 @@ public class OrderAdminCond {
     @NotNull
     private OrderStatus status;
     @NotNull
-    private OrderType orderType; // ALL,GENERAL,SUBSCRIBE;
+    private OrderType orderType; // GENERAL,SUBSCRIBE;
 
 }

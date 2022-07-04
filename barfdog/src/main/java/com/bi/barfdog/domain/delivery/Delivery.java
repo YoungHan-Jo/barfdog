@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,7 +27,10 @@ public class Delivery extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private DeliveryStatus status;
 
-    private String request;
+    private String request; // 요청사항
+
+    private LocalDateTime departureDate; // 출발일
+    private LocalDateTime arrivalDate; // 도착일
 
 
 }

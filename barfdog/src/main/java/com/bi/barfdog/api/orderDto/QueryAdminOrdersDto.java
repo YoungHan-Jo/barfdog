@@ -15,7 +15,9 @@ import java.time.LocalDateTime;
 public class QueryAdminOrdersDto {
 
     private Long id;
+    private String orderType;
     private String merchantUid;
+    private Long orderItemId;
     private OrderStatus orderStatus;
     private LocalDateTime OrderDate;
     private String memberEmail;

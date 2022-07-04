@@ -1,7 +1,6 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.memberDto.DeleteMemberDto;
-import com.bi.barfdog.api.memberDto.MemberConditionToPublish;
 import com.bi.barfdog.api.memberDto.MemberUpdateRequestDto;
 import com.bi.barfdog.api.memberDto.UpdatePasswordRequestDto;
 import com.bi.barfdog.common.AppProperties;
@@ -25,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.hateoas.TemplateVariable.requestParameter;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;

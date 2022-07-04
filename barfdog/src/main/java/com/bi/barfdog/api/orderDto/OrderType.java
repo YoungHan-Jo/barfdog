@@ -3,7 +3,7 @@ package com.bi.barfdog.api.orderDto;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
 public enum OrderType {
-    ALL,GENERAL,SUBSCRIBE;
+    GENERAL,SUBSCRIBE;
 
     @JsonCreator
     public static OrderType from(String str) {

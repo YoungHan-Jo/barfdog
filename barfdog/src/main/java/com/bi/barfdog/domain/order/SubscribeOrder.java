@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
+import java.time.LocalDateTime;
+
 import static javax.persistence.FetchType.*;
 
 
@@ -29,9 +31,10 @@ public class SubscribeOrder extends Order{
     private MemberCoupon memberCoupon;
 
     @Builder
-    public SubscribeOrder(Long id, String impUid, String merchantUid, OrderStatus orderStatus, Member member, int orderPrice, int deliveryPrice, int discountTotal, int discountReward, int discountCoupon, int paymentPrice, int saveReward, boolean isSavedReward, PaymentMethod paymentMethod, boolean isPackage, Delivery delivery, Subscribe subscribe) {
-        super(id, impUid, merchantUid, orderStatus, member, orderPrice, deliveryPrice, discountTotal, discountReward, discountCoupon, paymentPrice, saveReward, isSavedReward, paymentMethod, isPackage, delivery);
+    public SubscribeOrder(Long id, String impUid, String merchantUid, OrderStatus orderStatus, Member member, int orderPrice, int deliveryPrice, int discountTotal, int discountReward, int discountCoupon, int paymentPrice, int saveReward, boolean isSavedReward, PaymentMethod paymentMethod, LocalDateTime orderConfirmDate, boolean isPackage, Delivery delivery, Subscribe subscribe, MemberCoupon memberCoupon) {
+        super(id, impUid, merchantUid, orderStatus, member, orderPrice, deliveryPrice, discountTotal, discountReward, discountCoupon, paymentPrice, saveReward, isSavedReward, paymentMethod, orderConfirmDate, isPackage, delivery);
         this.subscribe = subscribe;
+        this.memberCoupon = memberCoupon;
     }
 
     public void setSubscribe(Subscribe subscribe) {

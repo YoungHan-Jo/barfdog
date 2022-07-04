@@ -13,6 +13,10 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 public class AdminOrdersDtoResource extends EntityModel<QueryAdminOrdersDto> {
     public AdminOrdersDtoResource(QueryAdminOrdersDto dto, Link... links) {
         super(dto, Arrays.asList(links));
-        add(linkTo(OrderAdminController.class).slash(dto.getId()).withRel("query_order"));
+        if (dto.getOrderType().equals("general")) {
+            add(linkTo(OrderAdminController.class).slash(dto.getId()).slash("general").withRel("query_order"));
+        } else {
+            add(linkTo(OrderAdminController.class).slash(dto.getId()).slash("subscribe").withRel("query_order"));
+        }
     }
 }

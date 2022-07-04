@@ -7,6 +7,8 @@ import lombok.*;
 
 import javax.persistence.*;
 
+import java.time.LocalDateTime;
+
 import static javax.persistence.FetchType.*;
 
 @Getter
@@ -46,6 +48,8 @@ public abstract class Order extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod; // [CREDIT_CARD, NAVER_PAY, KAKAO_PAY]
+
+    private LocalDateTime orderConfirmDate;
 
     private boolean isPackage; // 묶음배송여부
 

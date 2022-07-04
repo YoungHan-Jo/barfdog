@@ -22,9 +22,9 @@ import com.bi.barfdog.domain.member.Gender;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.order.GeneralOrder;
 import com.bi.barfdog.domain.order.Order;
+import com.bi.barfdog.domain.order.OrderStatus;
 import com.bi.barfdog.domain.order.SubscribeOrder;
 import com.bi.barfdog.domain.orderItem.OrderItem;
-import com.bi.barfdog.domain.orderItem.OrderItemStatus;
 import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.review.*;
 import com.bi.barfdog.domain.reward.*;
@@ -1694,7 +1694,7 @@ public class IndexApiControllerTest extends BaseTest {
         OrderItem orderItem = OrderItem.builder()
                 .generalOrder(savedOrder)
                 .item(item1)
-                .status(OrderItemStatus.CONFIRM)
+                .status(OrderStatus.CONFIRM)
                 .build();
         orderItemRepository.save(orderItem);
     }
