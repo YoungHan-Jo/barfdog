@@ -35,7 +35,9 @@ public class OrderItem extends BaseTimeEntity {
     @JoinColumn(name = "member_coupon_id")
     private MemberCoupon memberCoupon; // 사용 쿠폰
 
-    private int finalPrice;
+    private int discountAmount;
+
+    private int finalPrice; // 옵션 포함 쿠폰적용 최종 가격
 
     @Enumerated(EnumType.STRING)
     private OrderStatus status;

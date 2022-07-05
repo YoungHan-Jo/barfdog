@@ -56,6 +56,10 @@ public class Subscribe extends BaseTimeEntity {
     @Builder.Default
     private boolean writeableReview = true; // status 가 SUBSCRIBING 이고 true 일 때 리뷰 가능
 
+    @OneToOne(fetch = LAZY)
+    @JoinColumn(name = "before_subscribe_id")
+    private BeforeSubscribe beforeSubscribe;
+
     /*
     * 연관관계 편의 메서드
     * */

@@ -1,30 +1,32 @@
 package com.bi.barfdog.api.orderDto;
 
 import com.bi.barfdog.domain.order.OrderStatus;
+import com.bi.barfdog.domain.subscribe.SubscribePlan;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class QueryAdminGeneralOrderDto {
+public class QueryAdminSubscribeOrderDto {
 
-    private OrderInfoDto orderInfoDto;
-    @Builder.Default
-    private List<OrderItemAndOptionDto> orderItemAndOptionDtoList = new ArrayList<>();
-    private PaymentDto paymentDto;
-    private DeliveryDto deliveryDto;
+    private SubscribeOrderInfoDto subscribeOrderInfoDto;
+    private DogDto dogDto;
+    private SubscribeDto subscribeDto;
+    private SubscribeDto beforeSubscribeDto;
+    private SubscribePaymentDto subscribePaymentDto;
+    private SubscribeDeliveryDto subscribeDeliveryDto;
 
     @Data
     @AllArgsConstructor
-    public static class OrderInfoDto {
+    public static class SubscribeOrderInfoDto {
 
         private Long id;
         private String merchantUid;
@@ -41,46 +43,45 @@ public class QueryAdminGeneralOrderDto {
 
     @Data
     @AllArgsConstructor
-    @Builder
-    public static class OrderItemAndOptionDto {
+    public static class DogDto {
 
-        private OrderItemDto orderItemDto;
-        @Builder.Default
-        private List<SelectOptionDto> selectOptionDtoList = new ArrayList<>();
-
-    }
-
-    @Data
-    @AllArgsConstructor
-    public static class OrderItemDto{
-
-        private Long orderItemId;
-        private String itemName;
-        private int amount; // 수량
-        private int finalPrice; // 옵션 쿠폰 적용 최종 금액
-        private String couponName; // 사용한 쿠폰 이름
-        private int discountAmount; // 쿠폰 적용 할인 금액
-        private OrderStatus status;
+        private String name;
+        private String inedibleFood;
+        private String inedibleFoodEtc; // 못먹는 음식 기타 일 때
+        private String caution; // 질병 및 주의사항
 
     }
 
     @Data
     @AllArgsConstructor
-    public static class SelectOptionDto {
+    public static class SubscribeDto {
+        private Long id;
+        private int subscribeCount;
+        private SubscribePlan plan; // [FULL, HALF, TOPPING]
+        private BigDecimal oneMealRecommendGram;
+        private String recipeName; // [ , 로 구분]
 
-        private String optionName;
-        private int price;
-        private int amount;
-
+        public void changeRecipeName(List<String> recipeNames) {
+            recipeName = recipeNames.get(0);
+            if (recipeNames.size() > 1) {
+                for (int i = 1; i < recipeNames.size(); ++i) {
+                    recipeName += "," + recipeNames.get(i);
+                }
+            }
+        }
     }
+
+
 
     @Data
     @AllArgsConstructor
-    public static class PaymentDto {
+    public static class SubscribePaymentDto {
 
         private int orderPrice; // 주문 가격
         private int deliveryPrice; // 배송비
         private int discountReward; // 사용한 적립금
+        private String couponName;
+        private int discountAmount; // 쿠폰 적용 할인 금액
         private int paymentPrice; // 결제 금액
         private OrderStatus orderStatus;
 
@@ -90,7 +91,7 @@ public class QueryAdminGeneralOrderDto {
 
     @Data
     @AllArgsConstructor
-    public static class DeliveryDto {
+    public static class SubscribeDeliveryDto {
 
         private String recipientName;
         private String recipientPhone;
@@ -104,14 +105,4 @@ public class QueryAdminGeneralOrderDto {
         private String deliveryNumber;
 
     }
-
-
-
-
-
-
-
-
-
-
 }

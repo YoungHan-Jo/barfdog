@@ -1,7 +1,9 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.orderDto.OrderAdminCond;
+import com.bi.barfdog.api.orderDto.QueryAdminGeneralOrderDto;
 import com.bi.barfdog.api.orderDto.QueryAdminOrdersDto;
+import com.bi.barfdog.api.orderDto.QueryAdminSubscribeOrderDto;
 import com.bi.barfdog.api.resource.AdminOrdersDtoResource;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.order.Order;
@@ -55,9 +57,14 @@ public class OrderAdminController {
         Optional<Order> optionalOrder = orderRepository.findById(id);
         if (!optionalOrder.isPresent()) return notFound();
 
+        QueryAdminGeneralOrderDto responseDto = orderRepository.findAdminGeneralOrderDto(id);
 
+        EntityModel<QueryAdminGeneralOrderDto> entityModel = EntityModel.of(responseDto,
+                linkTo(OrderAdminController.class).slash(id).slash("general").withSelfRel(),
+                profileRootUrlBuilder.slash("index.html#resources-query-admin-order-general").withRel("profile")
+        );
 
-        return ResponseEntity.ok(null);
+        return ResponseEntity.ok(entityModel);
     }
 
     @GetMapping("/{id}/subscribe")
@@ -65,9 +72,12 @@ public class OrderAdminController {
         Optional<Order> optionalOrder = orderRepository.findById(id);
         if (!optionalOrder.isPresent()) return notFound();
 
+        QueryAdminSubscribeOrderDto responseDto = orderRepository.findAdminSubscribeOrderDto(id);
+
+        EntityModel<QueryAdminSubscribeOrderDto> entityModel = EntityModel.of(responseDto);
 
 
-        return ResponseEntity.ok(null);
+        return ResponseEntity.ok(entityModel);
     }
 
 

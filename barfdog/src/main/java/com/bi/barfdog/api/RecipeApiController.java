@@ -100,7 +100,7 @@ public class RecipeApiController extends BaseTimeEntity {
         return ResponseEntity.ok(collectionModel);
     }
 
-    @GetMapping("{id}")
+    @GetMapping("/{id}")
     public ResponseEntity queryRecipe(@PathVariable Long id) {
         Optional<Recipe> optionalRecipe = recipeRepository.findById(id);
         if (!optionalRecipe.isPresent()) {

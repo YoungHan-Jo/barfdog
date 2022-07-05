@@ -1,5 +1,6 @@
 package com.bi.barfdog.api;
 
+import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.coupon.DiscountType;
@@ -7,6 +8,7 @@ import com.bi.barfdog.domain.delivery.Delivery;
 import com.bi.barfdog.domain.delivery.Recipient;
 import com.bi.barfdog.domain.dog.*;
 import com.bi.barfdog.domain.item.Item;
+import com.bi.barfdog.domain.item.ItemOption;
 import com.bi.barfdog.domain.item.ItemStatus;
 import com.bi.barfdog.domain.item.ItemType;
 import com.bi.barfdog.domain.member.Gender;
@@ -16,19 +18,30 @@ import com.bi.barfdog.domain.order.OrderStatus;
 import com.bi.barfdog.domain.order.PaymentMethod;
 import com.bi.barfdog.domain.order.SubscribeOrder;
 import com.bi.barfdog.domain.orderItem.OrderItem;
+import com.bi.barfdog.domain.orderItem.SelectOption;
+import com.bi.barfdog.domain.recipe.Recipe;
+import com.bi.barfdog.domain.setting.ActivityConstant;
+import com.bi.barfdog.domain.setting.Setting;
+import com.bi.barfdog.domain.setting.SnackConstant;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.domain.subscribe.SubscribePlan;
 import com.bi.barfdog.domain.subscribe.SubscribeStatus;
+import com.bi.barfdog.domain.surveyReport.*;
 import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.delivery.DeliveryRepository;
 import com.bi.barfdog.repository.dog.DogRepository;
+import com.bi.barfdog.repository.item.ItemOptionRepository;
 import com.bi.barfdog.repository.item.ItemRepository;
 import com.bi.barfdog.repository.member.MemberRepository;
 import com.bi.barfdog.repository.order.OrderRepository;
 import com.bi.barfdog.repository.orderItem.OrderItemRepository;
+import com.bi.barfdog.repository.orderItem.SelectOptionRepository;
 import com.bi.barfdog.repository.recipe.RecipeRepository;
+import com.bi.barfdog.repository.setting.SettingRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
 import com.bi.barfdog.repository.subscribeRecipe.SubscribeRecipeRepository;
+import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,9 +55,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.stream.IntStream;
 
+import static com.bi.barfdog.config.finalVariable.StandardVar.*;
+import static com.bi.barfdog.config.finalVariable.StandardVar.LACTATING;
+import static org.assertj.core.api.Assertions.*;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
@@ -52,8 +72,7 @@ import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.li
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
-import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
-import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
+import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -83,6 +102,14 @@ public class OrderAdminControllerTest extends BaseTest {
     ItemRepository itemRepository;
     @Autowired
     OrderItemRepository orderItemRepository;
+    @Autowired
+    ItemOptionRepository itemOptionRepository;
+    @Autowired
+    SelectOptionRepository selectOptionRepository;
+    @Autowired
+    SettingRepository settingRepository;
+    @Autowired
+    SurveyReportRepository surveyReportRepository;
 
     @Test
     @DisplayName("정상적으로 일반 주문 리스트 조회")
@@ -529,15 +556,92 @@ public class OrderAdminControllerTest extends BaseTest {
     @DisplayName("정상적으로 일반 주문 하나 조회")
     public void queryGeneralOrder() throws Exception {
        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-       //when & then
-        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/admin/orders/{id}/general")
+        GeneralOrder generalOrder = generateGeneralOrder(member, 1, OrderStatus.CONFIRM);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/admin/orders/{id}/general", generalOrder.getId())
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-        ;
+                .andExpect(jsonPath("orderItemAndOptionDtoList", hasSize(2)))
+                .andExpect(jsonPath("orderItemAndOptionDtoList[0].selectOptionDtoList", hasSize(1)))
+                .andExpect(jsonPath("orderItemAndOptionDtoList[1].selectOptionDtoList", hasSize(2)))
+                .andDo(document("query_admin_general_order",
+                        links(
+                                linkWithRel("self").description("현재 페이지 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("일반 주문 주문 id")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("orderInfoDto.id").description("주문 id"),
+                                fieldWithPath("orderInfoDto.merchantUid").description("주문 번호"),
+                                fieldWithPath("orderInfoDto.orderDate").description("주문 날짜"),
+                                fieldWithPath("orderInfoDto.orderType").description("주문 유형 ['general','subscribe'"),
+                                fieldWithPath("orderInfoDto.memberName").description("구매자 이름"),
+                                fieldWithPath("orderInfoDto.phoneNumber").description("구매자 연락처"),
+                                fieldWithPath("orderInfoDto.package").description("묶음배송 여부 true/false"),
+                                fieldWithPath("orderInfoDto.email").description("구매자 email"),
+                                fieldWithPath("orderInfoDto.subscribe").description("구독 여부 true/false"),
+                                fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.orderItemId").description("상품주문번호 id"),
+                                fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.itemName").description("상품 이름"),
+                                fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.amount").description("상품 수량"),
+                                fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.finalPrice").description("총 상품 금액"),
+                                fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.couponName").description("사용한 쿠폰 이름"),
+                                fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.discountAmount").description("쿠폰 할인 금액"),
+                                fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.status").description("주문한 상품 목록 하나 상태"),
+                                fieldWithPath("orderItemAndOptionDtoList[0].selectOptionDtoList[0].optionName").description("옵션 이름"),
+                                fieldWithPath("orderItemAndOptionDtoList[0].selectOptionDtoList[0].price").description("옵션 금액"),
+                                fieldWithPath("orderItemAndOptionDtoList[0].selectOptionDtoList[0].amount").description("옵션 개수"),
+                                fieldWithPath("paymentDto.orderPrice").description("상품 총 금액"),
+                                fieldWithPath("paymentDto.deliveryPrice").description("배달 요금"),
+                                fieldWithPath("paymentDto.discountReward").description("사용한 적립금"),
+                                fieldWithPath("paymentDto.paymentPrice").description("결제 금액"),
+                                fieldWithPath("paymentDto.orderStatus").description("주문 상태"),
+                                fieldWithPath("paymentDto.orderConfirmDate").description("구매 확정일"),
+                                fieldWithPath("deliveryDto.recipientName").description("수령자 이름"),
+                                fieldWithPath("deliveryDto.recipientPhone").description("수령자 휴대전화"),
+                                fieldWithPath("deliveryDto.zipcode").description("우편번호"),
+                                fieldWithPath("deliveryDto.street").description("도로명 주소"),
+                                fieldWithPath("deliveryDto.detailAddress").description("상세 주소"),
+                                fieldWithPath("deliveryDto.departureDate").description("배송 출발 시각"),
+                                fieldWithPath("deliveryDto.arrivalDate").description("배송 도착 시각"),
+                                fieldWithPath("deliveryDto.deliveryNumber").description("운송장 번호"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+    }
+
+    @Test
+    @DisplayName("조회할 일반상품이 없음")
+    public void queryGeneralOrder_notfound() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        GeneralOrder generalOrder = generateGeneralOrder(member, 1, OrderStatus.CONFIRM);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/admin/orders/999999/general")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
     }
 
 
@@ -546,8 +650,13 @@ public class OrderAdminControllerTest extends BaseTest {
     public void querySubscribeOrder() throws Exception {
         //given
 
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        generateSurveyReport(member);
+
+
         //when & then
-        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/admin/orders/{id}/subscribe")
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/admin/orders/{id}/subscribe", subscribeOrder.getId())
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
@@ -566,6 +675,85 @@ public class OrderAdminControllerTest extends BaseTest {
 
 
 
+
+
+    private SurveyReport generateSurveyReport(Member member) {
+
+        Recipe recipe = recipeRepository.findAll().get(0);
+
+        DogSaveRequestDto requestDto = DogSaveRequestDto.builder()
+                .name("김바프")
+                .gender(Gender.MALE)
+                .birth("202102")
+                .oldDog(false)
+                .dogType("포메라니안")
+                .dogSize(DogSize.SMALL)
+                .weight("3.5")
+                .neutralization(true)
+                .activityLevel(ActivityLevel.NORMAL)
+                .walkingCountPerWeek("10")
+                .walkingTimePerOneTime("1.1")
+                .dogStatus(DogStatus.HEALTHY)
+                .snackCountLevel(SnackCountLevel.NORMAL)
+                .inedibleFood("NONE")
+                .inedibleFoodEtc("NONE")
+                .recommendRecipeId(recipe.getId())
+                .caution("NONE")
+                .build();
+
+        List<Dog> dogs = dogRepository.findByMember(member);
+        Recipe findRecipe = recipeRepository.findById(requestDto.getRecommendRecipeId()).get();
+
+        String birth = requestDto.getBirth();
+
+        Subscribe subscribe = Subscribe.builder()
+                .status(SubscribeStatus.BEFORE_PAYMENT)
+                .build();
+        subscribeRepository.save(subscribe);
+
+        DogSize dogSize = requestDto.getDogSize();
+        Long startAgeMonth = getTerm(birth + "01");
+        boolean oldDog = requestDto.isOldDog();
+        boolean neutralization = requestDto.isNeutralization();
+        DogStatus dogStatus = requestDto.getDogStatus();
+        SnackCountLevel snackCountLevel = requestDto.getSnackCountLevel();
+        BigDecimal weight = new BigDecimal(requestDto.getWeight());
+
+        Dog dog = Dog.builder()
+                .member(member)
+                .representative(dogs.size() == 0 ? true : false)
+                .name(requestDto.getName())
+                .gender(requestDto.getGender())
+                .birth(birth)
+                .startAgeMonth(startAgeMonth)
+                .oldDog(oldDog)
+                .dogType(requestDto.getDogType())
+                .dogSize(dogSize)
+                .weight(weight)
+                .neutralization(neutralization)
+                .dogActivity(getDogActivity(requestDto))
+                .dogStatus(dogStatus)
+                .snackCountLevel(snackCountLevel)
+                .inedibleFood(requestDto.getInedibleFood())
+                .inedibleFoodEtc(requestDto.getInedibleFoodEtc())
+                .recommendRecipe(findRecipe)
+                .caution(requestDto.getCaution())
+                .subscribe(subscribe)
+                .build();
+        dogRepository.save(dog);
+
+        SurveyReport surveyReport = SurveyReport.builder()
+                .dog(dog)
+                .ageAnalysis(getAgeAnalysis(startAgeMonth))
+                .weightAnalysis(getWeightAnalysis(dogSize, weight))
+                .activityAnalysis(getActivityAnalysis(dogSize, dog))
+                .walkingAnalysis(getWalkingAnalysis(member, dog))
+                .foodAnalysis(getDogAnalysis(requestDto, findRecipe, dogSize, startAgeMonth, oldDog, neutralization, dogStatus, requestDto.getActivityLevel(), snackCountLevel))
+                .snackAnalysis(getSnackAnalysis(dog))
+                .build();
+        surveyReportRepository.save(surveyReport);
+        return surveyReport;
+    }
 
 
 
@@ -575,25 +763,37 @@ public class OrderAdminControllerTest extends BaseTest {
         GeneralOrder generalOrder = GeneralOrder.builder()
                 .impUid("imp_uid" + i)
                 .merchantUid("merchant_uid" + i)
-                .orderStatus(com.bi.barfdog.domain.order.OrderStatus.DELIVERY_READY)
+                .orderStatus(orderstatus)
                 .member(member)
                 .orderPrice(120000)
                 .deliveryPrice(0)
-                .discountTotal(0)
-                .discountReward(0)
+                .discountTotal(10000)
+                .discountReward(10000)
                 .discountCoupon(0)
-                .paymentPrice(120000)
+                .paymentPrice(110000)
                 .saveReward(1200)
                 .isSavedReward(false)
                 .paymentMethod(PaymentMethod.CREDIT_CARD)
                 .isPackage(false)
                 .delivery(delivery)
+                .orderConfirmDate(LocalDateTime.now().minusHours(3))
                 .build();
 
         IntStream.range(1,3).forEach(j -> {
             Item item = generateItem(j);
+            generateOption(item, j);
 
-            generateOrderItem(generalOrder, j, item, orderstatus);
+            OrderItem orderItem = generateOrderItem(generalOrder, j, item, orderstatus);
+
+            IntStream.range(1,j+1).forEach(k -> {
+                SelectOption selectOption = SelectOption.builder()
+                        .orderItem(orderItem)
+                        .name("옵션" + k)
+                        .price(1000 * k)
+                        .amount(k)
+                        .build();
+                selectOptionRepository.save(selectOption);
+            });
 
         });
 
@@ -601,7 +801,7 @@ public class OrderAdminControllerTest extends BaseTest {
         return orderRepository.save(generalOrder);
     }
 
-    private void generateOrderItem(GeneralOrder generalOrder, int j, Item item, OrderStatus orderStatus) {
+    private OrderItem generateOrderItem(GeneralOrder generalOrder, int j, Item item, OrderStatus orderStatus) {
         OrderItem orderItem = OrderItem.builder()
                 .generalOrder(generalOrder)
                 .item(item)
@@ -610,7 +810,7 @@ public class OrderAdminControllerTest extends BaseTest {
                 .finalPrice(item.getSalePrice() * j)
                 .status(orderStatus)
                 .build();
-        orderItemRepository.save(orderItem);
+        return orderItemRepository.save(orderItem);
     }
 
     private Item generateItem(int i) {
@@ -633,7 +833,17 @@ public class OrderAdminControllerTest extends BaseTest {
         return itemRepository.save(item);
     }
 
-    private void generateSubscribeOrder(Member member, int i, OrderStatus orderStatus) {
+    private ItemOption generateOption(Item item, int i) {
+        ItemOption itemOption = ItemOption.builder()
+                .item(item)
+                .name("옵션" + i)
+                .optionPrice(i * 1000)
+                .remaining(999)
+                .build();
+        return itemOptionRepository.save(itemOption);
+    }
+
+    private SubscribeOrder generateSubscribeOrder(Member member, int i, OrderStatus orderStatus) {
         Delivery delivery = generateDelivery(member, i);
         Dog dog = generateDog(member, i, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
 
@@ -666,9 +876,7 @@ public class OrderAdminControllerTest extends BaseTest {
                 .delivery(delivery)
                 .subscribe(subscribe)
                 .build();
-        orderRepository.save(subscribeOrder);
-
-
+        return orderRepository.save(subscribeOrder);
     }
 
     private Delivery generateDelivery(Member member, int i) {
@@ -681,6 +889,8 @@ public class OrderAdminControllerTest extends BaseTest {
                         .street(member.getAddress().getStreet())
                         .detailAddress(member.getAddress().getDetailAddress())
                         .build())
+                .departureDate(LocalDateTime.now().minusDays(4))
+                .arrivalDate(LocalDateTime.now().minusDays(1))
                 .build();
         deliveryRepository.save(delivery);
         return delivery;
@@ -701,6 +911,411 @@ public class OrderAdminControllerTest extends BaseTest {
                 .snackCountLevel(snackCountLevel)
                 .build();
         return dogRepository.save(dog);
+    }
+
+
+
+
+    private SnackAnalysis getSnackAnalysis(Dog dog) {
+        double avgSnackCountInLargeDog = getAvgSnackByDogSize(DogSize.LARGE);
+        double avgSnackCountInMiddleDog = getAvgSnackByDogSize(DogSize.MIDDLE);
+        double avgSnackCountInSmallDog = getAvgSnackByDogSize(DogSize.SMALL);
+
+        int mySnackCount = getMySnackCount(dog);
+
+        SnackAnalysis snackAnalysis = SnackAnalysis.builder()
+                .avgSnackCountInLargeDog(avgSnackCountInLargeDog)
+                .avgSnackCountInMiddleDog(avgSnackCountInMiddleDog)
+                .avgSnackCountInSmallDog(avgSnackCountInSmallDog)
+                .mySnackCount(mySnackCount)
+                .build();
+        return snackAnalysis;
+    }
+
+    private int getMySnackCount(Dog dog) {
+        int mySnackCount;
+
+        switch (dog.getSnackCountLevel()) {
+            case LITTLE: mySnackCount = 1;
+                break;
+            case NORMAL: mySnackCount = 2;
+                break;
+            default: mySnackCount = 3;
+                break;
+        }
+
+        return mySnackCount;
+    }
+
+    private double getAvgSnackByDogSize(DogSize dogSize) {
+        List<String> snackGroupByDogSize = dogRepository.findSnackGroupByDogSize(dogSize);
+
+        double sum = 0.0;
+
+        for (String s : snackGroupByDogSize) {
+            double d = Double.valueOf(s);
+            sum += d;
+        }
+        return Math.round(sum / snackGroupByDogSize.size() * 10.0) / 10.0;
+    }
+
+    private WalkingAnalysis getWalkingAnalysis(Member member, Dog dog) {
+        List<Long> ranks = dogRepository.findRanksById(dog.getId());
+        int rank = 1;
+        for (Long id : ranks) {
+            if (id == dog.getId()) {
+                break;
+            }
+            rank++;
+        }
+
+        double highRankPercent = Math.round((double) rank / ranks.size() * 1000.0) / 10.0;
+
+        double totalWalkingTime = dog.getDogActivity().getWalkingTimePerOneTime() * dog.getDogActivity().getWalkingCountPerWeek();
+        double avgWalkingTimeInCity = dogRepository.findAvgTotalWalkingTimeByCity(member.getAddress().getCity());
+        double avgTotalWalkingTimeByAge = dogRepository.findAvgTotalWalkingTimeByAge(Math.floor(dog.getStartAgeMonth() / 12));
+        double avgWalkingTimeInDogSize = dogRepository.findAvgTotalWalkingTimeByDogSize(dog.getDogSize());
+
+        WalkingAnalysis walkingAnalysis = WalkingAnalysis.builder()
+                .highRankPercent(highRankPercent)
+                .walkingCountPerWeek(dog.getDogActivity().getWalkingCountPerWeek())
+                .totalWalingTime(Math.round(totalWalkingTime * 10.0) / 10.0)
+                .avgWalkingTimeInCity(Math.round(avgWalkingTimeInCity * 10.0) / 10.0)
+                .avgWalkingTimeInAge(Math.round(avgTotalWalkingTimeByAge * 10.0) / 10.0)
+                .avgWalkingTimeInDogSize(Math.round(avgWalkingTimeInDogSize * 10.0) / 10.0)
+                .build();
+        return walkingAnalysis;
+    }
+
+    private ActivityAnalysis getActivityAnalysis(DogSize dogSize, Dog dog) {
+        List<String> activityGroup = dogRepository.findActivityGroupByDogSize(dogSize);
+
+        int activityGroupOneCount = 0;
+        int activityGroupTwoCount = 0;
+        int activityGroupThreeCount = 0;
+        int activityGroupFourCount = 0;
+        int activityGroupFiveCount = 0;
+
+        double sum = 0.0;
+
+        for (String s : activityGroup) {
+            switch (s) {
+                case "1": activityGroupOneCount++;
+                    break;
+                case "2": activityGroupTwoCount++;
+                    break;
+                case "3": activityGroupThreeCount++;
+                    break;
+                case "4": activityGroupFourCount++;
+                    break;
+                case "5": activityGroupFiveCount++;
+                    break;
+                default:
+                    break;
+            }
+            sum += Double.valueOf(s);
+        }
+
+        ActivityLevel avgActivityLevel = getAvgActivityLevel(activityGroup, sum);
+
+        int myActivityGroup = getMyActivityGroup(dog);
+
+        ActivityAnalysis activityAnalysis = ActivityAnalysis.builder()
+                .avgActivityLevel(avgActivityLevel)
+                .activityGroupOneCount(activityGroupOneCount)
+                .activityGroupTwoCount(activityGroupTwoCount)
+                .activityGroupThreeCount(activityGroupThreeCount)
+                .activityGroupFourCount(activityGroupFourCount)
+                .activityGroupFiveCount(activityGroupFiveCount)
+                .myActivityGroup(myActivityGroup)
+                .build();
+        return activityAnalysis;
+    }
+
+    private ActivityLevel getAvgActivityLevel(List<String> activityGroup, double sum) {
+        ActivityLevel avgActivityLevel;
+
+        int round = (int) Math.round(sum / activityGroup.size());
+        switch (round) {
+            case 1:
+                avgActivityLevel = ActivityLevel.VERY_LITTLE;
+                break;
+            case 2:
+                avgActivityLevel = ActivityLevel.LITTLE;
+                break;
+            case 3:
+                avgActivityLevel = ActivityLevel.NORMAL;
+                break;
+            case 4:
+                avgActivityLevel = ActivityLevel.MUCH;
+                break;
+            default:
+                avgActivityLevel = ActivityLevel.VERY_MUCH;
+                break;
+        }
+        return avgActivityLevel;
+    }
+
+    private int getMyActivityGroup(Dog dog) {
+        int myActivityGroup;
+
+        switch (dog.getDogActivity().getActivityLevel()) {
+            case VERY_LITTLE: myActivityGroup = 1;
+                break;
+            case LITTLE: myActivityGroup = 2;
+                break;
+            case NORMAL: myActivityGroup = 3;
+                break;
+            case MUCH: myActivityGroup = 4;
+                break;
+            default: myActivityGroup = 5;
+                break;
+        }
+        return myActivityGroup;
+    }
+
+    private WeightAnalysis getWeightAnalysis(DogSize dogSize, BigDecimal weight) {
+        double avgWeightByDogSize = dogRepository.findAvgWeightByDogSize(dogSize);
+
+        double avgWeight = Math.round(avgWeightByDogSize * 10.0) / 10.0;
+
+        double fattestWeightByDogSize = dogRepository.findFattestWeightByDogSize(dogSize);
+        double lightestWeight = dogRepository.findLightestWeightByDogSize(dogSize);
+
+        double weightRange = Math.round(((fattestWeightByDogSize-lightestWeight)/5.0) * 10.0) / 10.0;
+
+        List<String> weightGroup = dogRepository.findWeightGroupByDogSize(dogSize, lightestWeight, weightRange);
+
+        int weightGroupOneCount = 0;
+        int weightGroupTwoCount = 0;
+        int weightGroupThreeCount = 0;
+        int weightGroupFourCount = 0;
+        int weightGroupFiveCount = 0;
+
+        for (String s : weightGroup) {
+            switch (s) {
+                case "1": weightGroupOneCount++;
+                    break;
+                case "2": weightGroupTwoCount++;
+                    break;
+                case "3": weightGroupThreeCount++;
+                    break;
+                case "4": weightGroupFourCount++;
+                    break;
+                case "5": weightGroupFiveCount++;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        int myWeightGroup = getMyWeightGroup(weight, lightestWeight, weightRange);
+
+        WeightAnalysis weightAnalysis = WeightAnalysis.builder()
+                .avgWeight(avgWeight)
+                .weightGroupOneCount(weightGroupOneCount)
+                .weightGroupTwoCount(weightGroupTwoCount)
+                .weightGroupThreeCount(weightGroupThreeCount)
+                .weightGroupFourCount(weightGroupFourCount)
+                .weightGroupFiveCount(weightGroupFiveCount)
+                .myWeightGroup(myWeightGroup)
+                .weightInLastReport(weight)
+                .build();
+
+        return weightAnalysis;
+    }
+
+    private int getMyWeightGroup(BigDecimal weight, double lightestWeight, double weightRange) {
+        int myWeightGroup;
+
+        if (includedInRange(weight, lightestWeight + weightRange)) {
+            myWeightGroup = 1;
+        } else if(includedInRange(weight, lightestWeight + weightRange * 2.0)) {
+            myWeightGroup = 2;
+        } else if(includedInRange(weight, lightestWeight + weightRange * 3.0)) {
+            myWeightGroup = 3;
+        } else if (includedInRange(weight, lightestWeight + weightRange * 4.0)) {
+            myWeightGroup = 4;
+        } else {
+            myWeightGroup = 5;
+        }
+        return myWeightGroup;
+    }
+
+    private boolean includedInRange(BigDecimal weight, double weightRange) {
+        int compare = weight.compareTo(BigDecimal.valueOf(weightRange));
+
+        if (compare <= 0) {
+            return true;
+        }
+        return false;
+    }
+
+    private AgeAnalysis getAgeAnalysis(Long startAgeMonth) {
+        double avgAgeMonth = dogRepository.findAvgStartAgeMonth();
+
+        int oldestMonth = dogRepository.findOldestMonth();
+
+        long monthRange = Math.round(oldestMonth / 5.0);
+
+        int avgMonth = (int) Math.round(avgAgeMonth);
+
+        List<String> ageGroup = dogRepository.findAgeGroup(monthRange);
+
+        int ageGroupOneCount = 0;
+        int ageGroupTwoCount = 0;
+        int ageGroupThreeCount = 0;
+        int ageGroupFourCount = 0;
+        int ageGroupFiveCount = 0;
+
+        for (String s : ageGroup) {
+            switch (s) {
+                case "1": ageGroupOneCount++;
+                    break;
+                case "2": ageGroupTwoCount++;
+                    break;
+                case "3": ageGroupThreeCount++;
+                    break;
+                case "4": ageGroupFourCount++;
+                    break;
+                case "5": ageGroupFiveCount++;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        int myAgeGroup = getMyAgeGroup(startAgeMonth, monthRange);
+
+        AgeAnalysis ageAnalysis = AgeAnalysis.builder()
+                .avgAgeMonth(avgMonth)
+                .ageGroupOneCount(ageGroupOneCount)
+                .ageGroupTwoCount(ageGroupTwoCount)
+                .ageGroupThreeCount(ageGroupThreeCount)
+                .ageGroupFourCount(ageGroupFourCount)
+                .ageGroupFiveCount(ageGroupFiveCount)
+                .myAgeGroup(myAgeGroup)
+                .myStartAgeMonth(startAgeMonth)
+                .build();
+        return ageAnalysis;
+    }
+
+    private int getMyAgeGroup(Long startAgeMonth, long monthRange) {
+        int myAgeGroup;
+
+        if (startAgeMonth < monthRange) {
+            myAgeGroup = 1;
+        } else if (startAgeMonth < monthRange * 2) {
+            myAgeGroup = 2;
+        } else if (startAgeMonth < monthRange * 3) {
+            myAgeGroup = 3;
+        } else if (startAgeMonth < monthRange * 4) {
+            myAgeGroup = 4;
+        } else {
+            myAgeGroup = 5;
+        }
+        return myAgeGroup;
+    }
+
+    private DogActivity getDogActivity(DogSaveRequestDto requestDto) {
+        return new DogActivity(requestDto.getActivityLevel(), Integer.valueOf(requestDto.getWalkingCountPerWeek()), Double.valueOf(requestDto.getWalkingTimePerOneTime()));
+    }
+
+    private FoodAnalysis getDogAnalysis(DogSaveRequestDto requestDto, Recipe recipe, DogSize dogSize, Long startAge, boolean oldDog, boolean neutralization, DogStatus dogStatus, ActivityLevel activityLevel, SnackCountLevel snackCountLevel) {
+        BigDecimal rootVar = BigDecimal.valueOf(70.0);
+        BigDecimal standardVar = getStandardVar(dogSize, startAge, oldDog, neutralization, dogStatus);
+
+        BigDecimal rootXWeightX075 = rootVar.multiply(BigDecimal.valueOf(Math.pow(new Double(requestDto.getWeight()), 0.75)));
+
+        Setting setting = settingRepository.findAll().get(0);
+        ActivityConstant activityConstant = setting.getActivityConstant();
+        SnackConstant snackConstant = setting.getSnackConstant();
+
+        BigDecimal activityVar = getActivityVar(activityLevel, activityConstant);
+
+        BigDecimal snackVar = getSnackVar(snackCountLevel, snackConstant);
+
+        BigDecimal recommendKcal = rootXWeightX075.multiply(standardVar.multiply(activityVar.multiply(snackVar))).divide(BigDecimal.valueOf(10000.0))
+                .setScale(4, BigDecimal.ROUND_HALF_UP);
+
+        BigDecimal gramPerKcal = recipe.getGramPerKcal();
+
+        BigDecimal oneDayRecommendGram = gramPerKcal.multiply(recommendKcal).setScale(0,BigDecimal.ROUND_HALF_UP);
+
+        BigDecimal oneMealRecommendGram = oneDayRecommendGram.divide(BigDecimal.valueOf(2)).setScale(0,BigDecimal.ROUND_HALF_UP);
+
+        FoodAnalysis foodAnalysis = new FoodAnalysis(recommendKcal, oneDayRecommendGram, oneMealRecommendGram);
+        return foodAnalysis;
+    }
+
+    private BigDecimal getSnackVar(SnackCountLevel snackCountLevel, SnackConstant snackConstant) {
+        switch (snackCountLevel) {
+            case LITTLE: return BigDecimal.valueOf(100.0).add(snackConstant.getSnackLittle());
+            case NORMAL: return BigDecimal.valueOf(100.0);
+            case MUCH: return BigDecimal.valueOf(100.0).subtract(snackConstant.getSnackMuch());
+            default: return BigDecimal.valueOf(0);
+        }
+    }
+
+    private BigDecimal getActivityVar(ActivityLevel activityLevel, ActivityConstant activityConstant) {
+        switch (activityLevel) {
+            case VERY_LITTLE: return BigDecimal.valueOf(100.0).subtract(activityConstant.getActivityVeryLittle());
+            case LITTLE: return BigDecimal.valueOf(100.0).subtract(activityConstant.getActivityLittle());
+            case NORMAL: return BigDecimal.valueOf(100.0);
+            case MUCH: return BigDecimal.valueOf(100.0).add(activityConstant.getActivityMuch());
+            case VERY_MUCH: return BigDecimal.valueOf(100.0).add(activityConstant.getActivityVeryMuch());
+            default: return BigDecimal.valueOf(0);
+        }
+    }
+
+    private BigDecimal getStandardVar(DogSize dogSize, Long age, boolean oldDog, boolean neutralization, DogStatus dogStatus) {
+        BigDecimal var;
+
+        if (oldDog == false) {
+            if (dogSize == DogSize.LARGE) { // 대형견
+                if (age <= 18L) { // 어린 개
+                    var = BigDecimal.valueOf(YOUNG_DOG);
+                } else{
+                    var = switchDogStatus(neutralization, dogStatus);
+                }
+            } else { // 소,중형견
+                if (age <= 12L) { // 어린 개
+                    var = BigDecimal.valueOf(YOUNG_DOG);
+                } else{
+                    var = switchDogStatus(neutralization, dogStatus);
+                }
+            }
+        } else { // 노견
+            var = BigDecimal.valueOf(OLD_DOG);
+        }
+
+        return var;
+    }
+
+    private BigDecimal switchDogStatus(boolean neutralization, DogStatus dogStatus) {
+        switch (dogStatus) {
+            case HEALTHY: return neutralization ? BigDecimal.valueOf(NEUTRALIZATION_TRUE) : BigDecimal.valueOf(NEUTRALIZATION_FALSE);
+            case NEED_DIET: return BigDecimal.valueOf(NEED_DIET);
+            case OBESITY: return BigDecimal.valueOf(OBESITY);
+            case PREGNANT: return BigDecimal.valueOf(PREGNANT);
+            case LACTATING: return BigDecimal.valueOf(LACTATING);
+            default: return BigDecimal.valueOf(0);
+        }
+    }
+
+
+    public Long getTerm(String birthday) {
+        Long month = 0L;
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+            LocalDate startDate = LocalDate.parse(birthday, formatter);
+            LocalDate endDate = LocalDate.now();
+            month = ChronoUnit.MONTHS.between(startDate, endDate);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return month;
     }
 
     private String getAdminToken() throws Exception {

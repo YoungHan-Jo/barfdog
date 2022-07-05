@@ -131,6 +131,7 @@ public class RecipeApiControllerTest extends BaseTest {
         Recipe findRecipe = recipeRepository.findByName(name).get();
 
         assertThat(findRecipe.getStatus()).isEqualTo(RecipeStatus.ACTIVE);
+
     }
 
     @Test

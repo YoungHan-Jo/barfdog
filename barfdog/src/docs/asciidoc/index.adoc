@@ -1351,3 +1351,10 @@ operation::get_code_coupon[snippets='curl-request,request-headers,request-body,r
 `GET` 요청을 사용하여 페이징으로 조건에 맞는 주문 리스트를 조회할 수 있다.
 
 operation::query_admin_orders[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-query-admin-order-general]]
+=== 일반 주문 하나 조회
+
+`GET` 요청을 사용하여 일반 주문 하나를 조회할 수 있다.
+
+operation::query_admin_general_order[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']

@@ -1,5 +1,6 @@
 package com.bi.barfdog.api.recipeDto;
 
+import com.bi.barfdog.api.InfoController;
 import com.bi.barfdog.domain.recipe.Leaked;
 import com.bi.barfdog.domain.recipe.Recipe;
 import lombok.AllArgsConstructor;
@@ -9,6 +10,8 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
 @Data
 @AllArgsConstructor
@@ -33,12 +36,10 @@ public class RecipeResponseDto {
     private boolean inStock;
 
     public void setThumbnailUri(Recipe recipe) {
-        String rootFolder = recipe.getThumbnailImage().getFolder();
         String filename1 = recipe.getThumbnailImage().getFilename1();
         String filename2 = recipe.getThumbnailImage().getFilename2();
 
-        thumbnailUri1 = rootFolder + "/" + filename1;
-        thumbnailUri2 = rootFolder + "/" + filename2;
-
+        thumbnailUri1 = linkTo(InfoController.class).slash("display/recipes?filename=" + filename1).toString();
+        thumbnailUri2 = linkTo(InfoController.class).slash("display/recipes?filename=" + filename2).toString();
     }
 }

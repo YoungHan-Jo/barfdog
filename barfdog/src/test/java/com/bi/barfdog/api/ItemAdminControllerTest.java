@@ -346,12 +346,13 @@ public class ItemAdminControllerTest extends BaseTest {
         String name = "상품 이름";
         String description = "상품 설명";
         String contents = "상세 내용";
+        DiscountType discountType = DiscountType.FIXED_RATE;
         ItemSaveDto requestDto = ItemSaveDto.builder()
                 .itemType(ItemType.RAW)
                 .name(name)
                 .description(description)
                 .originalPrice(10000)
-                .discountType(DiscountType.FIXED_RATE)
+                .discountType(discountType)
                 .discountDegree(10)
                 .salePrice(9000)
                 .inStock(true)
@@ -379,6 +380,87 @@ public class ItemAdminControllerTest extends BaseTest {
 
         List<Item> items = itemRepository.findByName(name);
         Item item = items.get(0);
+        assertThat(item.getDiscountType()).isEqualTo(discountType);
+
+        List<ItemOption> itemOptionList = itemOptionRepository.findByItem(item);
+        assertThat(itemOptionList.size()).isEqualTo(0);
+
+        List<ItemImage> itemImages = itemImageRepository.findByItemOrderByLeakOrderAsc(item);
+        assertThat(itemImages.size()).isEqualTo(2);
+        assertThat(itemImages.get(0).getLeakOrder()).isEqualTo(1);
+        assertThat(itemImages.get(1).getLeakOrder()).isEqualTo(2);
+
+        List<ItemContentImage> itemContentImages = itemContentImageRepository.findByItem(item);
+        assertThat(itemContentImages.size()).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("상품을 등록 시 FLAT 타입으로 등록하는 테스트")
+    public void createItem_noOption_Flat() throws Exception {
+        //given
+
+        List<Long> contentImageIdList = new ArrayList<>();
+        ItemContentImage itemContentImage1 = generateItemContentImage(1);
+        ItemContentImage itemContentImage2 = generateItemContentImage(2);
+        ItemContentImage itemContentImage3 = generateItemContentImage(3);
+        contentImageIdList.add(itemContentImage1.getId());
+        contentImageIdList.add(itemContentImage2.getId());
+        contentImageIdList.add(itemContentImage3.getId());
+
+        List<ItemImage> itemImageList = new ArrayList<>();
+        ItemImage itemImage1 = generateItemImage(1);
+        ItemImage itemImage2 = generateItemImage(2);
+        itemImageList.add(itemImage1);
+        itemImageList.add(itemImage2);
+
+        List<ItemSaveDto.ItemImageOrderDto> itemImageOrderDtoList = new ArrayList<>();
+        int order = 1;
+        for (ItemImage itemImage : itemImageList) {
+            ItemSaveDto.ItemImageOrderDto itemImageOrderDto = ItemSaveDto.ItemImageOrderDto.builder()
+                    .id(itemImage.getId())
+                    .leakOrder(order++)
+                    .build();
+            itemImageOrderDtoList.add(itemImageOrderDto);
+        }
+
+        String name = "상품 이름";
+        String description = "상품 설명";
+        String contents = "상세 내용";
+        DiscountType discountType = DiscountType.FLAT_RATE;
+        ItemSaveDto requestDto = ItemSaveDto.builder()
+                .itemType(ItemType.RAW)
+                .name(name)
+                .description(description)
+                .originalPrice(10000)
+                .discountType(discountType)
+                .discountDegree(10)
+                .salePrice(9000)
+                .inStock(true)
+                .remaining(9999)
+                .contents(contents)
+                .itemIcons("BEST,NEW")
+                .deliveryFree(true)
+                .itemStatus(ItemStatus.LEAKED)
+                .contentImageIdList(contentImageIdList)
+                .itemImageOrderDtoList(itemImageOrderDtoList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/items")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isCreated())
+        ;
+
+        em.flush();
+        em.clear();
+
+        List<Item> items = itemRepository.findByName(name);
+        Item item = items.get(0);
+        assertThat(item.getDiscountType()).isEqualTo(discountType);
 
         List<ItemOption> itemOptionList = itemOptionRepository.findByItem(item);
         assertThat(itemOptionList.size()).isEqualTo(0);
@@ -564,7 +646,7 @@ public class ItemAdminControllerTest extends BaseTest {
     @DisplayName("수정할 아이템 하나 조회하는 테스트")
     public void queryItem() throws Exception {
         //given
-        Item item = generateItem(1);
+        Item item = generateItem(1, DiscountType.FLAT_RATE, 1000);
 
         IntStream.range(1,4).forEach(i -> {
             generateOption(item, i);
@@ -640,7 +722,7 @@ public class ItemAdminControllerTest extends BaseTest {
     @DisplayName("존재하지 않는 아이템을 경우 404 나오는 테스트")
     public void queryItem_notFound() throws Exception {
         //given
-        Item item = generateItem(1);
+        Item item = generateItem(1, DiscountType.FLAT_RATE, 1000);
 
         IntStream.range(1,4).forEach(i -> {
             generateOption(item, i);
@@ -661,8 +743,15 @@ public class ItemAdminControllerTest extends BaseTest {
     @DisplayName("정상적으로 상품 리스트 조회하는 테스트")
     public void queryItems() throws Exception {
        //given
-        IntStream.range(1,14).forEach(i -> {
-            Item item = generateItem(i);
+        IntStream.range(1,7).forEach(i -> {
+            Item item = generateItem(i, DiscountType.FLAT_RATE, 1000);
+            if (i % 2 == 0) {
+                generateOption(item, i);
+            }
+        });
+
+        IntStream.range(7,14).forEach(i -> {
+            Item item = generateItem(i, DiscountType.FIXED_RATE, 10);
             if (i % 2 == 0) {
                 generateOption(item, i);
             }
@@ -846,7 +935,7 @@ public class ItemAdminControllerTest extends BaseTest {
     public void queryItems_noPage() throws Exception {
         //given
         IntStream.range(1,24).forEach(i -> {
-            Item item = generateItem(i);
+            Item item = generateItem(i, DiscountType.FLAT_RATE, 1000);
             if (i % 2 == 0) {
                 generateOption(item, i);
             }
@@ -869,7 +958,7 @@ public class ItemAdminControllerTest extends BaseTest {
     @DisplayName("정상적으로 상품을 수정하는 테스트")
     public void updateItem() throws Exception {
        //given
-        Item item = generateItem(1);
+        Item item = generateItem(1, DiscountType.FLAT_RATE, 1000);
 
         ItemOption option1 = generateOption(item, 1);
         ItemOption option2 = generateOption(item, 2);
@@ -1062,7 +1151,7 @@ public class ItemAdminControllerTest extends BaseTest {
     @DisplayName("옵션 변화 없어도 정상적으로 상품을 수정하는 테스트")
     public void updateItem_option_unchanged() throws Exception {
         //given
-        Item item = generateItem(1);
+        Item item = generateItem(1, DiscountType.FLAT_RATE, 1000);
 
         ItemOption option1 = generateOption(item, 1);
         ItemOption option2 = generateOption(item, 2);
@@ -1169,7 +1258,7 @@ public class ItemAdminControllerTest extends BaseTest {
     @DisplayName("이미지 변화 없어도 정상적으로 상품을 수정하는 테스트")
     public void updateItem_image_unchanged() throws Exception {
         //given
-        Item item = generateItem(1);
+        Item item = generateItem(1, DiscountType.FLAT_RATE, 1000);
 
         ItemOption option1 = generateOption(item, 1);
         ItemOption option2 = generateOption(item, 2);
@@ -1255,7 +1344,7 @@ public class ItemAdminControllerTest extends BaseTest {
     @DisplayName("내용 이미지 추가만 있어도 정상적으로 상품을 수정하는 테스트")
     public void updateItem_content_image_AddOnly() throws Exception {
         //given
-        Item item = generateItem(1);
+        Item item = generateItem(1, DiscountType.FLAT_RATE, 1000);
 
         ItemOption option1 = generateOption(item, 1);
         ItemOption option2 = generateOption(item, 2);
@@ -1334,7 +1423,7 @@ public class ItemAdminControllerTest extends BaseTest {
     @DisplayName("내용 이미지 변화 없어도 정상적으로 상품을 수정하는 테스트")
     public void updateItem_content_image_unchanged() throws Exception {
         //given
-        Item item = generateItem(1);
+        Item item = generateItem(1, DiscountType.FLAT_RATE, 1000);
 
         ItemOption option1 = generateOption(item, 1);
         ItemOption option2 = generateOption(item, 2);
@@ -1405,7 +1494,7 @@ public class ItemAdminControllerTest extends BaseTest {
     @DisplayName("상품 수정 시 값 부족할 경우 400")
     public void updateItem_bad_request() throws Exception {
         //given
-        Item item = generateItem(1);
+        Item item = generateItem(1, DiscountType.FLAT_RATE, 1000);
 
         ItemOption option1 = generateOption(item, 1);
         ItemOption option2 = generateOption(item, 2);
@@ -1455,7 +1544,7 @@ public class ItemAdminControllerTest extends BaseTest {
     @DisplayName("상품 수정 시 이미지 파일 순서 정보 없을 시 400")
     public void updateItem_no_imageLeakOrder_400() throws Exception {
         //given
-        Item item = generateItem(1);
+        Item item = generateItem(1, DiscountType.FLAT_RATE, 1000);
 
         ItemOption option1 = generateOption(item, 1);
         ItemOption option2 = generateOption(item, 2);
@@ -1509,7 +1598,7 @@ public class ItemAdminControllerTest extends BaseTest {
     @DisplayName("수정할 상품이 존재하지 않을 경우 404 에러")
     public void updateItem_notFound() throws Exception {
         //given
-        Item item = generateItem(1);
+        Item item = generateItem(1, DiscountType.FLAT_RATE, 1000);
 
         ItemOption option1 = generateOption(item, 1);
         ItemOption option2 = generateOption(item, 2);
@@ -1620,7 +1709,7 @@ public class ItemAdminControllerTest extends BaseTest {
     @DisplayName("정상적으로 상품 삭제하는 테스트")
     public void deleteItem() throws Exception {
        //given
-        Item item = generateItem(1);
+        Item item = generateItem(1, DiscountType.FLAT_RATE, 1000);
 
         IntStream.range(1,5).forEach(i -> {
             generateOption(item, i);
@@ -1671,7 +1760,7 @@ public class ItemAdminControllerTest extends BaseTest {
     @DisplayName("삭제할 상품이 없을 경우 404")
     public void deleteItem_404() throws Exception {
         //given
-        Item item = generateItem(1);
+        Item item = generateItem(1, DiscountType.FLAT_RATE, 1000);
 
         IntStream.range(1,5).forEach(i -> {
             generateOption(item, i);
@@ -1739,14 +1828,14 @@ public class ItemAdminControllerTest extends BaseTest {
         return itemOptionRepository.save(itemOption);
     }
 
-    private Item generateItem(int i) {
+    private Item generateItem(int i, DiscountType discountType, int discountDegree) {
         Item item = Item.builder()
                 .itemType(ItemType.RAW)
                 .name("상품" + i)
                 .description("상품설명" + i)
                 .originalPrice(10000)
-                .discountType(DiscountType.FLAT_RATE)
-                .discountDegree(1000)
+                .discountType(discountType)
+                .discountDegree(discountDegree)
                 .salePrice(9000)
                 .inStock(true)
                 .remaining(999)
