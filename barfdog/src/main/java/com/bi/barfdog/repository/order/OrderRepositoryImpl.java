@@ -183,7 +183,6 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                 .join(subscribeRecipe.recipe, recipe)
                 .where(subscribe.id.eq(subscribeDto.getId()))
                 .fetch();
-
         subscribeDto.changeRecipeName(recipeNames);
         return subscribeDto;
     }
@@ -306,19 +305,19 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
     private SubscribeOrderInfoDto getSubscribeOrderInfoDto(Long id) {
         SubscribeOrderInfoDto subscribeOrderInfoDto = queryFactory
                 .select(Projections.constructor(SubscribeOrderInfoDto.class,
-                        generalOrder.id,
-                        generalOrder.merchantUid,
-                        generalOrder.createdDate,
+                        subscribeOrder.id,
+                        subscribeOrder.merchantUid,
+                        subscribeOrder.createdDate,
                         Expressions.constant("subscribe"),
-                        generalOrder.isPackage,
+                        subscribeOrder.isPackage,
                         member.name,
                         member.phoneNumber,
                         member.email,
                         member.isSubscribe
                 ))
-                .from(generalOrder)
-                .join(generalOrder.member, member)
-                .where(generalOrder.id.eq(id))
+                .from(subscribeOrder)
+                .join(subscribeOrder.member, member)
+                .where(subscribeOrder.id.eq(id))
                 .fetchOne();
         return subscribeOrderInfoDto;
     }

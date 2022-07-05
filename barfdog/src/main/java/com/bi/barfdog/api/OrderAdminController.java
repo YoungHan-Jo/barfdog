@@ -74,7 +74,10 @@ public class OrderAdminController {
 
         QueryAdminSubscribeOrderDto responseDto = orderRepository.findAdminSubscribeOrderDto(id);
 
-        EntityModel<QueryAdminSubscribeOrderDto> entityModel = EntityModel.of(responseDto);
+        EntityModel<QueryAdminSubscribeOrderDto> entityModel = EntityModel.of(responseDto,
+                linkTo(OrderAdminController.class).slash(id).slash("subscribe").withSelfRel(),
+                profileRootUrlBuilder.slash("index.html#resources-query-admin-order-subscribe").withRel("profile")
+        );
 
 
         return ResponseEntity.ok(entityModel);

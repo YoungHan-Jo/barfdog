@@ -3,7 +3,7 @@ package com.bi.barfdog.api;
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
-import com.bi.barfdog.domain.coupon.DiscountType;
+import com.bi.barfdog.domain.coupon.*;
 import com.bi.barfdog.domain.delivery.Delivery;
 import com.bi.barfdog.domain.delivery.Recipient;
 import com.bi.barfdog.domain.dog.*;
@@ -13,35 +13,37 @@ import com.bi.barfdog.domain.item.ItemStatus;
 import com.bi.barfdog.domain.item.ItemType;
 import com.bi.barfdog.domain.member.Gender;
 import com.bi.barfdog.domain.member.Member;
-import com.bi.barfdog.domain.order.GeneralOrder;
-import com.bi.barfdog.domain.order.OrderStatus;
-import com.bi.barfdog.domain.order.PaymentMethod;
-import com.bi.barfdog.domain.order.SubscribeOrder;
+import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
+import com.bi.barfdog.domain.order.*;
 import com.bi.barfdog.domain.orderItem.OrderItem;
 import com.bi.barfdog.domain.orderItem.SelectOption;
 import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.setting.ActivityConstant;
 import com.bi.barfdog.domain.setting.Setting;
 import com.bi.barfdog.domain.setting.SnackConstant;
+import com.bi.barfdog.domain.subscribe.BeforeSubscribe;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.domain.subscribe.SubscribePlan;
 import com.bi.barfdog.domain.subscribe.SubscribeStatus;
+import com.bi.barfdog.domain.subscribeRecipe.SubscribeRecipe;
 import com.bi.barfdog.domain.surveyReport.*;
 import com.bi.barfdog.jwt.JwtLoginDto;
+import com.bi.barfdog.repository.coupon.CouponRepository;
 import com.bi.barfdog.repository.delivery.DeliveryRepository;
 import com.bi.barfdog.repository.dog.DogRepository;
 import com.bi.barfdog.repository.item.ItemOptionRepository;
 import com.bi.barfdog.repository.item.ItemRepository;
 import com.bi.barfdog.repository.member.MemberRepository;
+import com.bi.barfdog.repository.memberCoupon.MemberCouponRepository;
 import com.bi.barfdog.repository.order.OrderRepository;
 import com.bi.barfdog.repository.orderItem.OrderItemRepository;
 import com.bi.barfdog.repository.orderItem.SelectOptionRepository;
 import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.repository.setting.SettingRepository;
+import com.bi.barfdog.repository.subscribe.BeforeSubscribeRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
 import com.bi.barfdog.repository.subscribeRecipe.SubscribeRecipeRepository;
 import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,6 +112,12 @@ public class OrderAdminControllerTest extends BaseTest {
     SettingRepository settingRepository;
     @Autowired
     SurveyReportRepository surveyReportRepository;
+    @Autowired
+    BeforeSubscribeRepository beforeSubscribeRepository;
+    @Autowired
+    CouponRepository couponRepository;
+    @Autowired
+    MemberCouponRepository memberCouponRepository;
 
     @Test
     @DisplayName("정상적으로 일반 주문 리스트 조회")
@@ -572,7 +580,7 @@ public class OrderAdminControllerTest extends BaseTest {
                 .andExpect(jsonPath("orderItemAndOptionDtoList[1].selectOptionDtoList", hasSize(2)))
                 .andDo(document("query_admin_general_order",
                         links(
-                                linkWithRel("self").description("현재 페이지 링크"),
+                                linkWithRel("self").description("self 링크"),
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
                         ),
                         pathParameters(
@@ -590,7 +598,7 @@ public class OrderAdminControllerTest extends BaseTest {
                                 fieldWithPath("orderInfoDto.id").description("주문 id"),
                                 fieldWithPath("orderInfoDto.merchantUid").description("주문 번호"),
                                 fieldWithPath("orderInfoDto.orderDate").description("주문 날짜"),
-                                fieldWithPath("orderInfoDto.orderType").description("주문 유형 ['general','subscribe'"),
+                                fieldWithPath("orderInfoDto.orderType").description("주문 유형 ['general','subscribe']"),
                                 fieldWithPath("orderInfoDto.memberName").description("구매자 이름"),
                                 fieldWithPath("orderInfoDto.phoneNumber").description("구매자 연락처"),
                                 fieldWithPath("orderInfoDto.package").description("묶음배송 여부 true/false"),
@@ -624,7 +632,6 @@ public class OrderAdminControllerTest extends BaseTest {
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
-
     }
 
     @Test
@@ -634,6 +641,7 @@ public class OrderAdminControllerTest extends BaseTest {
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
         GeneralOrder generalOrder = generateGeneralOrder(member, 1, OrderStatus.CONFIRM);
+
 
         //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.get("/api/admin/orders/999999/general")
@@ -652,7 +660,10 @@ public class OrderAdminControllerTest extends BaseTest {
 
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-        generateSurveyReport(member);
+        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtc(member, 1, OrderStatus.CONFIRM);
+
+        List<Order> orders = orderRepository.findAll();
+        assertThat(orders.size()).isEqualTo(1);
 
 
         //when & then
@@ -662,7 +673,66 @@ public class OrderAdminControllerTest extends BaseTest {
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-        ;
+                .andDo(document("query_admin_subscribe_order",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("주문 id")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("subscribeOrderInfoDto.id").description("주문 id"),
+                                fieldWithPath("subscribeOrderInfoDto.merchantUid").description("주문 번호"),
+                                fieldWithPath("subscribeOrderInfoDto.orderDate").description("주문 날짜"),
+                                fieldWithPath("subscribeOrderInfoDto.orderType").description("주문 유형 ['general','subscribe']"),
+                                fieldWithPath("subscribeOrderInfoDto.memberName").description("구매자 이름"),
+                                fieldWithPath("subscribeOrderInfoDto.phoneNumber").description("구매자 연락처"),
+                                fieldWithPath("subscribeOrderInfoDto.package").description("묶음배송 여부 true/false"),
+                                fieldWithPath("subscribeOrderInfoDto.subscribe").description("구독 여부 true/false"),
+                                fieldWithPath("subscribeOrderInfoDto.email").description("구매자 email"),
+                                fieldWithPath("dogDto.name").description("강아지 이름"),
+                                fieldWithPath("dogDto.inedibleFood").description("못먹는 음식"),
+                                fieldWithPath("dogDto.inedibleFoodEtc").description("못먹는 음식 기타"),
+                                fieldWithPath("dogDto.caution").description("특이사항"),
+                                fieldWithPath("subscribeDto.id").description("구독 id"),
+                                fieldWithPath("subscribeDto.subscribeCount").description("구독 회차"),
+                                fieldWithPath("subscribeDto.plan").description("구독 플랜 [FULL,HALF,TOPPING]"),
+                                fieldWithPath("subscribeDto.oneMealRecommendGram").description("한끼 권장량 g"),
+                                fieldWithPath("subscribeDto.recipeName").description("구독 레시피 이름 'xxx,xxx' "),
+                                fieldWithPath("beforeSubscribeDto.id").description("구독 id , 구독 바꾼 적 없으면 beforeSubscribeDto 값 null"),
+                                fieldWithPath("beforeSubscribeDto.subscribeCount").description("구독 회차"),
+                                fieldWithPath("beforeSubscribeDto.plan").description("구독 플랜 [FULL,HALF,TOPPING]"),
+                                fieldWithPath("beforeSubscribeDto.oneMealRecommendGram").description("한끼 권장 량 g"),
+                                fieldWithPath("beforeSubscribeDto.recipeName").description("구독 레시피 이름"),
+                                fieldWithPath("subscribePaymentDto.orderPrice").description("상품 총 금액"),
+                                fieldWithPath("subscribePaymentDto.deliveryPrice").description("배달 요금"),
+                                fieldWithPath("subscribePaymentDto.discountReward").description("사용한 적립금"),
+                                fieldWithPath("subscribePaymentDto.couponName").description("사용한 쿠폰 이름"),
+                                fieldWithPath("subscribePaymentDto.discountAmount").description("쿠폰 할인 금액"),
+                                fieldWithPath("subscribePaymentDto.paymentPrice").description("결제 금액"),
+                                fieldWithPath("subscribePaymentDto.orderStatus").description("주문 상태"),
+                                fieldWithPath("subscribePaymentDto.orderConfirmDate").description("구매 확정일"),
+                                fieldWithPath("subscribeDeliveryDto.recipientName").description("수령자 이름"),
+                                fieldWithPath("subscribeDeliveryDto.recipientPhone").description("수령자 휴대전화"),
+                                fieldWithPath("subscribeDeliveryDto.zipcode").description("우편번호"),
+                                fieldWithPath("subscribeDeliveryDto.street").description("도로명 주소"),
+                                fieldWithPath("subscribeDeliveryDto.detailAddress").description("상세 주소"),
+                                fieldWithPath("subscribeDeliveryDto.departureDate").description("배송 출발 시각"),
+                                fieldWithPath("subscribeDeliveryDto.arrivalDate").description("배송 도착 시각"),
+                                fieldWithPath("subscribeDeliveryDto.deliveryNumber").description("운송장 번호"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
     }
 
 
@@ -672,9 +742,150 @@ public class OrderAdminControllerTest extends BaseTest {
 
 
 
+    private SubscribeOrder generateSubscribeOrderAndEtc(Member member, int i, OrderStatus orderStatus) {
+
+        Recipe recipe1 = recipeRepository.findAll().get(0);
+        Recipe recipe2 = recipeRepository.findAll().get(1);
+
+        DogSaveRequestDto requestDto = DogSaveRequestDto.builder()
+                .name("김바프")
+                .gender(Gender.MALE)
+                .birth("202102")
+                .oldDog(false)
+                .dogType("포메라니안")
+                .dogSize(DogSize.SMALL)
+                .weight("3.5")
+                .neutralization(true)
+                .activityLevel(ActivityLevel.NORMAL)
+                .walkingCountPerWeek("10")
+                .walkingTimePerOneTime("1.1")
+                .dogStatus(DogStatus.HEALTHY)
+                .snackCountLevel(SnackCountLevel.NORMAL)
+                .inedibleFood("NONE")
+                .inedibleFoodEtc("NONE")
+                .recommendRecipeId(recipe1.getId())
+                .caution("NONE")
+                .build();
+
+        String birth = requestDto.getBirth();
+
+        DogSize dogSize = requestDto.getDogSize();
+        Long startAgeMonth = getTerm(birth + "01");
+        boolean oldDog = requestDto.isOldDog();
+        boolean neutralization = requestDto.isNeutralization();
+        DogStatus dogStatus = requestDto.getDogStatus();
+        SnackCountLevel snackCountLevel = requestDto.getSnackCountLevel();
+        BigDecimal weight = new BigDecimal(requestDto.getWeight());
 
 
+        // =========================================================================
 
+        Delivery delivery = generateDelivery(member, i);
+
+        Subscribe subscribe = generateSubscribe(i);
+        BeforeSubscribe beforeSubscribe = generateBeforeSubscribe(i);
+        subscribe.setBeforeSubscribe(beforeSubscribe);
+
+        generateSubscribeRecipe(recipe1, subscribe);
+        generateSubscribeRecipe(recipe2, subscribe);
+
+        List<Dog> dogs = dogRepository.findByMember(member);
+        Recipe findRecipe = recipeRepository.findById(requestDto.getRecommendRecipeId()).get();
+
+        Dog dog = Dog.builder()
+                .member(member)
+                .representative(dogs.size() == 0 ? true : false)
+                .name(requestDto.getName())
+                .gender(requestDto.getGender())
+                .birth(birth)
+                .startAgeMonth(startAgeMonth)
+                .oldDog(oldDog)
+                .dogType(requestDto.getDogType())
+                .dogSize(dogSize)
+                .weight(weight)
+                .neutralization(neutralization)
+                .dogActivity(getDogActivity(requestDto))
+                .dogStatus(dogStatus)
+                .snackCountLevel(snackCountLevel)
+                .inedibleFood(requestDto.getInedibleFood())
+                .inedibleFoodEtc(requestDto.getInedibleFoodEtc())
+                .recommendRecipe(findRecipe)
+                .caution(requestDto.getCaution())
+                .subscribe(subscribe)
+                .build();
+        dogRepository.save(dog);
+        subscribe.setDog(dog);
+
+        SurveyReport surveyReport = SurveyReport.builder()
+                .dog(dog)
+                .ageAnalysis(getAgeAnalysis(startAgeMonth))
+                .weightAnalysis(getWeightAnalysis(dogSize, weight))
+                .activityAnalysis(getActivityAnalysis(dogSize, dog))
+                .walkingAnalysis(getWalkingAnalysis(member, dog))
+                .foodAnalysis(getDogAnalysis(requestDto, findRecipe, dogSize, startAgeMonth, oldDog, neutralization, dogStatus, requestDto.getActivityLevel(), snackCountLevel))
+                .snackAnalysis(getSnackAnalysis(dog))
+                .build();
+        surveyReportRepository.save(surveyReport);
+        dog.setSurveyReport(surveyReport);
+
+        Coupon coupon = generateGeneralCoupon(1);
+        MemberCoupon memberCoupon = generateMemberCoupon(member, coupon, 1, CouponStatus.ACTIVE);
+
+        SubscribeOrder subscribeOrder = SubscribeOrder.builder()
+                .impUid("imp_uid"+i)
+                .merchantUid("merchant_uid"+i)
+                .orderStatus(orderStatus)
+                .member(member)
+                .orderPrice(120000)
+                .deliveryPrice(0)
+                .discountTotal(0)
+                .discountReward(0)
+                .discountCoupon(0)
+                .paymentPrice(120000)
+                .saveReward(1200)
+                .isSavedReward(false)
+                .paymentMethod(PaymentMethod.CREDIT_CARD)
+                .isPackage(false)
+                .delivery(delivery)
+                .subscribe(subscribe)
+                .memberCoupon(memberCoupon)
+                .orderConfirmDate(LocalDateTime.now().minusHours(3))
+                .build();
+        orderRepository.save(subscribeOrder);
+
+        return subscribeOrder;
+    }
+
+    private BeforeSubscribe generateBeforeSubscribe(int i) {
+        BeforeSubscribe beforeSubscribe = BeforeSubscribe.builder()
+                .subscribeCount(i)
+                .plan(SubscribePlan.HALF)
+                .oneMealRecommendGram(BigDecimal.valueOf(140.0))
+                .recipeName("덕램")
+                .build();
+        return beforeSubscribeRepository.save(beforeSubscribe);
+    }
+
+    private void generateSubscribeRecipe(Recipe recipe, Subscribe subscribe) {
+        SubscribeRecipe subscribeRecipe = SubscribeRecipe.builder()
+                .subscribe(subscribe)
+                .recipe(recipe)
+                .build();
+        subscribeRecipeRepository.save(subscribeRecipe);
+    }
+
+    private Subscribe generateSubscribe(int i) {
+        Subscribe subscribe = Subscribe.builder()
+                .subscribeCount(i+1)
+                .plan(SubscribePlan.FULL)
+                .nextPaymentDate(LocalDate.now().plusDays(6))
+                .nextDeliveryDate(LocalDate.now().plusDays(8))
+                .nextPaymentPrice(120000)
+                .status(SubscribeStatus.SUBSCRIBING)
+                .build();
+        subscribeRepository.save(subscribe);
+        return subscribe;
+    }
 
 
     private SurveyReport generateSurveyReport(Member member) {
@@ -759,6 +970,8 @@ public class OrderAdminControllerTest extends BaseTest {
 
 
     private GeneralOrder generateGeneralOrder(Member member, int i, OrderStatus orderstatus) {
+
+
         Delivery delivery = generateDelivery(member, i);
         GeneralOrder generalOrder = GeneralOrder.builder()
                 .impUid("imp_uid" + i)
@@ -783,7 +996,7 @@ public class OrderAdminControllerTest extends BaseTest {
             Item item = generateItem(j);
             generateOption(item, j);
 
-            OrderItem orderItem = generateOrderItem(generalOrder, j, item, orderstatus);
+            OrderItem orderItem = generateOrderItem(member, generalOrder, j, item, orderstatus);
 
             IntStream.range(1,j+1).forEach(k -> {
                 SelectOption selectOption = SelectOption.builder()
@@ -801,16 +1014,32 @@ public class OrderAdminControllerTest extends BaseTest {
         return orderRepository.save(generalOrder);
     }
 
-    private OrderItem generateOrderItem(GeneralOrder generalOrder, int j, Item item, OrderStatus orderStatus) {
+    private OrderItem generateOrderItem(Member member, GeneralOrder generalOrder, int j, Item item, OrderStatus orderStatus) {
+
+        Coupon coupon = generateGeneralCoupon(j);
+        MemberCoupon memberCoupon = generateMemberCoupon(member, coupon, j, CouponStatus.ACTIVE);
         OrderItem orderItem = OrderItem.builder()
                 .generalOrder(generalOrder)
                 .item(item)
                 .salePrice(item.getSalePrice())
                 .amount(j)
+                .memberCoupon(memberCoupon)
                 .finalPrice(item.getSalePrice() * j)
                 .status(orderStatus)
+
                 .build();
         return orderItemRepository.save(orderItem);
+    }
+
+    private MemberCoupon generateMemberCoupon(Member member, Coupon coupon, int remaining, CouponStatus status) {
+        MemberCoupon memberCoupon = MemberCoupon.builder()
+                .member(member)
+                .coupon(coupon)
+                .expiredDate(LocalDateTime.now().plusDays(remaining))
+                .remaining(remaining)
+                .memberCouponStatus(status)
+                .build();
+        return memberCouponRepository.save(memberCoupon);
     }
 
     private Item generateItem(int i) {
@@ -1255,6 +1484,24 @@ public class OrderAdminControllerTest extends BaseTest {
             case MUCH: return BigDecimal.valueOf(100.0).subtract(snackConstant.getSnackMuch());
             default: return BigDecimal.valueOf(0);
         }
+    }
+
+    private Coupon generateGeneralCoupon(int i) {
+        Coupon coupon = Coupon.builder()
+                .name("관리자 직접 발행 쿠폰" + i)
+                .couponType(CouponType.GENERAL_PUBLISHED)
+                .code("")
+                .description("설명")
+                .amount(1)
+                .discountType(DiscountType.FIXED_RATE)
+                .discountDegree(10)
+                .availableMaxDiscount(10000)
+                .availableMinPrice(5000)
+                .couponTarget(CouponTarget.ALL)
+                .couponStatus(CouponStatus.ACTIVE)
+                .build();
+
+        return couponRepository.save(coupon);
     }
 
     private BigDecimal getActivityVar(ActivityLevel activityLevel, ActivityConstant activityConstant) {

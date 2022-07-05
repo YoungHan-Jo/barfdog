@@ -1358,3 +1358,10 @@ operation::query_admin_orders[snippets='curl-request,request-headers,request-par
 `GET` 요청을 사용하여 일반 주문 하나를 조회할 수 있다.
 
 operation::query_admin_general_order[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-query-admin-order-subscribe]]
+=== 구독 주문 하나 조회
+
+`GET` 요청을 사용하여 구독 주문 하나를 조회할 수 있다.
+
+operation::query_admin_subscribe_order[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']

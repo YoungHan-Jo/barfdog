@@ -83,4 +83,7 @@ public class Subscribe extends BaseTimeEntity {
         this.nextPaymentPrice = requestDto.getNextPaymentPrice();
     }
 
+    public void setBeforeSubscribe(BeforeSubscribe beforeSubscribe) {
+        this.beforeSubscribe = beforeSubscribe;
+    }
 }
