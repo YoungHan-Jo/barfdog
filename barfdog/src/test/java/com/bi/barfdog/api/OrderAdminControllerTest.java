@@ -704,7 +704,7 @@ public class OrderAdminControllerTest extends BaseTest {
                                 fieldWithPath("dogDto.inedibleFoodEtc").description("못먹는 음식 기타"),
                                 fieldWithPath("dogDto.caution").description("특이사항"),
                                 fieldWithPath("subscribeDto.id").description("구독 id"),
-                                fieldWithPath("subscribeDto.subscribeCount").description("구독 회차"),
+                                fieldWithPath("subscribeDto.subscribeCount").description("변경 전 구독 회차"),
                                 fieldWithPath("subscribeDto.plan").description("구독 플랜 [FULL,HALF,TOPPING]"),
                                 fieldWithPath("subscribeDto.oneMealRecommendGram").description("한끼 권장량 g"),
                                 fieldWithPath("subscribeDto.recipeName").description("구독 레시피 이름 'xxx,xxx' "),
