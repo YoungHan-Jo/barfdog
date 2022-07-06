@@ -1,6 +1,7 @@
 package com.bi.barfdog.domain.member;
 
 import com.bi.barfdog.api.memberDto.MemberUpdateRequestDto;
+import com.bi.barfdog.api.orderDto.SubscribeOrderRequestDto;
 import com.bi.barfdog.domain.Address;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.reward.RewardPoint;
@@ -84,8 +85,6 @@ public class Member extends BaseTimeEntity {
     }
 
 
-
-
     /*
     * 비지니스 로직
     * */
@@ -149,6 +148,19 @@ public class Member extends BaseTimeEntity {
 
     public void subscribe() {
         this.roles += ",SUBSCRIBER";
+    }
+
+    public void order(SubscribeOrderRequestDto requestDto) {
+        usePoint(requestDto.getDiscountReward());
+        accumulatedAmount += requestDto.getPaymentPrice();
+        isSubscribe = true;
+        accumulatedSubscribe++;
+        boolean brochure = requestDto.isBrochure();
+        if (brochure) {
+            isBrochure = true;
+        }
+        roles = "USER,SUBSCRIBER";
+
     }
 }
 

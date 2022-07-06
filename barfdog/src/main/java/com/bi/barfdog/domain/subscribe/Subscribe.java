@@ -1,5 +1,6 @@
 package com.bi.barfdog.domain.subscribe;
 
+import com.bi.barfdog.api.orderDto.SubscribeOrderRequestDto;
 import com.bi.barfdog.api.subscribeDto.UpdateSubscribeDto;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.dog.Dog;
@@ -10,7 +11,9 @@ import com.bi.barfdog.domain.subscribeRecipe.SubscribeRecipe;
 import lombok.*;
 
 import javax.persistence.*;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,5 +88,23 @@ public class Subscribe extends BaseTimeEntity {
 
     public void setBeforeSubscribe(BeforeSubscribe beforeSubscribe) {
         this.beforeSubscribe = beforeSubscribe;
+    }
+
+    public void order(SubscribeOrderRequestDto requestDto) {
+        this.subscribeCount++;
+        this.status = SubscribeStatus.SUBSCRIBING;
+        LocalDate nextDeliveryDate = requestDto.getNextDeliveryDate();
+        nextPaymentPrice = requestDto.getOrderPrice();
+        this.nextDeliveryDate = nextDeliveryDate;
+
+        setNextPaymentDate(nextDeliveryDate);
+    }
+
+    private void setNextPaymentDate(LocalDate nextDeliveryDate) {
+        if (plan == SubscribePlan.FULL) {
+            nextPaymentDate = nextDeliveryDate.plusDays(14 - 7);
+        } else if (plan == SubscribePlan.HALF || plan == SubscribePlan.TOPPING) {
+            nextPaymentDate = nextDeliveryDate.plusDays(28 - 7);
+        }
     }
 }

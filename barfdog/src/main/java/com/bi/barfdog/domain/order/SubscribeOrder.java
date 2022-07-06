@@ -30,14 +30,14 @@ public class SubscribeOrder extends Order{
     @JoinColumn(name = "member_coupon_id")
     private MemberCoupon memberCoupon;
 
-    private int discountAmount; // 쿠폰 적용 할인 금액
+//    private int discountAmount; // 쿠폰 적용 할인 금액
+
 
     @Builder
-    public SubscribeOrder(Long id, String impUid, String merchantUid, OrderStatus orderStatus, Member member, int orderPrice, int deliveryPrice, int discountTotal, int discountReward, int discountCoupon, int paymentPrice, int saveReward, boolean isSavedReward, PaymentMethod paymentMethod, LocalDateTime orderConfirmDate, boolean isPackage, Delivery delivery, Subscribe subscribe, MemberCoupon memberCoupon, int discountAmount) {
-        super(id, impUid, merchantUid, orderStatus, member, orderPrice, deliveryPrice, discountTotal, discountReward, discountCoupon, paymentPrice, saveReward, isSavedReward, paymentMethod, orderConfirmDate, isPackage, delivery);
+    public SubscribeOrder(Long id, String impUid, String merchantUid, OrderStatus orderStatus, Member member, int orderPrice, int deliveryPrice, int discountTotal, int discountReward, int discountCoupon, int paymentPrice, PaymentMethod paymentMethod, LocalDateTime orderConfirmDate, boolean isPackage, boolean isAgreePrivacy, Delivery delivery, Subscribe subscribe, MemberCoupon memberCoupon) {
+        super(id, impUid, merchantUid, orderStatus, member, orderPrice, deliveryPrice, discountTotal, discountReward, discountCoupon, paymentPrice, paymentMethod, orderConfirmDate, isPackage, isAgreePrivacy, delivery);
         this.subscribe = subscribe;
         this.memberCoupon = memberCoupon;
-        this.discountAmount = discountAmount;
     }
 
     public void setSubscribe(Subscribe subscribe) {

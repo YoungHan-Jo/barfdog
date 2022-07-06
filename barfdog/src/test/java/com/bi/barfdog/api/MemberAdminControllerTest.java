@@ -206,6 +206,66 @@ public class MemberAdminControllerTest extends BaseTest {
     }
 
     @Test
+    @DisplayName("유저 리스트 이메일 순서로 조회하는지 테스트")
+    public void queryMembers_pageable_empty_email() throws Exception {
+        //given
+
+        generateMember(5, "김바프", "email@gmail.com");
+        generateMember(4, "류바프", "emai@gmail.com");
+        generateMember(3, "조바르프", "ema@gmail.com");
+        generateMember(2, "최바프", "em@gmail.com");
+        generateMember(1, "한바프", "e@gmail.com");
+
+        String from = LocalDate.of(2020, 01, 01).toString();
+        String to = LocalDate.now().toString();
+
+        //when & then
+        mockMvc.perform(get("/api/admin/members")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("email", "em")
+                        .param("name", "")
+                        .param("from", from)
+                        .param("to", to))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("_embedded.queryMembersDtoList", hasSize(4)))
+                .andExpect(jsonPath("page.number").value(0))
+        ;
+    }
+
+    @Test
+    @DisplayName("유저 리스트 이메일 순서로 조회하는지 테스트")
+    public void queryMembers_pageable_empty_name() throws Exception {
+        //given
+
+        generateMember(5, "김바프", "email@gmail.com");
+        generateMember(4, "류바프", "emai@gmail.com");
+        generateMember(3, "조바르프", "ema@gmail.com");
+        generateMember(2, "최바프", "em@gmail.com");
+        generateMember(1, "한바프", "e@gmail.com");
+
+        String from = LocalDate.of(2020, 01, 01).toString();
+        String to = LocalDate.now().toString();
+
+        //when & then
+        mockMvc.perform(get("/api/admin/members")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("email", "")
+                        .param("name", "바프")
+                        .param("from", from)
+                        .param("to", to))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("_embedded.queryMembersDtoList", hasSize(4)))
+                .andExpect(jsonPath("page.number").value(0))
+        ;
+    }
+
+    @Test
     @DisplayName("설정한 기간이 미래일 경우 400")
     public void queryMembers_future_400() throws Exception {
         //given
@@ -794,9 +854,13 @@ public class MemberAdminControllerTest extends BaseTest {
 
 
     private void generateMember(int i) {
+        generateMember(i, "일반 회원" + i, "email@gmail.com" + i);
+    }
+
+    private void generateMember(int i, String name, String email) {
         Member member = Member.builder()
-                .email("email@gmail.com" + i)
-                .name("일반 회원" + i)
+                .email(email)
+                .name(name)
                 .password("1234")
                 .phoneNumber("010123455"+i)
                 .address(new Address("12345","부산광역시","부산광역시 해운대구 센텀2로 19","106호"))

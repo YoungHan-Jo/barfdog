@@ -61,12 +61,15 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 import static com.bi.barfdog.config.finalVariable.StandardVar.*;
 import static com.bi.barfdog.config.finalVariable.StandardVar.LACTATING;
 import static org.assertj.core.api.Assertions.*;
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
@@ -118,6 +121,30 @@ public class OrderAdminControllerTest extends BaseTest {
     CouponRepository couponRepository;
     @Autowired
     MemberCouponRepository memberCouponRepository;
+
+
+    @Test
+    @DisplayName("mock 테스트")
+    public void mockTest() throws Exception {
+       //given
+        String impUid = "impUid_1";
+        GeneralOrder order = GeneralOrder.builder()
+                .impUid(impUid)
+                .build();
+
+        OrderRepository stubRepo = mock(OrderRepository.class);
+        when(stubRepo.findById(1L)).thenReturn(Optional.ofNullable(order));
+        when(stubRepo.findById(2L)).thenReturn(Optional.ofNullable(null));
+
+       //when & then
+        Order findOrder = stubRepo.findById(1L).get();
+        assertThat(findOrder.getImpUid()).isEqualTo(impUid);
+        Optional<Order> orderOptional = stubRepo.findById(2L);
+        assertThat(orderOptional.isPresent()).isFalse();
+
+    }
+
+
 
     @Test
     @DisplayName("정상적으로 일반 주문 리스트 조회")
@@ -717,7 +744,7 @@ public class OrderAdminControllerTest extends BaseTest {
                                 fieldWithPath("subscribePaymentDto.deliveryPrice").description("배달 요금"),
                                 fieldWithPath("subscribePaymentDto.discountReward").description("사용한 적립금"),
                                 fieldWithPath("subscribePaymentDto.couponName").description("사용한 쿠폰 이름"),
-                                fieldWithPath("subscribePaymentDto.discountAmount").description("쿠폰 할인 금액"),
+                                fieldWithPath("subscribePaymentDto.discountCoupon").description("쿠폰 할인 금액"),
                                 fieldWithPath("subscribePaymentDto.paymentPrice").description("결제 금액"),
                                 fieldWithPath("subscribePaymentDto.orderStatus").description("주문 상태"),
                                 fieldWithPath("subscribePaymentDto.orderConfirmDate").description("구매 확정일"),
@@ -842,8 +869,6 @@ public class OrderAdminControllerTest extends BaseTest {
                 .discountReward(0)
                 .discountCoupon(0)
                 .paymentPrice(120000)
-                .saveReward(1200)
-                .isSavedReward(false)
                 .paymentMethod(PaymentMethod.CREDIT_CARD)
                 .isPackage(false)
                 .delivery(delivery)
@@ -984,8 +1009,6 @@ public class OrderAdminControllerTest extends BaseTest {
                 .discountReward(10000)
                 .discountCoupon(0)
                 .paymentPrice(110000)
-                .saveReward(1200)
-                .isSavedReward(false)
                 .paymentMethod(PaymentMethod.CREDIT_CARD)
                 .isPackage(false)
                 .delivery(delivery)
@@ -1098,8 +1121,6 @@ public class OrderAdminControllerTest extends BaseTest {
                 .discountReward(0)
                 .discountCoupon(0)
                 .paymentPrice(120000)
-                .saveReward(1200)
-                .isSavedReward(false)
                 .paymentMethod(PaymentMethod.CREDIT_CARD)
                 .isPackage(false)
                 .delivery(delivery)

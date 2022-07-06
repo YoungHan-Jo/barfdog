@@ -42,4 +42,13 @@ public class MemberCoupon extends BaseTimeEntity {
     public void active() {
         memberCouponStatus = CouponStatus.ACTIVE;
     }
+
+    private void inactive() {
+        memberCouponStatus = CouponStatus.INACTIVE;
+    }
+
+    public void useCoupon() {
+        remaining--;
+        if (remaining <= 0) this.inactive();
+    }
 }

@@ -43,8 +43,8 @@ public abstract class Order extends BaseTimeEntity {
 
     private int paymentPrice;
 
-    private int saveReward;
-    private boolean isSavedReward;
+//    private int saveReward;
+//    private boolean isSavedReward;
 
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod; // [CREDIT_CARD, NAVER_PAY, KAKAO_PAY]
@@ -52,6 +52,8 @@ public abstract class Order extends BaseTimeEntity {
     private LocalDateTime orderConfirmDate;
 
     private boolean isPackage; // 묶음배송여부
+
+    private boolean isAgreePrivacy;
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "delivery_id")

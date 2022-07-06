@@ -81,7 +81,7 @@ public class QueryAdminSubscribeOrderDto {
         private int deliveryPrice; // 배송비
         private int discountReward; // 사용한 적립금
         private String couponName;
-        private int discountAmount; // 쿠폰 적용 할인 금액
+        private int discountCoupon; // 쿠폰 적용 할인 금액
         private int paymentPrice; // 결제 금액
         private OrderStatus orderStatus;
 

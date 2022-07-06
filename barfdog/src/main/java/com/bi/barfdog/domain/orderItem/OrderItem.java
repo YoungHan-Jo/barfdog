@@ -42,6 +42,9 @@ public class OrderItem extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
+    private int saveReward;
+    private boolean isSavedReward;
+
     @Builder.Default
     private boolean writeableReview = true; //  true 일 때 리뷰 작성 가능
 

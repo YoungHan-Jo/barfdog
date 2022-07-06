@@ -1,0 +1,69 @@
+package com.bi.barfdog.api.orderDto;
+
+import com.bi.barfdog.domain.order.PaymentMethod;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class SubscribeOrderRequestDto {
+
+    @NotEmpty
+    private String impUid; // 아임포트 결제번호
+    @NotEmpty
+    private String merchantUid; // 주문번호 yymmdd + 당일주문 순서(001~999)
+
+    private Long memberCouponId; // 사용한 쿠폰 id
+
+    @Valid
+    private DeliveryDto deliveryDto;
+
+    @NotNull
+    private int orderPrice; // 주문 금액(등급할인 적용 후)
+    @NotNull
+    private int deliveryPrice; // 배송비
+    @NotNull
+    private int discountTotal; // 할인 총합
+    @NotNull
+    private int discountReward; // 적립금 할인
+    @NotNull
+    private int discountCoupon; // 쿠폰 할인
+    @NotNull
+    private int paymentPrice; // 결제 금액
+    @NotNull
+    private PaymentMethod paymentMethod; // [CREDIT_CARD, NAVER_PAY, KAKAO_PAY]
+
+
+    private LocalDate nextDeliveryDate;
+
+    private boolean isBrochure; // 브로슈어 받을 것인지
+    private boolean isAgreePrivacy; // 개정정보 동의
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class DeliveryDto {
+        @NotEmpty
+        private String name;
+        @NotEmpty
+        private String phone;
+        @NotEmpty
+        private String zipcode;
+        @NotEmpty
+        private String street;
+        @NotEmpty
+        private String detailAddress;
+        private String request;
+    }
+
+}

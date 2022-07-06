@@ -128,6 +128,7 @@ public class IndexApiControllerTest extends BaseTest {
 
     MediaType contentType = new MediaType("application", "hal+json", Charset.forName("UTF-8"));
 
+    @Ignore
     @Test
     @DisplayName("정상적으로 home 화면에 필요한 값 조회")
     public void homePage() throws Exception {
@@ -1333,7 +1334,7 @@ public class IndexApiControllerTest extends BaseTest {
                 .andExpect(status().isNotFound())
         ;
     }
-
+    @Ignore
     @Test
     @DisplayName("정상적으로 네이버 회원 정보 호출")
     public void naverLogin_newMember() throws Exception {
@@ -1385,7 +1386,7 @@ public class IndexApiControllerTest extends BaseTest {
                         )
                 ));
     }
-
+    @Ignore
     @Test
     @DisplayName("기존회원은 있지만 간편로그인 연동이 되어있지않음")
     public void naverLogin_needToconnectSns() throws Exception {
@@ -1410,7 +1411,7 @@ public class IndexApiControllerTest extends BaseTest {
                 .andExpect(jsonPath("message").value(SnsResponse.NEED_TO_CONNECT_NEW_SNS_MESSAGE))
         ;
     }
-
+    @Ignore
     @Test
     @DisplayName("네이버가 아닌 카카오로 이미 연동되어있음")
     public void naverLogin_connectedByKakao() throws Exception {
@@ -1437,6 +1438,7 @@ public class IndexApiControllerTest extends BaseTest {
         ;
     }
 
+    @Ignore
     @Test
     @DisplayName("연동이되어있고 로그인 성공해서 토큰을 받음")
     public void naverLogin_success() throws Exception {

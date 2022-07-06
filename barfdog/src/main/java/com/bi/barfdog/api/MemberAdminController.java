@@ -46,14 +46,13 @@ public class MemberAdminController {
     public ResponseEntity queryMembers(Pageable pageable,
                                        PagedResourcesAssembler<QueryMembersDto> assembler,
                                        @ModelAttribute @Valid QueryMembersCond cond,
-                                       BindingResult bindingResult
-    ){
+                                       BindingResult bindingResult){
+
         if (bindingResult.hasErrors()) return badRequest(bindingResult);
         memberValidator.wrongTerm(cond.getFrom(), cond.getTo(), bindingResult);
         if (bindingResult.hasErrors()) return badRequest(bindingResult);
 
         Page<QueryMembersDto> page = memberRepository.findDtosByCond(pageable, cond);
-
 
         PagedModel<EntityModel<QueryMembersDto>> entityModels = assembler.toModel(page, e -> new MembersDtoResource(e));
 

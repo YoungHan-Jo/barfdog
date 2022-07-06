@@ -22,11 +22,10 @@ public class GeneralOrder extends Order{
     private List<OrderItem> orderItemList = new ArrayList<>();
 
     @Builder
-    public GeneralOrder(Long id, String impUid, String merchantUid, OrderStatus orderStatus, Member member, int orderPrice, int deliveryPrice, int discountTotal, int discountReward, int discountCoupon, int paymentPrice, int saveReward, boolean isSavedReward, PaymentMethod paymentMethod, LocalDateTime orderConfirmDate, boolean isPackage, Delivery delivery, List<OrderItem> orderItemList) {
-        super(id, impUid, merchantUid, orderStatus, member, orderPrice, deliveryPrice, discountTotal, discountReward, discountCoupon, paymentPrice, saveReward, isSavedReward, paymentMethod, orderConfirmDate, isPackage, delivery);
+    public GeneralOrder(Long id, String impUid, String merchantUid, OrderStatus orderStatus, Member member, int orderPrice, int deliveryPrice, int discountTotal, int discountReward, int discountCoupon, int paymentPrice, PaymentMethod paymentMethod, LocalDateTime orderConfirmDate, boolean isPackage, boolean isAgreePrivacy, Delivery delivery, List<OrderItem> orderItemList) {
+        super(id, impUid, merchantUid, orderStatus, member, orderPrice, deliveryPrice, discountTotal, discountReward, discountCoupon, paymentPrice, paymentMethod, orderConfirmDate, isPackage, isAgreePrivacy, delivery);
         this.orderItemList = new ArrayList<>();
     }
-
 
     public GeneralOrder(List<OrderItem> orderItemList) {
         this.orderItemList = orderItemList;

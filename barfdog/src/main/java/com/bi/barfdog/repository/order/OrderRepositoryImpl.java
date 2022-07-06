@@ -131,7 +131,7 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         subscribeOrder.deliveryPrice,
                         subscribeOrder.discountReward,
                         coupon.name,
-                        subscribeOrder.discountAmount,
+                        subscribeOrder.discountCoupon,
                         subscribeOrder.paymentPrice,
                         subscribeOrder.orderStatus,
                         subscribeOrder.orderConfirmDate

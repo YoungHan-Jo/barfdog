@@ -7,7 +7,6 @@ import com.bi.barfdog.api.rewardDto.PublishToGroupDto;
 import com.bi.barfdog.config.finalVariable.BarfCity;
 import com.bi.barfdog.domain.member.Grade;
 import com.bi.barfdog.domain.member.Member;
-import com.bi.barfdog.domain.member.QMember;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
@@ -54,8 +53,8 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
                 )
                 .from(member)
                 .where(
-                        nameEq(condition.getName()),
-                        emailEq(condition.getEmail())
+                        nameContains(condition.getName()),
+                        emailContains(condition.getEmail())
                 )
                 .fetch();
 
@@ -130,12 +129,13 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
                 .from(dog)
                 .rightJoin(dog.member, member)
                 .where(
-                        nameEq(cond.getName()),
-                        emailEq(cond.getEmail()),
+                        nameContains(cond.getName()),
+                        emailContains(cond.getEmail()),
                         createdDateBetween(cond)
                 )
                 .groupBy(member.id, dog.name)
                 .having(dog.representative.eq(true).or(dog.representative.isNull()))
+                .orderBy(member.email.length().asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -144,8 +144,8 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
                 .select(member.count())
                 .from(member)
                 .where(
-                        nameEq(cond.getName()),
-                        emailEq(cond.getEmail()),
+                        nameContains(cond.getName()),
+                        emailContains(cond.getEmail()),
                         createdDateBetween(cond)
                 )
                 .fetchOne();
@@ -251,11 +251,11 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
         return subscribe ? member.roles.contains("SUBSCRIBE"): member.roles.contains("SUBSCRIBE").not();
     }
 
-    private BooleanExpression nameEq(String name) {
-        return hasText(name) ? member.name.eq(name) : null;
+    private BooleanExpression nameContains(String name) {
+        return hasText(name) ? member.name.contains(name) : null;
     }
 
-    private BooleanExpression emailEq(String email) {
-        return hasText(email) ? member.email.eq(email) : null;
+    private BooleanExpression emailContains(String email) {
+        return hasText(email) ? member.email.contains(email) : null;
     }
 }
