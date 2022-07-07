@@ -11,9 +11,9 @@ import java.util.List;
 
 public interface CouponRepositoryCustom {
 
-    List<CouponListResponseDto> findRedirectCouponsByKeyword(String keyword);
+    Page<CouponListResponseDto> findRedirectCouponsByKeyword(String keyword, Pageable pageable);
 
-    List<CouponListResponseDto> findAutoCouponsByKeyword(String keyword);
+    Page<CouponListResponseDto> findAutoCouponsByKeyword(String keyword, Pageable pageable);
 
     List<PublicationCouponDto> findPublicationCouponDtosByCouponType(CouponType adminPublished);
 

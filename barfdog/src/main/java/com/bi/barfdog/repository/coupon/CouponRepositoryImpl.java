@@ -27,14 +27,14 @@ public class CouponRepositoryImpl implements CouponRepositoryCustom{
     private final JPAQueryFactory queryFactory;
 
 
-
     @Override
-    public List<CouponListResponseDto> findRedirectCouponsByKeyword(String keyword) {
+    public Page<CouponListResponseDto> findRedirectCouponsByKeyword(String keyword, Pageable pageable) {
 
         List<CouponListResponseDto> result = queryFactory
                 .select(Projections.constructor(CouponListResponseDto.class,
                         coupon.id,
                         coupon.name,
+                        coupon.couponType,
                         coupon.code,
                         coupon.description,
                         coupon.discountDegree.stringValue().concat(
@@ -49,17 +49,26 @@ public class CouponRepositoryImpl implements CouponRepositoryCustom{
                 .from(coupon)
                 .where(isDirectCoupon(keyword))
                 .orderBy(coupon.id.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .fetch();
 
-        return result;
+        Long totalCount = queryFactory
+                .select(coupon.count())
+                .from(coupon)
+                .where(isDirectCoupon(keyword))
+                .fetchOne();
+
+        return new PageImpl<>(result, pageable, totalCount);
     }
 
     @Override
-    public List<CouponListResponseDto> findAutoCouponsByKeyword(String keyword) {
+    public Page<CouponListResponseDto> findAutoCouponsByKeyword(String keyword, Pageable pageable) {
         List<CouponListResponseDto> result = queryFactory
                 .select(Projections.constructor(CouponListResponseDto.class,
                         coupon.id,
                         coupon.name,
+                        coupon.couponType,
                         coupon.code,
                         coupon.description,
                         coupon.discountDegree.stringValue().concat(
@@ -74,9 +83,17 @@ public class CouponRepositoryImpl implements CouponRepositoryCustom{
                 .from(coupon)
                 .where(isAutoCoupon(keyword))
                 .orderBy(coupon.id.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .fetch();
 
-        return result;
+        Long totalCount = queryFactory
+                .select(coupon.count())
+                .from(coupon)
+                .where(isAutoCoupon(keyword))
+                .fetchOne();
+
+        return new PageImpl<>(result, pageable, totalCount);
     }
 
     @Override

@@ -66,11 +66,9 @@ BarfDog;
 [[overview-errors]]
 == 오류
 
-에러 응답이 발생했을 때 (상태 코드 >= 400), 본문에 해당 문제를 기술한 JSON 객체가 담겨있다. 에러 객체는 다음의 구조를 따른다.
+에러 응답이 발생했을 때 (상태 코드 >= 400), 본문에 해당 문제를 기술한 JSON 객체가 담겨있다.
 
-//include::{snippets}/errors/response-fields.adoc[]
-
-예를 들어, 잘못된 요청으로 배너를 만들려고 했을 때 다음과 같은 `400 Bad Request` 응답을 받는다.
+예를 들어, 잘못된 요청으로 배너를 만들려고 했을 때  `400 Bad Request` 응답을 받는다.
 
 //include::{snippets}/errors/http-response.adoc[]
 
@@ -94,6 +92,68 @@ BarfDog;
 `GET` 요청을 사용하여 홈 화면에 필요한 내용을 조회할 수 있다.
 
 operation::home_page[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-my-page]]
+=== 마이페이지 상단 내 정보 화면
+
+`GET` 요청을 사용하여 마이페이지 상단 화면에 필요한 내용을 조회할 수 있다.
+
+operation::my_page[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-send-inviteSms]]
+=== 친구 초대 sms 보내기
+
+`POST` 요청을 사용하여 친구 초대 sms를 전송할 수 있다.
+
+        /*
+            * response의 실패
+            * {"status":113, "msg":"UTF-8 인코딩이 아닙니다."}
+            * 실패 코드번호, 내용
+            *
+            * status code 112 실패인 경우 인코딩 실패 문자열 return
+            *  {"status":112, "msg": "message EUC-KR 인코딩에 실패 하였습니다.", "msg_detail":풰(13)}
+            *  실패 코드번호, 내용, 인코딩 실패 문자열(문자열 위치)
+        */
+
+		/*
+			* response 성공
+			* {"status":0}
+			* 성공 코드번호 (성공코드는 다이렉트센드 DB서버에 정상수신됨을 뜻하며 발송성공(실패)의 결과는 발송완료 이후 확인 가능합니다.)
+			*
+			* 잘못된 번호가 포함된 경우
+			* {"status":0, "msg":"유효하지 않는 번호를 제외하고 발송 완료 하였습니다.", "msg_detail":"error mobile : 01000000001aa, 010112"}
+			* 성공 코드번호 (성공코드는 다이렉트센드 DB서버에 정상수신됨을 뜻하며 발송성공(실패)의 결과는 발송완료 이후 확인 가능합니다.), 내용, 잘못된 데이터
+			*
+		*/
+
+		/*
+			status code
+			0   : 정상발송 (성공코드는 다이렉트센드 DB서버에 정상수신됨을 뜻하며 발송성공(실패)의 결과는 발송완료 이후 확인 가능합니다.)
+			100 : POST validation 실패
+			101 : sender 유효한 번호가 아님
+			102 : recipient 유효한 번호가 아님
+			103 : 회원정보가 일치하지 않음
+			104 : 받는 사람이 없습니다
+			105 : message length = 0, message length >= 2000, title >= 20
+			106 : message validation 실패
+			107 : 이미지 업로드 실패
+			108 : 이미지 갯수 초과
+			109 : return_url이 유효하지 않습니다
+			110 : 이미지 용량 300kb 초과
+			111 : 이미지 확장자 오류
+			112 : euckr 인코딩 에러 발생
+			114 : 예약정보가 유효하지 않습니다.
+			200 : 동일 예약시간으로는 200회 이상 API 호출을 할 수 없습니다.
+			201 : 분당 300회 이상 API 호출을 할 수 없습니다.
+			205 : 잔액부족
+			999 : Internal Error.
+		 */
+
+operation::send_inviteSms[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+
+
 
 
 [[resources-admin]]
@@ -1229,7 +1289,7 @@ operation::return_review[snippets='curl-request,request-headers,path-parameters,
 
 operation::query_admin_best_reviews[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
 
-[[resources-admin-delete-review]]
+[[resources-admin-delete-best-review]]
 === 관리자 베스트 리뷰 삭제
 
 `DELETE` 요청을 사용하여 베스트 리뷰를 삭제할 수 있다.
@@ -1384,3 +1444,11 @@ operation::query_admin_subscribe_order[snippets='curl-request,path-parameters,re
 `GET` 요청을 사용하여 구독 주문서에 필요한 내용을 조회할 수 있다.
 
 operation::query_orderSheet_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+
+[[resources-order-subscribeOrder]]
+=== 구독 주문하기
+
+`POST` 요청을 사용하여 구독 주문을 할 수 있다.
+
+operation::order_subscribeOrder[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']

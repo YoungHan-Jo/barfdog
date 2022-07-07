@@ -29,16 +29,20 @@ public class RecipeResponseDto {
     private List<String> ingredientList;
     private String descriptionForSurvey;
 
+    private String filename1;
     private String thumbnailUri1;
+    private String filename2;
     private String thumbnailUri2;
 
     private Leaked leaked;
     private boolean inStock;
 
-    public void setThumbnailUri(Recipe recipe) {
+    public void setThumbnailUriAndFilename(Recipe recipe) {
         String filename1 = recipe.getThumbnailImage().getFilename1();
         String filename2 = recipe.getThumbnailImage().getFilename2();
 
+        this.filename1 = filename1;
+        this.filename2 = filename2;
         thumbnailUri1 = linkTo(InfoController.class).slash("display/recipes?filename=" + filename1).toString();
         thumbnailUri2 = linkTo(InfoController.class).slash("display/recipes?filename=" + filename2).toString();
     }

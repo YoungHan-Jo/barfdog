@@ -56,8 +56,7 @@ import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
-import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -102,7 +101,7 @@ public class OrderApiControllerTest extends BaseTest {
 
         Dog dogRepresentative = generateDogRepresentative(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
 
-        Subscribe subscribe = generateSubscribe(dogRepresentative);
+        Subscribe subscribe = generateSubscribe(dogRepresentative, SubscribePlan.FULL);
 
        //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.get("/api/orders/sheet/subscribe/{id}", subscribe.getId())
@@ -170,7 +169,8 @@ public class OrderApiControllerTest extends BaseTest {
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
         int reward = member.getReward();
         Dog dogRepresentative = generateDogRepresentative(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
-        Subscribe subscribe = generateSubscribe(dogRepresentative);
+        Subscribe subscribe = generateSubscribe(dogRepresentative, SubscribePlan.FULL);
+        int subscribeCount = subscribe.getSubscribeCount();
 
         String request = "안전배송 부탁드립니다.";
         SubscribeOrderRequestDto.DeliveryDto deliveryDto = SubscribeOrderRequestDto.DeliveryDto.builder()
@@ -223,6 +223,48 @@ public class OrderApiControllerTest extends BaseTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andDo(document("order_subscribeOrder",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("구독 id")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer jwt 토큰")
+                        ),
+                        requestFields(
+                                fieldWithPath("impUid").optional().description("아임포트 결제 uid"),
+                                fieldWithPath("merchantUid").optional().description("바프독에 저장할 주문 고유id yyMMdd + '_' +랜덤문자열  ex) '220707_sdlfiajskd' "),
+                                fieldWithPath("memberCouponId").description("사용할 보유한 쿠폰 id"),
+                                fieldWithPath("deliveryDto.name").optional().description("수령자 이름"),
+                                fieldWithPath("deliveryDto.phone").optional().description("수령자 전화번호"),
+                                fieldWithPath("deliveryDto.zipcode").optional().description("우편번호"),
+                                fieldWithPath("deliveryDto.street").optional().description("도로명주소"),
+                                fieldWithPath("deliveryDto.detailAddress").optional().description("상세주소"),
+                                fieldWithPath("deliveryDto.request").description("배송 요청사항"),
+                                fieldWithPath("orderPrice").optional().description("주문 상품 총 가격"),
+                                fieldWithPath("deliveryPrice").optional().description("배송비"),
+                                fieldWithPath("discountTotal").optional().description("총 할인 합계"),
+                                fieldWithPath("discountReward").optional().description("사용할 적립금"),
+                                fieldWithPath("discountCoupon").optional().description("쿠폰 적용으로 할인된 금액"),
+                                fieldWithPath("paymentPrice").optional().description("최종 결제 금액"),
+                                fieldWithPath("paymentMethod").optional().description("결제 방법 [CREDIT_CARD, NAVER_PAY, KAKAO_PAY]"),
+                                fieldWithPath("nextDeliveryDate").optional().description("배송 예정일 'yyyy-MM-dd'"),
+                                fieldWithPath("agreePrivacy").optional().description("개인정보제공 동의 true/false"),
+                                fieldWithPath("brochure").optional().description("브로슈어 받을지 여부 true/false")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ))
         ;
 
         em.flush();
@@ -230,6 +272,130 @@ public class OrderApiControllerTest extends BaseTest {
 
         MemberCoupon findMemberCoupon = memberCouponRepository.findById(memberCouponId).get();
         assertThat(findMemberCoupon.getRemaining()).isEqualTo(remaining - 1);
+        assertThat(findMemberCoupon.getMemberCouponStatus()).isEqualTo(CouponStatus.ACTIVE);
+
+        Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
+        if (findSubscribe.getPlan() == SubscribePlan.FULL) {
+            assertThat(findSubscribe.getNextPaymentDate()).isEqualTo(nextDeliveryDate.plusDays(14 - 7));
+        } else {
+            assertThat(findSubscribe.getNextPaymentDate()).isEqualTo(nextDeliveryDate.plusDays(28 - 7));
+        }
+        assertThat(findSubscribe.getNextPaymentPrice()).isEqualTo(orderPrice);
+        assertThat(findSubscribe.getNextDeliveryDate()).isEqualTo(nextDeliveryDate);
+        assertThat(findSubscribe.getSubscribeCount()).isEqualTo(subscribeCount + 1);
+        assertThat(findSubscribe.getStatus()).isEqualTo(SubscribeStatus.SUBSCRIBING);
+
+        Delivery findDelivery = deliveryRepository.findAll().get(0);
+        assertThat(findDelivery.getRecipient().getName()).isEqualTo(member.getName());
+        assertThat(findDelivery.getRecipient().getPhone()).isEqualTo(member.getPhoneNumber());
+        assertThat(findDelivery.getRecipient().getZipcode()).isEqualTo(member.getAddress().getZipcode());
+        assertThat(findDelivery.getRecipient().getStreet()).isEqualTo(member.getAddress().getStreet());
+        assertThat(findDelivery.getRecipient().getDetailAddress()).isEqualTo(member.getAddress().getDetailAddress());
+        assertThat(findDelivery.getStatus()).isEqualTo(DeliveryStatus.PAYMENT_DONE);
+        assertThat(findDelivery.getRequest()).isEqualTo(request);
+
+        Member findMember = memberRepository.findById(member.getId()).get();
+        assertThat(findMember.getReward()).isEqualTo(reward - discountReward);
+        assertThat(findMember.getAccumulatedAmount()).isEqualTo(paymentPrice);
+        assertThat(findMember.isSubscribe()).isTrue();
+        assertThat(findMember.getAccumulatedSubscribe()).isEqualTo(1);
+        assertThat(findMember.isBrochure()).isTrue();
+        assertThat(findMember.getRoles()).isEqualTo("USER,SUBSCRIBER");
+
+        Reward findReward = rewardRepository.findByMember(member).get(0);
+        assertThat(findReward.getName()).isEqualTo(RewardName.USE_ORDER);
+        assertThat(findReward.getRewardType()).isEqualTo(RewardType.ORDER);
+        assertThat(findReward.getRewardStatus()).isEqualTo(RewardStatus.USED);
+        assertThat(findReward.getTradeReward()).isEqualTo(discountReward);
+
+        SubscribeOrder findOrder = (SubscribeOrder) orderRepository.findAll().get(0);
+        assertThat(findOrder.getImpUid()).isEqualTo(impUid);
+        assertThat(findOrder.getMerchantUid()).isEqualTo(merchantUid);
+        assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.PAYMENT_DONE);
+        assertThat(findOrder.getOrderPrice()).isEqualTo(orderPrice);
+        assertThat(findOrder.getDeliveryPrice()).isEqualTo(deliveryPrice);
+        assertThat(findOrder.getDiscountTotal()).isEqualTo(discountTotal);
+        assertThat(findOrder.getDiscountReward()).isEqualTo(discountReward);
+        assertThat(findOrder.getDiscountCoupon()).isEqualTo(discountCoupon);
+        assertThat(findOrder.getPaymentPrice()).isEqualTo(paymentPrice);
+        assertThat(findOrder.getPaymentMethod()).isEqualTo(paymentMethod);
+        assertThat(findOrder.isPackage()).isFalse();
+        assertThat(findOrder.isAgreePrivacy()).isTrue();
+        assertThat(findOrder.getSubscribeCount()).isEqualTo(subscribeCount + 1);
+        assertThat(findOrder.getDelivery().getId()).isEqualTo(findDelivery.getId());
+
+    }
+
+    @Test
+    @DisplayName("정상적으로 구독 주문하기 - HALF and 쿠폰 사용 안 할 경우")
+    public void orderSubscribe_HALF_no_coupon() throws Exception {
+        //given
+        memberCouponRepository.deleteAll();
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int reward = member.getReward();
+        Dog dogRepresentative = generateDogRepresentative(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+        Subscribe subscribe = generateSubscribe(dogRepresentative, SubscribePlan.HALF);
+
+        String request = "안전배송 부탁드립니다.";
+        SubscribeOrderRequestDto.DeliveryDto deliveryDto = SubscribeOrderRequestDto.DeliveryDto.builder()
+                .name(member.getName())
+                .phone(member.getPhoneNumber())
+                .zipcode(member.getAddress().getZipcode())
+                .street(member.getAddress().getStreet())
+                .detailAddress(member.getAddress().getDetailAddress())
+                .request(request)
+                .build();
+
+        LocalDate nextDeliveryDate = getNextDeliveryDate();
+
+        Coupon coupon = generateGeneralCoupon(1);
+        MemberCoupon memberCoupon = generateMemberCoupon(member, coupon, 4, CouponStatus.ACTIVE);
+        int remaining = memberCoupon.getRemaining();
+        Long memberCouponId = memberCoupon.getId();
+
+        int orderPrice = 100000;
+        int deliveryPrice = 0;
+        int discountTotal = 20000;
+        int discountReward = 10000;
+        int discountCoupon = 0;
+        int paymentPrice = 90000;
+        PaymentMethod paymentMethod = PaymentMethod.CREDIT_CARD;
+        String impUid = "imp_uid_askdfj";
+        String merchantUid = "merchantUid_sdkfjals";
+        SubscribeOrderRequestDto requestDto = SubscribeOrderRequestDto.builder()
+                .impUid(impUid)
+                .merchantUid(merchantUid)
+//                .memberCouponId(memberCouponId)
+                .deliveryDto(deliveryDto)
+                .orderPrice(orderPrice)
+                .deliveryPrice(deliveryPrice)
+                .discountTotal(discountTotal)
+                .discountReward(discountReward)
+                .discountCoupon(discountCoupon)
+                .paymentPrice(paymentPrice)
+                .paymentMethod(paymentMethod)
+                .nextDeliveryDate(nextDeliveryDate)
+                .isBrochure(true)
+                .isAgreePrivacy(true)
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/orders/subscribe/{id}", subscribe.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+        ;
+
+        em.flush();
+        em.clear();
+
+        MemberCoupon findMemberCoupon = memberCouponRepository.findById(memberCouponId).get();
+        assertThat(findMemberCoupon.getRemaining()).isEqualTo(remaining);
+        assertThat(findMemberCoupon.getMemberCouponStatus()).isEqualTo(CouponStatus.ACTIVE);
 
         Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
         assertThat(findSubscribe.getSubscribeCount()).isEqualTo(1);
@@ -282,6 +448,88 @@ public class OrderApiControllerTest extends BaseTest {
 
     }
 
+    @Test
+    @DisplayName("쿠폰 1장일 경우 구독 주문 후 0개 된 뒤 비활성화")
+    public void orderSubscribe_memberCoupon_be_inactive() throws Exception {
+        //given
+        memberCouponRepository.deleteAll();
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int reward = member.getReward();
+        Dog dogRepresentative = generateDogRepresentative(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+        Subscribe subscribe = generateSubscribe(dogRepresentative, SubscribePlan.FULL);
+
+        String request = "안전배송 부탁드립니다.";
+        SubscribeOrderRequestDto.DeliveryDto deliveryDto = SubscribeOrderRequestDto.DeliveryDto.builder()
+                .name(member.getName())
+                .phone(member.getPhoneNumber())
+                .zipcode(member.getAddress().getZipcode())
+                .street(member.getAddress().getStreet())
+                .detailAddress(member.getAddress().getDetailAddress())
+                .request(request)
+                .build();
+
+        LocalDate nextDeliveryDate = getNextDeliveryDate();
+
+        Coupon coupon = generateGeneralCoupon(1);
+        MemberCoupon memberCoupon = generateMemberCoupon(member, coupon, 1, CouponStatus.ACTIVE);
+        int remaining = memberCoupon.getRemaining();
+        Long memberCouponId = memberCoupon.getId();
+
+        int orderPrice = 100000;
+        int deliveryPrice = 0;
+        int discountTotal = 20000;
+        int discountReward = 10000;
+        int discountCoupon = 10000;
+        int paymentPrice = 80000;
+        PaymentMethod paymentMethod = PaymentMethod.CREDIT_CARD;
+        String impUid = "imp_uid_askdfj";
+        String merchantUid = "merchantUid_sdkfjals";
+        SubscribeOrderRequestDto requestDto = SubscribeOrderRequestDto.builder()
+                .impUid(impUid)
+                .merchantUid(merchantUid)
+                .memberCouponId(memberCouponId)
+                .deliveryDto(deliveryDto)
+                .orderPrice(orderPrice)
+                .deliveryPrice(deliveryPrice)
+                .discountTotal(discountTotal)
+                .discountReward(discountReward)
+                .discountCoupon(discountCoupon)
+                .paymentPrice(paymentPrice)
+                .paymentMethod(paymentMethod)
+                .nextDeliveryDate(nextDeliveryDate)
+                .isBrochure(true)
+                .isAgreePrivacy(true)
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/orders/subscribe/{id}", subscribe.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+        ;
+
+        em.flush();
+        em.clear();
+
+        MemberCoupon findMemberCoupon = memberCouponRepository.findById(memberCouponId).get();
+        assertThat(findMemberCoupon.getRemaining()).isEqualTo(remaining - 1);
+        assertThat(findMemberCoupon.getMemberCouponStatus()).isEqualTo(CouponStatus.INACTIVE);
+
+    }
+
+
+
+
+
+
+
+
+
+
     private LocalDate getNextDeliveryDate() {
         LocalDate today = LocalDate.now();
         DayOfWeek dayOfWeek = today.getDayOfWeek();
@@ -328,12 +576,13 @@ public class OrderApiControllerTest extends BaseTest {
     }
 
 
-    private Subscribe generateSubscribe(Dog dog) {
+    private Subscribe generateSubscribe(Dog dog, SubscribePlan plan) {
         List<Recipe> recipes = recipeRepository.findAll();
 
         Subscribe subscribe = Subscribe.builder()
                 .status(SubscribeStatus.BEFORE_PAYMENT)
-                .plan(SubscribePlan.FULL)
+                .plan(plan)
+                .subscribeCount(3)
                 .nextPaymentPrice(100000)
                 .build();
 

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -20,7 +21,7 @@ public class SubscribeOrderRequestDto {
     @NotEmpty
     private String impUid; // 아임포트 결제번호
     @NotEmpty
-    private String merchantUid; // 주문번호 yymmdd + 당일주문 순서(001~999)
+    private String merchantUid; // 주문번호
 
     private Long memberCouponId; // 사용한 쿠폰 id
 
@@ -41,11 +42,12 @@ public class SubscribeOrderRequestDto {
     private int paymentPrice; // 결제 금액
     @NotNull
     private PaymentMethod paymentMethod; // [CREDIT_CARD, NAVER_PAY, KAKAO_PAY]
-
-
+    @NotNull
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate nextDeliveryDate;
-
+    @NotNull
     private boolean isBrochure; // 브로슈어 받을 것인지
+    @NotNull
     private boolean isAgreePrivacy; // 개정정보 동의
 
     @Data
@@ -63,6 +65,7 @@ public class SubscribeOrderRequestDto {
         private String street;
         @NotEmpty
         private String detailAddress;
+
         private String request;
     }
 

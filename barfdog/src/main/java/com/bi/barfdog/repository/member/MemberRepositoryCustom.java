@@ -1,5 +1,6 @@
 package com.bi.barfdog.repository.member;
 
+import com.bi.barfdog.api.barfDto.MypageDto;
 import com.bi.barfdog.api.couponDto.GroupPublishRequestDto;
 import com.bi.barfdog.api.memberDto.*;
 import com.bi.barfdog.api.rewardDto.PublishToGroupDto;
@@ -31,4 +32,6 @@ public interface MemberRepositoryCustom {
     Long findCountByMyCode(String myRecommendationCode);
 
     QuerySnsDto findProviderByMember(Member member);
+
+    MypageDto findMypageDtoByMember(Member member);
 }

@@ -1,6 +1,7 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.couponDto.*;
+import com.bi.barfdog.api.resource.AdminCouponsDtoResource;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.coupon.Coupon;
 import com.bi.barfdog.domain.coupon.CouponType;
@@ -8,10 +9,10 @@ import com.bi.barfdog.repository.coupon.CouponRepository;
 import com.bi.barfdog.service.CouponService;
 import com.bi.barfdog.validator.CouponValidator;
 import lombok.RequiredArgsConstructor;
-import org.springframework.hateoas.CollectionModel;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.MediaTypes;
-import org.springframework.hateoas.RepresentationModel;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.*;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -60,56 +61,33 @@ public class CouponAdminController {
     }
 
     @GetMapping("/direct")
-    public ResponseEntity queryCouponsDirect(@RequestParam String keyword) {
-        List<CouponListResponseDto> responseDtoList = couponRepository.findRedirectCouponsByKeyword(keyword);
+    public ResponseEntity queryCouponsDirect(Pageable pageable,
+                                             PagedResourcesAssembler<CouponListResponseDto> assembler,
+                                             @RequestParam String keyword) {
 
-        List<EntityModel> entityModelList = new ArrayList<>();
+        Page<CouponListResponseDto> page = couponRepository.findRedirectCouponsByKeyword(keyword, pageable);
 
-        WebMvcLinkBuilder selfLinkBuilder = linkTo(CouponAdminController.class).slash("direct");
+        PagedModel<AdminCouponsDtoResource> pagedModel = assembler.toModel(page, e -> new AdminCouponsDtoResource(e));
 
-        for (CouponListResponseDto responseDto : responseDtoList) {
+        pagedModel.add(linkTo(CouponAdminController.class).slash("auto?keyword= ").withRel("query_auto_coupons"));
+        pagedModel.add(profileRootUrlBuilder.slash("index.html#resources-query-direct-coupons").withRel("profile"));
 
-            EntityModel<CouponListResponseDto> entityModel = EntityModel.of(responseDto,
-                    linkTo(CouponAdminController.class).slash(responseDto.getId()).slash("inactive").withRel("inactive_coupon")
-            );
-
-            entityModel.add();
-
-            entityModelList.add(entityModel);
-        }
-
-
-        CollectionModel<EntityModel> collectionModel = CollectionModel.of(entityModelList,
-                selfLinkBuilder.withSelfRel(),
-                linkTo(CouponAdminController.class).slash("auto?keyword= ").withRel("query_auto_coupons"),
-                profileRootUrlBuilder.slash("index.html#resources-query-direct-coupons").withRel("profile")
-        );
-
-        return ResponseEntity.ok(collectionModel);
+        return ResponseEntity.ok(pagedModel);
     }
 
     @GetMapping("/auto")
-    public ResponseEntity queryCouponsAuto(@RequestParam String keyword) {
-        List<CouponListResponseDto> responseDtoList = couponRepository.findAutoCouponsByKeyword(keyword);
+    public ResponseEntity queryCouponsAuto(Pageable pageable,
+                                           PagedResourcesAssembler<CouponListResponseDto> assembler,
+                                           @RequestParam String keyword) {
 
-        List<EntityModel> entityModelList = new ArrayList<>();
+        Page<CouponListResponseDto> page = couponRepository.findAutoCouponsByKeyword(keyword, pageable);
 
-        WebMvcLinkBuilder selfLinkBuilder = linkTo(CouponAdminController.class).slash("auto");
+        PagedModel<AdminCouponsDtoResource> pagedModel = assembler.toModel(page, e -> new AdminCouponsDtoResource(e));
 
-        for (CouponListResponseDto responseDto : responseDtoList) {
+        pagedModel.add(linkTo(CouponAdminController.class).slash("direct?keyword= ").withRel("query_direct_coupons"));
+        pagedModel.add(profileRootUrlBuilder.slash("index.html#resources-query-auto-coupons").withRel("profile"));
 
-            EntityModel<CouponListResponseDto> entityModel = EntityModel.of(responseDto);
-
-            entityModelList.add(entityModel);
-        }
-
-        CollectionModel<EntityModel> collectionModel = CollectionModel.of(entityModelList,
-                selfLinkBuilder.withSelfRel(),
-                linkTo(CouponAdminController.class).slash("direct?keyword= ").withRel("query_direct_coupons"),
-                profileRootUrlBuilder.slash("index.html#resources-query-auto-coupons").withRel("profile")
-        );
-
-        return ResponseEntity.ok(collectionModel);
+        return ResponseEntity.ok(pagedModel);
     }
 
     @PutMapping("/{id}/inactive")

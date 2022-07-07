@@ -110,7 +110,7 @@ public class RecipeApiController extends BaseTimeEntity {
         Recipe recipe = optionalRecipe.get();
 
         RecipeResponseDto responseDto = modelMapper.map(recipe, RecipeResponseDto.class);
-        responseDto.setThumbnailUri(recipe);
+        responseDto.setThumbnailUriAndFilename(recipe);
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(RecipeApiController.class).slash(id);
 

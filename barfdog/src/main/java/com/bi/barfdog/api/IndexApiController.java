@@ -3,6 +3,8 @@ package com.bi.barfdog.api;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.bi.barfdog.api.barfDto.HomePageDto;
+import com.bi.barfdog.api.barfDto.MypageDto;
+import com.bi.barfdog.api.barfDto.SendInviteSmsDto;
 import com.bi.barfdog.api.memberDto.*;
 import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
@@ -65,6 +67,41 @@ public class IndexApiController {
         return ResponseEntity.ok(entityModel);
     }
 
+    @GetMapping("/api/mypage")
+    public ResponseEntity mypage(@CurrentUser Member member) {
+
+        MypageDto responseDto = memberRepository.findMypageDtoByMember(member);
+
+        EntityModel<MypageDto> entityModel = EntityModel.of(responseDto,
+                linkTo(IndexApiController.class).slash("api/mypage").withSelfRel(),
+                profileRootUrlBuilder.slash("index.html#resources-my-page").withRel("profile")
+        );
+
+        return ResponseEntity.ok(entityModel);
+    }
+
+    @PostMapping("/api/mypage/inviteSms")
+    public ResponseEntity sendInviteSms(@CurrentUser Member member,
+                                        @RequestBody @Valid SendInviteSmsDto requestDto,
+                                        Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+
+        try {
+            DirectSendResponseDto responseDto = memberService.sendInviteSms(member, requestDto);
+
+            EntityModel<DirectSendResponseDto> entityModel = EntityModel.of(responseDto,
+                    linkTo(IndexApiController.class).slash("api/mypage/inviteSms").withSelfRel(),
+                    profileRootUrlBuilder.slash("index.html#resources-send-inviteSms").withRel("profile")
+            );
+
+            return ResponseEntity.ok(entityModel);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+
+    }
+
     @GetMapping("/api")
     public RepresentationModel index(){
         RepresentationModel index = new RepresentationModel();
@@ -117,10 +154,8 @@ public class IndexApiController {
             return ResponseEntity.internalServerError().build();
         }
 
-        WebMvcLinkBuilder selfLinkBuilder = linkTo(IndexApiController.class).slash("join/phoneAuth");
-
         EntityModel<DirectSendResponseDto> entityModel = EntityModel.of(responseDto,
-                selfLinkBuilder.withSelfRel(),
+                linkTo(IndexApiController.class).slash("join/phoneAuth").withSelfRel(),
                 profileRootUrlBuilder.slash("index.html#resources-join-phoneAuth").withRel("profile")
                 );
 

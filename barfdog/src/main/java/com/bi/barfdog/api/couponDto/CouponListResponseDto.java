@@ -1,6 +1,7 @@
 package com.bi.barfdog.api.couponDto;
 
 import com.bi.barfdog.domain.coupon.CouponTarget;
+import com.bi.barfdog.domain.coupon.CouponType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,6 +18,8 @@ public class CouponListResponseDto {
     private Long id;
 
     private String name;
+
+    private CouponType couponType;
 
     private String code;
 

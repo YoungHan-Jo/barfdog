@@ -23,6 +23,7 @@ public class HomePageDto {
     private List<MainBannerDto> mainBannerDtoList = new ArrayList<>();
     @Builder.Default
     private List<RecipeDto> recipeDtoList = new ArrayList<>();
+    @Builder.Default
     private List<QueryBestReviewsDto> queryBestReviewsDtoList = new ArrayList<>();
 
     @Data

@@ -1,5 +1,7 @@
 package com.bi.barfdog.api;
 
+import com.bi.barfdog.api.barfDto.SendInviteSmsDto;
+import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
 import com.bi.barfdog.api.memberDto.EmailAuthDto;
 import com.bi.barfdog.api.memberDto.FindPasswordRequestDto;
 import com.bi.barfdog.api.memberDto.MemberSaveRequestDto;
@@ -10,42 +12,52 @@ import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.directsend.PhoneAuthRequestDto;
 import com.bi.barfdog.domain.Address;
 import com.bi.barfdog.domain.banner.*;
-import com.bi.barfdog.domain.coupon.DiscountType;
+import com.bi.barfdog.domain.coupon.*;
+import com.bi.barfdog.domain.delivery.Delivery;
+import com.bi.barfdog.domain.delivery.Recipient;
 import com.bi.barfdog.domain.dog.*;
-import com.bi.barfdog.domain.item.Item;
-import com.bi.barfdog.domain.item.ItemImage;
-import com.bi.barfdog.domain.item.ItemStatus;
-import com.bi.barfdog.domain.item.ItemType;
+import com.bi.barfdog.domain.item.*;
 import com.bi.barfdog.domain.member.Agreement;
 import com.bi.barfdog.domain.member.FirstReward;
 import com.bi.barfdog.domain.member.Gender;
 import com.bi.barfdog.domain.member.Member;
-import com.bi.barfdog.domain.order.GeneralOrder;
-import com.bi.barfdog.domain.order.Order;
-import com.bi.barfdog.domain.order.OrderStatus;
-import com.bi.barfdog.domain.order.SubscribeOrder;
+import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
+import com.bi.barfdog.domain.order.*;
 import com.bi.barfdog.domain.orderItem.OrderItem;
+import com.bi.barfdog.domain.orderItem.SelectOption;
 import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.review.*;
 import com.bi.barfdog.domain.reward.*;
+import com.bi.barfdog.domain.setting.ActivityConstant;
+import com.bi.barfdog.domain.setting.Setting;
+import com.bi.barfdog.domain.setting.SnackConstant;
 import com.bi.barfdog.domain.subscribe.Subscribe;
+import com.bi.barfdog.domain.subscribe.SubscribePlan;
 import com.bi.barfdog.domain.subscribe.SubscribeStatus;
+import com.bi.barfdog.domain.surveyReport.*;
 import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.jwt.JwtProperties;
 import com.bi.barfdog.repository.ReviewImageRepository;
 import com.bi.barfdog.repository.banner.BannerRepository;
+import com.bi.barfdog.repository.coupon.CouponRepository;
+import com.bi.barfdog.repository.delivery.DeliveryRepository;
+import com.bi.barfdog.repository.dog.DogPictureRepository;
 import com.bi.barfdog.repository.dog.DogRepository;
 import com.bi.barfdog.repository.item.ItemImageRepository;
+import com.bi.barfdog.repository.item.ItemOptionRepository;
 import com.bi.barfdog.repository.item.ItemRepository;
 import com.bi.barfdog.repository.member.MemberRepository;
+import com.bi.barfdog.repository.memberCoupon.MemberCouponRepository;
 import com.bi.barfdog.repository.order.OrderRepository;
 import com.bi.barfdog.repository.orderItem.OrderItemRepository;
+import com.bi.barfdog.repository.orderItem.SelectOptionRepository;
 import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.repository.review.BestReviewRepository;
 import com.bi.barfdog.repository.review.ItemReviewRepository;
 import com.bi.barfdog.repository.review.ReviewRepository;
 import com.bi.barfdog.repository.review.SubscribeReviewRepository;
 import com.bi.barfdog.repository.reward.RewardRepository;
+import com.bi.barfdog.repository.setting.SettingRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
 import com.bi.barfdog.snsLogin.ConnectSnsRequestDto;
 import com.bi.barfdog.snsLogin.NaverLoginDto;
@@ -68,9 +80,14 @@ import javax.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import static com.bi.barfdog.config.finalVariable.StandardVar.*;
+import static com.bi.barfdog.config.finalVariable.StandardVar.LACTATING;
 import static org.assertj.core.api.Assertions.*;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
@@ -118,6 +135,20 @@ public class IndexApiControllerTest extends BaseTest {
     SubscribeReviewRepository subscribeReviewRepository;
     @Autowired
     BestReviewRepository bestReviewRepository;
+    @Autowired
+    MemberCouponRepository memberCouponRepository;
+    @Autowired
+    SelectOptionRepository selectOptionRepository;
+    @Autowired
+    ItemOptionRepository itemOptionRepository;
+    @Autowired
+    DeliveryRepository deliveryRepository;
+    @Autowired
+    CouponRepository couponRepository;
+    @Autowired
+    SettingRepository settingRepository;
+    @Autowired
+    DogPictureRepository dogPictureRepository;
 
     @Autowired
     RewardRepository rewardRepository;
@@ -396,6 +427,203 @@ public class IndexApiControllerTest extends BaseTest {
                 .andExpect(jsonPath("mainBannerDtoList", hasSize(13)))
         ;
     }
+
+    @Test
+    @DisplayName("마이페이지 상단 조회")
+    public void queryMypage() throws Exception {
+       //given
+        memberCouponRepository.deleteAll();
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int reward = member.getReward();
+
+        Dog dog = generateDog(member, 1, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL, true);
+        String dogName = dog.getName();
+        generateDogPicture(dog);
+
+
+        IntStream.range(1, 2).forEach(i -> {
+            generateGeneralOrder(member, i, OrderStatus.PAYMENT_DONE);
+            generateGeneralOrder(member, i, OrderStatus.PRODUCING);
+            generateGeneralOrder(member, i, OrderStatus.DELIVERY_READY);
+            generateGeneralOrder(member, i, OrderStatus.DELIVERY_START);
+        });
+        IntStream.range(1,5).forEach(i -> {
+            generateGeneralOrder(member, i, OrderStatus.CANCEL_REQUEST);
+            generateGeneralOrder(member, i, OrderStatus.CONFIRM);
+        });
+
+        IntStream.range(1,5).forEach(i -> {
+            generateMemberCoupon(member, i, i, CouponStatus.ACTIVE);
+        });
+        IntStream.range(1,3).forEach(i -> {
+            generateMemberCoupon(member, i, i, CouponStatus.INACTIVE);
+        });
+
+
+        //when & then
+        mockMvc.perform(get("/api/mypage")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("mypageMemberDto.reward").value(reward))
+                .andExpect(jsonPath("mypageDogDto.dogName").value(dogName))
+                .andExpect(jsonPath("mypageDogDto.thumbnailUrl").isNotEmpty())
+                .andExpect(jsonPath("deliveryCount").value(4))
+                .andExpect(jsonPath("couponCount").value(4))
+                .andDo(document("my_page",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt token")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("mypageMemberDto.id").description("유저 id"),
+                                fieldWithPath("mypageMemberDto.memberName").description("유저 이름"),
+                                fieldWithPath("mypageMemberDto.grade").description("유저 등급"),
+                                fieldWithPath("mypageMemberDto.myRecommendationCode").description("유저 추천코드"),
+                                fieldWithPath("mypageMemberDto.reward").description("보유 적립금"),
+                                fieldWithPath("mypageDogDto.thumbnailUrl").description("강아지 사진 . 없으면 mypageDogDto.thumbnailUrl = null"),
+                                fieldWithPath("mypageDogDto.dogName").description("대표견 이름 . 대표견 없으면 mypageDogDto = null"),
+                                fieldWithPath("deliveryCount").description("배송 현황 건"),
+                                fieldWithPath("couponCount").description("보유 쿠폰 수"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+        ;
+
+    }
+
+    @Test
+    @DisplayName("마이페이지 상단 조회 대표견이 없을 경우")
+    public void queryMypage_noDog() throws Exception {
+        //given
+        memberCouponRepository.deleteAll();
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int reward = member.getReward();
+
+
+        IntStream.range(1, 2).forEach(i -> {
+            generateGeneralOrder(member, i, OrderStatus.PAYMENT_DONE);
+            generateGeneralOrder(member, i, OrderStatus.PRODUCING);
+            generateGeneralOrder(member, i, OrderStatus.DELIVERY_READY);
+            generateGeneralOrder(member, i, OrderStatus.DELIVERY_START);
+        });
+        IntStream.range(1,5).forEach(i -> {
+            generateGeneralOrder(member, i, OrderStatus.CANCEL_REQUEST);
+            generateGeneralOrder(member, i, OrderStatus.CONFIRM);
+        });
+
+        IntStream.range(1,5).forEach(i -> {
+            generateMemberCoupon(member, i, i, CouponStatus.ACTIVE);
+        });
+        IntStream.range(1,3).forEach(i -> {
+            generateMemberCoupon(member, i, i, CouponStatus.INACTIVE);
+        });
+
+
+        //when & then
+        mockMvc.perform(get("/api/mypage")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("mypageMemberDto.reward").value(reward))
+                .andExpect(jsonPath("deliveryCount").value(4))
+                .andExpect(jsonPath("couponCount").value(4))
+                .andExpect(jsonPath("mypageDogDto").isEmpty())
+        ;
+
+    }
+
+    @Test
+    @DisplayName("마이페이지 상단 조회 대표견이 있으나 사진이 없는 경우")
+    public void queryMypage_noPicture() throws Exception {
+        //given
+        memberCouponRepository.deleteAll();
+        dogRepository.deleteAll();
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int reward = member.getReward();
+
+        Dog dog = generateDog(member, 1, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL, true);
+        String dogName = dog.getName();
+
+
+        //when & then
+        mockMvc.perform(get("/api/mypage")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("mypageMemberDto.reward").value(reward))
+                .andExpect(jsonPath("mypageDogDto.dogName").value(dogName))
+                .andExpect(jsonPath("mypageDogDto.thumbnailUrl").isEmpty())
+        ;
+
+    }
+
+    @Ignore
+    @Test
+    @DisplayName("친구 초대 문자 보내기")
+    public void sendInviteSms() throws Exception {
+       //given
+
+        SendInviteSmsDto requestDto = SendInviteSmsDto.builder()
+                .name("김바프")
+                .phone("01099038544")
+                .homePageUrl("https://www.barfdog.com")
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/mypage/inviteSms")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("send_inviteSms",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt token")
+                        ),
+                        requestFields(
+                                fieldWithPath("name").description("친구 이름"),
+                                fieldWithPath("phone").description("친구 휴대전화번호 '010xxxxxxxx' '-'제거한 문자열"),
+                                fieldWithPath("homePageUrl").description("문자로 보낼 바프독 홈 화면url 주소")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("responseCode").description("응답코드 (200 이외의 값이면 다이렉트센드 내부 에러)"),
+                                fieldWithPath("status").description("다이렉트 센드 상태 코드"),
+                                fieldWithPath("msg").description("다이렉트 센드 상태 메시지"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+    }
+    
 
 
     @Test
@@ -1786,6 +2014,586 @@ public class IndexApiControllerTest extends BaseTest {
                 .targets(bannerTargets)
                 .build();
         return bannerRepository.save(banner);
+    }
+
+    private GeneralOrder generateGeneralOrder(Member member, int i, OrderStatus orderstatus) {
+
+
+        Delivery delivery = generateDelivery(member, i);
+        GeneralOrder generalOrder = GeneralOrder.builder()
+                .impUid("imp_uid" + i)
+                .merchantUid("merchant_uid" + i)
+                .orderStatus(orderstatus)
+                .member(member)
+                .orderPrice(120000)
+                .deliveryPrice(0)
+                .discountTotal(10000)
+                .discountReward(10000)
+                .discountCoupon(0)
+                .paymentPrice(110000)
+                .paymentMethod(PaymentMethod.CREDIT_CARD)
+                .isPackage(false)
+                .delivery(delivery)
+                .orderConfirmDate(LocalDateTime.now().minusHours(3))
+                .build();
+
+        IntStream.range(1,3).forEach(j -> {
+            Item item = generateItem(j);
+            generateOption(item, j);
+
+            OrderItem orderItem = generateOrderItem(member, generalOrder, j, item, orderstatus);
+
+            IntStream.range(1,j+1).forEach(k -> {
+                SelectOption selectOption = SelectOption.builder()
+                        .orderItem(orderItem)
+                        .name("옵션" + k)
+                        .price(1000 * k)
+                        .amount(k)
+                        .build();
+                selectOptionRepository.save(selectOption);
+            });
+
+        });
+
+
+        return orderRepository.save(generalOrder);
+    }
+
+    private OrderItem generateOrderItem(Member member, GeneralOrder generalOrder, int j, Item item, OrderStatus orderStatus) {
+
+        OrderItem orderItem = OrderItem.builder()
+                .generalOrder(generalOrder)
+                .item(item)
+                .salePrice(item.getSalePrice())
+                .amount(j)
+                .finalPrice(item.getSalePrice() * j)
+                .status(orderStatus)
+                .build();
+        return orderItemRepository.save(orderItem);
+    }
+
+    private MemberCoupon generateMemberCoupon(Member member, int i, int remaining, CouponStatus status) {
+        Coupon coupon = generateGeneralCoupon(i);
+        MemberCoupon memberCoupon = MemberCoupon.builder()
+                .member(member)
+                .coupon(coupon)
+                .expiredDate(LocalDateTime.now().plusDays(remaining))
+                .remaining(remaining)
+                .memberCouponStatus(status)
+                .build();
+        return memberCouponRepository.save(memberCoupon);
+    }
+
+
+    private ItemOption generateOption(Item item, int i) {
+        ItemOption itemOption = ItemOption.builder()
+                .item(item)
+                .name("옵션" + i)
+                .optionPrice(i * 1000)
+                .remaining(999)
+                .build();
+        return itemOptionRepository.save(itemOption);
+    }
+
+    private SubscribeOrder generateSubscribeOrder(Member member, int i, OrderStatus orderStatus) {
+        Delivery delivery = generateDelivery(member, i);
+        Dog dog = generateDog(member, i, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL, false);
+
+        Subscribe subscribe = Subscribe.builder()
+                .dog(dog)
+                .subscribeCount(i)
+                .plan(SubscribePlan.FULL)
+                .nextPaymentDate(LocalDate.now().plusDays(6))
+                .nextDeliveryDate(LocalDate.now().plusDays(8))
+                .nextPaymentPrice(120000)
+                .status(SubscribeStatus.SUBSCRIBING)
+                .build();
+        subscribeRepository.save(subscribe);
+
+        SubscribeOrder subscribeOrder = SubscribeOrder.builder()
+                .impUid("imp_uid"+i)
+                .merchantUid("merchant_uid"+i)
+                .orderStatus(orderStatus)
+                .member(member)
+                .orderPrice(120000)
+                .deliveryPrice(0)
+                .discountTotal(0)
+                .discountReward(0)
+                .discountCoupon(0)
+                .paymentPrice(120000)
+                .paymentMethod(PaymentMethod.CREDIT_CARD)
+                .isPackage(false)
+                .delivery(delivery)
+                .subscribe(subscribe)
+                .build();
+        return orderRepository.save(subscribeOrder);
+    }
+
+    private Delivery generateDelivery(Member member, int i) {
+        Delivery delivery = Delivery.builder()
+                .deliveryNumber("cj023923423" + i)
+                .recipient(Recipient.builder()
+                        .name(member.getName())
+                        .phone(member.getPhoneNumber())
+                        .zipcode(member.getAddress().getZipcode())
+                        .street(member.getAddress().getStreet())
+                        .detailAddress(member.getAddress().getDetailAddress())
+                        .build())
+                .departureDate(LocalDateTime.now().minusDays(4))
+                .arrivalDate(LocalDateTime.now().minusDays(1))
+                .build();
+        deliveryRepository.save(delivery);
+        return delivery;
+    }
+
+    private Dog generateDog(Member member, int i, long startAgeMonth, DogSize dogSize, String weight, ActivityLevel activitylevel, int walkingCountPerWeek, double walkingTimePerOneTime, SnackCountLevel snackCountLevel, boolean representative) {
+        Dog dog = Dog.builder()
+                .member(member)
+                .name("강아지" + i)
+                .birth("202103")
+                .startAgeMonth(startAgeMonth)
+                .gender(Gender.MALE)
+                .oldDog(false)
+                .dogSize(dogSize)
+                .weight(new BigDecimal(weight))
+                .dogActivity(new DogActivity(activitylevel, walkingCountPerWeek, walkingTimePerOneTime))
+                .dogStatus(DogStatus.HEALTHY)
+                .snackCountLevel(snackCountLevel)
+                .representative(representative)
+                .build();
+        return dogRepository.save(dog);
+    }
+
+
+
+
+    private SnackAnalysis getSnackAnalysis(Dog dog) {
+        double avgSnackCountInLargeDog = getAvgSnackByDogSize(DogSize.LARGE);
+        double avgSnackCountInMiddleDog = getAvgSnackByDogSize(DogSize.MIDDLE);
+        double avgSnackCountInSmallDog = getAvgSnackByDogSize(DogSize.SMALL);
+
+        int mySnackCount = getMySnackCount(dog);
+
+        SnackAnalysis snackAnalysis = SnackAnalysis.builder()
+                .avgSnackCountInLargeDog(avgSnackCountInLargeDog)
+                .avgSnackCountInMiddleDog(avgSnackCountInMiddleDog)
+                .avgSnackCountInSmallDog(avgSnackCountInSmallDog)
+                .mySnackCount(mySnackCount)
+                .build();
+        return snackAnalysis;
+    }
+
+    private int getMySnackCount(Dog dog) {
+        int mySnackCount;
+
+        switch (dog.getSnackCountLevel()) {
+            case LITTLE: mySnackCount = 1;
+                break;
+            case NORMAL: mySnackCount = 2;
+                break;
+            default: mySnackCount = 3;
+                break;
+        }
+
+        return mySnackCount;
+    }
+
+    private double getAvgSnackByDogSize(DogSize dogSize) {
+        List<String> snackGroupByDogSize = dogRepository.findSnackGroupByDogSize(dogSize);
+
+        double sum = 0.0;
+
+        for (String s : snackGroupByDogSize) {
+            double d = Double.valueOf(s);
+            sum += d;
+        }
+        return Math.round(sum / snackGroupByDogSize.size() * 10.0) / 10.0;
+    }
+
+    private WalkingAnalysis getWalkingAnalysis(Member member, Dog dog) {
+        List<Long> ranks = dogRepository.findRanksById(dog.getId());
+        int rank = 1;
+        for (Long id : ranks) {
+            if (id == dog.getId()) {
+                break;
+            }
+            rank++;
+        }
+
+        double highRankPercent = Math.round((double) rank / ranks.size() * 1000.0) / 10.0;
+
+        double totalWalkingTime = dog.getDogActivity().getWalkingTimePerOneTime() * dog.getDogActivity().getWalkingCountPerWeek();
+        double avgWalkingTimeInCity = dogRepository.findAvgTotalWalkingTimeByCity(member.getAddress().getCity());
+        double avgTotalWalkingTimeByAge = dogRepository.findAvgTotalWalkingTimeByAge(Math.floor(dog.getStartAgeMonth() / 12));
+        double avgWalkingTimeInDogSize = dogRepository.findAvgTotalWalkingTimeByDogSize(dog.getDogSize());
+
+        WalkingAnalysis walkingAnalysis = WalkingAnalysis.builder()
+                .highRankPercent(highRankPercent)
+                .walkingCountPerWeek(dog.getDogActivity().getWalkingCountPerWeek())
+                .totalWalingTime(Math.round(totalWalkingTime * 10.0) / 10.0)
+                .avgWalkingTimeInCity(Math.round(avgWalkingTimeInCity * 10.0) / 10.0)
+                .avgWalkingTimeInAge(Math.round(avgTotalWalkingTimeByAge * 10.0) / 10.0)
+                .avgWalkingTimeInDogSize(Math.round(avgWalkingTimeInDogSize * 10.0) / 10.0)
+                .build();
+        return walkingAnalysis;
+    }
+
+    private ActivityAnalysis getActivityAnalysis(DogSize dogSize, Dog dog) {
+        List<String> activityGroup = dogRepository.findActivityGroupByDogSize(dogSize);
+
+        int activityGroupOneCount = 0;
+        int activityGroupTwoCount = 0;
+        int activityGroupThreeCount = 0;
+        int activityGroupFourCount = 0;
+        int activityGroupFiveCount = 0;
+
+        double sum = 0.0;
+
+        for (String s : activityGroup) {
+            switch (s) {
+                case "1": activityGroupOneCount++;
+                    break;
+                case "2": activityGroupTwoCount++;
+                    break;
+                case "3": activityGroupThreeCount++;
+                    break;
+                case "4": activityGroupFourCount++;
+                    break;
+                case "5": activityGroupFiveCount++;
+                    break;
+                default:
+                    break;
+            }
+            sum += Double.valueOf(s);
+        }
+
+        ActivityLevel avgActivityLevel = getAvgActivityLevel(activityGroup, sum);
+
+        int myActivityGroup = getMyActivityGroup(dog);
+
+        ActivityAnalysis activityAnalysis = ActivityAnalysis.builder()
+                .avgActivityLevel(avgActivityLevel)
+                .activityGroupOneCount(activityGroupOneCount)
+                .activityGroupTwoCount(activityGroupTwoCount)
+                .activityGroupThreeCount(activityGroupThreeCount)
+                .activityGroupFourCount(activityGroupFourCount)
+                .activityGroupFiveCount(activityGroupFiveCount)
+                .myActivityGroup(myActivityGroup)
+                .build();
+        return activityAnalysis;
+    }
+
+    private ActivityLevel getAvgActivityLevel(List<String> activityGroup, double sum) {
+        ActivityLevel avgActivityLevel;
+
+        int round = (int) Math.round(sum / activityGroup.size());
+        switch (round) {
+            case 1:
+                avgActivityLevel = ActivityLevel.VERY_LITTLE;
+                break;
+            case 2:
+                avgActivityLevel = ActivityLevel.LITTLE;
+                break;
+            case 3:
+                avgActivityLevel = ActivityLevel.NORMAL;
+                break;
+            case 4:
+                avgActivityLevel = ActivityLevel.MUCH;
+                break;
+            default:
+                avgActivityLevel = ActivityLevel.VERY_MUCH;
+                break;
+        }
+        return avgActivityLevel;
+    }
+
+    private int getMyActivityGroup(Dog dog) {
+        int myActivityGroup;
+
+        switch (dog.getDogActivity().getActivityLevel()) {
+            case VERY_LITTLE: myActivityGroup = 1;
+                break;
+            case LITTLE: myActivityGroup = 2;
+                break;
+            case NORMAL: myActivityGroup = 3;
+                break;
+            case MUCH: myActivityGroup = 4;
+                break;
+            default: myActivityGroup = 5;
+                break;
+        }
+        return myActivityGroup;
+    }
+
+    private WeightAnalysis getWeightAnalysis(DogSize dogSize, BigDecimal weight) {
+        double avgWeightByDogSize = dogRepository.findAvgWeightByDogSize(dogSize);
+
+        double avgWeight = Math.round(avgWeightByDogSize * 10.0) / 10.0;
+
+        double fattestWeightByDogSize = dogRepository.findFattestWeightByDogSize(dogSize);
+        double lightestWeight = dogRepository.findLightestWeightByDogSize(dogSize);
+
+        double weightRange = Math.round(((fattestWeightByDogSize-lightestWeight)/5.0) * 10.0) / 10.0;
+
+        List<String> weightGroup = dogRepository.findWeightGroupByDogSize(dogSize, lightestWeight, weightRange);
+
+        int weightGroupOneCount = 0;
+        int weightGroupTwoCount = 0;
+        int weightGroupThreeCount = 0;
+        int weightGroupFourCount = 0;
+        int weightGroupFiveCount = 0;
+
+        for (String s : weightGroup) {
+            switch (s) {
+                case "1": weightGroupOneCount++;
+                    break;
+                case "2": weightGroupTwoCount++;
+                    break;
+                case "3": weightGroupThreeCount++;
+                    break;
+                case "4": weightGroupFourCount++;
+                    break;
+                case "5": weightGroupFiveCount++;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        int myWeightGroup = getMyWeightGroup(weight, lightestWeight, weightRange);
+
+        WeightAnalysis weightAnalysis = WeightAnalysis.builder()
+                .avgWeight(avgWeight)
+                .weightGroupOneCount(weightGroupOneCount)
+                .weightGroupTwoCount(weightGroupTwoCount)
+                .weightGroupThreeCount(weightGroupThreeCount)
+                .weightGroupFourCount(weightGroupFourCount)
+                .weightGroupFiveCount(weightGroupFiveCount)
+                .myWeightGroup(myWeightGroup)
+                .weightInLastReport(weight)
+                .build();
+
+        return weightAnalysis;
+    }
+
+    private int getMyWeightGroup(BigDecimal weight, double lightestWeight, double weightRange) {
+        int myWeightGroup;
+
+        if (includedInRange(weight, lightestWeight + weightRange)) {
+            myWeightGroup = 1;
+        } else if(includedInRange(weight, lightestWeight + weightRange * 2.0)) {
+            myWeightGroup = 2;
+        } else if(includedInRange(weight, lightestWeight + weightRange * 3.0)) {
+            myWeightGroup = 3;
+        } else if (includedInRange(weight, lightestWeight + weightRange * 4.0)) {
+            myWeightGroup = 4;
+        } else {
+            myWeightGroup = 5;
+        }
+        return myWeightGroup;
+    }
+
+    private boolean includedInRange(BigDecimal weight, double weightRange) {
+        int compare = weight.compareTo(BigDecimal.valueOf(weightRange));
+
+        if (compare <= 0) {
+            return true;
+        }
+        return false;
+    }
+
+    private AgeAnalysis getAgeAnalysis(Long startAgeMonth) {
+        double avgAgeMonth = dogRepository.findAvgStartAgeMonth();
+
+        int oldestMonth = dogRepository.findOldestMonth();
+
+        long monthRange = Math.round(oldestMonth / 5.0);
+
+        int avgMonth = (int) Math.round(avgAgeMonth);
+
+        List<String> ageGroup = dogRepository.findAgeGroup(monthRange);
+
+        int ageGroupOneCount = 0;
+        int ageGroupTwoCount = 0;
+        int ageGroupThreeCount = 0;
+        int ageGroupFourCount = 0;
+        int ageGroupFiveCount = 0;
+
+        for (String s : ageGroup) {
+            switch (s) {
+                case "1": ageGroupOneCount++;
+                    break;
+                case "2": ageGroupTwoCount++;
+                    break;
+                case "3": ageGroupThreeCount++;
+                    break;
+                case "4": ageGroupFourCount++;
+                    break;
+                case "5": ageGroupFiveCount++;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        int myAgeGroup = getMyAgeGroup(startAgeMonth, monthRange);
+
+        AgeAnalysis ageAnalysis = AgeAnalysis.builder()
+                .avgAgeMonth(avgMonth)
+                .ageGroupOneCount(ageGroupOneCount)
+                .ageGroupTwoCount(ageGroupTwoCount)
+                .ageGroupThreeCount(ageGroupThreeCount)
+                .ageGroupFourCount(ageGroupFourCount)
+                .ageGroupFiveCount(ageGroupFiveCount)
+                .myAgeGroup(myAgeGroup)
+                .myStartAgeMonth(startAgeMonth)
+                .build();
+        return ageAnalysis;
+    }
+
+    private int getMyAgeGroup(Long startAgeMonth, long monthRange) {
+        int myAgeGroup;
+
+        if (startAgeMonth < monthRange) {
+            myAgeGroup = 1;
+        } else if (startAgeMonth < monthRange * 2) {
+            myAgeGroup = 2;
+        } else if (startAgeMonth < monthRange * 3) {
+            myAgeGroup = 3;
+        } else if (startAgeMonth < monthRange * 4) {
+            myAgeGroup = 4;
+        } else {
+            myAgeGroup = 5;
+        }
+        return myAgeGroup;
+    }
+
+    private DogActivity getDogActivity(DogSaveRequestDto requestDto) {
+        return new DogActivity(requestDto.getActivityLevel(), Integer.valueOf(requestDto.getWalkingCountPerWeek()), Double.valueOf(requestDto.getWalkingTimePerOneTime()));
+    }
+
+    private FoodAnalysis getDogAnalysis(DogSaveRequestDto requestDto, Recipe recipe, DogSize dogSize, Long startAge, boolean oldDog, boolean neutralization, DogStatus dogStatus, ActivityLevel activityLevel, SnackCountLevel snackCountLevel) {
+        BigDecimal rootVar = BigDecimal.valueOf(70.0);
+        BigDecimal standardVar = getStandardVar(dogSize, startAge, oldDog, neutralization, dogStatus);
+
+        BigDecimal rootXWeightX075 = rootVar.multiply(BigDecimal.valueOf(Math.pow(new Double(requestDto.getWeight()), 0.75)));
+
+        Setting setting = settingRepository.findAll().get(0);
+        ActivityConstant activityConstant = setting.getActivityConstant();
+        SnackConstant snackConstant = setting.getSnackConstant();
+
+        BigDecimal activityVar = getActivityVar(activityLevel, activityConstant);
+
+        BigDecimal snackVar = getSnackVar(snackCountLevel, snackConstant);
+
+        BigDecimal recommendKcal = rootXWeightX075.multiply(standardVar.multiply(activityVar.multiply(snackVar))).divide(BigDecimal.valueOf(10000.0))
+                .setScale(4, BigDecimal.ROUND_HALF_UP);
+
+        BigDecimal gramPerKcal = recipe.getGramPerKcal();
+
+        BigDecimal oneDayRecommendGram = gramPerKcal.multiply(recommendKcal).setScale(0,BigDecimal.ROUND_HALF_UP);
+
+        BigDecimal oneMealRecommendGram = oneDayRecommendGram.divide(BigDecimal.valueOf(2)).setScale(0,BigDecimal.ROUND_HALF_UP);
+
+        FoodAnalysis foodAnalysis = new FoodAnalysis(recommendKcal, oneDayRecommendGram, oneMealRecommendGram);
+        return foodAnalysis;
+    }
+
+    private BigDecimal getSnackVar(SnackCountLevel snackCountLevel, SnackConstant snackConstant) {
+        switch (snackCountLevel) {
+            case LITTLE: return BigDecimal.valueOf(100.0).add(snackConstant.getSnackLittle());
+            case NORMAL: return BigDecimal.valueOf(100.0);
+            case MUCH: return BigDecimal.valueOf(100.0).subtract(snackConstant.getSnackMuch());
+            default: return BigDecimal.valueOf(0);
+        }
+    }
+
+    private void generateDogPicture(Dog dog) {
+        DogPicture dogPicture = DogPicture.builder()
+                .dog(dog)
+                .folder("folder")
+                .filename("filename")
+                .build();
+        dogPictureRepository.save(dogPicture);
+    }
+
+    private Coupon generateGeneralCoupon(int i) {
+        Coupon coupon = Coupon.builder()
+                .name("관리자 직접 발행 쿠폰" + i)
+                .couponType(CouponType.GENERAL_PUBLISHED)
+                .code("")
+                .description("설명")
+                .amount(1)
+                .discountType(DiscountType.FIXED_RATE)
+                .discountDegree(10)
+                .availableMaxDiscount(10000)
+                .availableMinPrice(5000)
+                .couponTarget(CouponTarget.ALL)
+                .couponStatus(CouponStatus.ACTIVE)
+                .build();
+
+        return couponRepository.save(coupon);
+    }
+
+    private BigDecimal getActivityVar(ActivityLevel activityLevel, ActivityConstant activityConstant) {
+        switch (activityLevel) {
+            case VERY_LITTLE: return BigDecimal.valueOf(100.0).subtract(activityConstant.getActivityVeryLittle());
+            case LITTLE: return BigDecimal.valueOf(100.0).subtract(activityConstant.getActivityLittle());
+            case NORMAL: return BigDecimal.valueOf(100.0);
+            case MUCH: return BigDecimal.valueOf(100.0).add(activityConstant.getActivityMuch());
+            case VERY_MUCH: return BigDecimal.valueOf(100.0).add(activityConstant.getActivityVeryMuch());
+            default: return BigDecimal.valueOf(0);
+        }
+    }
+
+    private BigDecimal getStandardVar(DogSize dogSize, Long age, boolean oldDog, boolean neutralization, DogStatus dogStatus) {
+        BigDecimal var;
+
+        if (oldDog == false) {
+            if (dogSize == DogSize.LARGE) { // 대형견
+                if (age <= 18L) { // 어린 개
+                    var = BigDecimal.valueOf(YOUNG_DOG);
+                } else{
+                    var = switchDogStatus(neutralization, dogStatus);
+                }
+            } else { // 소,중형견
+                if (age <= 12L) { // 어린 개
+                    var = BigDecimal.valueOf(YOUNG_DOG);
+                } else{
+                    var = switchDogStatus(neutralization, dogStatus);
+                }
+            }
+        } else { // 노견
+            var = BigDecimal.valueOf(OLD_DOG);
+        }
+
+        return var;
+    }
+
+    private BigDecimal switchDogStatus(boolean neutralization, DogStatus dogStatus) {
+        switch (dogStatus) {
+            case HEALTHY: return neutralization ? BigDecimal.valueOf(NEUTRALIZATION_TRUE) : BigDecimal.valueOf(NEUTRALIZATION_FALSE);
+            case NEED_DIET: return BigDecimal.valueOf(NEED_DIET);
+            case OBESITY: return BigDecimal.valueOf(OBESITY);
+            case PREGNANT: return BigDecimal.valueOf(PREGNANT);
+            case LACTATING: return BigDecimal.valueOf(LACTATING);
+            default: return BigDecimal.valueOf(0);
+        }
+    }
+
+
+    public Long getTerm(String birthday) {
+        Long month = 0L;
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+            LocalDate startDate = LocalDate.parse(birthday, formatter);
+            LocalDate endDate = LocalDate.now();
+            month = ChronoUnit.MONTHS.between(startDate, endDate);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return month;
     }
 
 

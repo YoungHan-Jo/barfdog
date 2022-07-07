@@ -48,9 +48,9 @@ public class Member extends BaseTimeEntity {
     @Embedded
     private Agreement agreement;
 
-    private String recommendCode;
+    private String recommendCode; // 추천한 코드
 
-    private String myRecommendationCode;
+    private String myRecommendationCode; // 내 추천 코드
 
     @Enumerated(EnumType.STRING)
     private Grade grade; // [BRONZE, SILVER, GOLD, PLATINUM, DIAMOND, BARF]

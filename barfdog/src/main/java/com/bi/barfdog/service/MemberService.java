@@ -1,6 +1,7 @@
 package com.bi.barfdog.service;
 
 import com.bi.barfdog.api.barfDto.HomePageDto;
+import com.bi.barfdog.api.barfDto.SendInviteSmsDto;
 import com.bi.barfdog.api.memberDto.*;
 import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.domain.reward.*;
@@ -177,6 +178,18 @@ public class MemberService {
         return responseDto;
     }
 
+    public DirectSendResponseDto sendInviteSms(Member member, SendInviteSmsDto requestDto) throws IOException {
+
+        String title = "[바프독] 친구 초대";
+        String message = "[바프독]\n" +
+                member.getName() +"님이 " + requestDto.getName() + "님에게 바프독 적립금을 선물했습니다.\n" +
+                "가입 후 마이페이지에서 추천코드를 입력해 주세요!\n" +
+                "추천코드 : " + member.getMyRecommendationCode() + "\n" +
+                "가입하러 가기 : " + requestDto.getHomePageUrl();
+
+        return DirectSendUtils.sendSmsDirect(title, message, requestDto.getPhone());
+    }
+
     public QueryMemberAndDogsDto getMemberDto(Long id) {
 
         QueryMemberDto memberDto = memberRepository.findMemberDto(id).get();
@@ -223,6 +236,7 @@ public class MemberService {
                 .provider(member.getProvider())
                 .build();
     }
+
 
 
 }

@@ -17,6 +17,7 @@ public class UpdateSubscribeDto {
 
     private SubscribePlan plan;
 
+    @Builder.Default
     private List<Long> recipeIdList = new ArrayList<>();
 
     private int nextPaymentPrice;

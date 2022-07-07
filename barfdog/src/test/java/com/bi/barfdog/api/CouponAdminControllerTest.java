@@ -185,7 +185,7 @@ public class CouponAdminControllerTest extends BaseTest {
                         ),
                         requestFields(
                                 fieldWithPath("name").description("쿠폰 이름"),
-                                fieldWithPath("code").description("쿠폰 코드 (값 있으면 -> 쿠폰발행/ 값 null이거나 빈문자열이면 -> 관리자발행"),
+                                fieldWithPath("code").description("쿠폰 코드 (값 있으면->쿠폰 타입으로 발행 // 값 null이거나 빈문자열이면 -> 일반쿠폰타입으로 발행"),
                                 fieldWithPath("description").description("쿠폰 설명"),
                                 fieldWithPath("amount").description("쿠폰 매수"),
                                 fieldWithPath("discountType").description("할인 타입 [FIXED_RATE, FLAT_RATE]"),
@@ -479,24 +479,30 @@ public class CouponAdminControllerTest extends BaseTest {
     @DisplayName("정상적으로 직접 발행 쿠폰 리스트 조회하는 테스트")
     public void queryCoupons_direct() throws Exception {
         //given
-        int count = 3;
+        int count = 15;
         IntStream.range(1,1+count).forEach(i ->{
             generateGeneralCoupon(i);
         });
 
-        String keyword = "1";
+        String keyword = "관리자";
 
         //when & then
         mockMvc.perform(get("/api/admin/coupons/direct")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
-                        .param("keyword",keyword))
+                        .param("keyword",keyword)
+                        .param("page", "1")
+                        .param("size", "5"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(document("query_direct_coupons",
                         links(
-                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("first").description("첫 페이지 링크"),
+                                linkWithRel("prev").description("이전 페이지 링크"),
+                                linkWithRel("self").description("현재 페이지 링크"),
+                                linkWithRel("next").description("다음 페이지 링크"),
+                                linkWithRel("last").description("마지막 페이지 링크"),
                                 linkWithRel("query_auto_coupons").description("자동 발행 쿠폰 리스트 조회하는 링크"),
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
                         ),
@@ -506,7 +512,9 @@ public class CouponAdminControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.AUTHORIZATION).description("bearer jwt 토큰")
                         ),
                         requestParameters(
-                                parameterWithName("keyword").description("제목 검색 키워드")
+                                parameterWithName("keyword").description("제목 검색 키워드"),
+                                parameterWithName("page").description("페이지 번호 [0번부터 시작 - 0번이 첫 페이지]"),
+                                parameterWithName("size").description("한 페이지 당 조회 개수")
                         ),
                         responseHeaders(
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
@@ -514,6 +522,7 @@ public class CouponAdminControllerTest extends BaseTest {
                         responseFields(
                                 fieldWithPath("_embedded.couponListResponseDtoList[0].id").description("쿠폰 id"),
                                 fieldWithPath("_embedded.couponListResponseDtoList[0].name").description("쿠폰 이름"),
+                                fieldWithPath("_embedded.couponListResponseDtoList[0].couponType").description("쿠폰 타입 [AUTO_PUBLISHED, GENERAL_PUBLISHED, CODE_PUBLISHED], 각 자동발행/일반발행/쿠폰발행"),
                                 fieldWithPath("_embedded.couponListResponseDtoList[0].code").description("쿠폰 코드"),
                                 fieldWithPath("_embedded.couponListResponseDtoList[0].description").description("쿠폰 설명"),
                                 fieldWithPath("_embedded.couponListResponseDtoList[0].discount").description("쿠폰 할인금액"),
@@ -521,7 +530,15 @@ public class CouponAdminControllerTest extends BaseTest {
                                 fieldWithPath("_embedded.couponListResponseDtoList[0].amount").description("쿠폰 사용 한도 회수"),
                                 fieldWithPath("_embedded.couponListResponseDtoList[0].expiredDate").description("발급 이력 중 가장 긴 유효기간 날짜"),
                                 fieldWithPath("_embedded.couponListResponseDtoList[0]._links.inactive_coupon.href").description("쿠폰 삭제(비활성화) 링크 [유효기간이 지난 쿠폰일 경우에만 링크가 나타남]"),
-                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("page.size").description("한 페이지 당 개수"),
+                                fieldWithPath("page.totalElements").description("검색 총 결과 수"),
+                                fieldWithPath("page.totalPages").description("총 페이지 수"),
+                                fieldWithPath("page.number").description("페이지 번호 [0페이지 부터 시작]"),
+                                fieldWithPath("_links.first.href").description("첫 페이지 링크"),
+                                fieldWithPath("_links.prev.href").description("이전 페이지 링크"),
+                                fieldWithPath("_links.self.href").description("현재 페이지 링크"),
+                                fieldWithPath("_links.next.href").description("다음 페이지 링크"),
+                                fieldWithPath("_links.last.href").description("마지막 페이지 링크"),
                                 fieldWithPath("_links.query_auto_coupons.href").description("자동 발행 쿠폰 리스트 조회하는 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
@@ -579,6 +596,12 @@ public class CouponAdminControllerTest extends BaseTest {
     @DisplayName("정상적으로 키워드로 자동발행 쿠폰 검색하는 테스트")
     public void queryCoupons_auto() throws Exception {
         //given
+        couponRepository.deleteAll();
+
+        int count = 15;
+        IntStream.range(1,1+count).forEach(i ->{
+            generateAutoCoupon(i);
+        });
 
         String keyword = "생일";
 
@@ -587,13 +610,18 @@ public class CouponAdminControllerTest extends BaseTest {
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
-                        .param("keyword", keyword))
+                        .param("keyword", keyword)
+                        .param("page", "1")
+                        .param("size", "5"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("_embedded.couponListResponseDtoList", hasSize(2)))
                 .andDo(document("query_auto_coupons",
                         links(
-                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("first").description("첫 페이지 링크"),
+                                linkWithRel("prev").description("이전 페이지 링크"),
+                                linkWithRel("self").description("현재 페이지 링크"),
+                                linkWithRel("next").description("다음 페이지 링크"),
+                                linkWithRel("last").description("마지막 페이지 링크"),
                                 linkWithRel("query_direct_coupons").description("직접 발행 쿠폰 리스트 조회하는 링크"),
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
                         ),
@@ -603,7 +631,9 @@ public class CouponAdminControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.AUTHORIZATION).description("bearer jwt 토큰")
                         ),
                         requestParameters(
-                                parameterWithName("keyword").description("제목 검색 키워드")
+                                parameterWithName("keyword").description("제목 검색 키워드"),
+                                parameterWithName("page").description("페이지 번호 [0번부터 시작 - 0번이 첫 페이지]"),
+                                parameterWithName("size").description("한 페이지 당 조회 개수")
                         ),
                         responseHeaders(
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
@@ -611,13 +641,22 @@ public class CouponAdminControllerTest extends BaseTest {
                         responseFields(
                                 fieldWithPath("_embedded.couponListResponseDtoList[0].id").description("쿠폰 id"),
                                 fieldWithPath("_embedded.couponListResponseDtoList[0].name").description("쿠폰 이름"),
+                                fieldWithPath("_embedded.couponListResponseDtoList[0].couponType").description("쿠폰 타입 [AUTO_PUBLISHED, GENERAL_PUBLISHED, CODE_PUBLISHED], 각 자동발행/일반발행/쿠폰발행"),
                                 fieldWithPath("_embedded.couponListResponseDtoList[0].code").description("쿠폰 코드"),
                                 fieldWithPath("_embedded.couponListResponseDtoList[0].description").description("쿠폰 설명"),
                                 fieldWithPath("_embedded.couponListResponseDtoList[0].discount").description("쿠폰 할인금액"),
                                 fieldWithPath("_embedded.couponListResponseDtoList[0].couponTarget").description("사용처"),
                                 fieldWithPath("_embedded.couponListResponseDtoList[0].amount").description("쿠폰 사용 한도 회수"),
                                 fieldWithPath("_embedded.couponListResponseDtoList[0].expiredDate").description("발급 이력 중 가장 긴 유효기간 날짜"),
-                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("page.size").description("한 페이지 당 개수"),
+                                fieldWithPath("page.totalElements").description("검색 총 결과 수"),
+                                fieldWithPath("page.totalPages").description("총 페이지 수"),
+                                fieldWithPath("page.number").description("페이지 번호 [0페이지 부터 시작]"),
+                                fieldWithPath("_links.first.href").description("첫 페이지 링크"),
+                                fieldWithPath("_links.prev.href").description("이전 페이지 링크"),
+                                fieldWithPath("_links.self.href").description("현재 페이지 링크"),
+                                fieldWithPath("_links.next.href").description("다음 페이지 링크"),
+                                fieldWithPath("_links.last.href").description("마지막 페이지 링크"),
                                 fieldWithPath("_links.query_direct_coupons.href").description("직접 발행 쿠폰 리스트 조회하는 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
@@ -1756,7 +1795,23 @@ public class CouponAdminControllerTest extends BaseTest {
 
 
 
+    private Coupon generateAutoCoupon(int i) {
+        Coupon coupon = Coupon.builder()
+                .name("생일 쿠폰" + i)
+                .couponType(CouponType.AUTO_PUBLISHED)
+                .code("")
+                .description("설명")
+                .amount(1)
+                .discountType(DiscountType.FIXED_RATE)
+                .discountDegree(10)
+                .availableMaxDiscount(10000)
+                .availableMinPrice(5000)
+                .couponTarget(CouponTarget.ALL)
+                .couponStatus(CouponStatus.ACTIVE)
+                .build();
 
+        return couponRepository.save(coupon);
+    }
 
 
 
@@ -1773,6 +1828,7 @@ public class CouponAdminControllerTest extends BaseTest {
                 .discountDegree(10)
                 .availableMaxDiscount(10000)
                 .availableMinPrice(5000)
+                .lastExpiredDate(LocalDateTime.now().minusDays(1))
                 .couponTarget(CouponTarget.ALL)
                 .couponStatus(CouponStatus.ACTIVE)
                 .build();

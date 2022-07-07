@@ -86,11 +86,19 @@ public class DirectSendUtils {
     }
 
     public static void sendCouponAlim(List<MemberCoupon> memberCouponList) throws IOException {
-        if (memberCouponList.get(0).getCoupon().getCouponType() == CouponType.CODE_PUBLISHED) {
+        if (isCodePublished(memberCouponList)) {
             sendAlimTalk(DirectSend.CODE_PUBLISH_TEMPLATE, getReceiverOfCoupon(memberCouponList));
-        } else if (memberCouponList.get(0).getCoupon().getCouponType() == CouponType.GENERAL_PUBLISHED) {
+        } else if (isGeneralPublished(memberCouponList)) {
             sendAlimTalk(DirectSend.GENERAL_PUBLISH_TEMPLATE, getReceiverOfCoupon(memberCouponList));
         }
+    }
+
+    private static boolean isGeneralPublished(List<MemberCoupon> memberCouponList) {
+        return memberCouponList.get(0).getCoupon().getCouponType() == CouponType.GENERAL_PUBLISHED;
+    }
+
+    private static boolean isCodePublished(List<MemberCoupon> memberCouponList) {
+        return memberCouponList.get(0).getCoupon().getCouponType() == CouponType.CODE_PUBLISHED;
     }
 
     private static void sendAlimTalk( String templateNumber, String receiver) throws IOException {

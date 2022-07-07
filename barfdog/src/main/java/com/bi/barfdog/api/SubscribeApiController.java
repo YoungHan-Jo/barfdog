@@ -50,12 +50,7 @@ public class SubscribeApiController {
         return ResponseEntity.ok(representationModel);
     }
 
-    @GetMapping("/{id}/orderSheet")
-    public ResponseEntity queryOrderSheet(@PathVariable Long id) {
 
-
-        return ResponseEntity.ok(null);
-    }
 
 
 

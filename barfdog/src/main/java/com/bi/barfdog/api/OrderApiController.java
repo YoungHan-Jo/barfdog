@@ -1,19 +1,23 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.orderDto.OrderSheetSubscribeResponseDto;
+import com.bi.barfdog.api.orderDto.QuerySubscribeOrdersDto;
 import com.bi.barfdog.api.orderDto.SubscribeOrderRequestDto;
 import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.member.Member;
-import com.bi.barfdog.domain.order.Order;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.repository.member.MemberRepository;
 import com.bi.barfdog.repository.order.OrderRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
 import com.bi.barfdog.service.OrderService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.MediaTypes;
+import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
@@ -65,8 +69,30 @@ public class OrderApiController {
 
         orderService.orderSubscribeOrder(member, id, requestDto);
 
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderApiController.class).slash("subscribe").slash(id).withSelfRel());
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-order-subscribeOrder").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @GetMapping("/subscribe")
+    public ResponseEntity querySubscribeOrders(@CurrentUser Member member,
+                                               Pageable pageable,
+                                               PagedResourcesAssembler<QuerySubscribeOrdersDto> assembler) {
+
+        Page<QuerySubscribeOrdersDto> page = orderRepository.findSubscribeOrdersDto(member, pageable);
+
+
+
         return ResponseEntity.ok(null);
     }
+
+
+
+
+
+
 
     @GetMapping("/sheet/general")
     public ResponseEntity queryOrderSheetGeneral() {

@@ -103,20 +103,24 @@ public class OrderService {
         member.order(requestDto);
         saveReward(member, requestDto);
 
-        Optional<MemberCoupon> optionalMemberCoupon = memberCouponRepository.findById(requestDto.getMemberCouponId());
-        saveSubscribeOrder(member, requestDto, delivery, subscribe, optionalMemberCoupon);
-        useCoupon(optionalMemberCoupon);
+
+        Long memberCouponId = requestDto.getMemberCouponId();
+        MemberCoupon memberCoupon = null;
+        if (memberCouponId != null) {
+            memberCoupon = memberCouponRepository.findById(memberCouponId).get();
+        }
+        saveSubscribeOrder(member, requestDto, delivery, subscribe, memberCoupon);
+        useCoupon(memberCoupon);
 
     }
 
-    private void useCoupon(Optional<MemberCoupon> optionalMemberCoupon) {
-        if (optionalMemberCoupon.isPresent()) {
-            MemberCoupon memberCoupon = optionalMemberCoupon.get();
+    private void useCoupon(MemberCoupon memberCoupon) {
+        if (memberCoupon != null) {
             memberCoupon.useCoupon();
         }
     }
 
-    private void saveSubscribeOrder(Member member, SubscribeOrderRequestDto requestDto, Delivery delivery, Subscribe subscribe, Optional<MemberCoupon> optionalMemberCoupon) {
+    private void saveSubscribeOrder(Member member, SubscribeOrderRequestDto requestDto, Delivery delivery, Subscribe subscribe, MemberCoupon memberCoupon) {
         SubscribeOrder subscribeOrder = SubscribeOrder.builder()
                 .impUid(requestDto.getImpUid())
                 .merchantUid(requestDto.getMerchantUid())
@@ -133,7 +137,8 @@ public class OrderService {
                 .isAgreePrivacy(requestDto.isAgreePrivacy())
                 .delivery(delivery)
                 .subscribe(subscribe)
-                .memberCoupon(optionalMemberCoupon.isPresent() ? optionalMemberCoupon.get() : null)
+                .memberCoupon(memberCoupon != null ? memberCoupon : null)
+                .subscribeCount(subscribe.getSubscribeCount())
                 .build();
         orderRepository.save(subscribeOrder);
     }

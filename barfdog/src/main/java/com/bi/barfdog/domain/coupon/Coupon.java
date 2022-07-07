@@ -26,7 +26,7 @@ public class Coupon extends BaseTimeEntity {
     private String name;
 
     @Enumerated(EnumType.STRING)
-    private CouponType couponType; // 쿠폰 타입 [AUTO_PUBLISHED, ADMIN_PUBLISHED, CODE_PUBLISHED]
+    private CouponType couponType; // 쿠폰 타입 [AUTO_PUBLISHED, GENERAL_PUBLISHED, CODE_PUBLISHED]
 
     @Column(length = 15)
     private String code; // 쿠폰 코드

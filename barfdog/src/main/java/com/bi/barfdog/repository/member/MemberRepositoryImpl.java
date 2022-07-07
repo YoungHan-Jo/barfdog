@@ -1,12 +1,19 @@
 package com.bi.barfdog.repository.member;
 
+import com.bi.barfdog.api.barfDto.MypageDto;
 import com.bi.barfdog.api.couponDto.Area;
 import com.bi.barfdog.api.couponDto.GroupPublishRequestDto;
 import com.bi.barfdog.api.memberDto.*;
 import com.bi.barfdog.api.rewardDto.PublishToGroupDto;
 import com.bi.barfdog.config.finalVariable.BarfCity;
+import com.bi.barfdog.domain.coupon.CouponStatus;
+import com.bi.barfdog.domain.dog.QDogPicture;
 import com.bi.barfdog.domain.member.Grade;
 import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.domain.member.QMember;
+import com.bi.barfdog.domain.memberCoupon.QMemberCoupon;
+import com.bi.barfdog.domain.order.OrderStatus;
+import com.bi.barfdog.domain.order.QOrder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
@@ -22,7 +29,10 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.bi.barfdog.domain.dog.QDog.*;
+import static com.bi.barfdog.domain.dog.QDogPicture.*;
 import static com.bi.barfdog.domain.member.QMember.*;
+import static com.bi.barfdog.domain.memberCoupon.QMemberCoupon.*;
+import static com.bi.barfdog.domain.order.QOrder.*;
 import static com.querydsl.jpa.JPAExpressions.*;
 import static org.springframework.util.StringUtils.*;
 
@@ -211,6 +221,73 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
                 .where(member.eq(currentMember))
                 .fetchOne()
                 ;
+    }
+
+    @Override
+    public MypageDto findMypageDtoByMember(Member currentMember) {
+
+        MypageDto.MypageMemberDto mypageMemberDto = getMypageMemberDto(currentMember);
+
+        List<MypageDto.MypageDogDto> mypageDogDtos = queryFactory
+                .select(Projections.constructor(MypageDto.MypageDogDto.class,
+                        dogPicture.filename,
+                        dog.name
+                ))
+                .from(dog)
+                .join(dog.member, member)
+                .leftJoin(dogPicture).on(dogPicture.dog.eq(dog))
+                .where(dog.representative.eq(true).and(member.eq(currentMember)))
+                .fetch();
+        for (MypageDto.MypageDogDto mypageDogDto : mypageDogDtos) {
+            mypageDogDto.changeUrl(mypageDogDto.getThumbnailUrl());
+        }
+
+        Long deliveryCount = queryFactory
+                .select(order.count())
+                .from(order)
+                .join(order.member, member)
+                .where(member.eq(currentMember)
+                        .and(order.orderStatus.in(
+                                OrderStatus.PAYMENT_DONE,
+                                OrderStatus.PRODUCING,
+                                OrderStatus.DELIVERY_READY,
+                                OrderStatus.DELIVERY_START
+                        )))
+                .fetchOne();
+
+
+        Long couponCount = queryFactory
+                .select(memberCoupon.count())
+                .from(memberCoupon)
+                .join(memberCoupon.member, member)
+                .where(member.eq(currentMember)
+                        .and(memberCoupon.memberCouponStatus.eq(CouponStatus.ACTIVE)
+                ))
+                .fetchOne();
+
+        MypageDto result = MypageDto.builder()
+                .mypageMemberDto(mypageMemberDto)
+                .mypageDogDto(mypageDogDtos.size() > 0 ? mypageDogDtos.get(0) : null)
+                .deliveryCount(deliveryCount)
+                .couponCount(couponCount)
+                .build();
+
+        return result;
+    }
+
+    private MypageDto.MypageMemberDto getMypageMemberDto(Member currentMember) {
+        MypageDto.MypageMemberDto mypageMemberDto = queryFactory
+                .select(Projections.constructor(MypageDto.MypageMemberDto.class,
+                        member.id,
+                        member.name,
+                        member.grade,
+                        member.myRecommendationCode,
+                        member.reward
+                ))
+                .from(member)
+                .where(member.eq(currentMember))
+                .fetchOne();
+        return mypageMemberDto;
     }
 
     private BooleanExpression createdDateBetween(QueryMembersCond cond) {

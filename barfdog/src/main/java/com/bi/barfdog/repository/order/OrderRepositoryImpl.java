@@ -2,6 +2,7 @@ package com.bi.barfdog.repository.order;
 
 import com.bi.barfdog.api.orderDto.*;
 import com.bi.barfdog.domain.dog.QDog;
+import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.order.OrderStatus;
 import com.bi.barfdog.domain.order.QSubscribeOrder;
 import com.bi.barfdog.domain.recipe.QRecipe;
@@ -102,6 +103,69 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                 .subscribeDeliveryDto(subscribeDeliveryDto)
                 .build();
 
+        return result;
+    }
+
+    @Override
+    public Page<QuerySubscribeOrdersDto> findSubscribeOrdersDto(Member member, Pageable pageable) {
+        List<QuerySubscribeOrdersDto> result = getQuerySubscribeOrdersDtosByPaging(member, pageable);
+
+        Long totalCount = queryFactory
+                .select(subscribeOrder.count())
+                .from(subscribeOrder)
+                .where(subscribeOrder.member.eq(member))
+                .fetchOne();
+
+        return new PageImpl<>(result, pageable, totalCount);
+    }
+
+    private List<QuerySubscribeOrdersDto> getQuerySubscribeOrdersDtosByPaging(Member member, Pageable pageable) {
+        List<QuerySubscribeOrdersDto.SubscribeOrderDto> subscribeOrderDtos = queryFactory
+                .select(Projections.constructor(QuerySubscribeOrdersDto.SubscribeOrderDto.class,
+                        order.id,
+                        subscribe.id,
+                        order.createdDate,
+                        dog.name,
+                        subscribeOrder.subscribeCount,
+                        order.merchantUid,
+                        order.paymentPrice,
+                        order.orderStatus
+                ))
+                .from(order)
+                .join(subscribeOrder).on(subscribeOrder.eq(order))
+                .join(subscribeOrder.subscribe, subscribe)
+                .join(subscribe.dog, dog)
+                .where(order.member.eq(member))
+                .orderBy(order.createdDate.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        List<QuerySubscribeOrdersDto> result = new ArrayList<>();
+
+        for (QuerySubscribeOrdersDto.SubscribeOrderDto subscribeOrderDto : subscribeOrderDtos) {
+            Long subscribeId = subscribeOrderDto.getSubscribeId();
+
+            List<QuerySubscribeOrdersDto.RecipeDto> recipeDtos = queryFactory
+                    .select(Projections.constructor(QuerySubscribeOrdersDto.RecipeDto.class,
+                            recipe.thumbnailImage.filename1,
+                            recipe.name
+                    ))
+                    .from(subscribeRecipe)
+                    .join(subscribeRecipe.subscribe, subscribe)
+                    .where(subscribe.id.eq(subscribeId))
+                    .fetch();
+            for (QuerySubscribeOrdersDto.RecipeDto recipeDto : recipeDtos) {
+                recipeDto.changeUrl(recipeDto.getThumbnailUrl());
+            }
+
+            QuerySubscribeOrdersDto querySubscribeOrdersDto = QuerySubscribeOrdersDto.builder()
+                    .recipeDto(recipeDtos.get(0))
+                    .subscribeOrderDto(subscribeOrderDto)
+                    .build();
+
+            result.add(querySubscribeOrdersDto);
+        }
         return result;
     }
 
