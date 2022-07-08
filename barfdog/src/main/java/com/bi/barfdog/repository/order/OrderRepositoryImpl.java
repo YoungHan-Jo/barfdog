@@ -1,15 +1,9 @@
 package com.bi.barfdog.repository.order;
 
 import com.bi.barfdog.api.orderDto.*;
-import com.bi.barfdog.domain.dog.QDog;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.order.OrderStatus;
-import com.bi.barfdog.domain.order.QSubscribeOrder;
-import com.bi.barfdog.domain.recipe.QRecipe;
-import com.bi.barfdog.domain.subscribe.QBeforeSubscribe;
 import com.bi.barfdog.domain.subscribe.QSubscribe;
-import com.bi.barfdog.domain.subscribeRecipe.QSubscribeRecipe;
-import com.bi.barfdog.domain.surveyReport.QSurveyReport;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
@@ -119,6 +113,101 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
         return new PageImpl<>(result, pageable, totalCount);
     }
 
+    @Override
+    public QuerySubscribeOrderDto findSubscribeOrderDto(Long id) {
+
+        QuerySubscribeOrderDto.RecipeDto recipeDto = getRecipeDto(id);
+        String recipeNames = getRecipeNames(id);
+        QuerySubscribeOrderDto.OrderDto orderDto = getOrderDto(id);
+
+        QuerySubscribeOrderDto result = QuerySubscribeOrderDto.builder()
+                .recipeDto(recipeDto)
+                .recipeNames(recipeNames)
+                .orderDto(orderDto)
+                .build();
+
+        return result;
+    }
+
+    private QuerySubscribeOrderDto.OrderDto getOrderDto(Long id) {
+        QuerySubscribeOrderDto.OrderDto orderDto = queryFactory
+                .select(Projections.constructor(QuerySubscribeOrderDto.OrderDto.class,
+                        subscribe.subscribeCount,
+                        dog.name,
+                        surveyReport.foodAnalysis.oneMealRecommendGram,
+                        QSubscribe.subscribe.plan,
+                        subscribeOrder.orderPrice,
+                        beforeSubscribe.subscribeCount,
+                        beforeSubscribe.plan,
+                        beforeSubscribe.oneMealRecommendGram,
+                        beforeSubscribe.recipeName,
+                        beforeSubscribe.orderPrice,
+                        subscribeOrder.merchantUid,
+                        Expressions.constant("subscribe"),
+                        subscribeOrder.createdDate,
+                        delivery.deliveryNumber,
+                        delivery.status,
+                        subscribeOrder.deliveryPrice,
+                        subscribeOrder.discountTotal,
+                        subscribeOrder.discountReward,
+                        subscribeOrder.discountCoupon,
+                        subscribeOrder.paymentPrice,
+                        subscribeOrder.paymentMethod,
+                        delivery.recipient.name,
+                        delivery.recipient.phone,
+                        delivery.recipient.zipcode,
+                        delivery.recipient.street,
+                        delivery.recipient.detailAddress,
+                        delivery.request
+                ))
+                .from(subscribeOrder)
+                .join(subscribeOrder.subscribe, QSubscribe.subscribe)
+                .join(QSubscribe.subscribe.dog, dog)
+                .join(dog.surveyReport, surveyReport)
+                .join(subscribeOrder.delivery, delivery)
+                .leftJoin(subscribe.beforeSubscribe, beforeSubscribe)
+                .where(subscribeOrder.id.eq(id))
+                .fetchOne();
+        return orderDto;
+    }
+
+    private QuerySubscribeOrderDto.RecipeDto getRecipeDto(Long id) {
+        List<QuerySubscribeOrderDto.RecipeDto> recipeDtoList = queryFactory
+                .select(Projections.constructor(QuerySubscribeOrderDto.RecipeDto.class,
+                        recipe.thumbnailImage.filename1,
+                        recipe.name
+                ))
+                .from(subscribeRecipe)
+                .join(subscribeRecipe.recipe, recipe)
+                .join(subscribeRecipe.subscribe, subscribe)
+                .join(subscribeOrder).on(subscribeOrder.subscribe.eq(subscribe))
+                .where(subscribeOrder.id.eq(id))
+                .fetch();
+
+        QuerySubscribeOrderDto.RecipeDto recipeDto = recipeDtoList.get(0);
+        recipeDto.changUrl(recipeDto.getThumbnailUrl());
+        return recipeDto;
+    }
+
+    private String getRecipeNames(Long id) {
+        List<String> recipeNameList = queryFactory
+                .select(recipe.name)
+                .from(subscribeRecipe)
+                .join(subscribeRecipe.recipe, recipe)
+                .join(subscribeRecipe.subscribe, subscribe)
+                .join(subscribeOrder).on(subscribeOrder.subscribe.eq(subscribe))
+                .where(subscribeOrder.id.eq(id))
+                .fetch();
+
+        String recipeName = recipeNameList.get(0);
+        if (recipeNameList.size() > 1) {
+            for (int i = 1; i < recipeNameList.size(); ++i) {
+                recipeName += "," + recipeNameList.get(i);
+            }
+        }
+        return recipeName;
+    }
+
     private List<QuerySubscribeOrdersDto> getQuerySubscribeOrdersDtosByPaging(Member member, Pageable pageable) {
         List<QuerySubscribeOrdersDto.SubscribeOrderDto> subscribeOrderDtos = queryFactory
                 .select(Projections.constructor(QuerySubscribeOrdersDto.SubscribeOrderDto.class,
@@ -152,6 +241,7 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                             recipe.name
                     ))
                     .from(subscribeRecipe)
+                    .join(subscribeRecipe.recipe, recipe)
                     .join(subscribeRecipe.subscribe, subscribe)
                     .where(subscribe.id.eq(subscribeId))
                     .fetch();

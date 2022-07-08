@@ -28,4 +28,6 @@ public class BeforeSubscribe {
 
     private String recipeName; // [ , 로 구분]
 
+    private int orderPrice; // 주문 가격
+
 }

@@ -1452,3 +1452,17 @@ operation::query_orderSheet_subscribe[snippets='curl-request,path-parameters,req
 `POST` 요청을 사용하여 구독 주문을 할 수 있다.
 
 operation::order_subscribeOrder[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-query-subscribeOrders]]
+=== 구독 주문 리스트 검색(페이징)
+
+`GET` 요청을 사용하여 페이징으로 구독 주문 리스트를 조회할 수 있다.
+
+operation::query_subscribeOrders[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-query-subscribeOrder]]
+=== 구독 주문 하나 조회
+
+`GET` 요청을 사용하여 구독 주문 하나를 조회할 수 있다.
+
+operation::query_subscribeOrder[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']

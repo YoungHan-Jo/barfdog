@@ -804,9 +804,6 @@ public class OrderAdminControllerTest extends BaseTest {
         SnackCountLevel snackCountLevel = requestDto.getSnackCountLevel();
         BigDecimal weight = new BigDecimal(requestDto.getWeight());
 
-
-        // =========================================================================
-
         Delivery delivery = generateDelivery(member, i);
 
         Subscribe subscribe = generateSubscribe(i);

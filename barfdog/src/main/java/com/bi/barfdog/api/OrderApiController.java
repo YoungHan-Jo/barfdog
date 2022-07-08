@@ -1,11 +1,14 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.orderDto.OrderSheetSubscribeResponseDto;
+import com.bi.barfdog.api.orderDto.QuerySubscribeOrderDto;
 import com.bi.barfdog.api.orderDto.QuerySubscribeOrdersDto;
 import com.bi.barfdog.api.orderDto.SubscribeOrderRequestDto;
+import com.bi.barfdog.api.resource.SubscribeOrdersDtoResource;
 import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.domain.order.Order;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.repository.member.MemberRepository;
 import com.bi.barfdog.repository.order.OrderRepository;
@@ -17,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.MediaTypes;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
@@ -83,9 +87,25 @@ public class OrderApiController {
 
         Page<QuerySubscribeOrdersDto> page = orderRepository.findSubscribeOrdersDto(member, pageable);
 
+        PagedModel<SubscribeOrdersDtoResource> pagedModel = assembler.toModel(page, e -> new SubscribeOrdersDtoResource(e));
+        pagedModel.add(profileRootUrlBuilder.slash("index.html#resources-query-subscribeOrders").withRel("profile"));
 
+        return ResponseEntity.ok(pagedModel);
+    }
 
-        return ResponseEntity.ok(null);
+    @GetMapping("/{id}/subscribe")
+    public ResponseEntity querySubscribeOrder(@PathVariable Long id) {
+        Optional<Order> optionalOrder = orderRepository.findById(id);
+        if (!optionalOrder.isPresent()) return notFound();
+
+        QuerySubscribeOrderDto responseDto = orderRepository.findSubscribeOrderDto(id);
+
+        EntityModel<QuerySubscribeOrderDto> entityModel = EntityModel.of(responseDto,
+                linkTo(OrderApiController.class).slash(id).slash("subscribe").withSelfRel(),
+                profileRootUrlBuilder.slash("index.html#resources-query-subscribeOrder").withRel("profile")
+        );
+
+        return ResponseEntity.ok(entityModel);
     }
 
 
