@@ -191,6 +191,7 @@ public class RewardApiControllerTest extends BaseTest {
     public void recommendFriend() throws Exception {
        //given
         Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int reward = user.getReward();
 
         assertThat(user.getRecommendCode()).isNull();
 
@@ -238,7 +239,7 @@ public class RewardApiControllerTest extends BaseTest {
 
         Member findMember = memberRepository.findById(user.getId()).get();
 
-        assertThat(findMember.getReward()).isEqualTo(RewardPoint.RECOMMEND);
+        assertThat(findMember.getReward()).isEqualTo(reward + RewardPoint.RECOMMEND);
 
         List<Reward> rewards = rewardRepository.findByMember(findMember);
         assertThat(rewards.get(0).getRewardStatus()).isEqualTo(RewardStatus.SAVED);

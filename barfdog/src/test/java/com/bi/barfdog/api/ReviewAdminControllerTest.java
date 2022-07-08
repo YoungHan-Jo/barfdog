@@ -892,6 +892,7 @@ public class ReviewAdminControllerTest extends BaseTest {
         //given
 
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int reward = member.getReward();
         Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
 
         Item item = generateItem(1);
@@ -923,7 +924,7 @@ public class ReviewAdminControllerTest extends BaseTest {
         em.clear();
 
         Member findMember = memberRepository.findByEmail(appProperties.getUserEmail()).get();
-        assertThat(findMember.getReward()).isEqualTo(RewardPoint.REVIEW_CONTENTS * 4);
+        assertThat(findMember.getReward()).isEqualTo(reward + RewardPoint.REVIEW_CONTENTS * 4);
         List<Review> reviews = reviewRepository.findAllById(reviewIdList);
         for (Review review : reviews) {
             assertThat(review.getStatus()).isEqualTo(ReviewStatus.APPROVAL);
@@ -941,6 +942,7 @@ public class ReviewAdminControllerTest extends BaseTest {
 
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
         Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+        int reward = member.getReward();
 
         Item item = generateItem(1);
         IntStream.range(1,4).forEach(i -> {
@@ -971,7 +973,7 @@ public class ReviewAdminControllerTest extends BaseTest {
         em.clear();
 
         Member findMember = memberRepository.findByEmail(appProperties.getUserEmail()).get();
-        assertThat(findMember.getReward()).isEqualTo(RewardPoint.REVIEW_IMAGE * 4);
+        assertThat(findMember.getReward()).isEqualTo(reward + RewardPoint.REVIEW_IMAGE * 4);
         List<Review> reviews = reviewRepository.findAllById(reviewIdList);
         for (Review review : reviews) {
             assertThat(review.getStatus()).isEqualTo(ReviewStatus.APPROVAL);
@@ -987,6 +989,7 @@ public class ReviewAdminControllerTest extends BaseTest {
         //given
 
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int reward = member.getReward();
         Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
 
         Item item = generateItem(1);
@@ -1018,7 +1021,7 @@ public class ReviewAdminControllerTest extends BaseTest {
         em.clear();
 
         Member findMember = memberRepository.findByEmail(appProperties.getUserEmail()).get();
-        assertThat(findMember.getReward()).isEqualTo((RewardPoint.REVIEW_IMAGE + RewardPoint.REVIEW_CONTENTS) * 4);
+        assertThat(findMember.getReward()).isEqualTo(reward + (RewardPoint.REVIEW_IMAGE + RewardPoint.REVIEW_CONTENTS) * 4);
         List<Review> reviews = reviewRepository.findAllById(reviewIdList);
         for (Review review : reviews) {
             assertThat(review.getStatus()).isEqualTo(ReviewStatus.APPROVAL);
