@@ -1,7 +1,6 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
-import com.bi.barfdog.api.orderDto.SubscribeOrderRequestDto;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.coupon.*;
@@ -13,7 +12,6 @@ import com.bi.barfdog.domain.item.Item;
 import com.bi.barfdog.domain.item.ItemOption;
 import com.bi.barfdog.domain.item.ItemStatus;
 import com.bi.barfdog.domain.item.ItemType;
-import com.bi.barfdog.domain.member.Card;
 import com.bi.barfdog.domain.member.Gender;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
@@ -24,10 +22,6 @@ import com.bi.barfdog.domain.order.SubscribeOrder;
 import com.bi.barfdog.domain.orderItem.OrderItem;
 import com.bi.barfdog.domain.orderItem.SelectOption;
 import com.bi.barfdog.domain.recipe.Recipe;
-import com.bi.barfdog.domain.reward.Reward;
-import com.bi.barfdog.domain.reward.RewardName;
-import com.bi.barfdog.domain.reward.RewardStatus;
-import com.bi.barfdog.domain.reward.RewardType;
 import com.bi.barfdog.domain.setting.ActivityConstant;
 import com.bi.barfdog.domain.setting.Setting;
 import com.bi.barfdog.domain.setting.SnackConstant;
@@ -38,7 +32,6 @@ import com.bi.barfdog.domain.subscribe.SubscribeStatus;
 import com.bi.barfdog.domain.subscribeRecipe.SubscribeRecipe;
 import com.bi.barfdog.domain.surveyReport.*;
 import com.bi.barfdog.jwt.JwtLoginDto;
-import com.bi.barfdog.repository.card.CardRepository;
 import com.bi.barfdog.repository.coupon.CouponRepository;
 import com.bi.barfdog.repository.delivery.DeliveryRepository;
 import com.bi.barfdog.repository.dog.DogRepository;
@@ -63,11 +56,11 @@ import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -79,13 +72,16 @@ import java.util.stream.IntStream;
 
 import static com.bi.barfdog.config.finalVariable.StandardVar.*;
 import static com.bi.barfdog.config.finalVariable.StandardVar.LACTATING;
-import static org.assertj.core.api.Assertions.*;
+import static org.junit.Assert.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
+import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.payload.PayloadDocumentation.*;
-import static org.springframework.restdocs.request.RequestDocumentation.*;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -93,7 +89,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Transactional
-public class OrderApiControllerTest extends BaseTest {
+public class DeliveryApiControllerTest extends BaseTest {
 
     @Autowired
     EntityManager em;
@@ -133,486 +129,36 @@ public class OrderApiControllerTest extends BaseTest {
     MemberCouponRepository memberCouponRepository;
     @Autowired
     RewardRepository rewardRepository;
-    @Autowired
-    CardRepository cardRepository;
-            
+
 
     @Test
-    @DisplayName("구독 주문서 조회하기")
-    public void getOrderSheetDto_Subscribe() throws Exception {
-       //given
-
-        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
-
-        Dog dogRepresentative = generateDogRepresentative(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
-
-        Subscribe subscribe = generateSubscribe(dogRepresentative, SubscribePlan.FULL);
-
-       //when & then
-        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/orders/sheet/subscribe/{id}", subscribe.getId())
-                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaTypes.HAL_JSON))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andDo(document("query_orderSheet_subscribe",
-                        links(
-                                linkWithRel("self").description("self 링크"),
-                                linkWithRel("order_subscribe").description("구독 주문하는 링크"),
-                                linkWithRel("profile").description("해당 API 관련 문서 링크")
-                        ),
-                        pathParameters(
-                                parameterWithName("id").description("구독 id")
-                        ),
-                        requestHeaders(
-                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
-                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
-                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer jwt 토큰")
-                        ),
-                        responseHeaders(
-                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
-                        ),
-                        responseFields(
-                                fieldWithPath("subscribeDto.id").description("구독 id"),
-                                fieldWithPath("subscribeDto.plan").description("구독 플랜 [FULL,HALF,TOPPING]"),
-                                fieldWithPath("subscribeDto.nextPaymentPrice").description("구독 상품 금액"),
-                                fieldWithPath("recipeNameList").description("구독으로 선택한 레시피 이름 리스트"),
-                                fieldWithPath("name").description("회원 이름"),
-                                fieldWithPath("grade").description("회원 등급"),
-                                fieldWithPath("gradeDiscountPercent").description("등급에 해당하는 할인율(%)"),
-                                fieldWithPath("email").description("회원 이메일 주소"),
-                                fieldWithPath("phoneNumber").description("휴대전화 번호"),
-                                fieldWithPath("address.zipcode").description("우편번호"),
-                                fieldWithPath("address.city").description("시/도"),
-                                fieldWithPath("address.street").description("도로명 주소"),
-                                fieldWithPath("address.detailAddress").description("상세 주소"),
-                                fieldWithPath("nextDeliveryDate").description("배송 예정일 'yyyy-MM-dd' "),
-                                fieldWithPath("coupons[0].memberCouponId").description("멤버가 보유한 쿠폰 id"),
-                                fieldWithPath("coupons[0].name").description("쿠폰 이름"),
-                                fieldWithPath("coupons[0].discountType").description("할인 타입 ['FIXED_RATE' / 'FLAT_RATE']"),
-                                fieldWithPath("coupons[0].discountDegree").description("할인 정도 ( 원 / % )"),
-                                fieldWithPath("coupons[0].availableMaxDiscount").description("적용가능 최대 할인 금액"),
-                                fieldWithPath("coupons[0].availableMinPrice").description("사용가능한 최소 물품 가격"),
-                                fieldWithPath("coupons[0].remaining").description("쿠폰 남은 개수"),
-                                fieldWithPath("coupons[0].expiredDate").description("쿠폰 유효 기한"),
-                                fieldWithPath("reward").description("회원이 보유 적립금"),
-                                fieldWithPath("brochure").description("브로슈어 받은 적 있는지 여부 true/false"),
-                                fieldWithPath("_links.self.href").description("self 링크"),
-                                fieldWithPath("_links.order_subscribe.href").description("구독 주문하는 링크"),
-                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
-                        )
-                ))
-        ;
-    }
-
-    @Test
-    @DisplayName("정상적으로 구독 주문하기")
-    public void orderSubscribe() throws Exception {
-       //given
-        memberCouponRepository.deleteAll();
-
-        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
-        int reward = member.getReward();
-        Dog dogRepresentative = generateDogRepresentative(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
-        Subscribe subscribe = generateSubscribe(dogRepresentative, SubscribePlan.FULL);
-        int subscribeCount = subscribe.getSubscribeCount();
-
-        String request = "안전배송 부탁드립니다.";
-        SubscribeOrderRequestDto.DeliveryDto deliveryDto = SubscribeOrderRequestDto.DeliveryDto.builder()
-                .name(member.getName())
-                .phone(member.getPhoneNumber())
-                .zipcode(member.getAddress().getZipcode())
-                .street(member.getAddress().getStreet())
-                .detailAddress(member.getAddress().getDetailAddress())
-                .request(request)
-                .build();
-
-        LocalDate nextDeliveryDate = getNextDeliveryDate();
-
-        Coupon coupon = generateGeneralCoupon(1);
-        MemberCoupon memberCoupon = generateMemberCoupon(member, coupon, 4, CouponStatus.ACTIVE);
-        int remaining = memberCoupon.getRemaining();
-        Long memberCouponId = memberCoupon.getId();
-
-        int orderPrice = 100000;
-        int deliveryPrice = 0;
-        int discountTotal = 20000;
-        int discountReward = 10000;
-        int discountCoupon = 10000;
-        int paymentPrice = 80000;
-        PaymentMethod paymentMethod = PaymentMethod.CREDIT_CARD;
-        String impUid = "imp_uid_askdfj";
-        String merchantUid = "merchantUid_sdkfjals";
-        String customerUid = "customer_Uid_sldkfj";
-        String cardName = "신한 카드";
-        String cardNumber = "2134********2344";
-        SubscribeOrderRequestDto requestDto = SubscribeOrderRequestDto.builder()
-                .impUid(impUid)
-                .merchantUid(merchantUid)
-                .customerUid(customerUid)
-                .cardName(cardName)
-                .cardNumber(cardNumber)
-                .memberCouponId(memberCouponId)
-                .deliveryDto(deliveryDto)
-                .orderPrice(orderPrice)
-                .deliveryPrice(deliveryPrice)
-                .discountTotal(discountTotal)
-                .discountReward(discountReward)
-                .discountCoupon(discountCoupon)
-                .paymentPrice(paymentPrice)
-                .paymentMethod(paymentMethod)
-                .nextDeliveryDate(nextDeliveryDate)
-                .isBrochure(true)
-                .isAgreePrivacy(true)
-                .build();
-
-        //when & then
-        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/orders/subscribe/{id}", subscribe.getId())
-                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaTypes.HAL_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andDo(document("order_subscribeOrder",
-                        links(
-                                linkWithRel("self").description("self 링크"),
-                                linkWithRel("profile").description("해당 API 관련 문서 링크")
-                        ),
-                        pathParameters(
-                                parameterWithName("id").description("구독 id")
-                        ),
-                        requestHeaders(
-                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
-                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
-                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer jwt 토큰")
-                        ),
-                        requestFields(
-                                fieldWithPath("impUid").optional().description("아임포트 결제 uid"),
-                                fieldWithPath("merchantUid").optional().description("바프독에 저장할 주문 고유id yyMMdd + '_' +랜덤문자열  ex) '220707_sdlfiajskd' "),
-                                fieldWithPath("customerUid").description("카드결제 customerUid"),
-                                fieldWithPath("cardName").description("카드 이름"),
-                                fieldWithPath("cardNumber").description("카드 번호"),
-                                fieldWithPath("memberCouponId").description("사용할 보유한 쿠폰 id"),
-                                fieldWithPath("deliveryDto.name").optional().description("수령자 이름"),
-                                fieldWithPath("deliveryDto.phone").optional().description("수령자 전화번호"),
-                                fieldWithPath("deliveryDto.zipcode").optional().description("우편번호"),
-                                fieldWithPath("deliveryDto.street").optional().description("도로명주소"),
-                                fieldWithPath("deliveryDto.detailAddress").optional().description("상세주소"),
-                                fieldWithPath("deliveryDto.request").description("배송 요청사항"),
-                                fieldWithPath("orderPrice").optional().description("주문 상품 총 가격"),
-                                fieldWithPath("deliveryPrice").optional().description("배송비"),
-                                fieldWithPath("discountTotal").optional().description("총 할인 합계"),
-                                fieldWithPath("discountReward").optional().description("사용할 적립금"),
-                                fieldWithPath("discountCoupon").optional().description("쿠폰 적용으로 할인된 금액"),
-                                fieldWithPath("paymentPrice").optional().description("최종 결제 금액"),
-                                fieldWithPath("paymentMethod").optional().description("결제 방법 [CREDIT_CARD, NAVER_PAY, KAKAO_PAY]"),
-                                fieldWithPath("nextDeliveryDate").optional().description("배송 예정일 'yyyy-MM-dd'"),
-                                fieldWithPath("agreePrivacy").optional().description("개인정보제공 동의 true/false"),
-                                fieldWithPath("brochure").optional().description("브로슈어 받을지 여부 true/false")
-                        ),
-                        responseHeaders(
-                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
-                        ),
-                        responseFields(
-                                fieldWithPath("_links.self.href").description("self 링크"),
-                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
-                        )
-                ))
-        ;
-
-        em.flush();
-        em.clear();
-
-        MemberCoupon findMemberCoupon = memberCouponRepository.findById(memberCouponId).get();
-        assertThat(findMemberCoupon.getRemaining()).isEqualTo(remaining - 1);
-        assertThat(findMemberCoupon.getMemberCouponStatus()).isEqualTo(CouponStatus.ACTIVE);
-
-        Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
-        if (findSubscribe.getPlan() == SubscribePlan.FULL) {
-            assertThat(findSubscribe.getNextPaymentDate()).isEqualTo(nextDeliveryDate.plusDays(14 - 7));
-        } else {
-            assertThat(findSubscribe.getNextPaymentDate()).isEqualTo(nextDeliveryDate.plusDays(28 - 7));
-        }
-        assertThat(findSubscribe.getNextPaymentPrice()).isEqualTo(orderPrice);
-        assertThat(findSubscribe.getNextDeliveryDate()).isEqualTo(nextDeliveryDate);
-        assertThat(findSubscribe.getSubscribeCount()).isEqualTo(subscribeCount + 1);
-        assertThat(findSubscribe.getStatus()).isEqualTo(SubscribeStatus.SUBSCRIBING);
-
-        Delivery findDelivery = deliveryRepository.findAll().get(0);
-        assertThat(findDelivery.getRecipient().getName()).isEqualTo(member.getName());
-        assertThat(findDelivery.getRecipient().getPhone()).isEqualTo(member.getPhoneNumber());
-        assertThat(findDelivery.getRecipient().getZipcode()).isEqualTo(member.getAddress().getZipcode());
-        assertThat(findDelivery.getRecipient().getStreet()).isEqualTo(member.getAddress().getStreet());
-        assertThat(findDelivery.getRecipient().getDetailAddress()).isEqualTo(member.getAddress().getDetailAddress());
-        assertThat(findDelivery.getStatus()).isEqualTo(DeliveryStatus.PAYMENT_DONE);
-        assertThat(findDelivery.getRequest()).isEqualTo(request);
-
-        Member findMember = memberRepository.findById(member.getId()).get();
-        assertThat(findMember.getReward()).isEqualTo(reward - discountReward);
-        assertThat(findMember.getAccumulatedAmount()).isEqualTo(paymentPrice);
-        assertThat(findMember.isSubscribe()).isTrue();
-        assertThat(findMember.getAccumulatedSubscribe()).isEqualTo(1);
-        assertThat(findMember.isBrochure()).isTrue();
-        assertThat(findMember.getRoles()).isEqualTo("USER,SUBSCRIBER");
-
-        Reward findReward = rewardRepository.findByMember(member).get(0);
-        assertThat(findReward.getName()).isEqualTo(RewardName.USE_ORDER);
-        assertThat(findReward.getRewardType()).isEqualTo(RewardType.ORDER);
-        assertThat(findReward.getRewardStatus()).isEqualTo(RewardStatus.USED);
-        assertThat(findReward.getTradeReward()).isEqualTo(discountReward);
-
-        SubscribeOrder findOrder = (SubscribeOrder) orderRepository.findAll().get(0);
-        assertThat(findOrder.getImpUid()).isEqualTo(impUid);
-        assertThat(findOrder.getMerchantUid()).isEqualTo(merchantUid);
-        assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.PAYMENT_DONE);
-        assertThat(findOrder.getOrderPrice()).isEqualTo(orderPrice);
-        assertThat(findOrder.getDeliveryPrice()).isEqualTo(deliveryPrice);
-        assertThat(findOrder.getDiscountTotal()).isEqualTo(discountTotal);
-        assertThat(findOrder.getDiscountReward()).isEqualTo(discountReward);
-        assertThat(findOrder.getDiscountCoupon()).isEqualTo(discountCoupon);
-        assertThat(findOrder.getPaymentPrice()).isEqualTo(paymentPrice);
-        assertThat(findOrder.getPaymentMethod()).isEqualTo(paymentMethod);
-        assertThat(findOrder.isPackage()).isFalse();
-        assertThat(findOrder.isAgreePrivacy()).isTrue();
-        assertThat(findOrder.getSubscribeCount()).isEqualTo(subscribeCount + 1);
-        assertThat(findOrder.getDelivery().getId()).isEqualTo(findDelivery.getId());
-
-        Card findCard = cardRepository.findAll().get(0);
-        assertThat(findCard.getCustomerUid()).isEqualTo(customerUid);
-        assertThat(findCard.getCardName()).isEqualTo(cardName);
-        assertThat(findCard.getCardNumber()).isEqualTo(cardNumber);
-
-    }
-
-    @Test
-    @DisplayName("정상적으로 구독 주문하기 - HALF and 쿠폰 사용 안 할 경우")
-    public void orderSubscribe_HALF_no_coupon() throws Exception {
-        //given
-        memberCouponRepository.deleteAll();
-
-        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
-        int reward = member.getReward();
-        Dog dogRepresentative = generateDogRepresentative(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
-        Subscribe subscribe = generateSubscribe(dogRepresentative, SubscribePlan.HALF);
-        int subscribeCount = subscribe.getSubscribeCount();
-
-        String request = "안전배송 부탁드립니다.";
-        SubscribeOrderRequestDto.DeliveryDto deliveryDto = SubscribeOrderRequestDto.DeliveryDto.builder()
-                .name(member.getName())
-                .phone(member.getPhoneNumber())
-                .zipcode(member.getAddress().getZipcode())
-                .street(member.getAddress().getStreet())
-                .detailAddress(member.getAddress().getDetailAddress())
-                .request(request)
-                .build();
-
-        LocalDate nextDeliveryDate = getNextDeliveryDate();
-
-        Coupon coupon = generateGeneralCoupon(1);
-        MemberCoupon memberCoupon = generateMemberCoupon(member, coupon, 4, CouponStatus.ACTIVE);
-        int remaining = memberCoupon.getRemaining();
-        Long memberCouponId = memberCoupon.getId();
-
-        int orderPrice = 100000;
-        int deliveryPrice = 0;
-        int discountTotal = 20000;
-        int discountReward = 10000;
-        int discountCoupon = 0;
-        int paymentPrice = 90000;
-        PaymentMethod paymentMethod = PaymentMethod.CREDIT_CARD;
-        String impUid = "imp_uid_askdfj";
-        String merchantUid = "merchantUid_sdkfjals";
-        SubscribeOrderRequestDto requestDto = SubscribeOrderRequestDto.builder()
-                .impUid(impUid)
-                .merchantUid(merchantUid)
-                .customerUid("customer_Uid_sldkfj")
-                .cardName("신한 카드")
-                .cardNumber("2134********2344")
-//                .memberCouponId(memberCouponId)
-                .deliveryDto(deliveryDto)
-                .orderPrice(orderPrice)
-                .deliveryPrice(deliveryPrice)
-                .discountTotal(discountTotal)
-                .discountReward(discountReward)
-                .discountCoupon(discountCoupon)
-                .paymentPrice(paymentPrice)
-                .paymentMethod(paymentMethod)
-                .nextDeliveryDate(nextDeliveryDate)
-                .isBrochure(true)
-                .isAgreePrivacy(true)
-                .build();
-
-        //when & then
-        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/orders/subscribe/{id}", subscribe.getId())
-                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaTypes.HAL_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
-                .andDo(print())
-                .andExpect(status().isOk())
-        ;
-
-        em.flush();
-        em.clear();
-
-        MemberCoupon findMemberCoupon = memberCouponRepository.findById(memberCouponId).get();
-        assertThat(findMemberCoupon.getRemaining()).isEqualTo(remaining);
-        assertThat(findMemberCoupon.getMemberCouponStatus()).isEqualTo(CouponStatus.ACTIVE);
-
-        Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
-        assertThat(findSubscribe.getSubscribeCount()).isEqualTo(subscribeCount + 1);
-        if (findSubscribe.getPlan() == SubscribePlan.FULL) {
-            assertThat(findSubscribe.getNextPaymentDate()).isEqualTo(nextDeliveryDate.plusDays(14 - 7));
-        } else {
-            assertThat(findSubscribe.getNextPaymentDate()).isEqualTo(nextDeliveryDate.plusDays(28 - 7));
-        }
-        assertThat(findSubscribe.getNextPaymentPrice()).isEqualTo(orderPrice);
-        assertThat(findSubscribe.getNextDeliveryDate()).isEqualTo(nextDeliveryDate);
-        assertThat(findSubscribe.getStatus()).isEqualTo(SubscribeStatus.SUBSCRIBING);
-
-        Delivery findDelivery = deliveryRepository.findAll().get(0);
-        assertThat(findDelivery.getRecipient().getName()).isEqualTo(member.getName());
-        assertThat(findDelivery.getRecipient().getPhone()).isEqualTo(member.getPhoneNumber());
-        assertThat(findDelivery.getRecipient().getZipcode()).isEqualTo(member.getAddress().getZipcode());
-        assertThat(findDelivery.getRecipient().getStreet()).isEqualTo(member.getAddress().getStreet());
-        assertThat(findDelivery.getRecipient().getDetailAddress()).isEqualTo(member.getAddress().getDetailAddress());
-        assertThat(findDelivery.getStatus()).isEqualTo(DeliveryStatus.PAYMENT_DONE);
-        assertThat(findDelivery.getRequest()).isEqualTo(request);
-
-        Member findMember = memberRepository.findById(member.getId()).get();
-        assertThat(findMember.getReward()).isEqualTo(reward - discountReward);
-        assertThat(findMember.getAccumulatedAmount()).isEqualTo(paymentPrice);
-        assertThat(findMember.isSubscribe()).isTrue();
-        assertThat(findMember.getAccumulatedSubscribe()).isEqualTo(1);
-        assertThat(findMember.isBrochure()).isTrue();
-        assertThat(findMember.getRoles()).isEqualTo("USER,SUBSCRIBER");
-
-        Reward findReward = rewardRepository.findByMember(member).get(0);
-        assertThat(findReward.getName()).isEqualTo(RewardName.USE_ORDER);
-        assertThat(findReward.getRewardType()).isEqualTo(RewardType.ORDER);
-        assertThat(findReward.getRewardStatus()).isEqualTo(RewardStatus.USED);
-        assertThat(findReward.getTradeReward()).isEqualTo(discountReward);
-
-        SubscribeOrder findOrder = (SubscribeOrder) orderRepository.findAll().get(0);
-        assertThat(findOrder.getImpUid()).isEqualTo(impUid);
-        assertThat(findOrder.getMerchantUid()).isEqualTo(merchantUid);
-        assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.PAYMENT_DONE);
-        assertThat(findOrder.getOrderPrice()).isEqualTo(orderPrice);
-        assertThat(findOrder.getDeliveryPrice()).isEqualTo(deliveryPrice);
-        assertThat(findOrder.getDiscountTotal()).isEqualTo(discountTotal);
-        assertThat(findOrder.getDiscountReward()).isEqualTo(discountReward);
-        assertThat(findOrder.getDiscountCoupon()).isEqualTo(discountCoupon);
-        assertThat(findOrder.getPaymentPrice()).isEqualTo(paymentPrice);
-        assertThat(findOrder.getPaymentMethod()).isEqualTo(paymentMethod);
-        assertThat(findOrder.isPackage()).isFalse();
-        assertThat(findOrder.isAgreePrivacy()).isTrue();
-        assertThat(findOrder.getDelivery().getId()).isEqualTo(findDelivery.getId());
-
-    }
-
-    @Test
-    @DisplayName("쿠폰 1장일 경우 구독 주문 후 0개 된 뒤 비활성화")
-    public void orderSubscribe_memberCoupon_be_inactive() throws Exception {
-        //given
-        memberCouponRepository.deleteAll();
-
-        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
-        int reward = member.getReward();
-        Dog dogRepresentative = generateDogRepresentative(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
-        Subscribe subscribe = generateSubscribe(dogRepresentative, SubscribePlan.FULL);
-
-        String request = "안전배송 부탁드립니다.";
-        SubscribeOrderRequestDto.DeliveryDto deliveryDto = SubscribeOrderRequestDto.DeliveryDto.builder()
-                .name(member.getName())
-                .phone(member.getPhoneNumber())
-                .zipcode(member.getAddress().getZipcode())
-                .street(member.getAddress().getStreet())
-                .detailAddress(member.getAddress().getDetailAddress())
-                .request(request)
-                .build();
-
-        LocalDate nextDeliveryDate = getNextDeliveryDate();
-
-        Coupon coupon = generateGeneralCoupon(1);
-        MemberCoupon memberCoupon = generateMemberCoupon(member, coupon, 1, CouponStatus.ACTIVE);
-        int remaining = memberCoupon.getRemaining();
-        Long memberCouponId = memberCoupon.getId();
-
-        int orderPrice = 100000;
-        int deliveryPrice = 0;
-        int discountTotal = 20000;
-        int discountReward = 10000;
-        int discountCoupon = 10000;
-        int paymentPrice = 80000;
-        PaymentMethod paymentMethod = PaymentMethod.CREDIT_CARD;
-        String impUid = "imp_uid_askdfj";
-        String merchantUid = "merchantUid_sdkfjals";
-        SubscribeOrderRequestDto requestDto = SubscribeOrderRequestDto.builder()
-                .impUid(impUid)
-                .merchantUid(merchantUid)
-                .customerUid("customer_Uid_sldkfj")
-                .cardName("신한 카드")
-                .cardNumber("2134********2344")
-                .memberCouponId(memberCouponId)
-                .deliveryDto(deliveryDto)
-                .orderPrice(orderPrice)
-                .deliveryPrice(deliveryPrice)
-                .discountTotal(discountTotal)
-                .discountReward(discountReward)
-                .discountCoupon(discountCoupon)
-                .paymentPrice(paymentPrice)
-                .paymentMethod(paymentMethod)
-                .nextDeliveryDate(nextDeliveryDate)
-                .isBrochure(true)
-                .isAgreePrivacy(true)
-                .build();
-
-        //when & then
-        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/orders/subscribe/{id}", subscribe.getId())
-                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaTypes.HAL_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
-                .andDo(print())
-                .andExpect(status().isOk())
-        ;
-
-        em.flush();
-        em.clear();
-
-        MemberCoupon findMemberCoupon = memberCouponRepository.findById(memberCouponId).get();
-        assertThat(findMemberCoupon.getRemaining()).isEqualTo(remaining - 1);
-        assertThat(findMemberCoupon.getMemberCouponStatus()).isEqualTo(CouponStatus.INACTIVE);
-
-    }
-
-    @Test
-    @DisplayName("정상적으로 구독 주문 리스트 조회")
-    public void querySubscribeOrders() throws Exception {
+    @DisplayName("정상적으로 구독 배송 리스트 조회")
+    public void queryDeliveries() throws Exception {
        //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
         Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
 
-        IntStream.range(1,14).forEach(i -> {
-            generateSubscribeOrderAndEtc(member, i, OrderStatus.DELIVERY_READY);
+        IntStream.range(1,11).forEach(i -> {
+            generateSubscribeOrderAndEtc(member, i, OrderStatus.DELIVERY_START);
+            generateSubscribeOrderAndEtc(admin, i, OrderStatus.DELIVERY_START);
+            generateSubscribeOrderAndEtc(member, i, OrderStatus.CONFIRM);
         });
-        IntStream.range(1,3).forEach(i -> {
-            generateSubscribeOrderAndEtc(admin, i, OrderStatus.DELIVERY_READY);
+        IntStream.range(11,16).forEach(i -> {
+            generateSubscribeOrderAndEtc_NoBeforeSubscribe_no_deliveryNumber(member, 1, OrderStatus.PAYMENT_DONE);
         });
 
-
-        //when & then
-        mockMvc.perform(get("/api/orders/subscribe")
+       //when & then
+        mockMvc.perform(get("/api/deliveries/subscribe")
                         .header(HttpHeaders.AUTHORIZATION, getUserToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
-                        .param("size", "5")
-                        .param("page", "1"))
+                        .param("page","1")
+                        .param("size","5"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("page.totalElements").value(13))
-                .andDo(document("query_subscribeOrders",
+                .andExpect(jsonPath("page.totalElements").value(15))
+                .andExpect(jsonPath("page.totalPages").value(3))
+                .andDo(document("query_deliveries_subscribe",
                         links(
                                 linkWithRel("first").description("첫 페이지 링크"),
                                 linkWithRel("prev").description("이전 페이지 링크"),
@@ -634,24 +180,16 @@ public class OrderApiControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
                         ),
                         responseFields(
-                                fieldWithPath("_embedded.querySubscribeOrdersDtoList[0].recipeDto.thumbnailUrl").description("대표 썸네일 url"),
-                                fieldWithPath("_embedded.querySubscribeOrdersDtoList[0].recipeDto.recipeName").description("대표 레시피 이름"),
-                                fieldWithPath("_embedded.querySubscribeOrdersDtoList[0].subscribeOrderDto.orderId").description("주문 id"),
-                                fieldWithPath("_embedded.querySubscribeOrdersDtoList[0].subscribeOrderDto.subscribeId").description("구독 id"),
-                                fieldWithPath("_embedded.querySubscribeOrdersDtoList[0].subscribeOrderDto.orderDate").description("주문 날짜"),
-                                fieldWithPath("_embedded.querySubscribeOrdersDtoList[0].subscribeOrderDto.dogName").description("강아지 이름"),
-                                fieldWithPath("_embedded.querySubscribeOrdersDtoList[0].subscribeOrderDto.subscribeCount").description("구독 회차"),
-                                fieldWithPath("_embedded.querySubscribeOrdersDtoList[0].subscribeOrderDto.merchantUid").description("주문 번호"),
-                                fieldWithPath("_embedded.querySubscribeOrdersDtoList[0].subscribeOrderDto.paymentPrice").description("결제 금액"),
-                                fieldWithPath("_embedded.querySubscribeOrdersDtoList[0].subscribeOrderDto.orderStatus").description("주문 상태 " +
-                                        "[ALL, HOLD, PAYMENT_DONE, PRODUCING, \" +\n" +
-                                        "\"DELIVERY_READY, DELIVERY_START, \" +\n" +
-                                        "\"SELLING_CANCEL, CANCEL_REQUEST, CANCEL_DONE, \" +\n" +
-                                        "\"RETURN_REQUEST, RETURN_DONE, \" +\n" +
-                                        "\"EXCHANGE_REQUEST, EXCHANGE_DONE, \" +\n" +
-                                        "\"FAILED, CONFIRM]"),
-                                fieldWithPath("_embedded.querySubscribeOrdersDtoList[0]._links.query_subscribeOrder.href").description("주문 상세보기 링크"),
-                                fieldWithPath("_embedded.querySubscribeOrdersDtoList[0]._links.query_subscribe.href").description("구독 상세보기"),
+                                fieldWithPath("_embedded.queryDeliveriesDtoList[0].recipeName").description("레시피 이름"),
+                                fieldWithPath("_embedded.queryDeliveriesDtoList[0].deliveryDto.orderId").description("주문 id"),
+                                fieldWithPath("_embedded.queryDeliveriesDtoList[0].deliveryDto.orderInfoUrl").description("주문 정보 조회 url"),
+                                fieldWithPath("_embedded.queryDeliveriesDtoList[0].deliveryDto.orderDate").description("주문 날짜"),
+                                fieldWithPath("_embedded.queryDeliveriesDtoList[0].deliveryDto.subscribeCount").description("구독 회차"),
+                                fieldWithPath("_embedded.queryDeliveriesDtoList[0].deliveryDto.dogName").description("강아지 이름"),
+                                fieldWithPath("_embedded.queryDeliveriesDtoList[0].deliveryDto.produceDate").description("생산 예정일"),
+                                fieldWithPath("_embedded.queryDeliveriesDtoList[0].deliveryDto.nextDeliveryDate").description("발송 예정일"),
+                                fieldWithPath("_embedded.queryDeliveriesDtoList[0].deliveryDto.deliveryStatus").description("배송 상태"),
+                                fieldWithPath("_embedded.queryDeliveriesDtoList[0].deliveryDto.deliveryNumber").description("운송장 번호, 아직없으면 null"),
                                 fieldWithPath("page.size").description("한 페이지 당 개수"),
                                 fieldWithPath("page.totalElements").description("검색 총 결과 수"),
                                 fieldWithPath("page.totalPages").description("총 페이지 수"),
@@ -666,113 +204,6 @@ public class OrderApiControllerTest extends BaseTest {
                 ));
 
     }
-
-    @Test
-    @DisplayName("구독주문 하나 조회")
-    public void querySubscribeOrder() throws Exception {
-       //given
-        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
-
-        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtc(member, 1, OrderStatus.DELIVERY_READY);
-
-        //when & then
-        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/orders/{id}/subscribe", subscribeOrder.getId())
-                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaTypes.HAL_JSON))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andDo(document("query_subscribeOrder",
-                        links(
-                                linkWithRel("self").description("self 링크"),
-                                linkWithRel("profile").description("해당 API 관련 문서 링크")
-                        ),
-                        pathParameters(
-                                parameterWithName("id").description("주문 id")
-                        ),
-                        requestHeaders(
-                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
-                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
-                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
-                        ),
-                        responseHeaders(
-                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
-                        ),
-                        responseFields(
-                                fieldWithPath("recipeDto.thumbnailUrl").description("썸네일 url"),
-                                fieldWithPath("recipeDto.recipeName").description("대표 레시피"),
-                                fieldWithPath("recipeNames").description("구독 레시피 이름 나열 'xxx,xxx' , 로 구분"),
-                                fieldWithPath("orderDto.subscribeCount").description("구독 회차"),
-                                fieldWithPath("orderDto.dogName").description("강아지 이름"),
-                                fieldWithPath("orderDto.oneMealRecommendGram").description("급여량"),
-                                fieldWithPath("orderDto.plan").description("구독 플랜 [FULL,HALF,TOPPING]"),
-                                fieldWithPath("orderDto.orderPrice").description("가격 / 주문금액"),
-                                fieldWithPath("orderDto.beforeSubscribeCount").description("변경 전 구독 회차, 변경 없으면 0"),
-                                fieldWithPath("orderDto.beforePlan").description("변경 전 플랜 [FULL,HALF,TOPPING] , 변경 없으면 null"),
-                                fieldWithPath("orderDto.beforeOneMealRecommendGram").description("변경 전 급여량 , 변경 없으면 null"),
-                                fieldWithPath("orderDto.beforeRecipeName").description("변경 전 레시피 이름 , 변경 없으면 null"),
-                                fieldWithPath("orderDto.beforeOrderPrice").description("변경 전 가격 , 변경 없으면 0"),
-                                fieldWithPath("orderDto.merchantUid").description("주문 번호"),
-                                fieldWithPath("orderDto.orderType").description("주문 타입 ['subscribe','general'"),
-                                fieldWithPath("orderDto.orderDate").description("주문 날짜"),
-                                fieldWithPath("orderDto.deliveryNumber").description("운송장번호 . 없으면 null"),
-                                fieldWithPath("orderDto.deliveryStatus").description("배송 상태 [PAYMENT_DONE,\n" +
-                                        "    PRODUCING, DELIVERY_READY,\n" +
-                                        "    DELIVERY_START,\n" +
-                                        "    DELIVERY_DONE]"),
-                                fieldWithPath("orderDto.deliveryPrice").description("배송비"),
-                                fieldWithPath("orderDto.discountTotal").description("할인 총합"),
-                                fieldWithPath("orderDto.discountReward").description("사용 적립금"),
-                                fieldWithPath("orderDto.discountCoupon").description("쿠폰 사용 금액"),
-                                fieldWithPath("orderDto.paymentPrice").description("결제 금액"),
-                                fieldWithPath("orderDto.paymentMethod").description("결제 방법 [CREDIT_CARD, NAVER_PAY, KAKAO_PAY]"),
-                                fieldWithPath("orderDto.recipientName").description("받는사람 이름"),
-                                fieldWithPath("orderDto.recipientPhone").description("받는사람 휴대전화"),
-                                fieldWithPath("orderDto.zipcode").description("우편번호"),
-                                fieldWithPath("orderDto.street").description("도로명주소"),
-                                fieldWithPath("orderDto.detailAddress").description("상세주소"),
-                                fieldWithPath("orderDto.request").description("배송요청사항"),
-                                fieldWithPath("_links.self.href").description("self 링크"),
-                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
-                        )
-                ));
-    }
-
-    @Test
-    @DisplayName("구독주문 하나 조회시 변경사항 없고 송장번호 없는 경우")
-    public void querySubscribeOrder_noBefore_NoDeliveryNumber() throws Exception {
-        //given
-        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
-
-        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtc_NoBeforeSubscribe_no_deliveryNumber(member, 1, OrderStatus.DELIVERY_READY);
-
-        //when & then
-        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/orders/{id}/subscribe", subscribeOrder.getId())
-                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaTypes.HAL_JSON))
-                .andDo(print())
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    @DisplayName("구독주문 하나 조회 404")
-    public void querySubscribeOrder_404() throws Exception {
-        //given
-        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
-
-        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtc_NoBeforeSubscribe_no_deliveryNumber(member, 1, OrderStatus.DELIVERY_READY);
-
-        //when & then
-        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/orders/999999/subscribe")
-                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaTypes.HAL_JSON))
-                .andDo(print())
-                .andExpect(status().isNotFound());
-    }
-
-
 
 
 

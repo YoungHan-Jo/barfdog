@@ -4,6 +4,7 @@ import com.bi.barfdog.api.orderDto.SubscribeOrderRequestDto;
 import com.bi.barfdog.api.subscribeDto.UpdateSubscribeDto;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.dog.Dog;
+import com.bi.barfdog.domain.member.Card;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.domain.order.Order;
 import com.bi.barfdog.domain.order.SubscribeOrder;
@@ -33,6 +34,10 @@ public class Subscribe extends BaseTimeEntity {
 
     @OneToOne(mappedBy = "subscribe")
     private Dog dog;
+
+    @ManyToOne(fetch = LAZY)
+    @JoinColumn(name = "card_id")
+    private Card card;
 
     private int subscribeCount;
 
@@ -90,12 +95,13 @@ public class Subscribe extends BaseTimeEntity {
         this.beforeSubscribe = beforeSubscribe;
     }
 
-    public void order(SubscribeOrderRequestDto requestDto) {
+    public void order(SubscribeOrderRequestDto requestDto,Card card) {
         this.subscribeCount++;
         this.status = SubscribeStatus.SUBSCRIBING;
         LocalDate nextDeliveryDate = requestDto.getNextDeliveryDate();
         nextPaymentPrice = requestDto.getOrderPrice();
         this.nextDeliveryDate = nextDeliveryDate;
+        this.card = card;
 
         setNextPaymentDate(nextDeliveryDate);
     }

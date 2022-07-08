@@ -23,6 +23,11 @@ public class SubscribeOrderRequestDto {
     @NotEmpty
     private String merchantUid; // 주문번호
 
+    @NotEmpty
+    private String customerUid; // 카드결제 uid
+    private String cardName;
+    private String cardNumber;
+
     private Long memberCouponId; // 사용한 쿠폰 id
 
     @Valid

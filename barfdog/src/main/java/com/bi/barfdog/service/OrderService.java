@@ -6,6 +6,7 @@ import com.bi.barfdog.api.orderDto.SubscribeOrderRequestDto;
 import com.bi.barfdog.domain.delivery.Delivery;
 import com.bi.barfdog.domain.delivery.DeliveryStatus;
 import com.bi.barfdog.domain.delivery.Recipient;
+import com.bi.barfdog.domain.member.Card;
 import com.bi.barfdog.domain.member.Grade;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
@@ -16,6 +17,7 @@ import com.bi.barfdog.domain.reward.RewardName;
 import com.bi.barfdog.domain.reward.RewardStatus;
 import com.bi.barfdog.domain.reward.RewardType;
 import com.bi.barfdog.domain.subscribe.Subscribe;
+import com.bi.barfdog.repository.card.CardRepository;
 import com.bi.barfdog.repository.delivery.DeliveryRepository;
 import com.bi.barfdog.repository.memberCoupon.MemberCouponRepository;
 import com.bi.barfdog.repository.order.OrderRepository;
@@ -40,6 +42,7 @@ public class OrderService {
     private final SubscribeRepository subscribeRepository;
     private final OrderRepository orderRepository;
     private final RewardRepository rewardRepository;
+    private final CardRepository cardRepository;
 
     public OrderSheetSubscribeResponseDto getOrderSheetSubsDto(Member member, Long subscribeId) {
 
@@ -98,8 +101,10 @@ public class OrderService {
 
         Delivery delivery = saveDelivery(requestDto);
 
+        Card card = saveCard(member, requestDto);
+
         Subscribe subscribe = subscribeRepository.findById(subscribeId).get();
-        subscribe.order(requestDto);
+        subscribe.order(requestDto, card);
         member.order(requestDto);
         saveReward(member, requestDto);
 
@@ -112,6 +117,17 @@ public class OrderService {
         saveSubscribeOrder(member, requestDto, delivery, subscribe, memberCoupon);
         useCoupon(memberCoupon);
 
+    }
+
+    private Card saveCard(Member member, SubscribeOrderRequestDto requestDto) {
+        Card card = Card.builder()
+                .member(member)
+                .customerUid(requestDto.getCustomerUid())
+                .cardName(requestDto.getCardName())
+                .cardNumber(requestDto.getCardNumber())
+                .build();
+        cardRepository.save(card);
+        return card;
     }
 
     private void useCoupon(MemberCoupon memberCoupon) {
