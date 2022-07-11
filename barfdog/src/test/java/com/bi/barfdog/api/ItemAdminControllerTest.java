@@ -836,8 +836,9 @@ public class ItemAdminControllerTest extends BaseTest {
             generateItemTopping(i, ItemStatus.LEAKED);
             generateItemTopping(i, ItemStatus.HIDDEN);
         });
-        IntStream.range(1,3).forEach(i -> {
+        IntStream.range(1,5).forEach(i -> {
             generateItemGoods(i);
+            generateItem(i, DiscountType.FLAT_RATE, 5);
         });
 
 
@@ -858,7 +859,7 @@ public class ItemAdminControllerTest extends BaseTest {
         em.clear();
 
         List<Item> itemList = itemRepository.findAll();
-        assertThat(itemList.size()).isEqualTo(14);
+        assertThat(itemList.size()).isEqualTo(20);
     }
 
     @Test

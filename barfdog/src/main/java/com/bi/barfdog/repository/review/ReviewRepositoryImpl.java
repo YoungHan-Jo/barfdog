@@ -24,6 +24,7 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.EntityManager;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -177,12 +178,13 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom{
 
         OrderSpecifier<LocalDate> orderByCond = cond.getOrder().equals("asc")? review.writtenDate.asc():review.writtenDate.desc();
 
+
         List<Review> reviews = queryFactory
                 .select(review)
                 .from(review)
                 .leftJoin(itemReview).on(itemReview.eq(review))
                 .leftJoin(subscribeReview).on(subscribeReview.eq(review))
-                .where(statusEqCond(cond.getStatus()))
+                .where(statusEqCond(cond.getStatus(), cond))
                 .orderBy(orderByCond)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -195,7 +197,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom{
                 .from(review)
                 .leftJoin(itemReview).on(itemReview.eq(review))
                 .leftJoin(subscribeReview).on(subscribeReview.eq(review))
-                .where(statusEqCond(cond.getStatus()))
+                .where(statusEqCond(cond.getStatus(), cond))
                 .fetchOne();
 
         return new PageImpl<>(result, pageable, totalCount);
@@ -467,18 +469,18 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom{
         return result;
     }
 
-    private BooleanExpression statusEqCond(ReviewStatus status) {
+    private BooleanExpression statusEqCond(ReviewStatus status, AdminReviewsCond cond) {
         switch (status) {
             case ADMIN:
-                return review.status.eq(ReviewStatus.ADMIN);
+                return review.status.eq(ReviewStatus.ADMIN).and(review.writtenDate.between(cond.getFrom(),cond.getTo()));
             case RETURN:
-                return review.status.eq(ReviewStatus.RETURN);
+                return review.status.eq(ReviewStatus.RETURN).and(review.writtenDate.between(cond.getFrom(),cond.getTo()));
             case REQUEST:
-                return review.status.eq(ReviewStatus.REQUEST);
+                return review.status.eq(ReviewStatus.REQUEST).and(review.writtenDate.between(cond.getFrom(),cond.getTo()));
             case APPROVAL:
-                return review.status.eq(ReviewStatus.APPROVAL);
+                return review.status.eq(ReviewStatus.APPROVAL).and(review.writtenDate.between(cond.getFrom(),cond.getTo()));
             default:
-                return null;
+                return review.writtenDate.between(cond.getFrom(),cond.getTo());
         }
     }
 

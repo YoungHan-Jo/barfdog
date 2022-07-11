@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -28,6 +27,6 @@ public class BeforeSubscribe {
 
     private String recipeName; // [ , 로 구분]
 
-    private int orderPrice; // 주문 가격
+    private int paymentPrice; // 주문 가격
 
 }

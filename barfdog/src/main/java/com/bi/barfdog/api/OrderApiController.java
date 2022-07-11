@@ -1,9 +1,6 @@
 package com.bi.barfdog.api;
 
-import com.bi.barfdog.api.orderDto.OrderSheetSubscribeResponseDto;
-import com.bi.barfdog.api.orderDto.QuerySubscribeOrderDto;
-import com.bi.barfdog.api.orderDto.QuerySubscribeOrdersDto;
-import com.bi.barfdog.api.orderDto.SubscribeOrderRequestDto;
+import com.bi.barfdog.api.orderDto.*;
 import com.bi.barfdog.api.resource.SubscribeOrdersDtoResource;
 import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
@@ -109,17 +106,16 @@ public class OrderApiController {
     }
 
 
+    @PostMapping("/sheet/general")
+    public ResponseEntity queryOrderSheetGeneral(@CurrentUser Member member,
+                                                 @RequestBody @Valid OrderSheetGeneralRequestDto requestDto,
+                                                 Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
 
 
 
 
-
-    @GetMapping("/sheet/general")
-    public ResponseEntity queryOrderSheetGeneral() {
-
-
-
-        return null;
+        return ResponseEntity.ok(null);
     }
 
 

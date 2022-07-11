@@ -566,7 +566,6 @@ public class DogService {
         SurveyReport newSurveyReport = getNewSurveyReport(member, requestDto, dog, recipe);
         surveyReport.update(newSurveyReport);
 
-
     }
 
     private SurveyReport getNewSurveyReport(Member member, DogSaveRequestDto requestDto, Dog dog, Recipe recipe) {

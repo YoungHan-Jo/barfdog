@@ -13,6 +13,7 @@ import com.bi.barfdog.domain.dog.Dog;
 import com.bi.barfdog.domain.dog.DogPicture;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.recipe.Recipe;
+import com.bi.barfdog.domain.subscribe.SubscribeStatus;
 import com.bi.barfdog.domain.surveyReport.SurveyReport;
 import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
 import com.bi.barfdog.repository.dog.DogPictureRepository;
@@ -247,18 +248,15 @@ public class DogApiController {
         SurveyReport surveyReport = optionalDog.get().getSurveyReport();
         SurveyResultResponseDto responseDto = surveyReportService.getSurveyResultResponseDto(surveyReport.getId());
 
+        Long subscribeId = responseDto.getSubscribeId();
         EntityModel<SurveyResultResponseDto> entityModel = EntityModel.of(responseDto,
                 linkTo(DogApiController.class).slash(id).slash("surveyReportResult").withSelfRel(),
+                linkTo(OrderApiController.class).slash("sheet/subscribe").slash(subscribeId).withRel("query-orderSheet-subscribe"),
+                linkTo(SubscribeApiController.class).slash(subscribeId).withRel("update_subscribe"),
                 profileRootUrlBuilder.slash("index.html#resources-query-dog-surveyReportResult").withRel("profile")
-                );
+        );
 
         return ResponseEntity.ok(entityModel);
-    }
-
-    @PutMapping("/{id}/subscribe")
-    public ResponseEntity updateSubscribe(@PathVariable Long id) {
-
-        return ResponseEntity.ok(null);
     }
 
 

@@ -141,7 +141,7 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         beforeSubscribe.plan,
                         beforeSubscribe.oneMealRecommendGram,
                         beforeSubscribe.recipeName,
-                        beforeSubscribe.orderPrice,
+                        beforeSubscribe.paymentPrice,
                         subscribeOrder.merchantUid,
                         Expressions.constant("subscribe"),
                         subscribeOrder.createdDate,

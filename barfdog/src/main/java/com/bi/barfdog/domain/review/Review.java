@@ -32,6 +32,7 @@ public abstract class Review extends BaseTimeEntity {
 
     private int star;
 
+    @Column(columnDefinition = "TEXT")
     private String contents;
 
     @Enumerated(EnumType.STRING)

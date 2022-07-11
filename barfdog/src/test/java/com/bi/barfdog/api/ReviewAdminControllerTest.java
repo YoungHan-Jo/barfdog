@@ -51,6 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -563,14 +564,16 @@ public class ReviewAdminControllerTest extends BaseTest {
         });
 
         IntStream.range(1,11).forEach(i -> {
-            generateItemReview(member, item, i, ReviewStatus.REQUEST);
-            generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            generateItemReview(member, item, i, ReviewStatus.REQUEST, LocalDate.now().minusDays(30L));
+            generateItemReview(admin, item, i, ReviewStatus.ADMIN, LocalDate.now().minusDays(30L));
         });
 
         IntStream.range(1,11).forEach(i -> {
             generateSubscribeReview(member, i, ReviewStatus.RETURN);
             generateSubscribeReview(admin, i, ReviewStatus.ADMIN);
         });
+
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
        //when & then
         mockMvc.perform(get("/api/admin/reviews")
@@ -580,7 +583,9 @@ public class ReviewAdminControllerTest extends BaseTest {
                         .param("size", "5")
                         .param("page", "1")
                         .param("status", "ALL")
-                        .param("order", "desc"))
+                        .param("order", "desc")
+                        .param("from", "2022-06-01")
+                        .param("to", today))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("page.totalElements").value(40))
@@ -604,7 +609,9 @@ public class ReviewAdminControllerTest extends BaseTest {
                                 parameterWithName("page").description("페이지 번호 [0번부터 시작 - 0번이 첫 페이지]"),
                                 parameterWithName("size").description("한 페이지 당 조회 개수"),
                                 parameterWithName("status").description("검색할 카테고리 [ALL,REQUEST,RETURN,APPROVAL,ADMIN]"),
-                                parameterWithName("order").description("정렬 옵션 ['desc' or 'asc'] desc=최신순")
+                                parameterWithName("order").description("정렬 옵션 ['desc' or 'asc'] desc=최신순"),
+                                parameterWithName("from").description("검색 날짜 from 'yyyy-MM-dd'"),
+                                parameterWithName("to").description("검색 날짜 to 'yyyy-MM-dd'")
                         ),
                         responseHeaders(
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
@@ -637,6 +644,49 @@ public class ReviewAdminControllerTest extends BaseTest {
 
     }
 
+
+    @Test
+    @DisplayName("정상적으로 기간 설정해서 전체 리뷰 조회")
+    public void queryAllReviews_FromTo() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Item item = generateItem(1);
+        IntStream.range(1,4).forEach(i -> {
+            generateItemImage(item, 1);
+        });
+
+        IntStream.range(1,11).forEach(i -> {
+            generateItemReview(member, item, i, ReviewStatus.REQUEST, LocalDate.now().minusDays(1L));
+            generateItemReview(admin, item, i, ReviewStatus.ADMIN, LocalDate.now().minusDays(1L));
+        });
+
+        LocalDate writtenDay = LocalDate.of(2022, 06, 15);
+        IntStream.range(1,6).forEach(i -> {
+            generateItemReview(member, item, i, ReviewStatus.REQUEST, writtenDay);
+            generateItemReview(admin, item, i, ReviewStatus.ADMIN, writtenDay.plusDays(2));
+        });
+
+        //when & then
+        mockMvc.perform(get("/api/admin/reviews")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("size", "5")
+                        .param("page", "1")
+                        .param("status", "ALL")
+                        .param("order", "desc")
+                        .param("from", "2022-06-01")
+                        .param("to", "2022-06-30"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("page.totalElements").value(10))
+        ;
+
+    }
+
     @Test
     @DisplayName("정상적으로 반려된 리뷰 조회")
     public void queryAllReviews_RETURN() throws Exception {
@@ -651,8 +701,8 @@ public class ReviewAdminControllerTest extends BaseTest {
         });
 
         IntStream.range(1,11).forEach(i -> {
-            generateItemReview(member, item, i, ReviewStatus.REQUEST);
-            generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            generateItemReview(member, item, i, ReviewStatus.REQUEST, LocalDate.now().minusDays(30L));
+            generateItemReview(admin, item, i, ReviewStatus.ADMIN, LocalDate.now().minusDays(30L));
         });
 
         IntStream.range(1,11).forEach(i -> {
@@ -691,8 +741,8 @@ public class ReviewAdminControllerTest extends BaseTest {
         });
 
         IntStream.range(1,11).forEach(i -> {
-            generateItemReview(member, item, i, ReviewStatus.REQUEST);
-            generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            generateItemReview(member, item, i, ReviewStatus.REQUEST, LocalDate.now().minusDays(30L));
+            generateItemReview(admin, item, i, ReviewStatus.ADMIN, LocalDate.now().minusDays(30L));
         });
 
         IntStream.range(1,11).forEach(i -> {
@@ -731,8 +781,8 @@ public class ReviewAdminControllerTest extends BaseTest {
         });
 
         IntStream.range(1,11).forEach(i -> {
-            generateItemReview(member, item, i, ReviewStatus.REQUEST);
-            generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            generateItemReview(member, item, i, ReviewStatus.REQUEST, LocalDate.now().minusDays(30L));
+            generateItemReview(admin, item, i, ReviewStatus.ADMIN, LocalDate.now().minusDays(30L));
         });
 
         IntStream.range(1,11).forEach(i -> {
@@ -771,8 +821,8 @@ public class ReviewAdminControllerTest extends BaseTest {
         });
 
         IntStream.range(1,11).forEach(i -> {
-            generateItemReview(member, item, i, ReviewStatus.REQUEST);
-            generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            generateItemReview(member, item, i, ReviewStatus.REQUEST, LocalDate.now().minusDays(30L));
+            generateItemReview(admin, item, i, ReviewStatus.ADMIN, LocalDate.now().minusDays(30L));
         });
 
         IntStream.range(1,11).forEach(i -> {
@@ -833,7 +883,7 @@ public class ReviewAdminControllerTest extends BaseTest {
 
         List<Long> reviewIdList = new ArrayList<>();
         IntStream.range(1,3).forEach(i -> {
-            ItemReview itemReview = generateItemReview(member, item, i, ReviewStatus.REQUEST);
+            ItemReview itemReview = generateItemReview(member, item, i, ReviewStatus.REQUEST, LocalDate.now().minusDays(30L));
             SubscribeReview subscribeReview = (SubscribeReview) generateSubscribeReview(member, i, ReviewStatus.REQUEST);
             reviewIdList.add(itemReview.getId());
             reviewIdList.add(subscribeReview.getId());
@@ -1078,7 +1128,7 @@ public class ReviewAdminControllerTest extends BaseTest {
             generateItemImage(item, 1);
         });
 
-        ItemReview review = generateItemReview(member, item, 1, ReviewStatus.REQUEST);
+        ItemReview review = generateItemReview(member, item, 1, ReviewStatus.REQUEST, LocalDate.now().minusDays(30L));
 
        //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.delete("/api/admin/reviews/{id}", review.getId())
@@ -1133,7 +1183,7 @@ public class ReviewAdminControllerTest extends BaseTest {
             generateItemImage(item, 1);
         });
 
-        ItemReview review = generateItemReview(member, item, 1, ReviewStatus.REQUEST);
+        ItemReview review = generateItemReview(member, item, 1, ReviewStatus.REQUEST, LocalDate.now().minusDays(30L));
 
         //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.delete("/api/admin/reviews/999999")
@@ -1159,8 +1209,8 @@ public class ReviewAdminControllerTest extends BaseTest {
         });
 
         IntStream.range(1,6).forEach(i -> {
-            ItemReview requestReview = generateItemReview(member, item, i, ReviewStatus.REQUEST);
-            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            ItemReview requestReview = generateItemReview(member, item, i, ReviewStatus.REQUEST, LocalDate.now().minusDays(30L));
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN, LocalDate.now().minusDays(30L));
             reviewIdList.add(requestReview.getId());
             reviewIdList.add(adminReview.getId());
         });
@@ -1240,8 +1290,8 @@ public class ReviewAdminControllerTest extends BaseTest {
         });
 
         IntStream.range(1,6).forEach(i -> {
-            ItemReview requestReview = generateItemReview(member, item, i, ReviewStatus.REQUEST);
-            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            ItemReview requestReview = generateItemReview(member, item, i, ReviewStatus.REQUEST, LocalDate.now().minusDays(30L));
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN, LocalDate.now().minusDays(30L));
             reviewIdList.add(requestReview.getId());
             reviewIdList.add(adminReview.getId());
         });
@@ -1301,8 +1351,8 @@ public class ReviewAdminControllerTest extends BaseTest {
         });
 
         IntStream.range(1,6).forEach(i -> {
-            ItemReview requestReview = generateItemReview(member, item, i, ReviewStatus.REQUEST);
-            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            ItemReview requestReview = generateItemReview(member, item, i, ReviewStatus.REQUEST, LocalDate.now().minusDays(30L));
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN, LocalDate.now().minusDays(30L));
             reviewIdList.add(requestReview.getId());
             reviewIdList.add(adminReview.getId());
         });
@@ -1358,8 +1408,8 @@ public class ReviewAdminControllerTest extends BaseTest {
         });
 
         IntStream.range(1,6).forEach(i -> {
-            ItemReview requestReview = generateItemReview(member, item, i, ReviewStatus.REQUEST);
-            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            ItemReview requestReview = generateItemReview(member, item, i, ReviewStatus.REQUEST, LocalDate.now().minusDays(30L));
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN, LocalDate.now().minusDays(30L));
             reviewIdList.add(requestReview.getId());
             reviewIdList.add(adminReview.getId());
         });
@@ -1405,8 +1455,8 @@ public class ReviewAdminControllerTest extends BaseTest {
         });
 
         IntStream.range(1,6).forEach(i -> {
-            ItemReview requestReview = generateItemReview(member, item, i, ReviewStatus.REQUEST);
-            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            ItemReview requestReview = generateItemReview(member, item, i, ReviewStatus.REQUEST, LocalDate.now().minusDays(30L));
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN, LocalDate.now().minusDays(30L));
         });
 
         Review review = generateSubscribeReview(admin, 11, ReviewStatus.APPROVAL);
@@ -1474,8 +1524,8 @@ public class ReviewAdminControllerTest extends BaseTest {
         });
 
         IntStream.range(1,6).forEach(i -> {
-            ItemReview requestReview = generateItemReview(member, item, i, ReviewStatus.REQUEST);
-            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            ItemReview requestReview = generateItemReview(member, item, i, ReviewStatus.REQUEST, LocalDate.now().minusDays(30L));
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN, LocalDate.now().minusDays(30L));
         });
 
         Review review = generateSubscribeReview(admin, 11, ReviewStatus.APPROVAL);
@@ -1506,8 +1556,8 @@ public class ReviewAdminControllerTest extends BaseTest {
         });
 
         IntStream.range(1,6).forEach(i -> {
-            ItemReview requestReview = generateItemReview(member, item, i, ReviewStatus.REQUEST);
-            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            ItemReview requestReview = generateItemReview(member, item, i, ReviewStatus.REQUEST, LocalDate.now().minusDays(30L));
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN, LocalDate.now().minusDays(30L));
         });
 
         Review review = generateSubscribeReview(admin, 11, ReviewStatus.APPROVAL);
@@ -1536,7 +1586,7 @@ public class ReviewAdminControllerTest extends BaseTest {
             generateItemImage(item, 1);
         });
 
-        ItemReview review = generateItemReview(member, item, 99, ReviewStatus.REQUEST);
+        ItemReview review = generateItemReview(member, item, 99, ReviewStatus.REQUEST, LocalDate.now().minusDays(30L));
 
         String returnReason = "적합하지않은 리뷰 입니다.";
         ReturnReviewDto requestDto = ReturnReviewDto.builder()
@@ -1601,7 +1651,7 @@ public class ReviewAdminControllerTest extends BaseTest {
             generateItemImage(item, 1);
         });
 
-        ItemReview review = generateItemReview(member, item, 99, ReviewStatus.APPROVAL);
+        ItemReview review = generateItemReview(member, item, 99, ReviewStatus.APPROVAL, LocalDate.now().minusDays(30L));
 
         String returnReason = "적합하지않은 리뷰 입니다.";
         ReturnReviewDto requestDto = ReturnReviewDto.builder()
@@ -1632,7 +1682,7 @@ public class ReviewAdminControllerTest extends BaseTest {
             generateItemImage(item, 1);
         });
 
-        ItemReview review = generateItemReview(member, item, 99, ReviewStatus.REQUEST);
+        ItemReview review = generateItemReview(member, item, 99, ReviewStatus.REQUEST, LocalDate.now().minusDays(30L));
 
         String returnReason = "적합하지않은 리뷰 입니다.";
         ReturnReviewDto requestDto = ReturnReviewDto.builder()
@@ -1667,7 +1717,7 @@ public class ReviewAdminControllerTest extends BaseTest {
         });
 
         IntStream.range(1,6).forEach(i -> {
-            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN, LocalDate.now().minusDays(30L));
             generateBestReview(adminReview, i);
         });
 
@@ -1731,7 +1781,7 @@ public class ReviewAdminControllerTest extends BaseTest {
         });
 
         IntStream.range(1,6).forEach(i -> {
-            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN, LocalDate.now().minusDays(30L));
             generateBestReview(adminReview, i);
         });
 
@@ -1801,7 +1851,7 @@ public class ReviewAdminControllerTest extends BaseTest {
         });
 
         IntStream.range(1,6).forEach(i -> {
-            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN);
+            ItemReview adminReview = generateItemReview(admin, item, i, ReviewStatus.ADMIN, LocalDate.now().minusDays(30L));
             generateBestReview(adminReview, i);
         });
 
@@ -2006,10 +2056,10 @@ public class ReviewAdminControllerTest extends BaseTest {
         return subscribeReview;
     }
 
-    private ItemReview generateItemReview(Member member, Item item, int i, ReviewStatus reviewStatus) {
+    private ItemReview generateItemReview(Member member, Item item, int i, ReviewStatus reviewStatus, LocalDate writtenDate) {
         ItemReview itemReview = ItemReview.builder()
                 .member(member)
-                .writtenDate(LocalDate.now().minusDays(30L))
+                .writtenDate(writtenDate)
                 .username(member.getName())
                 .star((i + 5) % 5)
                 .contents("열글자 이상의 내용 "+i)
@@ -2041,20 +2091,7 @@ public class ReviewAdminControllerTest extends BaseTest {
     }
 
     private ItemReview generateItemReview_OnlyImage(Member member, Item item, int i, ReviewStatus reviewStatus) {
-        ItemReview itemReview = ItemReview.builder()
-                .member(member)
-                .writtenDate(LocalDate.now().minusDays(30L))
-                .username(member.getName())
-                .star((i + 5) % 5)
-                .contents("열글자 이상의 내용 "+i)
-                .status(reviewStatus)
-                .item(item)
-                .build();
-        itemReviewRepository.save(itemReview);
-
-        IntStream.range(1,4).forEach(j -> {
-            generateReviewImage(j, itemReview);
-        });
+        ItemReview itemReview = generateItemReview(member, item, i, reviewStatus, LocalDate.now().minusDays(30L));
 
         return itemReview;
     }

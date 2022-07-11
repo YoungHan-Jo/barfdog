@@ -1,6 +1,7 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
+import com.bi.barfdog.api.orderDto.OrderSheetGeneralRequestDto;
 import com.bi.barfdog.api.orderDto.SubscribeOrderRequestDto;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
@@ -74,6 +75,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -135,7 +137,68 @@ public class OrderApiControllerTest extends BaseTest {
     RewardRepository rewardRepository;
     @Autowired
     CardRepository cardRepository;
-            
+
+
+
+
+    @Test
+    @DisplayName("정상적으로 일반 주문 주문서 조회하기")
+    public void queryOrderSheetDto_general() throws Exception {
+       //given
+
+        Item item1 = generateItem(1);
+        ItemOption option1 = generateOption(item1, 1);
+        ItemOption option2 = generateOption(item1, 2);
+
+        Item item2 = generateItem(2);
+        ItemOption option3 = generateOption(item1, 3);
+        ItemOption option4 = generateOption(item1, 4);
+
+        List<OrderSheetGeneralRequestDto.OrderItemDto> orderItemDtoList = new ArrayList<>();
+        addOrderItemDto(item1, option1, option2, orderItemDtoList);
+        addOrderItemDto(item2, option3, option4, orderItemDtoList);
+
+        OrderSheetGeneralRequestDto requestDto = OrderSheetGeneralRequestDto.builder()
+                .orderItemDtoList(orderItemDtoList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/orders/sheet/general")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+        ;
+
+    }
+
+    private void addOrderItemDto(Item item1, ItemOption option1, ItemOption option2, List<OrderSheetGeneralRequestDto.OrderItemDto> orderItemDtoList) {
+        OrderSheetGeneralRequestDto.ItemDto itemDto = OrderSheetGeneralRequestDto.ItemDto.builder()
+                .itemId(item1.getId())
+                .amount(1)
+                .build();
+
+        List<OrderSheetGeneralRequestDto.ItemOptionDto> itemOptionDtoList = new ArrayList<>();
+        addItemOptionDto(option1, itemOptionDtoList);
+        addItemOptionDto(option2, itemOptionDtoList);
+
+        OrderSheetGeneralRequestDto.OrderItemDto orderItemDto = OrderSheetGeneralRequestDto.OrderItemDto.builder()
+                .itemDto(itemDto)
+                .itemOptionDtoList(itemOptionDtoList)
+                .build();
+        orderItemDtoList.add(orderItemDto);
+    }
+
+    private void addItemOptionDto(ItemOption option1, List<OrderSheetGeneralRequestDto.ItemOptionDto> itemOptionDtoList) {
+        OrderSheetGeneralRequestDto.ItemOptionDto itemOptionDto = OrderSheetGeneralRequestDto.ItemOptionDto.builder()
+                .itemOptionId(option1.getId())
+                .amount(2)
+                .build();
+        itemOptionDtoList.add(itemOptionDto);
+    }
+
 
     @Test
     @DisplayName("구독 주문서 조회하기")
