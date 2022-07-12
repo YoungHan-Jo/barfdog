@@ -157,7 +157,7 @@ public class MemberAdminControllerTest extends BaseTest {
                                 fieldWithPath("_embedded.queryMembersDtoList[0].name").description("유저 이름"),
                                 fieldWithPath("_embedded.queryMembersDtoList[0].email").description("유저 이메일"),
                                 fieldWithPath("_embedded.queryMembersDtoList[0].phoneNumber").description("전화번호"),
-                                fieldWithPath("_embedded.queryMembersDtoList[0].dogName").description("대표 강아지 이름 [없으면 null]"),
+                                fieldWithPath("_embedded.queryMembersDtoList[0].dogName").description("대표 강아지 이름 [없으면 '대표견 없음']"),
                                 fieldWithPath("_embedded.queryMembersDtoList[0].accumulatedAmount").description("누적 결제 금액"),
                                 fieldWithPath("_embedded.queryMembersDtoList[0].subscribe").description("구독 여부 [true/false]"),
                                 fieldWithPath("_embedded.queryMembersDtoList[0].longUnconnected").description("장기 미접속 여부 [true/false]"),
@@ -174,7 +174,6 @@ public class MemberAdminControllerTest extends BaseTest {
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
-
     }
 
     @Test
@@ -182,9 +181,11 @@ public class MemberAdminControllerTest extends BaseTest {
     public void queryMembers_pageable_empty() throws Exception {
         //given
 
-        IntStream.range(1,29).forEach(i ->{
+        IntStream.range(1,15).forEach(i ->{
             generateMember(i);
         });
+
+
 
         String from = LocalDate.of(2020, 01, 01).toString();
         String to = LocalDate.now().toString();
@@ -200,7 +201,7 @@ public class MemberAdminControllerTest extends BaseTest {
                         .param("to", to))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("_embedded.queryMembersDtoList", hasSize(20)))
+                .andExpect(jsonPath("_embedded.queryMembersDtoList", hasSize(18)))
                 .andExpect(jsonPath("page.number").value(0))
         ;
     }
@@ -857,7 +858,12 @@ public class MemberAdminControllerTest extends BaseTest {
         generateMember(i, "일반 회원" + i, "email@gmail.com" + i);
     }
 
-    private void generateMember(int i, String name, String email) {
+    private void generateMemberAndDog(int i) {
+        Member member = generateMember(i, "일반 회원" + i, "email@gmail.com" + i);
+
+    }
+
+    private Member generateMember(int i, String name, String email) {
         Member member = Member.builder()
                 .email(email)
                 .name(name)
@@ -875,7 +881,7 @@ public class MemberAdminControllerTest extends BaseTest {
                 .roles("USER")
                 .build();
 
-        memberRepository.save(member);
+        return memberRepository.save(member);
     }
 
     private String getAdminToken() throws Exception {

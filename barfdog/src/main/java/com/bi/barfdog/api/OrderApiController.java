@@ -42,6 +42,30 @@ public class OrderApiController {
 
     WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
 
+    @PostMapping("/sheet/general")
+    public ResponseEntity queryOrderSheetGeneral(@CurrentUser Member member,
+                                                 @RequestBody @Valid OrderSheetGeneralRequestDto requestDto,
+                                                 Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+
+        OrderSheetGeneralResponseDto responseDto = orderService.getOrderSheetGeneralDto(member, requestDto);
+
+        EntityModel<OrderSheetGeneralResponseDto> entityModel = EntityModel.of(responseDto,
+                linkTo(OrderApiController.class).slash("sheet/general").withSelfRel(),
+                linkTo(OrderApiController.class).slash("general").withRel("order_general"),
+                profileRootUrlBuilder.slash("index.html#resources-query-orderSheet-general").withRel("profile")
+                );
+
+        return ResponseEntity.ok(entityModel);
+    }
+
+    @PostMapping("/general")
+    public ResponseEntity orderGeneralOrder() {
+
+
+        return ResponseEntity.ok(null);
+    }
+
     @GetMapping("/sheet/subscribe/{id}")
     public ResponseEntity queryOrderSheetSubscribe(@CurrentUser Member member,
                                                    @PathVariable Long id) {
@@ -106,17 +130,7 @@ public class OrderApiController {
     }
 
 
-    @PostMapping("/sheet/general")
-    public ResponseEntity queryOrderSheetGeneral(@CurrentUser Member member,
-                                                 @RequestBody @Valid OrderSheetGeneralRequestDto requestDto,
-                                                 Errors errors) {
-        if (errors.hasErrors()) return badRequest(errors);
 
-
-
-
-        return ResponseEntity.ok(null);
-    }
 
 
 

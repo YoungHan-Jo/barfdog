@@ -1438,6 +1438,16 @@ operation::query_admin_subscribe_order[snippets='curl-request,path-parameters,re
 
 유저 주문 관련 리소스.
 
+[[resources-query-orderSheet-general]]
+=== 일반 주문 주문서에 필요한 내용 조회
+
+`POST` 요청을 사용하여 일반 주문 주문서에 필요한 내용을 조회할 수 있다.
+
+요청 파라미터가 복잡하여 GET이 아닌 POST 사용
+
+operation::query_orderSheet_general[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
 [[resources-query-orderSheet-subscribe]]
 === 구독 주문서에 필요한 내용 조회
 

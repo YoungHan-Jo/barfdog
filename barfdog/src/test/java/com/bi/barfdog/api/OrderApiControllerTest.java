@@ -146,6 +146,10 @@ public class OrderApiControllerTest extends BaseTest {
     public void queryOrderSheetDto_general() throws Exception {
        //given
 
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtc(member, 1, OrderStatus.PAYMENT_DONE);
+
         Item item1 = generateItem(1);
         ItemOption option1 = generateOption(item1, 1);
         ItemOption option2 = generateOption(item1, 2);
@@ -155,8 +159,8 @@ public class OrderApiControllerTest extends BaseTest {
         ItemOption option4 = generateOption(item1, 4);
 
         List<OrderSheetGeneralRequestDto.OrderItemDto> orderItemDtoList = new ArrayList<>();
-        addOrderItemDto(item1, option1, option2, orderItemDtoList);
-        addOrderItemDto(item2, option3, option4, orderItemDtoList);
+        addOrderItemDto(item1, option1, option2, orderItemDtoList, 1);
+        addOrderItemDto(item2, option3, option4, orderItemDtoList, 2);
 
         OrderSheetGeneralRequestDto requestDto = OrderSheetGeneralRequestDto.builder()
                 .orderItemDtoList(orderItemDtoList)
@@ -170,14 +174,110 @@ public class OrderApiControllerTest extends BaseTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("deliveryId").isNotEmpty())
+                .andExpect(jsonPath("nextSubscribeDeliveryDate").isNotEmpty())
+                .andDo(document("query_orderSheet_general",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("order_general").description("일반상품 주문하는 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer jwt 토큰")
+                        ),
+                        requestFields(
+                                fieldWithPath("orderItemDtoList[0].itemDto.itemId").description("상품 id"),
+                                fieldWithPath("orderItemDtoList[0].itemDto.amount").description("상품 개수"),
+                                fieldWithPath("orderItemDtoList[0].itemOptionDtoList[0].itemOptionId").description("옵션 id"),
+                                fieldWithPath("orderItemDtoList[0].itemOptionDtoList[0].amount").description("옵션 개수")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("orderItemDtoList[0].itemId").description("상품 id"),
+                                fieldWithPath("orderItemDtoList[0].name").description("상품 이름"),
+                                fieldWithPath("orderItemDtoList[0].optionDtoList[0].optionId").description("옵션 id"),
+                                fieldWithPath("orderItemDtoList[0].optionDtoList[0].name").description("옵션 이름"),
+                                fieldWithPath("orderItemDtoList[0].optionDtoList[0].price").description("옵션 하나 가격"),
+                                fieldWithPath("orderItemDtoList[0].optionDtoList[0].amount").description("옵션 개수"),
+                                fieldWithPath("orderItemDtoList[0].amount").description("상품 개수"),
+                                fieldWithPath("orderItemDtoList[0].originalOrderLinePrice").description("자체 할인 전 상품+옵션 가격 총 가격"),
+                                fieldWithPath("orderItemDtoList[0].orderLinePrice").description("자체 할인 후 상품+옵션 가격 총 가격"),
+                                fieldWithPath("name").description("회원 이름"),
+                                fieldWithPath("email").description("회원 이메일"),
+                                fieldWithPath("phoneNumber").description("회원 휴대전화"),
+                                fieldWithPath("address.zipcode").description("우편번호"),
+                                fieldWithPath("address.city").description("시도"),
+                                fieldWithPath("address.street").description("도로명주소"),
+                                fieldWithPath("address.detailAddress").description("상세주소"),
+                                fieldWithPath("deliveryId").description("묶음배송할 배송 id . 묶음배송 불가능한 경우 null"),
+                                fieldWithPath("nextSubscribeDeliveryDate").description("묶음배송할 배송 예정일 . 묶음배송 불가능한 경우 null"),
+                                fieldWithPath("coupons[0].memberCouponId").description("회원쿠폰 id"),
+                                fieldWithPath("coupons[0].name").description("쿠폰 이름"),
+                                fieldWithPath("coupons[0].discountType").description("할인 타입 ['FIXED_RATE' / 'FLAT_RATE']"),
+                                fieldWithPath("coupons[0].discountDegree").description("할인 정도 ( 원 / % )"),
+                                fieldWithPath("coupons[0].availableMaxDiscount").description("적용가능 최대 할인 금액"),
+                                fieldWithPath("coupons[0].availableMinPrice").description("사용가능한 최소 물품 가격"),
+                                fieldWithPath("coupons[0].remaining").description("쿠폰 남은 개수"),
+                                fieldWithPath("coupons[0].expiredDate").description("쿠폰 유효 기한"),
+                                fieldWithPath("orderPrice").description("쿠폰.적립금 적용 전 총 가격"),
+                                fieldWithPath("reward").description("사용가능한 적립금"),
+                                fieldWithPath("deliveryPrice").description("배송비"),
+                                fieldWithPath("freeCondition").description("배송비 무료 조건, xx원 이상 무료배송"),
+                                fieldWithPath("brochure").description("브로슈어 받은 적 있는지 true/false"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.order_general.href").description("일반상품 주문하는 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ))
         ;
 
     }
 
-    private void addOrderItemDto(Item item1, ItemOption option1, ItemOption option2, List<OrderSheetGeneralRequestDto.OrderItemDto> orderItemDtoList) {
+    @Test
+    @DisplayName("일반 주문 주문서 조회하기, 묶음배송 없음")
+    public void queryOrderSheetDto_general_noPackage() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        Item item1 = generateItem(1);
+        ItemOption option1 = generateOption(item1, 1);
+        ItemOption option2 = generateOption(item1, 2);
+
+        Item item2 = generateItem(2);
+        ItemOption option3 = generateOption(item1, 3);
+        ItemOption option4 = generateOption(item1, 4);
+
+        List<OrderSheetGeneralRequestDto.OrderItemDto> orderItemDtoList = new ArrayList<>();
+        addOrderItemDto(item1, option1, option2, orderItemDtoList, 1);
+        addOrderItemDto(item2, option3, option4, orderItemDtoList, 2);
+
+        OrderSheetGeneralRequestDto requestDto = OrderSheetGeneralRequestDto.builder()
+                .orderItemDtoList(orderItemDtoList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/orders/sheet/general")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("deliveryId").isEmpty())
+                .andExpect(jsonPath("nextSubscribeDeliveryDate").isEmpty())
+        ;
+
+    }
+
+    private void addOrderItemDto(Item item1, ItemOption option1, ItemOption option2, List<OrderSheetGeneralRequestDto.OrderItemDto> orderItemDtoList, int amount) {
         OrderSheetGeneralRequestDto.ItemDto itemDto = OrderSheetGeneralRequestDto.ItemDto.builder()
                 .itemId(item1.getId())
-                .amount(1)
+                .amount(amount)
                 .build();
 
         List<OrderSheetGeneralRequestDto.ItemOptionDto> itemOptionDtoList = new ArrayList<>();
@@ -1305,6 +1405,7 @@ public class OrderApiControllerTest extends BaseTest {
                 .departureDate(LocalDateTime.now().minusDays(4))
                 .arrivalDate(LocalDateTime.now().minusDays(1))
                 .status(DeliveryStatus.DELIVERY_START)
+                .nextDeliveryDate(LocalDate.now().plusDays(2))
                 .request("안전배송 부탁드립니다.")
                 .build();
         deliveryRepository.save(delivery);

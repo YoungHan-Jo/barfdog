@@ -1,14 +1,12 @@
 package com.bi.barfdog.api.memberDto;
 
 import com.bi.barfdog.domain.member.Grade;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder @Getter
+@Builder
 public class QueryMembersDto {
 
     private Long id;

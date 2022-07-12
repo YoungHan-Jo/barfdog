@@ -17,4 +17,6 @@ public interface SubscribeRepositoryCustom {
     OrderSheetSubscribeResponseDto.SubscribeDto findOrderSheetSubscribeDtoById(Long subscribeId);
 
     List<String> findRecipeNamesById(Long subscribeId);
+
+    List<Subscribe> findAllByMember(Member member);
 }

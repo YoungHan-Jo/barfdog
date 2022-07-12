@@ -1,9 +1,11 @@
 package com.bi.barfdog.repository.memberCoupon;
 
+import com.bi.barfdog.api.orderDto.OrderSheetGeneralCouponDto;
 import com.bi.barfdog.api.orderDto.OrderSheetSubsCouponDto;
 import com.bi.barfdog.domain.coupon.CouponStatus;
 import com.bi.barfdog.domain.coupon.CouponTarget;
 import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.domain.member.QMember;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 import static com.bi.barfdog.domain.coupon.QCoupon.coupon;
+import static com.bi.barfdog.domain.member.QMember.*;
 import static com.bi.barfdog.domain.memberCoupon.QMemberCoupon.memberCoupon;
 
 @RequiredArgsConstructor
@@ -50,9 +53,30 @@ public class MemberCouponRepositoryImpl implements MemberCouponRepositoryCustom{
                 .select(memberCoupon)
                 .from(memberCoupon)
                 .join(memberCoupon.coupon, coupon)
+                .join(memberCoupon.coupon, coupon)
                 .where(memberCoupon.member.eq(member).and(coupon.code.eq(code)))
                 .fetch()
                 ;
+    }
+
+    @Override
+    public List<OrderSheetGeneralCouponDto> findGeneralCouponsDto(Member user) {
+        return queryFactory
+                .select(Projections.constructor(OrderSheetGeneralCouponDto.class,
+                        memberCoupon.id,
+                        coupon.name,
+                        coupon.discountType,
+                        coupon.discountDegree,
+                        coupon.availableMaxDiscount,
+                        coupon.availableMinPrice,
+                        memberCoupon.remaining,
+                        memberCoupon.expiredDate
+                ))
+                .from(memberCoupon)
+                .join(memberCoupon.member, member)
+                .join(memberCoupon.coupon, coupon)
+                .where(member.eq(user).and(validGeneralCoupon()))
+                .fetch();
     }
 
     private BooleanExpression validSubscribeCoupon() {

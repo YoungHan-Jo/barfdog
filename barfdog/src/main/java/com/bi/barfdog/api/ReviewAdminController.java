@@ -159,10 +159,8 @@ public class ReviewAdminController {
 
         reviewService.createBestReviews(requestDto);
 
-        WebMvcLinkBuilder selfLinkBuilder = linkTo(ReviewAdminController.class).slash("best");
-
         RepresentationModel representationModel = new RepresentationModel();
-        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(ReviewAdminController.class).slash("best").withSelfRel());
         representationModel.add(linkTo(ReviewAdminController.class).withRel("query_reviews"));
         representationModel.add(linkTo(ReviewAdminController.class).slash("best").withRel("query_best_reviews"));
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-create-best-review").withRel("profile"));

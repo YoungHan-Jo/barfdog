@@ -1,15 +1,18 @@
 package com.bi.barfdog.repository.delivery;
 
 import com.bi.barfdog.api.deliveryDto.QueryDeliveriesDto;
+import com.bi.barfdog.domain.delivery.Delivery;
 import com.bi.barfdog.domain.delivery.QDelivery;
 import com.bi.barfdog.domain.dog.QDog;
 import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.domain.member.QMember;
 import com.bi.barfdog.domain.order.OrderStatus;
 import com.bi.barfdog.domain.order.QSubscribeOrder;
 import com.bi.barfdog.domain.recipe.QRecipe;
 import com.bi.barfdog.domain.subscribe.QSubscribe;
 import com.bi.barfdog.domain.subscribeRecipe.QSubscribeRecipe;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,11 +20,13 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.bi.barfdog.domain.delivery.QDelivery.*;
 import static com.bi.barfdog.domain.dog.QDog.*;
+import static com.bi.barfdog.domain.member.QMember.*;
 import static com.bi.barfdog.domain.order.QSubscribeOrder.*;
 import static com.bi.barfdog.domain.recipe.QRecipe.*;
 import static com.bi.barfdog.domain.subscribe.QSubscribe.*;
@@ -93,4 +98,28 @@ public class DeliveryRepositoryImpl implements DeliveryRepositoryCustom{
 
         return new PageImpl<>(result, pageable, totalCount);
     }
+
+    @Override
+    public List<Delivery> findPackageDeliveryDto(Member user) {
+        return queryFactory
+                .select(delivery)
+                .from(subscribeOrder)
+                .join(subscribeOrder.delivery, delivery)
+                .join(subscribeOrder.subscribe, subscribe)
+                .join(subscribe.dog, dog)
+                .join(dog.member, member)
+                .where(member.eq(user)
+                        .and(orderStatusBeforeDelivery()
+                                .and(delivery.nextDeliveryDate.after(LocalDate.now().plusDays(1)))
+                        ))
+                .orderBy(delivery.nextDeliveryDate.asc())
+                .fetch()
+                ;
+    }
+
+    private BooleanExpression orderStatusBeforeDelivery() {
+        return subscribeOrder.orderStatus.in(OrderStatus.PAYMENT_DONE,
+                OrderStatus.PRODUCING, OrderStatus.DELIVERY_READY);
+    }
+
 }

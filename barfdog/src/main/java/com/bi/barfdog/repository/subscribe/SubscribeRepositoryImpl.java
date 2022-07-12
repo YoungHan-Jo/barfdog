@@ -118,4 +118,16 @@ public class SubscribeRepositoryImpl implements SubscribeRepositoryCustom{
                 ;
 
     }
+
+    @Override
+    public List<Subscribe> findAllByMember(Member user) {
+        return queryFactory
+                .select(subscribe)
+                .from(subscribe)
+                .join(subscribe.dog, dog)
+                .join(dog.member, member)
+                .where(member.eq(user))
+                .orderBy(subscribe.nextDeliveryDate.asc())
+                .fetch();
+    }
 }

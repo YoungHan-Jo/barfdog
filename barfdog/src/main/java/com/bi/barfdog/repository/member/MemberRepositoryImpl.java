@@ -17,6 +17,7 @@ import com.bi.barfdog.domain.order.QOrder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -122,6 +123,34 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
 
     @Override
     public Page<QueryMembersDto> findDtosByCond(Pageable pageable, QueryMembersCond cond) {
+//        List<QueryMembersDto> result = queryFactory
+//                .select(Projections.constructor(QueryMembersDto.class,
+//                        member.id,
+//                        member.grade,
+//                        member.name,
+//                        member.email,
+//                        member.phoneNumber,
+//                        dog.name,
+//                        member.accumulatedAmount,
+//                        member.isSubscribe,
+//                        new CaseBuilder()
+//                                .when(member.lastLoginDate.before(LocalDateTime.now().minusYears(1L))).then(true)
+//                                .otherwise(false)
+//                ))
+//                .from(dog)
+//                .rightJoin(dog.member, member)
+//                .where(
+//                        nameContains(cond.getName()),
+//                        emailContains(cond.getEmail()),
+//                        createdDateBetween(cond)
+//                )
+//                .groupBy(member.id, dog.name)
+//                .having(dog.representative.eq(true).or(dog.representative.isNull()))
+//                .orderBy(member.email.length().asc())
+//                .offset(pageable.getOffset())
+//                .limit(pageable.getPageSize())
+//                .fetch();
+
         List<QueryMembersDto> result = queryFactory
                 .select(Projections.constructor(QueryMembersDto.class,
                         member.id,
@@ -129,26 +158,37 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
                         member.name,
                         member.email,
                         member.phoneNumber,
-                        dog.name,
+                        Expressions.constant("대표견 없음"),
                         member.accumulatedAmount,
                         member.isSubscribe,
                         new CaseBuilder()
                                 .when(member.lastLoginDate.before(LocalDateTime.now().minusYears(1L))).then(true)
                                 .otherwise(false)
                 ))
-                .from(dog)
-                .rightJoin(dog.member, member)
+                .from(member)
                 .where(
                         nameContains(cond.getName()),
                         emailContains(cond.getEmail()),
                         createdDateBetween(cond)
                 )
-                .groupBy(member.id, dog.name)
-                .having(dog.representative.eq(true).or(dog.representative.isNull()))
                 .orderBy(member.email.length().asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
+        for (QueryMembersDto memberDto : result) {
+            List<String> dogNameList = queryFactory
+                    .select(dog.name)
+                    .from(dog)
+                    .where(dog.member.id.eq(memberDto.getId())
+                            .and(dog.representative.isTrue())
+                    )
+                    .fetch();
+            if (dogNameList.size() > 0) {
+                String dogName = dogNameList.get(0);
+                memberDto.setDogName(dogName);
+            }
+        }
+
 
         Long totalCount = queryFactory
                 .select(member.count())

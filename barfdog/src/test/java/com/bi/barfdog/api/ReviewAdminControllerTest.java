@@ -290,10 +290,7 @@ public class ReviewAdminControllerTest extends BaseTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.reviewItemsDtoList", hasSize(4)))
         ;
-
     }
-
-    
 
     @Test
     @DisplayName("정상적으로 아이템 리뷰 생성")
@@ -430,6 +427,7 @@ public class ReviewAdminControllerTest extends BaseTest {
         assertThat(findReview.getWrittenDate()).isEqualTo(writtenDate);
         assertThat(findReview.getStar()).isEqualTo(star);
 
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         mockMvc.perform(get("/api/admin/reviews")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -437,7 +435,9 @@ public class ReviewAdminControllerTest extends BaseTest {
                         .param("size", "5")
                         .param("page", "0")
                         .param("status", "ADMIN")
-                        .param("order", "desc"))
+                        .param("order", "desc")
+                        .param("from", "2022-06-01")
+                        .param("to", today))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("page.totalElements").value(1))
@@ -450,7 +450,9 @@ public class ReviewAdminControllerTest extends BaseTest {
                         .param("size", "5")
                         .param("page", "0")
                         .param("status", "APPROVAL")
-                        .param("order", "desc"))
+                        .param("order", "desc")
+                        .param("from", "2022-06-01")
+                        .param("to", today))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("page.totalElements").value(0))
@@ -669,6 +671,7 @@ public class ReviewAdminControllerTest extends BaseTest {
             generateItemReview(admin, item, i, ReviewStatus.ADMIN, writtenDay.plusDays(2));
         });
 
+
         //when & then
         mockMvc.perform(get("/api/admin/reviews")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
@@ -709,7 +712,7 @@ public class ReviewAdminControllerTest extends BaseTest {
             generateSubscribeReview(member, i, ReviewStatus.RETURN);
             generateSubscribeReview(admin, i, ReviewStatus.ADMIN);
         });
-
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         //when & then
         mockMvc.perform(get("/api/admin/reviews")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
@@ -718,7 +721,9 @@ public class ReviewAdminControllerTest extends BaseTest {
                         .param("size", "5")
                         .param("page", "1")
                         .param("status", "RETURN")
-                        .param("order", "asc"))
+                        .param("order", "asc")
+                        .param("from", "2022-06-01")
+                        .param("to", today))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("page.totalElements").value(10))
@@ -749,7 +754,7 @@ public class ReviewAdminControllerTest extends BaseTest {
             generateSubscribeReview(member, i, ReviewStatus.RETURN);
             generateSubscribeReview(admin, i, ReviewStatus.ADMIN);
         });
-
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         //when & then
         mockMvc.perform(get("/api/admin/reviews")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
@@ -758,7 +763,9 @@ public class ReviewAdminControllerTest extends BaseTest {
                         .param("size", "5")
                         .param("page", "1")
                         .param("status", "ADMIN")
-                        .param("order", "asc"))
+                        .param("order", "asc")
+                        .param("from", "2022-06-01")
+                        .param("to", today))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("page.totalElements").value(20))
@@ -789,7 +796,7 @@ public class ReviewAdminControllerTest extends BaseTest {
             generateSubscribeReview(member, i, ReviewStatus.RETURN);
             generateSubscribeReview(admin, i, ReviewStatus.ADMIN);
         });
-
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         //when & then
         mockMvc.perform(get("/api/admin/reviews")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
@@ -798,7 +805,9 @@ public class ReviewAdminControllerTest extends BaseTest {
                         .param("size", "5")
                         .param("page", "1")
                         .param("status", "REQUEST")
-                        .param("order", "asc"))
+                        .param("order", "asc")
+                        .param("from", "2022-06-01")
+                        .param("to", today))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("page.totalElements").value(10))
@@ -829,7 +838,7 @@ public class ReviewAdminControllerTest extends BaseTest {
             generateSubscribeReview(member, i, ReviewStatus.RETURN);
             generateSubscribeReview(admin, i, ReviewStatus.APPROVAL);
         });
-
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         //when & then
         mockMvc.perform(get("/api/admin/reviews")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
@@ -838,7 +847,9 @@ public class ReviewAdminControllerTest extends BaseTest {
                         .param("size", "5")
                         .param("page", "1")
                         .param("status", "APPROVAL")
-                        .param("order", "asc"))
+                        .param("order", "asc")
+                        .param("from", "2022-06-01")
+                        .param("to", today))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("page.totalElements").value(10))
@@ -852,7 +863,7 @@ public class ReviewAdminControllerTest extends BaseTest {
     @DisplayName("잘못된 status 일 경우 400")
     public void queryReviews_wrongStatus() throws Exception {
         //given
-
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         //when & then
         mockMvc.perform(get("/api/admin/reviews")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
@@ -861,7 +872,9 @@ public class ReviewAdminControllerTest extends BaseTest {
                         .param("size", "5")
                         .param("page", "1")
                         .param("status", "asdf")
-                        .param("order", "desc"))
+                        .param("order", "desc")
+                        .param("from", "2022-06-01")
+                        .param("to", today))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
         ;
@@ -1492,7 +1505,7 @@ public class ReviewAdminControllerTest extends BaseTest {
                         responseFields(
                                 fieldWithPath("reviewDto.id").description("리뷰 id"),
                                 fieldWithPath("reviewDto.status").description("리뷰 상태 [REQUEST,RETURN,APPROVAL,ADMIN]"),
-                                fieldWithPath("reviewDto.createdDate").description("리뷰 등록일"),
+                                fieldWithPath("reviewDto.writtenDate").description("리뷰 작성일"),
                                 fieldWithPath("reviewDto.star").description("리뷰 평점"),
                                 fieldWithPath("reviewDto.username").description("리뷰 작성자 이름"),
                                 fieldWithPath("reviewDto.contents").description("리뷰 내용"),

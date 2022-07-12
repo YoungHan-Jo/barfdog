@@ -34,7 +34,7 @@ public class QueryAdminReviewDto {
 
         private ReviewStatus status;
 
-        private LocalDate createdDate;
+        private LocalDate writtenDate;
 
         private int star;
 
