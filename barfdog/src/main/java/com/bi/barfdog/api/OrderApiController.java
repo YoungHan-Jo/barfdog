@@ -60,10 +60,53 @@ public class OrderApiController {
     }
 
     @PostMapping("/general")
-    public ResponseEntity orderGeneralOrder() {
+    public ResponseEntity orderGeneralOrder(@CurrentUser Member member,
+                                            @RequestBody @Valid GeneralOrderRequestDto requestDto,
+                                            Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
 
+        Order order = orderService.orderGeneralOrder(member, requestDto);
 
-        return ResponseEntity.ok(null);
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderApiController.class).slash("general").withSelfRel());
+        representationModel.add(linkTo(OrderApiController.class).slash(order.getId()).slash("general/success").withRel("success_generalOrder"));
+        representationModel.add(linkTo(OrderApiController.class).slash(order.getId()).slash("general/fail").withRel("fail_generalOrder"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-order-generalOrder").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @PostMapping("/{id}/general/success")
+    public ResponseEntity successGeneralOrder(@CurrentUser Member member,
+                                              @PathVariable Long id,
+                                              @RequestBody @Valid SuccessGeneralRequestDto requestDto,
+                                              Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+        Optional<Order> optionalOrder = orderRepository.findById(id);
+        if(!optionalOrder.isPresent()) return notFound();
+
+        orderService.successGeneralOrder(id, member, requestDto);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderApiController.class).slash(id).slash("general/success").withSelfRel());
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-success-generalOrder").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @PostMapping("/{id}/general/fail")
+    public ResponseEntity failGeneralOrder(@CurrentUser Member member,
+                                           @PathVariable Long id) {
+        Optional<Order> optionalOrder = orderRepository.findById(id);
+        if (!optionalOrder.isPresent()) return notFound();
+
+        orderService.failGeneralOrder(id, member);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderApiController.class).slash(id).slash("general/fail").withSelfRel());
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-fail-generalOrder").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
     }
 
     @GetMapping("/sheet/subscribe/{id}")
@@ -92,14 +135,17 @@ public class OrderApiController {
         Optional<Subscribe> optionalSubscribe = subscribeRepository.findById(id);
         if(!optionalSubscribe.isPresent()) return notFound();
 
-        orderService.orderSubscribeOrder(member, id, requestDto);
+        Order order = orderService.orderSubscribeOrder(member, id, requestDto);
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(OrderApiController.class).slash("subscribe").slash(id).withSelfRel());
+        representationModel.add(linkTo(OrderApiController.class).slash(order.getId()).slash("subscribe/success").withRel("success_subscribeOrder"));
+        representationModel.add(linkTo(OrderApiController.class).slash(order.getId()).slash("subscribe/fail").withRel("fail_subscribeOrder"));
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-order-subscribeOrder").withRel("profile"));
 
         return ResponseEntity.ok(representationModel);
     }
+
 
     @GetMapping("/subscribe")
     public ResponseEntity querySubscribeOrders(@CurrentUser Member member,

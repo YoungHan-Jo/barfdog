@@ -28,7 +28,6 @@ public class OrderSheetSubscribeResponseDto {
     private String email;
     private String phoneNumber;
 
-
     private Address address;
 
     private LocalDate nextDeliveryDate;

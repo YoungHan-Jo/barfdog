@@ -35,5 +35,8 @@ public class Delivery extends BaseTimeEntity {
 
     private LocalDate nextDeliveryDate; // 배송 예정 일시
 
+    public void paymentDone() {
+        status = DeliveryStatus.PAYMENT_DONE;
+    }
 
 }

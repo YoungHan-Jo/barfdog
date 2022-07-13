@@ -1448,6 +1448,30 @@ operation::query_admin_subscribe_order[snippets='curl-request,path-parameters,re
 operation::query_orderSheet_general[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
+[[resources-order-generalOrder]]
+=== 일반 주문 주문하기
+
+`POST` 요청을 사용하여 일반 상품을 주문할할 수 있다.
+
+operation::order_generalOrder[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-success-generalOrder]]
+=== 일반 주문 결제 성공
+
+`POST` 요청을 사용하여 일반 주문 결제성공 상태를 반영할 수 있다.
+
+operation::success_generalOrder[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-fail-generalOrder]]
+=== 일반 주문 결제 실패
+
+`POST` 요청을 사용하여 일반 주문 결제실패 상태를 반영할 수 있다.
+
+operation::fail_generalOrder[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+
+
+
 [[resources-query-orderSheet-subscribe]]
 === 구독 주문서에 필요한 내용 조회
 

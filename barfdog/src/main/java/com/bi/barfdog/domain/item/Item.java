@@ -73,4 +73,12 @@ public class Item extends BaseTimeEntity {
     public void delete() {
         isDeleted = true;
     }
+
+    public void remainingDown(int amount) {
+        remaining -= amount;
+    }
+
+    public void remainingUp(int amount) {
+        remaining += amount;
+    }
 }

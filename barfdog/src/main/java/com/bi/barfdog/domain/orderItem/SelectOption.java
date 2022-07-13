@@ -1,5 +1,6 @@
 package com.bi.barfdog.domain.orderItem;
 
+import com.bi.barfdog.domain.item.ItemOption;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,7 +24,15 @@ public class SelectOption {
     @JoinColumn(name = "order_item_id")
     private OrderItem orderItem;
 
+    @ManyToOne(fetch = LAZY)
+    @JoinColumn(name = "item_option_id")
+    private ItemOption itemOption;
+
     private String name;
     private int price;
     private int amount;
+
+    public void failPayment() {
+        itemOption.remainingUp(amount);
+    }
 }

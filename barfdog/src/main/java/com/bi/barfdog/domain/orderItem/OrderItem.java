@@ -51,4 +51,16 @@ public class OrderItem extends BaseTimeEntity {
     public void writeReview() {
         this.writeableReview = false;
     }
+
+    public void successPayment() {
+        status = OrderStatus.PAYMENT_DONE;
+        writeableReview = true;
+    }
+
+    public void failPayment() {
+        status = OrderStatus.FAILED;
+        writeableReview = false;
+        item.remainingUp(amount);
+        memberCoupon.cancel();
+    }
 }

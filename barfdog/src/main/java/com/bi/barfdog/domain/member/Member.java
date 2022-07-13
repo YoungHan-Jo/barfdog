@@ -1,9 +1,11 @@
 package com.bi.barfdog.domain.member;
 
 import com.bi.barfdog.api.memberDto.MemberUpdateRequestDto;
+import com.bi.barfdog.api.orderDto.GeneralOrderRequestDto;
 import com.bi.barfdog.api.orderDto.SubscribeOrderRequestDto;
 import com.bi.barfdog.domain.Address;
 import com.bi.barfdog.domain.BaseTimeEntity;
+import com.bi.barfdog.domain.order.Order;
 import com.bi.barfdog.domain.reward.RewardPoint;
 import lombok.*;
 
@@ -150,7 +152,7 @@ public class Member extends BaseTimeEntity {
         this.roles += ",SUBSCRIBER";
     }
 
-    public void order(SubscribeOrderRequestDto requestDto) {
+    public void subscribeOrder(SubscribeOrderRequestDto requestDto) {
         usePoint(requestDto.getDiscountReward());
         accumulatedAmount += requestDto.getPaymentPrice();
         isSubscribe = true;
@@ -160,7 +162,22 @@ public class Member extends BaseTimeEntity {
             isBrochure = true;
         }
         roles = "USER,SUBSCRIBER";
+    }
 
+    public void generalOrder(GeneralOrderRequestDto requestDto) {
+        usePoint(requestDto.getDiscountReward());
+    }
+
+    public void generalOrderSuccess(Order order) {
+        accumulatedAmount += order.getPaymentPrice();
+        boolean brochure = order.isBrochure();
+        if (brochure) {
+            isBrochure = true;
+        }
+    }
+
+    public void generalOrderFail(int discountReward) {
+        reward += discountReward;
     }
 }
 

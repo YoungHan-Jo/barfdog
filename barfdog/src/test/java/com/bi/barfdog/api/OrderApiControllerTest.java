@@ -1,8 +1,10 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
+import com.bi.barfdog.api.orderDto.GeneralOrderRequestDto;
 import com.bi.barfdog.api.orderDto.OrderSheetGeneralRequestDto;
 import com.bi.barfdog.api.orderDto.SubscribeOrderRequestDto;
+import com.bi.barfdog.api.orderDto.SuccessGeneralRequestDto;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.coupon.*;
@@ -16,12 +18,10 @@ import com.bi.barfdog.domain.item.ItemStatus;
 import com.bi.barfdog.domain.item.ItemType;
 import com.bi.barfdog.domain.member.Card;
 import com.bi.barfdog.domain.member.Gender;
+import com.bi.barfdog.domain.member.Grade;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
-import com.bi.barfdog.domain.order.GeneralOrder;
-import com.bi.barfdog.domain.order.OrderStatus;
-import com.bi.barfdog.domain.order.PaymentMethod;
-import com.bi.barfdog.domain.order.SubscribeOrder;
+import com.bi.barfdog.domain.order.*;
 import com.bi.barfdog.domain.orderItem.OrderItem;
 import com.bi.barfdog.domain.orderItem.SelectOption;
 import com.bi.barfdog.domain.recipe.Recipe;
@@ -274,29 +274,660 @@ public class OrderApiControllerTest extends BaseTest {
 
     }
 
-    private void addOrderItemDto(Item item1, ItemOption option1, ItemOption option2, List<OrderSheetGeneralRequestDto.OrderItemDto> orderItemDtoList, int amount) {
-        OrderSheetGeneralRequestDto.ItemDto itemDto = OrderSheetGeneralRequestDto.ItemDto.builder()
-                .itemId(item1.getId())
-                .amount(amount)
+    @Test
+    @DisplayName("정상적으로 결제하기 버튼 눌러서 정보 저장하는 테스트")
+    public void orderGeneralOrder() throws Exception {
+       //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int reward = member.getReward();
+        int accumulatedAmount = member.getAccumulatedAmount();
+        boolean brochure = member.isBrochure();
+
+        Item item1 = generateItem(1);
+        int itemRemain1 = item1.getRemaining();
+        ItemOption option1 = generateOption(item1, 1);
+        int optionRemain1 = option1.getRemaining();
+        ItemOption option2 = generateOption(item1, 2);
+        int optionRemain2 = option2.getRemaining();
+
+        Item item2 = generateItem(2);
+        int itemRemain2 = item2.getRemaining();
+        ItemOption option3 = generateOption(item1, 3);
+        int optionRemain3 = option3.getRemaining();
+        ItemOption option4 = generateOption(item1, 4);
+        int optionRemain4 = option4.getRemaining();
+
+        Coupon coupon1 = generateGeneralCoupon(1);
+        MemberCoupon memberCoupon1 = generateMemberCoupon(member, coupon1, 1, CouponStatus.ACTIVE);
+        int couponRemain1 = memberCoupon1.getRemaining();
+
+        Coupon coupon2 = generateGeneralCoupon(2);
+        MemberCoupon memberCoupon2 = generateMemberCoupon(member, coupon2, 2, CouponStatus.ACTIVE);
+        int couponRemain2 = memberCoupon2.getRemaining();
+
+        List<GeneralOrderRequestDto.OrderItemDto> orderItemDtoList = new ArrayList<>();
+        int itemAmount1 = 1;
+        int optionAmount1 = 1;
+        int optionAmount2 = 2;
+        int orderLinePrice1 = addOrderItemAndOptionDto(item1, option1, option2, memberCoupon1, orderItemDtoList, itemAmount1, optionAmount1, optionAmount2);
+        int itemAmount2 = 2;
+        int optionAmount3 = 3;
+        int optionAmount4 = 4;
+        int orderLinePrice2 = addOrderItemAndOptionDto(item2, option3, option4, memberCoupon2, orderItemDtoList, itemAmount2, optionAmount3, optionAmount4);
+
+        Delivery delivery = generateDelivery(DeliveryStatus.PAYMENT_DONE);
+
+        int discountReward = 10000;
+        int paymentPrice = orderLinePrice1 + orderLinePrice2 - discountReward;
+        int discountCoupon = 4000;
+        int orderPrice = orderLinePrice1 + orderLinePrice2 + discountCoupon;
+        int discountTotal = discountCoupon + discountReward;
+        int deliveryPrice = 0;
+        PaymentMethod paymentMethod = PaymentMethod.CREDIT_CARD;
+
+
+
+        GeneralOrderRequestDto requestDto = GeneralOrderRequestDto.builder()
+                .orderItemDtoList(orderItemDtoList)
+                .deliveryDto(GeneralOrderRequestDto.DeliveryDto.builder()
+                        .name("수령자")
+                        .phone("01012341234")
+                        .zipcode("12345")
+                        .street("도로명 주소")
+                        .detailAddress("상세주소 1동 102호")
+                        .request("배송 요청사항")
+                        .build())
+                .deliveryId(delivery.getId())
+                .orderPrice(orderPrice)
+                .deliveryPrice(deliveryPrice)
+                .discountTotal(discountTotal)
+                .discountReward(discountReward)
+                .discountCoupon(discountCoupon)
+                .paymentPrice(paymentPrice)
+                .paymentMethod(paymentMethod)
+                .isBrochure(true)
+                .isAgreePrivacy(true)
                 .build();
 
-        List<OrderSheetGeneralRequestDto.ItemOptionDto> itemOptionDtoList = new ArrayList<>();
-        addItemOptionDto(option1, itemOptionDtoList);
-        addItemOptionDto(option2, itemOptionDtoList);
+        //when & then
+        mockMvc.perform(post("/api/orders/general")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("order_generalOrder",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("success_generalOrder").description("결제 성공 링크"),
+                                linkWithRel("fail_generalOrder").description("결제 실패 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer jwt 토큰")
+                        ),
+                        requestFields(
+                                fieldWithPath("orderItemDtoList[0].itemId").description("상품 id"),
+                                fieldWithPath("orderItemDtoList[0].amount").description("상품 개수"),
+                                fieldWithPath("orderItemDtoList[0].selectOptionDtoList[0].itemOptionId").description("옵션 id"),
+                                fieldWithPath("orderItemDtoList[0].selectOptionDtoList[0].amount").description("옵션 개수"),
+                                fieldWithPath("orderItemDtoList[0].memberCouponId").description("사용한 보유쿠폰(memberCoupon) id"),
+                                fieldWithPath("orderItemDtoList[0].discountAmount").description("쿠폰 할인 총계"),
+                                fieldWithPath("orderItemDtoList[0].finalPrice").description("쿠폰 적용 후 주문 내역 한 줄(일반상품 + 옵션 가격) 최종 가격"),
+                                fieldWithPath("deliveryDto.name").optional().description("수령자 이름 . 묶음배송일 경우 null"),
+                                fieldWithPath("deliveryDto.phone").optional().description("수령자 전화번호 . 묶음배송일 경우 null"),
+                                fieldWithPath("deliveryDto.zipcode").optional().description("우편번호 . 묶음배송일 경우 null"),
+                                fieldWithPath("deliveryDto.street").optional().description("도로명주소 . 묶음배송일 경우 null"),
+                                fieldWithPath("deliveryDto.detailAddress").optional().description("상세주소 . 묶음배송일 경우 null"),
+                                fieldWithPath("deliveryDto.request").description("배송 요청사항 . 묶음배송일 경우 null"),
+                                fieldWithPath("deliveryId").optional().description("묶음 배송 할 배송 id . 묶음배송 아닐 경우 null"),
+                                fieldWithPath("orderPrice").optional().description("주문 상품 총 가격(할인적용 전)"),
+                                fieldWithPath("deliveryPrice").optional().description("배송비"),
+                                fieldWithPath("discountTotal").optional().description("총 할인 합계"),
+                                fieldWithPath("discountReward").optional().description("사용할 적립금"),
+                                fieldWithPath("discountCoupon").optional().description("쿠폰 적용으로 할인된 금액"),
+                                fieldWithPath("paymentPrice").optional().description("최종 결제 금액"),
+                                fieldWithPath("paymentMethod").optional().description("결제 방법 [CREDIT_CARD, NAVER_PAY, KAKAO_PAY]"),
+                                fieldWithPath("brochure").optional().description("브로슈어 받을지 여부 true/false"),
+                                fieldWithPath("agreePrivacy").optional().description("개인정보제공 동의 true/false")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.success_generalOrder.href").description("결제 성공 링크"),
+                                fieldWithPath("_links.fail_generalOrder.href").description("결제 실패 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ))
+        ;
 
-        OrderSheetGeneralRequestDto.OrderItemDto orderItemDto = OrderSheetGeneralRequestDto.OrderItemDto.builder()
-                .itemDto(itemDto)
-                .itemOptionDtoList(itemOptionDtoList)
-                .build();
-        orderItemDtoList.add(orderItemDto);
+        em.flush();
+        em.clear();
+
+        GeneralOrder findOrder = (GeneralOrder) orderRepository.findAll().get(0);
+        assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.BEFORE_PAYMENT);
+        assertThat(findOrder.getOrderPrice()).isEqualTo(orderPrice);
+        assertThat(findOrder.getDeliveryPrice()).isEqualTo(deliveryPrice);
+        assertThat(findOrder.getDiscountTotal()).isEqualTo(discountTotal);
+        assertThat(findOrder.getDiscountReward()).isEqualTo(discountReward);
+        assertThat(findOrder.getDiscountCoupon()).isEqualTo(discountCoupon);
+        assertThat(findOrder.getPaymentPrice()).isEqualTo(paymentPrice);
+        assertThat(findOrder.getPaymentMethod()).isEqualTo(paymentMethod);
+        assertThat(findOrder.isPackage()).isEqualTo(true);
+        assertThat(findOrder.isBrochure()).isEqualTo(false);
+        assertThat(findOrder.isAgreePrivacy()).isEqualTo(true);
+
+        Delivery findDelivery = findOrder.getDelivery();
+        assertThat(findDelivery.getId()).isEqualTo(delivery.getId());
+
+        Member findMember = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        assertThat(findMember.getReward()).isEqualTo(reward - discountReward);
+        assertThat(findMember.getAccumulatedAmount()).isEqualTo(accumulatedAmount);
+        assertThat(findMember.isBrochure()).isEqualTo(brochure);
+
+        List<Reward> rewardList = rewardRepository.findByMember(member);
+        assertThat(rewardList.size()).isEqualTo(0);
+
+        double rewardPercent = getRewardPercent(member);
+
+        OrderItem orderItem1 = orderItemRepository.findAll().get(0);
+        assertThat(orderItem1.getGeneralOrder().getId()).isEqualTo(findOrder.getId());
+        assertThat(orderItem1.getItem().getId()).isEqualTo(item1.getId());
+        assertThat(orderItem1.getSalePrice()).isEqualTo(item1.getSalePrice());
+        assertThat(orderItem1.getAmount()).isEqualTo(itemAmount1);
+        assertThat(orderItem1.getMemberCoupon().getId()).isEqualTo(memberCoupon1.getId());
+        assertThat(orderItem1.getDiscountAmount()).isEqualTo(2000);
+        assertThat(orderItem1.getFinalPrice()).isEqualTo(orderLinePrice1);
+        assertThat(orderItem1.getStatus()).isEqualTo(OrderStatus.BEFORE_PAYMENT);
+        assertThat(orderItem1.getSaveReward()).isEqualTo((int) Math.round(orderLinePrice1 * rewardPercent / 100.0));
+        assertThat(orderItem1.isSavedReward()).isEqualTo(false);
+        assertThat(orderItem1.isWriteableReview()).isEqualTo(false);
+        OrderItem orderItem2 = orderItemRepository.findAll().get(1);
+        assertThat(orderItem2.getGeneralOrder().getId()).isEqualTo(findOrder.getId());
+        assertThat(orderItem2.getItem().getId()).isEqualTo(item2.getId());
+        assertThat(orderItem2.getSalePrice()).isEqualTo(item2.getSalePrice());
+        assertThat(orderItem2.getAmount()).isEqualTo(itemAmount2);
+        assertThat(orderItem2.getMemberCoupon().getId()).isEqualTo(memberCoupon2.getId());
+        assertThat(orderItem2.getDiscountAmount()).isEqualTo(2000);
+        assertThat(orderItem2.getFinalPrice()).isEqualTo(orderLinePrice2);
+        assertThat(orderItem2.getStatus()).isEqualTo(OrderStatus.BEFORE_PAYMENT);
+        assertThat(orderItem2.getSaveReward()).isEqualTo((int) Math.round(orderLinePrice2 * rewardPercent / 100.0));
+        assertThat(orderItem2.isSavedReward()).isEqualTo(false);
+        assertThat(orderItem2.isWriteableReview()).isEqualTo(false);
+
+        List<SelectOption> selectOptionList1 = selectOptionRepository.findAllByOrderItem(orderItem1);
+        SelectOption selectOption1 = selectOptionList1.get(0);
+        assertThat(selectOption1.getName()).isEqualTo(option1.getName());
+        assertThat(selectOption1.getPrice()).isEqualTo(option1.getOptionPrice());
+        assertThat(selectOption1.getAmount()).isEqualTo(optionAmount1);
+
+        SelectOption selectOption2 = selectOptionList1.get(1);
+        assertThat(selectOption2.getName()).isEqualTo(option2.getName());
+        assertThat(selectOption2.getPrice()).isEqualTo(option2.getOptionPrice());
+        assertThat(selectOption2.getAmount()).isEqualTo(optionAmount2);
+
+        List<SelectOption> selectOptionList2 = selectOptionRepository.findAllByOrderItem(orderItem2);
+        SelectOption selectOption3 = selectOptionList2.get(0);
+        assertThat(selectOption3.getName()).isEqualTo(option3.getName());
+        assertThat(selectOption3.getPrice()).isEqualTo(option3.getOptionPrice());
+        assertThat(selectOption3.getAmount()).isEqualTo(optionAmount3);
+
+        SelectOption selectOption4 = selectOptionList2.get(1);
+        assertThat(selectOption4.getName()).isEqualTo(option4.getName());
+        assertThat(selectOption4.getPrice()).isEqualTo(option4.getOptionPrice());
+        assertThat(selectOption4.getAmount()).isEqualTo(optionAmount4);
+
+        Item findItem1 = itemRepository.findById(item1.getId()).get();
+        assertThat(findItem1.getRemaining()).isEqualTo(itemRemain1 - itemAmount1);
+        Item findItem2 = itemRepository.findById(item2.getId()).get();
+        assertThat(findItem2.getRemaining()).isEqualTo(itemRemain2 - itemAmount2);
+
+        ItemOption itemOption1 = itemOptionRepository.findById(option1.getId()).get();
+        assertThat(itemOption1.getRemaining()).isEqualTo(optionRemain1 - optionAmount1);
+        ItemOption itemOption2 = itemOptionRepository.findById(option2.getId()).get();
+        assertThat(itemOption2.getRemaining()).isEqualTo(optionRemain2 - optionAmount2);
+        ItemOption itemOption3 = itemOptionRepository.findById(option3.getId()).get();
+        assertThat(itemOption3.getRemaining()).isEqualTo(optionRemain3 - optionAmount3);
+        ItemOption itemOption4 = itemOptionRepository.findById(option4.getId()).get();
+        assertThat(itemOption4.getRemaining()).isEqualTo(optionRemain4 - optionAmount4);
+
+        MemberCoupon findMemberCoupon1 = memberCouponRepository.findById(memberCoupon1.getId()).get();
+        assertThat(findMemberCoupon1.getRemaining()).isEqualTo(couponRemain1 - 1);
+        assertThat(findMemberCoupon1.getMemberCouponStatus()).isEqualTo(CouponStatus.INACTIVE);
+        MemberCoupon findMemberCoupon2 = memberCouponRepository.findById(memberCoupon2.getId()).get();
+        assertThat(findMemberCoupon2.getRemaining()).isEqualTo(couponRemain2 - 1);
+        assertThat(findMemberCoupon2.getMemberCouponStatus()).isEqualTo(CouponStatus.ACTIVE);
+
     }
 
-    private void addItemOptionDto(ItemOption option1, List<OrderSheetGeneralRequestDto.ItemOptionDto> itemOptionDtoList) {
-        OrderSheetGeneralRequestDto.ItemOptionDto itemOptionDto = OrderSheetGeneralRequestDto.ItemOptionDto.builder()
-                .itemOptionId(option1.getId())
-                .amount(2)
+    @Test
+    @DisplayName("정상적으로 결제하기 버튼 눌러서 정보 저장하는 테스트 - 묶음배송 아닐 경우")
+    public void orderGeneralOrder_no_package() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        Item item1 = generateItem(1);
+        ItemOption option1 = generateOption(item1, 1);
+        ItemOption option2 = generateOption(item1, 2);
+
+        Item item2 = generateItem(2);
+        ItemOption option3 = generateOption(item1, 3);
+        ItemOption option4 = generateOption(item1, 4);
+
+        Coupon coupon1 = generateGeneralCoupon(1);
+        MemberCoupon memberCoupon1 = generateMemberCoupon(member, coupon1, 1, CouponStatus.ACTIVE);
+
+        Coupon coupon2 = generateGeneralCoupon(2);
+        MemberCoupon memberCoupon2 = generateMemberCoupon(member, coupon2, 2, CouponStatus.ACTIVE);
+
+        List<GeneralOrderRequestDto.OrderItemDto> orderItemDtoList = new ArrayList<>();
+        int itemAmount1 = 1;
+        int optionAmount1 = 1;
+        int optionAmount2 = 2;
+        int orderLinePrice1 = addOrderItemAndOptionDto(item1, option1, option2, memberCoupon1, orderItemDtoList, itemAmount1, optionAmount1, optionAmount2);
+        int itemAmount2 = 2;
+        int optionAmount3 = 3;
+        int optionAmount4 = 4;
+        int orderLinePrice2 = addOrderItemAndOptionDto(item2, option3, option4, memberCoupon2, orderItemDtoList, itemAmount2, optionAmount3, optionAmount4);
+
+        int discountReward = 10000;
+        int paymentPrice = orderLinePrice1 + orderLinePrice2 - discountReward;
+        int discountCoupon = 4000;
+        int orderPrice = orderLinePrice1 + orderLinePrice2 + discountCoupon;
+        int discountTotal = discountCoupon + discountReward;
+        int deliveryPrice = 0;
+        PaymentMethod paymentMethod = PaymentMethod.CREDIT_CARD;
+
+
+        String name = "수령자";
+        String phone = "01012341234";
+        String zipcode = "12345";
+        String street = "도로명 주소";
+        String detailAddress = "상세주소 1동 102호";
+        String request = "배송 요청사항";
+        GeneralOrderRequestDto requestDto = GeneralOrderRequestDto.builder()
+                .orderItemDtoList(orderItemDtoList)
+                .deliveryDto(GeneralOrderRequestDto.DeliveryDto.builder()
+                        .name(name)
+                        .phone(phone)
+                        .zipcode(zipcode)
+                        .street(street)
+                        .detailAddress(detailAddress)
+                        .request(request)
+                        .build())
+                .orderPrice(orderPrice)
+                .deliveryPrice(deliveryPrice)
+                .discountTotal(discountTotal)
+                .discountReward(discountReward)
+                .discountCoupon(discountCoupon)
+                .paymentPrice(paymentPrice)
+                .paymentMethod(paymentMethod)
+                .isBrochure(true)
+                .isAgreePrivacy(true)
                 .build();
-        itemOptionDtoList.add(itemOptionDto);
+
+        //when & then
+        mockMvc.perform(post("/api/orders/general")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        em.flush();
+        em.clear();
+
+        Delivery findDelivery = deliveryRepository.findAll().get(0);
+        assertThat(findDelivery.getRecipient().getName()).isEqualTo(name);
+        assertThat(findDelivery.getRecipient().getPhone()).isEqualTo(phone);
+        assertThat(findDelivery.getRecipient().getZipcode()).isEqualTo(zipcode);
+        assertThat(findDelivery.getRecipient().getStreet()).isEqualTo(street);
+        assertThat(findDelivery.getRecipient().getDetailAddress()).isEqualTo(detailAddress);
+        assertThat(findDelivery.getStatus()).isEqualTo(DeliveryStatus.BEFORE_PAYMENT);
+        assertThat(findDelivery.getRequest()).isEqualTo(request);
+    }
+
+
+    @Test
+    @DisplayName("정상적으로 일반 주문 결제 성공")
+    public void successGeneralOrder() throws Exception {
+       //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int accumulatedAmount = member.getAccumulatedAmount();
+        Item item1 = generateItem(1);
+        ItemOption option1 = generateOption(item1, 1);
+        ItemOption option2 = generateOption(item1, 2);
+
+        Item item2 = generateItem(2);
+        ItemOption option3 = generateOption(item1, 3);
+        ItemOption option4 = generateOption(item1, 4);
+
+        Coupon coupon1 = generateGeneralCoupon(1);
+        MemberCoupon memberCoupon1 = generateMemberCoupon(member, coupon1, 1, CouponStatus.ACTIVE);
+
+        Coupon coupon2 = generateGeneralCoupon(2);
+        MemberCoupon memberCoupon2 = generateMemberCoupon(member, coupon2, 2, CouponStatus.ACTIVE);
+
+
+        Delivery delivery = generateDelivery(DeliveryStatus.BEFORE_PAYMENT);
+
+        int discountReward = 4000;
+        GeneralOrder order = GeneralOrder.builder()
+                .orderStatus(OrderStatus.BEFORE_PAYMENT)
+                .isBrochure(true)
+                .member(member)
+                .paymentPrice(100000)
+                .discountReward(discountReward)
+                .paymentMethod(PaymentMethod.CREDIT_CARD)
+                .delivery(delivery)
+                .build();
+        orderRepository.save(order);
+
+        OrderItem orderItem1 = generateOrderItem(item1, memberCoupon1, order, 1);
+        generateSelectOption(option1, orderItem1, 1);
+        generateSelectOption(option2, orderItem1, 2);
+        OrderItem orderItem2 = generateOrderItem(item2, memberCoupon2, order, 2);
+        generateSelectOption(option3, orderItem2, 3);
+        generateSelectOption(option4, orderItem2, 4);
+
+
+        String impUid = "impuid_asdlkfjsld";
+        String merchantUid = "merchantUid_sldkfjsldkf";
+        SuccessGeneralRequestDto requestDto = SuccessGeneralRequestDto.builder()
+                .impUid(impUid)
+                .merchantUid(merchantUid)
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/orders/{id}/general/success", order.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("success_generalOrder",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("일반 주문 id")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer jwt 토큰")
+                        ),
+                        requestFields(
+                                fieldWithPath("impUid").description("아임포트 uid"),
+                                fieldWithPath("merchantUid").description("주문 uid")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ))
+        ;
+
+        em.flush();
+        em.clear();
+
+        Order findOrder = orderRepository.findById(order.getId()).get();
+        assertThat(findOrder.getImpUid()).isEqualTo(impUid);
+        assertThat(findOrder.getMerchantUid()).isEqualTo(merchantUid);
+        assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.PAYMENT_DONE);
+        assertThat(findOrder.getDelivery().getStatus()).isEqualTo(DeliveryStatus.PAYMENT_DONE);
+
+        List<OrderItem> orderItemList = orderItemRepository.findAllByGeneralOrder((GeneralOrder) findOrder);
+        for (OrderItem orderItem : orderItemList) {
+            assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.PAYMENT_DONE);
+            assertThat(orderItem.isWriteableReview()).isTrue();
+        }
+
+        Member findMember = memberRepository.findById(member.getId()).get();
+        assertThat(findMember.isBrochure()).isTrue();
+        assertThat(findMember.getAccumulatedAmount()).isEqualTo(accumulatedAmount + order.getPaymentPrice());
+
+        Reward reward = rewardRepository.findAll().get(0);
+        assertThat(reward.getMember().getId()).isEqualTo(findMember.getId());
+        assertThat(reward.getName()).isEqualTo(RewardName.USE_ORDER);
+        assertThat(reward.getRewardType()).isEqualTo(RewardType.ORDER);
+        assertThat(reward.getRewardStatus()).isEqualTo(RewardStatus.USED);
+        assertThat(reward.getTradeReward()).isEqualTo(discountReward);
+
+    }
+
+
+    @Test
+    public void failGeneralOrder() throws Exception {
+       //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int reward = member.getReward();
+        int accumulatedAmount = member.getAccumulatedAmount();
+
+        Item item1 = generateItem(1);
+        int itemRemain1 = item1.getRemaining();
+        ItemOption option1 = generateOption(item1, 1);
+        int optionRemain1 = option1.getRemaining();
+        ItemOption option2 = generateOption(item1, 2);
+        int optionRemain2 = option2.getRemaining();
+
+        Item item2 = generateItem(2);
+        int itemRemain2 = item2.getRemaining();
+        ItemOption option3 = generateOption(item1, 3);
+        int optionRemain3 = option3.getRemaining();
+        ItemOption option4 = generateOption(item1, 4);
+        int optionRemain4 = option4.getRemaining();
+
+        Coupon coupon1 = generateGeneralCoupon(1);
+        MemberCoupon memberCoupon1 = generateMemberCoupon(member, coupon1, 0, CouponStatus.INACTIVE);
+        int couponRemain1 = memberCoupon1.getRemaining();
+
+        Coupon coupon2 = generateGeneralCoupon(2);
+        MemberCoupon memberCoupon2 = generateMemberCoupon(member, coupon2, 1, CouponStatus.ACTIVE);
+        int couponRemain2 = memberCoupon2.getRemaining();
+
+
+        Delivery delivery = generateDelivery(DeliveryStatus.BEFORE_PAYMENT);
+
+        int discountReward = 4000;
+        GeneralOrder order = GeneralOrder.builder()
+                .orderStatus(OrderStatus.BEFORE_PAYMENT)
+                .isBrochure(true)
+                .member(member)
+                .paymentPrice(100000)
+                .discountReward(discountReward)
+                .paymentMethod(PaymentMethod.CREDIT_CARD)
+                .delivery(delivery)
+                .build();
+        orderRepository.save(order);
+
+        int orderItemAmount1 = 1;
+        OrderItem orderItem1 = generateOrderItem(item1, memberCoupon1, order, orderItemAmount1);
+        int optionAmount1 = 1;
+        generateSelectOption(option1, orderItem1, optionAmount1);
+        int optionAmount2 = 2;
+        generateSelectOption(option2, orderItem1, optionAmount2);
+        int orderItemAmount2 = 2;
+        OrderItem orderItem2 = generateOrderItem(item2, memberCoupon2, order, orderItemAmount2);
+        int optionAmount3 = 3;
+        generateSelectOption(option3, orderItem2, optionAmount3);
+        int optionAmount4 = 4;
+        generateSelectOption(option4, orderItem2, optionAmount4);
+
+
+       //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/orders/{id}/general/fail", order.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("fail_generalOrder",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("주문 id")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer jwt 토큰")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ))
+        ;
+
+        em.flush();
+        em.clear();
+
+        GeneralOrder findOrder = (GeneralOrder) orderRepository.findById(order.getId()).get();
+        assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.FAILED);
+        assertThat(findOrder.getDelivery().getStatus()).isEqualTo(DeliveryStatus.BEFORE_PAYMENT);
+
+        Member findMember = memberRepository.findById(member.getId()).get();
+        assertThat(findMember.getReward()).isEqualTo(reward + discountReward);
+
+        List<OrderItem> orderItems = orderItemRepository.findAllByGeneralOrder(order);
+        for (OrderItem orderItem : orderItems) {
+            assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.FAILED);
+            assertThat(orderItem.isWriteableReview()).isEqualTo(false);
+        }
+
+        Item findItem1 = itemRepository.findById(item1.getId()).get();
+        assertThat(findItem1.getRemaining()).isEqualTo(itemRemain1 + orderItemAmount1);
+        Item findItem2 = itemRepository.findById(item2.getId()).get();
+        assertThat(findItem2.getRemaining()).isEqualTo(itemRemain2 + orderItemAmount2);
+
+        ItemOption findOption1 = itemOptionRepository.findById(option1.getId()).get();
+        assertThat(findOption1.getRemaining()).isEqualTo(optionRemain1 + optionAmount1);
+        ItemOption findOption2 = itemOptionRepository.findById(option2.getId()).get();
+        assertThat(findOption2.getRemaining()).isEqualTo(optionRemain2 + optionAmount2);
+        ItemOption findOption3 = itemOptionRepository.findById(option3.getId()).get();
+        assertThat(findOption3.getRemaining()).isEqualTo(optionRemain3 + optionAmount3);
+        ItemOption findOption4 = itemOptionRepository.findById(option4.getId()).get();
+        assertThat(findOption4.getRemaining()).isEqualTo(optionRemain4 + optionAmount4);
+
+        MemberCoupon findMemberCoupon1 = memberCouponRepository.findById(memberCoupon1.getId()).get();
+        assertThat(findMemberCoupon1.getMemberCouponStatus()).isEqualTo(CouponStatus.ACTIVE);
+        assertThat(findMemberCoupon1.getRemaining()).isEqualTo(couponRemain1 + 1);
+
+        MemberCoupon findMemberCoupon2 = memberCouponRepository.findById(memberCoupon2.getId()).get();
+        assertThat(findMemberCoupon2.getMemberCouponStatus()).isEqualTo(CouponStatus.ACTIVE);
+        assertThat(findMemberCoupon2.getRemaining()).isEqualTo(couponRemain2 + 1);
+
+    }
+
+
+    private OrderItem generateOrderItem(Item item1, MemberCoupon memberCoupon1, GeneralOrder order, int amount) {
+        OrderItem orderItem = OrderItem.builder()
+                .generalOrder(order)
+                .item(item1)
+                .amount(amount)
+                .status(OrderStatus.BEFORE_PAYMENT)
+                .memberCoupon(memberCoupon1)
+                .writeableReview(false)
+                .build();
+        orderItemRepository.save(orderItem);
+        return orderItem;
+    }
+
+    private void generateSelectOption(ItemOption option1, OrderItem orderItem, int amount) {
+        SelectOption selectOption = SelectOption.builder()
+                .orderItem(orderItem)
+                .itemOption(option1)
+                .name(option1.getName())
+                .price(option1.getOptionPrice())
+                .amount(amount)
+                .build();
+        selectOptionRepository.save(selectOption);
+    }
+
+
+    private double getRewardPercent(Member member) {
+        double rewardPercent = 0.0;
+
+        Grade grade = member.getGrade();
+        switch (grade) {
+            case 실버:
+                rewardPercent = 0.5;
+            case 골드:
+                rewardPercent = 1.0;
+            case 플래티넘:
+                rewardPercent = 1.5;
+            case 다이아몬드:
+                rewardPercent = 2.0;
+            case 더바프:
+                rewardPercent = 3.0;
+            default:
+                rewardPercent = 0.0;
+        }
+        return rewardPercent;
+    }
+
+    private Delivery generateDelivery(DeliveryStatus status) {
+        Delivery delivery = Delivery.builder()
+                .recipient(Recipient.builder()
+                        .name("수령인 이름")
+                        .phone("01000000000")
+                        .zipcode("12345")
+                        .street("도로명주소")
+                        .detailAddress("상세수조")
+                        .build())
+                .status(status)
+                .nextDeliveryDate(LocalDate.now().plusDays(4))
+                .build();
+        return deliveryRepository.save(delivery);
+    }
+
+    private int addOrderItemAndOptionDto(Item item1, ItemOption option1, ItemOption option2, MemberCoupon memberCoupon1, List<GeneralOrderRequestDto.OrderItemDto> orderItemDtoList, int itemAmount, int optionAmount1, int optionAmount2) {
+        List<GeneralOrderRequestDto.SelectOptionDto> selectOptionDtoList = getSelectOptionDtoList(option1, option2, optionAmount1, optionAmount2);
+        int optionPriceSum = selectOptionDtoList.stream().mapToInt(i -> itemOptionRepository.findById(i.getItemOptionId()).get().getOptionPrice() * i.getAmount()).sum();
+        int discountAmount = 2000;
+        int finalPrice = item1.getSalePrice() * itemAmount + optionPriceSum - discountAmount;
+        GeneralOrderRequestDto.OrderItemDto orderItemDto = GeneralOrderRequestDto.OrderItemDto.builder()
+                .itemId(item1.getId())
+                .amount(itemAmount)
+                .selectOptionDtoList(selectOptionDtoList)
+                .memberCouponId(memberCoupon1.getId())
+                .discountAmount(discountAmount)
+                .finalPrice(finalPrice)
+                .build();
+        orderItemDtoList.add(orderItemDto);
+        return finalPrice;
+    }
+
+    private List<GeneralOrderRequestDto.SelectOptionDto> getSelectOptionDtoList(ItemOption option1, ItemOption option2, int amount1, int amount2) {
+        List<GeneralOrderRequestDto.SelectOptionDto> selectOptionDtoList = new ArrayList<>();
+        addSelectOptionDto(option1, selectOptionDtoList, amount1);
+        addSelectOptionDto(option2, selectOptionDtoList, amount2);
+        return selectOptionDtoList;
+    }
+
+    private void addSelectOptionDto(ItemOption option1, List<GeneralOrderRequestDto.SelectOptionDto> selectOptionDtoList, int amount) {
+        GeneralOrderRequestDto.SelectOptionDto selectOptionDto = GeneralOrderRequestDto.SelectOptionDto.builder()
+                .itemOptionId(option1.getId())
+                .amount(amount)
+                .build();
+        selectOptionDtoList.add(selectOptionDto);
     }
 
 
@@ -937,6 +1568,39 @@ public class OrderApiControllerTest extends BaseTest {
 
 
 
+
+
+
+
+
+
+
+
+
+    private void addOrderItemDto(Item item1, ItemOption option1, ItemOption option2, List<OrderSheetGeneralRequestDto.OrderItemDto> orderItemDtoList, int amount) {
+        OrderSheetGeneralRequestDto.ItemDto itemDto = OrderSheetGeneralRequestDto.ItemDto.builder()
+                .itemId(item1.getId())
+                .amount(amount)
+                .build();
+
+        List<OrderSheetGeneralRequestDto.ItemOptionDto> itemOptionDtoList = new ArrayList<>();
+        addItemOptionDto(option1, itemOptionDtoList);
+        addItemOptionDto(option2, itemOptionDtoList);
+
+        OrderSheetGeneralRequestDto.OrderItemDto orderItemDto = OrderSheetGeneralRequestDto.OrderItemDto.builder()
+                .itemDto(itemDto)
+                .itemOptionDtoList(itemOptionDtoList)
+                .build();
+        orderItemDtoList.add(orderItemDto);
+    }
+
+    private void addItemOptionDto(ItemOption option1, List<OrderSheetGeneralRequestDto.ItemOptionDto> itemOptionDtoList) {
+        OrderSheetGeneralRequestDto.ItemOptionDto itemOptionDto = OrderSheetGeneralRequestDto.ItemOptionDto.builder()
+                .itemOptionId(option1.getId())
+                .amount(2)
+                .build();
+        itemOptionDtoList.add(itemOptionDto);
+    }
 
 
 

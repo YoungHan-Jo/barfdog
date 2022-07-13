@@ -1,5 +1,6 @@
 package com.bi.barfdog.domain.order;
 
+import com.bi.barfdog.api.orderDto.SuccessGeneralRequestDto;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.delivery.Delivery;
 import com.bi.barfdog.domain.member.Member;
@@ -53,6 +54,7 @@ public abstract class Order extends BaseTimeEntity {
 
     private boolean isPackage; // 묶음배송여부
 
+    private boolean isBrochure;
     private boolean isAgreePrivacy;
 
     @ManyToOne(fetch = LAZY)
@@ -60,4 +62,13 @@ public abstract class Order extends BaseTimeEntity {
     private Delivery delivery;
 
 
+    public void successGeneral(SuccessGeneralRequestDto requestDto) {
+        this.impUid = requestDto.getImpUid();
+        this.merchantUid = requestDto.getMerchantUid();
+        this.orderStatus = OrderStatus.PAYMENT_DONE;
+    }
+
+    public void failGeneral() {
+        orderStatus = OrderStatus.FAILED;
+    }
 }
