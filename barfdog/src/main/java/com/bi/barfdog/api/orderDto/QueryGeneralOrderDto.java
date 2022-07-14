@@ -55,6 +55,7 @@ public class QueryGeneralOrderDto {
     @Builder
     public static class OrderDto{
 
+        private Long orderId;
         private String merchantUid;
         private LocalDateTime paymentDate; // 결제 시간
         private boolean isPackage; // 묶음배송여부

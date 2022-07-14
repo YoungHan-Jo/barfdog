@@ -1525,6 +1525,28 @@ operation::query_subscribeOrder[snippets='curl-request,path-parameters,request-h
 
 operation::query_generalOrders[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
 
+[[resources-query-generalOrder]]
+=== 일반 주문 하나 조회
+
+`GET` 요청을 사용하여 일반 주문 하나를 조회할 수 있다.
+
+operation::query_generalOrder[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-cancelRequest-general]]
+=== 일반 주문 취소 요청
+
+`POST` 요청을 사용하여 일반 주문을 취소 요청할 수 있다.
+
+operation::cancelRequest_general[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-confirm-generalOrders]]
+=== 일반 주문 구매확정
+
+`POST` 요청을 사용하여 일반주문 주문을 구매확정 할 수 있다.
+
+operation::confirm_generalOrders[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
 
 
 [[resources-delivery-info]]
@@ -1546,3 +1568,4 @@ operation::query_deliveries_subscribe[snippets='curl-request,request-headers,req
 `GET` 요청을 사용하여 페이징으로 구독 배송 리스트를 조회할 수 있다.
 
 operation::query_deliveries_general[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+

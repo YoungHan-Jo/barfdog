@@ -1,6 +1,5 @@
 package com.bi.barfdog.service;
 
-import com.bi.barfdog.api.barfDto.HomePageDto;
 import com.bi.barfdog.api.barfDto.SendInviteSmsDto;
 import com.bi.barfdog.api.memberDto.*;
 import com.bi.barfdog.common.BarfUtils;
@@ -72,7 +71,7 @@ public class MemberService {
             if (optionalMember.isPresent()) {
 
                 Member findMember = optionalMember.get();
-                findMember.chargePoint(RewardPoint.RECOMMEND);
+                findMember.saveReward(RewardPoint.RECOMMEND);
 
                 member.setRecommendCode(recommendCode);
 

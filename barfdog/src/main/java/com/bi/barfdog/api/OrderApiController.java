@@ -233,11 +233,38 @@ public class OrderApiController {
 
         EntityModel<QueryGeneralOrderDto> entityModel = EntityModel.of(responseDto,
                 linkTo(OrderApiController.class).slash(id).slash("general").withSelfRel(),
+                linkTo(OrderApiController.class).slash(id).slash("general/cancelRequest").withRel("generalOrder_cancel_request"),
                 profileRootUrlBuilder.slash("index.html#resources-query-generalOrder").withRel("profile")
         );
 
-
         return ResponseEntity.ok(entityModel);
+    }
+
+    @PostMapping("/{id}/general/cancelRequest")
+    public ResponseEntity generalOrderCancelRequest(@PathVariable Long id) {
+        Optional<Order> optionalOrder = orderRepository.findById(id);
+        if(!optionalOrder.isPresent()) return notFound();
+
+        orderService.cancelRequest(id);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderApiController.class).slash(id).slash("subscribe/fail").slash(id).withSelfRel());
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-cancelRequest-general").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @PostMapping("/general/confirm")
+    public ResponseEntity confirmOrders(@CurrentUser Member member,
+                                        @RequestBody ConfirmOrderItemsDto requestDto) {
+
+        orderService.confirmOrders(member, requestDto);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderApiController.class).slash("general/confirm").withSelfRel());
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-confirm-generalOrders").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
     }
 
 

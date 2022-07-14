@@ -97,12 +97,12 @@ public class Member extends BaseTimeEntity {
         reward += RewardPoint.RECOMMEND;
     }
 
-    public void chargePoint(int chargedReward) {
-        this.reward += chargedReward;
+    public void saveReward(int reward) {
+        this.reward += reward;
     }
 
-    public void usePoint(int usedReward) {
-        this.reward -= usedReward;
+    public void useReward(int reward) {
+        this.reward -= reward;
     }
 
     public void changePassword(String temporaryPassword) {
@@ -154,7 +154,7 @@ public class Member extends BaseTimeEntity {
     }
 
     public void subscribeOrder(SubscribeOrderRequestDto requestDto) {
-        usePoint(requestDto.getDiscountReward());
+        useReward(requestDto.getDiscountReward());
     }
 
     public void subscribeOrderSuccess(Order order) {
@@ -169,7 +169,7 @@ public class Member extends BaseTimeEntity {
     }
 
     public void generalOrder(GeneralOrderRequestDto requestDto) {
-        usePoint(requestDto.getDiscountReward());
+        useReward(requestDto.getDiscountReward());
     }
 
     public void generalOrderSuccess(Order order) {

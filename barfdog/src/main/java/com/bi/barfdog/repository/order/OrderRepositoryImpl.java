@@ -223,6 +223,7 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
 
         QueryGeneralOrderDto.OrderDto orderDto = queryFactory
                 .select(Projections.constructor(QueryGeneralOrderDto.OrderDto.class,
+                        generalOrder.id,
                         generalOrder.merchantUid,
                         generalOrder.paymentDate,
                         generalOrder.isPackage,

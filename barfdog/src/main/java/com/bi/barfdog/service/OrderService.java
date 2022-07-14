@@ -529,4 +529,49 @@ public class OrderService {
 
         member.subscribeOrderFail(order);
     }
+
+    @Transactional
+    public void cancelRequest(Long id) {
+        GeneralOrder order = (GeneralOrder) orderRepository.findById(id).get();
+        order.cancelRequest();
+
+        List<OrderItem> orderItems = orderItemRepository.findAllByGeneralOrder(order);
+        for (OrderItem orderItem : orderItems) {
+            orderItem.cancelRequest();
+        }
+
+    }
+
+    @Transactional
+    public void confirmOrders(Member member, ConfirmOrderItemsDto requestDto) {
+        List<Long> orderItemIdList = requestDto.getOrderItemIdList();
+        if (orderItemIdList.size() > 0) {
+            Long orderItemId = orderItemIdList.get(0);
+            OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
+            GeneralOrder order = orderItem.getGeneralOrder();
+            order.generalConfirm();
+        }
+        for (Long orderItemId : orderItemIdList) {
+            OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
+            if(alreadyConfirm(orderItem)) continue;
+            orderItem.confirm();
+            member.saveReward(orderItem.getSaveReward());
+            saveReward(member, orderItem);
+        }
+    }
+
+    private boolean alreadyConfirm(OrderItem orderItem) {
+        return orderItem.getStatus() == OrderStatus.CONFIRM;
+    }
+
+    private void saveReward(Member member, OrderItem orderItem) {
+        Reward reward = Reward.builder()
+                .member(member)
+                .name(RewardName.CONFIRM_ORDER)
+                .rewardType(RewardType.ORDER)
+                .rewardStatus(RewardStatus.SAVED)
+                .tradeReward(orderItem.getSaveReward())
+                .build();
+        rewardRepository.save(reward);
+    }
 }

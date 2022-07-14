@@ -2119,6 +2119,7 @@ public class OrderApiControllerTest extends BaseTest {
 
 
     @Test
+    @DisplayName("일반 주문 하나 조회")
     public void queryGeneralOrder() throws Exception {
        //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
@@ -2132,9 +2133,10 @@ public class OrderApiControllerTest extends BaseTest {
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andDo(document("query_generalOrders",
+                .andDo(document("query_generalOrder",
                         links(
-                                linkWithRel("self").description("현재 페이지 링크"),
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("generalOrder_cancel_request").description("주문취소 요청 링크"),
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
                         ),
                         pathParameters(
@@ -2170,6 +2172,7 @@ public class OrderApiControllerTest extends BaseTest {
                                         "    EXCHANGE_REQUEST, EXCHANGE_DONE,\n" +
                                         "    CONFIRM]"),
                                 fieldWithPath("orderItemDtoList[0].saveReward").description("적립예정금액"),
+                                fieldWithPath("orderDto.orderId").description("주문 id"),
                                 fieldWithPath("orderDto.merchantUid").description("주문 번호 . 결제실패 시 null"),
                                 fieldWithPath("orderDto.paymentDate").description("결제 날짜 . 결제 실패 시 null"),
                                 fieldWithPath("orderDto.deliveryNumber").description("운송장 번호. 아직 존재하지 않으면 null"),
@@ -2188,10 +2191,186 @@ public class OrderApiControllerTest extends BaseTest {
                                 fieldWithPath("orderDto.request").description("배송요청사항"),
                                 fieldWithPath("orderDto.package").description("묶음 배송 여부 true/false"),
                                 fieldWithPath("savedRewardTotal").description("총 적립 예정 적립금"),
-                                fieldWithPath("_links.self.href").description("현재 페이지 링크"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.generalOrder_cancel_request.href").description("주문취소요청 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
+
+    }
+
+    @Test
+    @DisplayName("일반 주문 하나 조회 시 존재하지않음")
+    public void queryGeneralOrder_not_found() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        GeneralOrder generalOrder = generateGeneralOrder(member, 1, OrderStatus.DELIVERY_START);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/orders/999999/general")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+
+    }
+
+
+    @Test
+    @DisplayName("일반 주문 주문 취소 요청")
+    public void cancelRequestGeneralOrder() throws Exception {
+       //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        GeneralOrder order = generateGeneralOrder(member, 1, OrderStatus.PAYMENT_DONE);
+
+       //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/orders/{id}/general/cancelRequest", order.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("cancelRequest_general",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("일반 주문 id")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        GeneralOrder findOrder = (GeneralOrder) orderRepository.findById(order.getId()).get();
+        assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCEL_REQUEST);
+        List<OrderItem> orderItems = orderItemRepository.findAllByGeneralOrder(findOrder);
+        for (OrderItem orderItem : orderItems) {
+            assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.CANCEL_REQUEST);
+        }
+
+    }
+
+    @Test
+    @DisplayName("일반 주문 주문 취소 요청할 주문 없음")
+    public void cancelRequestGeneralOrder_not_found() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        GeneralOrder generalOrder = generateGeneralOrder(member, 1, OrderStatus.DELIVERY_START);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/orders/999999/general/cancelRequest")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+        ;
+
+    }
+
+
+    @Test
+    @DisplayName("구매확정하는 테스트")
+    public void confirmOrders() throws Exception {
+       //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int reward = member.getReward();
+        GeneralOrder order = generateGeneralOrder(member, 1, OrderStatus.PAYMENT_DONE);
+
+        List<Long> orderItemIdList = new ArrayList<>();
+        List<OrderItem> orderItemList = order.getOrderItemList();
+
+        int saveRewardTotal = 0;
+        int rewardCount = 0;
+        for (OrderItem orderItem : orderItemList) {
+            orderItemIdList.add(orderItem.getId());
+            if (orderItem.getStatus() != OrderStatus.CONFIRM) {
+                saveRewardTotal += orderItem.getSaveReward();
+                rewardCount++;
+            }
+        }
+
+        ConfirmOrderItemsDto requestDto = ConfirmOrderItemsDto.builder()
+                .orderItemIdList(orderItemIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/orders/general/confirm")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("confirm_generalOrders",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestFields(
+                                fieldWithPath("orderItemIdList").description("구매확정 처리 할 주문한 상품 id (orderItem id) 리스트")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+        ;
+
+        em.flush();
+        em.clear();
+
+        Member findMember = memberRepository.findById(member.getId()).get();
+        assertThat(findMember.getReward()).isEqualTo(reward + saveRewardTotal);
+
+        Order findOrder = orderRepository.findById(order.getId()).get();
+        assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.CONFIRM);
+        assertThat(findOrder.getOrderConfirmDate()).isNotNull();
+
+        List<Long> orderItemIds = requestDto.getOrderItemIdList();
+        for (Long orderItemId : orderItemIds) {
+            OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
+            assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.CONFIRM);
+            assertThat(orderItem.isSavedReward()).isEqualTo(true);
+        }
+
+        List<Reward> rewards = rewardRepository.findByMember(member);
+        assertThat(rewards.size()).isEqualTo(rewardCount);
+        if (rewards.size() > 0) {
+            Reward findReward = rewards.get(0);
+            assertThat(findReward.getMember().getId()).isEqualTo(findMember.getId());
+            assertThat(findReward.getName()).isEqualTo(RewardName.CONFIRM_ORDER);
+            assertThat(findReward.getRewardType()).isEqualTo(RewardType.ORDER);
+            assertThat(findReward.getRewardStatus()).isEqualTo(RewardStatus.SAVED);
+        }
+
 
     }
 
@@ -2593,7 +2772,6 @@ public class OrderApiControllerTest extends BaseTest {
                 itemImageRepository.save(itemImage);
             });
 
-
             OrderItem orderItem = generateOrderItem(member, generalOrder, j, item, orderstatus);
 
             IntStream.range(1,j+1).forEach(k -> {
@@ -2605,6 +2783,8 @@ public class OrderApiControllerTest extends BaseTest {
                         .build();
                 selectOptionRepository.save(selectOption);
             });
+
+            generalOrder.addOrderItemList(orderItem);
 
         });
 
@@ -2624,7 +2804,8 @@ public class OrderApiControllerTest extends BaseTest {
                 .memberCoupon(memberCoupon)
                 .finalPrice(item.getSalePrice() * j)
                 .status(orderStatus)
-
+                .isSavedReward(false)
+                .saveReward(500*j)
                 .build();
         return orderItemRepository.save(orderItem);
     }

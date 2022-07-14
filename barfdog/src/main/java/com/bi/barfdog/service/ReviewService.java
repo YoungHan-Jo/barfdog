@@ -183,7 +183,7 @@ public class ReviewService {
                             .tradeReward(rewardPoint)
                             .build();
                     rewardRepository.save(reward);
-                    review.getMember().chargePoint(rewardPoint);
+                    review.getMember().saveReward(rewardPoint);
                 }
             }
         }

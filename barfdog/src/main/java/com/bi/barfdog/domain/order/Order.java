@@ -81,4 +81,13 @@ public abstract class Order extends BaseTimeEntity {
     public void failSubscribe() {
         orderStatus = OrderStatus.FAILED;
     }
+
+    public void cancelRequest() {
+        orderStatus = OrderStatus.CANCEL_REQUEST;
+    }
+
+    public void generalConfirm() {
+        orderStatus = OrderStatus.CONFIRM;
+        orderConfirmDate = LocalDateTime.now();
+    }
 }

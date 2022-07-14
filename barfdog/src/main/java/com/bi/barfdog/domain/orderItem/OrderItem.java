@@ -63,4 +63,13 @@ public class OrderItem extends BaseTimeEntity {
         item.remainingUp(amount);
         memberCoupon.cancel();
     }
+
+    public void cancelRequest() {
+        status = OrderStatus.CANCEL_REQUEST;
+    }
+
+    public void confirm() {
+        status = OrderStatus.CONFIRM;
+        isSavedReward = true;
+    }
 }
