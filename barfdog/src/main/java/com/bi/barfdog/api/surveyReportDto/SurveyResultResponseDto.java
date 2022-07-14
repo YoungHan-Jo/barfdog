@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,7 +42,7 @@ public class SurveyResultResponseDto {
     private SubscribePlan plan;
     private String recipeName;
     private BigDecimal oneMealRecommendGram;
-    private LocalDate nextPaymentDate;
+    private LocalDateTime nextPaymentDate;
     private int nextPaymentPrice;
     private LocalDate nextDeliveryDate;
 }

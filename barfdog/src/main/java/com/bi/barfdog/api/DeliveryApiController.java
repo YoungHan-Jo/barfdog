@@ -1,7 +1,9 @@
 package com.bi.barfdog.api;
 
-import com.bi.barfdog.api.deliveryDto.QueryDeliveriesDto;
-import com.bi.barfdog.api.resource.DeliveriesDtoResource;
+import com.bi.barfdog.api.deliveryDto.QueryGeneralDeliveriesDto;
+import com.bi.barfdog.api.deliveryDto.QuerySubscribeDeliveriesDto;
+import com.bi.barfdog.api.resource.GeneralDeliveriesDtoResource;
+import com.bi.barfdog.api.resource.SubscribeDeliveriesDtoResource;
 import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.member.Member;
@@ -36,12 +38,25 @@ public class DeliveryApiController {
     @GetMapping("/subscribe")
     public ResponseEntity querySubscribeDeliveries(@CurrentUser Member member,
                                                    Pageable pageable,
-                                                   PagedResourcesAssembler<QueryDeliveriesDto> assembler) {
+                                                   PagedResourcesAssembler<QuerySubscribeDeliveriesDto> assembler) {
 
-        Page<QueryDeliveriesDto> page = deliveryRepository.findDeliveriesDto(member, pageable);
+        Page<QuerySubscribeDeliveriesDto> page = deliveryRepository.findSubscribeDeliveriesDto(member, pageable);
 
-        PagedModel<DeliveriesDtoResource> pagedModel = assembler.toModel(page, e -> new DeliveriesDtoResource(e));
+        PagedModel<SubscribeDeliveriesDtoResource> pagedModel = assembler.toModel(page, e -> new SubscribeDeliveriesDtoResource(e));
         pagedModel.add(profileRootUrlBuilder.slash("index.html#resources-query-deliveries-subscribe").withRel("profile"));
+
+        return ResponseEntity.ok(pagedModel);
+    }
+
+    @GetMapping("/general")
+    public ResponseEntity queryGeneralDeliveries(@CurrentUser Member member,
+                                                 Pageable pageable,
+                                                 PagedResourcesAssembler<QueryGeneralDeliveriesDto> assembler) {
+
+        Page<QueryGeneralDeliveriesDto> page = deliveryRepository.findGeneralDeliveriesDto(member, pageable);
+
+        PagedModel<GeneralDeliveriesDtoResource> pagedModel = assembler.toModel(page, e -> new GeneralDeliveriesDtoResource(e));
+        pagedModel.add(profileRootUrlBuilder.slash("index.html#resources-query-deliveries-general").withRel("profile"));
 
         return ResponseEntity.ok(pagedModel);
     }

@@ -2103,7 +2103,7 @@ public class IndexApiControllerTest extends BaseTest {
                 .dog(dog)
                 .subscribeCount(i)
                 .plan(SubscribePlan.FULL)
-                .nextPaymentDate(LocalDate.now().plusDays(6))
+                .nextPaymentDate(LocalDateTime.now().plusDays(6))
                 .nextDeliveryDate(LocalDate.now().plusDays(8))
                 .nextPaymentPrice(120000)
                 .status(SubscribeStatus.SUBSCRIBING)

@@ -451,6 +451,37 @@ public class RewardAdminControllerTest extends BaseTest {
     }
 
     @Test
+    @DisplayName("정상적으로 해당 이메일 적립금 내역 조회하는 테스트 - 검색 키워드 포함")
+    public void queryRewards_contains_keyword() throws Exception {
+        //given
+        String email = appProperties.getUserEmail();
+        Member member = memberRepository.findByEmail(email).get();
+
+        IntStream.range(1,13).forEach(i -> {
+            generateReward(member, i);
+        });
+
+        String from = LocalDate.of(2020, 05, 11).toString();
+        String to = LocalDate.now().toString();
+
+        //when & then
+        mockMvc.perform(get("/api/admin/rewards")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("page", "1")
+                        .param("size", "5")
+                        .param("email","user@")
+                        .param("name","")
+                        .param("from",from)
+                        .param("to",to))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("page.totalElements").value(12))
+        ;
+    }
+
+    @Test
     @DisplayName("정상적으로 이름으로 적립금 내역 조회 성공")
     public void queryRewards_byName() throws Exception {
         //given
@@ -478,6 +509,42 @@ public class RewardAdminControllerTest extends BaseTest {
                         .param("page", "1")
                         .param("email", "")
                         .param("name", "김회원")
+                        .param("from", from)
+                        .param("to", to))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("_embedded.queryAdminRewardsDtoList[0].memberName").value("김회원"))
+                .andExpect(jsonPath("page.totalElements").value(6));
+    }
+
+    @Test
+    @DisplayName("정상적으로 이름으로 적립금 내역 조회 성공 - 글자 포함")
+    public void queryRewards_byName_contains_keyword() throws Exception {
+        //given
+        String email = appProperties.getUserEmail();
+        Member member = memberRepository.findByEmail(email).get();
+
+        String adminEmail = appProperties.getAdminEmail();
+        Member admin = memberRepository.findByEmail(adminEmail).get();
+
+        IntStream.range(1,7).forEach(i -> {
+            generateReward(member, i);
+            generateReward(admin, i);
+        });
+
+
+        String from = LocalDate.of(2020, 05, 11).toString();
+        String to = LocalDate.now().toString();
+
+        //when & then
+        mockMvc.perform(get("/api/admin/rewards")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("size", "5")
+                        .param("page", "1")
+                        .param("email", "")
+                        .param("name", "김회")
                         .param("from", from)
                         .param("to", to))
                 .andDo(print())

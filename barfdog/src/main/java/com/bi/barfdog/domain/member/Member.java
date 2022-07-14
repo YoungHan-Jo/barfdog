@@ -6,6 +6,7 @@ import com.bi.barfdog.api.orderDto.SubscribeOrderRequestDto;
 import com.bi.barfdog.domain.Address;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.order.Order;
+import com.bi.barfdog.domain.order.SubscribeOrder;
 import com.bi.barfdog.domain.reward.RewardPoint;
 import lombok.*;
 
@@ -154,10 +155,13 @@ public class Member extends BaseTimeEntity {
 
     public void subscribeOrder(SubscribeOrderRequestDto requestDto) {
         usePoint(requestDto.getDiscountReward());
-        accumulatedAmount += requestDto.getPaymentPrice();
+    }
+
+    public void subscribeOrderSuccess(Order order) {
+        accumulatedAmount += order.getPaymentPrice();
         isSubscribe = true;
         accumulatedSubscribe++;
-        boolean brochure = requestDto.isBrochure();
+        boolean brochure = order.isBrochure();
         if (brochure) {
             isBrochure = true;
         }
@@ -178,6 +182,10 @@ public class Member extends BaseTimeEntity {
 
     public void generalOrderFail(int discountReward) {
         reward += discountReward;
+    }
+
+    public void subscribeOrderFail(SubscribeOrder order) {
+        reward += order.getDiscountReward();
     }
 }
 

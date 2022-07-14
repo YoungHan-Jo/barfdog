@@ -1,8 +1,11 @@
 package com.bi.barfdog.repository.order;
 
+import com.bi.barfdog.api.InfoController;
 import com.bi.barfdog.api.orderDto.*;
+import com.bi.barfdog.domain.item.QItemImage;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.order.OrderStatus;
+import com.bi.barfdog.domain.orderItem.OrderItem;
 import com.bi.barfdog.domain.subscribe.QSubscribe;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -24,6 +27,7 @@ import static com.bi.barfdog.domain.coupon.QCoupon.*;
 import static com.bi.barfdog.domain.delivery.QDelivery.*;
 import static com.bi.barfdog.domain.dog.QDog.*;
 import static com.bi.barfdog.domain.item.QItem.*;
+import static com.bi.barfdog.domain.item.QItemImage.*;
 import static com.bi.barfdog.domain.member.QMember.*;
 import static com.bi.barfdog.domain.memberCoupon.QMemberCoupon.*;
 import static com.bi.barfdog.domain.order.QGeneralOrder.generalOrder;
@@ -36,6 +40,7 @@ import static com.bi.barfdog.domain.subscribe.QBeforeSubscribe.*;
 import static com.bi.barfdog.domain.subscribe.QSubscribe.*;
 import static com.bi.barfdog.domain.subscribeRecipe.QSubscribeRecipe.*;
 import static com.bi.barfdog.domain.surveyReport.QSurveyReport.*;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
 @RequiredArgsConstructor
 @Repository
@@ -127,6 +132,178 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                 .build();
 
         return result;
+    }
+
+    @Override
+    public Page<QueryGeneralOrdersDto> findGeneralOrdersDto(Member member, Pageable pageable) {
+
+        List<QueryGeneralOrdersDto.OrderDto> orderDtoList = queryFactory
+                .select(Projections.constructor(QueryGeneralOrdersDto.OrderDto.class,
+                        generalOrder.id,
+                        generalOrder.merchantUid,
+                        generalOrder.paymentPrice,
+                        generalOrder.orderStatus
+                ))
+                .from(generalOrder)
+                .where(generalOrder.member.eq(member))
+                .orderBy(generalOrder.createdDate.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        List<QueryGeneralOrdersDto> result = new ArrayList<>();
+
+        for (QueryGeneralOrdersDto.OrderDto orderDto : orderDtoList) {
+            String thumbnailUrl = getThumbnailUrl(orderDto);
+
+            List<String> itemNameList = queryFactory
+                    .select(item.name)
+                    .from(orderItem)
+                    .join(orderItem.item, item)
+                    .join(orderItem.generalOrder, generalOrder)
+                    .where(generalOrder.id.eq(orderDto.getId()))
+                    .fetch();
+
+            QueryGeneralOrdersDto queryGeneralOrdersDto = QueryGeneralOrdersDto.builder()
+                    .thumbnailUrl(thumbnailUrl)
+                    .orderDto(orderDto)
+                    .itemNameList(itemNameList)
+                    .build();
+
+            result.add(queryGeneralOrdersDto);
+        }
+
+        Long totalCount = queryFactory
+                .select(generalOrder.count())
+                .from(generalOrder)
+                .where(generalOrder.member.eq(member))
+                .fetchOne();
+
+
+        return new PageImpl<>(result, pageable, totalCount);
+    }
+
+    @Override
+    public QueryGeneralOrderDto findGeneralOrderDto(Long id) {
+
+        int savedRewardTotal = 0;
+
+        List<OrderItem> orderItems = queryFactory
+                .select(orderItem)
+                .from(orderItem)
+                .where(orderItem.generalOrder.id.eq(id))
+                .fetch();
+
+        List<QueryGeneralOrderDto.OrderItemDto> orderItemDtoList = new ArrayList<>();
+
+        for (OrderItem orderItemSample : orderItems) {
+
+            List<QueryGeneralOrderDto.SelectOptionDto> selectOptionDtoList = getSelectOptionDtoList(orderItemSample);
+
+            String itemName = getItemName(orderItemSample);
+
+            String thumbnailUrl = getThumbnailUrl(orderItemSample);
+
+            savedRewardTotal += orderItemSample.getSaveReward();
+
+            QueryGeneralOrderDto.OrderItemDto orderItemDto = QueryGeneralOrderDto.OrderItemDto.builder()
+                    .orderItemId(orderItemSample.getId())
+                    .thumbnailUrl(thumbnailUrl)
+                    .selectOptionDtoList(selectOptionDtoList)
+                    .itemName(itemName)
+                    .amount(orderItemSample.getAmount())
+                    .finalPrice(orderItemSample.getFinalPrice())
+                    .discountAmount(orderItemSample.getDiscountAmount())
+                    .status(orderItemSample.getStatus())
+                    .saveReward(orderItemSample.getSaveReward())
+                    .build();
+            orderItemDtoList.add(orderItemDto);
+        }
+
+
+        QueryGeneralOrderDto.OrderDto orderDto = queryFactory
+                .select(Projections.constructor(QueryGeneralOrderDto.OrderDto.class,
+                        generalOrder.merchantUid,
+                        generalOrder.paymentDate,
+                        generalOrder.isPackage,
+                        delivery.deliveryNumber,
+                        generalOrder.orderPrice,
+                        generalOrder.deliveryPrice,
+                        generalOrder.discountTotal,
+                        generalOrder.discountReward,
+                        generalOrder.discountCoupon,
+                        generalOrder.paymentPrice,
+                        generalOrder.paymentMethod,
+                        delivery.recipient.name,
+                        delivery.recipient.phone,
+                        delivery.recipient.zipcode,
+                        delivery.recipient.street,
+                        delivery.recipient.detailAddress,
+                        delivery.request
+                ))
+                .from(generalOrder)
+                .join(generalOrder.delivery, delivery)
+                .where(generalOrder.id.eq(id))
+                .fetchOne();
+
+        QueryGeneralOrderDto result = QueryGeneralOrderDto.builder()
+                .orderItemDtoList(orderItemDtoList)
+                .orderDto(orderDto)
+                .savedRewardTotal(savedRewardTotal)
+                .build();
+
+        return result;
+    }
+
+    private String getThumbnailUrl(OrderItem orderItemDto) {
+        List<String> filenameList = queryFactory
+                .select(itemImage.filename)
+                .from(orderItem)
+                .join(orderItem.item, item)
+                .join(itemImage).on(itemImage.item.eq(item))
+                .where(orderItem.eq(orderItemDto))
+                .fetch();
+        String filename = filenameList.get(0);
+        String thumbnailUrl = linkTo(InfoController.class).slash("display/items?filename=" + filename).toString();
+        return thumbnailUrl;
+    }
+
+    private String getItemName(OrderItem orderItemDto) {
+        String itemName = queryFactory
+                .select(item.name)
+                .from(orderItem)
+                .join(orderItem.item, item)
+                .where(orderItem.eq(orderItemDto))
+                .fetchOne();
+        return itemName;
+    }
+
+    private List<QueryGeneralOrderDto.SelectOptionDto> getSelectOptionDtoList(OrderItem orderItem) {
+        List<QueryGeneralOrderDto.SelectOptionDto> selectOptionDtoList = queryFactory
+                .select(Projections.constructor(QueryGeneralOrderDto.SelectOptionDto.class,
+                        selectOption.name,
+                        selectOption.amount
+                ))
+                .from(selectOption)
+                .where(selectOption.orderItem.eq(orderItem))
+                .fetch();
+        return selectOptionDtoList;
+    }
+
+    private String getThumbnailUrl(QueryGeneralOrdersDto.OrderDto orderDto) {
+        List<String> filenameList = queryFactory
+                .select(itemImage.filename)
+                .from(orderItem)
+                .join(orderItem.item, item)
+                .join(itemImage).on(itemImage.item.eq(item))
+                .join(orderItem.generalOrder, generalOrder)
+                .where(generalOrder.id.eq(orderDto.getId()))
+                .fetch();
+
+        String filename = filenameList.get(0);
+
+        String thumbnailUrl = linkTo(InfoController.class).slash("display/items?filename=" + filename).toString();
+        return thumbnailUrl;
     }
 
     private QuerySubscribeOrderDto.OrderDto getOrderDto(Long id) {

@@ -44,10 +44,14 @@ public class SubscribeRepositoryImpl implements SubscribeRepositoryCustom{
                         subscribe.id,
                         dog.name,
                         subscribe.createdDate,
+                        subscribe.subscribeCount,
                         subscribe.plan,
                         surveyReport.foodAnalysis.oneMealRecommendGram,
                         subscribe.nextPaymentPrice,
-                        subscribe.nextDeliveryDate
+                        subscribe.nextDeliveryDate,
+                        dog.inedibleFood,
+                        dog.inedibleFoodEtc,
+                        dog.caution
                 ))
                 .from(subscribe)
                 .join(subscribe.dog, dog)

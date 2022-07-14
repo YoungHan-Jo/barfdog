@@ -133,7 +133,7 @@ public class DeliveryApiControllerTest extends BaseTest {
 
     @Test
     @DisplayName("정상적으로 구독 배송 리스트 조회")
-    public void queryDeliveries() throws Exception {
+    public void querySubscribeDeliveries() throws Exception {
        //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
         Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
@@ -180,16 +180,96 @@ public class DeliveryApiControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
                         ),
                         responseFields(
-                                fieldWithPath("_embedded.queryDeliveriesDtoList[0].recipeName").description("레시피 이름"),
-                                fieldWithPath("_embedded.queryDeliveriesDtoList[0].deliveryDto.orderId").description("주문 id"),
-                                fieldWithPath("_embedded.queryDeliveriesDtoList[0].deliveryDto.orderInfoUrl").description("주문 정보 조회 url"),
-                                fieldWithPath("_embedded.queryDeliveriesDtoList[0].deliveryDto.orderDate").description("주문 날짜"),
-                                fieldWithPath("_embedded.queryDeliveriesDtoList[0].deliveryDto.subscribeCount").description("구독 회차"),
-                                fieldWithPath("_embedded.queryDeliveriesDtoList[0].deliveryDto.dogName").description("강아지 이름"),
-                                fieldWithPath("_embedded.queryDeliveriesDtoList[0].deliveryDto.produceDate").description("생산 예정일"),
-                                fieldWithPath("_embedded.queryDeliveriesDtoList[0].deliveryDto.nextDeliveryDate").description("발송 예정일"),
-                                fieldWithPath("_embedded.queryDeliveriesDtoList[0].deliveryDto.deliveryStatus").description("배송 상태"),
-                                fieldWithPath("_embedded.queryDeliveriesDtoList[0].deliveryDto.deliveryNumber").description("운송장 번호, 아직없으면 null"),
+                                fieldWithPath("_embedded.querySubscribeDeliveriesDtoList[0].recipeName").description("레시피 이름"),
+                                fieldWithPath("_embedded.querySubscribeDeliveriesDtoList[0].deliveryDto.orderId").description("주문 id"),
+                                fieldWithPath("_embedded.querySubscribeDeliveriesDtoList[0].deliveryDto.orderInfoUrl").description("주문 정보 조회 url"),
+                                fieldWithPath("_embedded.querySubscribeDeliveriesDtoList[0].deliveryDto.orderDate").description("주문 날짜"),
+                                fieldWithPath("_embedded.querySubscribeDeliveriesDtoList[0].deliveryDto.subscribeCount").description("구독 회차"),
+                                fieldWithPath("_embedded.querySubscribeDeliveriesDtoList[0].deliveryDto.dogName").description("강아지 이름"),
+                                fieldWithPath("_embedded.querySubscribeDeliveriesDtoList[0].deliveryDto.produceDate").description("생산 예정일"),
+                                fieldWithPath("_embedded.querySubscribeDeliveriesDtoList[0].deliveryDto.nextDeliveryDate").description("발송 예정일"),
+                                fieldWithPath("_embedded.querySubscribeDeliveriesDtoList[0].deliveryDto.deliveryStatus").description("배송 상태"),
+                                fieldWithPath("_embedded.querySubscribeDeliveriesDtoList[0].deliveryDto.deliveryNumber").description("운송장 번호, 아직없으면 null"),
+                                fieldWithPath("page.size").description("한 페이지 당 개수"),
+                                fieldWithPath("page.totalElements").description("검색 총 결과 수"),
+                                fieldWithPath("page.totalPages").description("총 페이지 수"),
+                                fieldWithPath("page.number").description("페이지 번호 [0페이지 부터 시작]"),
+                                fieldWithPath("_links.first.href").description("첫 페이지 링크"),
+                                fieldWithPath("_links.prev.href").description("이전 페이지 링크"),
+                                fieldWithPath("_links.self.href").description("현재 페이지 링크"),
+                                fieldWithPath("_links.next.href").description("다음 페이지 링크"),
+                                fieldWithPath("_links.last.href").description("마지막 페이지 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+    }
+
+    @Test
+    @DisplayName("정상적으로 일반 배송 리스트 조회")
+    public void queryGeneralDeliveries() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        IntStream.range(1,11).forEach(i -> {
+            generateGeneralOrder(member, i, OrderStatus.DELIVERY_START);
+            generateGeneralOrder(admin, i, OrderStatus.DELIVERY_START);
+        });
+        IntStream.range(11,15).forEach(i -> {
+            generateGeneralOrder(member, i, OrderStatus.DELIVERY_READY);
+            generateGeneralOrder(admin, i, OrderStatus.DELIVERY_READY);
+        });
+        IntStream.range(1,4).forEach(i -> {
+            generateGeneralOrder(member, i, OrderStatus.BEFORE_PAYMENT);
+            generateGeneralOrder(member, i, OrderStatus.HOLD);
+            generateGeneralOrder(member, i, OrderStatus.FAILED);
+            generateGeneralOrder(member, i, OrderStatus.SELLING_CANCEL);
+            generateGeneralOrder(member, i, OrderStatus.CANCEL_DONE);
+            generateGeneralOrder(member, i, OrderStatus.RETURN_DONE);
+            generateGeneralOrder(member, i, OrderStatus.EXCHANGE_DONE);
+            generateGeneralOrder(member, i, OrderStatus.CONFIRM);
+        });
+
+        //when & then
+        mockMvc.perform(get("/api/deliveries/general")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("page","1")
+                        .param("size","5"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("page.totalElements").value(14))
+                .andExpect(jsonPath("page.totalPages").value(3))
+                .andDo(document("query_deliveries_general",
+                        links(
+                                linkWithRel("first").description("첫 페이지 링크"),
+                                linkWithRel("prev").description("이전 페이지 링크"),
+                                linkWithRel("self").description("현재 페이지 링크"),
+                                linkWithRel("next").description("다음 페이지 링크"),
+                                linkWithRel("last").description("마지막 페이지 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestParameters(
+                                parameterWithName("page").description("페이지 번호 [0번부터 시작 - 0번이 첫 페이지]"),
+                                parameterWithName("size").description("한 페이지 당 조회 개수")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_embedded.queryGeneralDeliveriesDtoList[0].orderDeliveryDto.orderId").description("주문 id"),
+                                fieldWithPath("_embedded.queryGeneralDeliveriesDtoList[0].orderDeliveryDto.orderInfoUrl").description("주문 정보 조회 url"),
+                                fieldWithPath("_embedded.queryGeneralDeliveriesDtoList[0].orderDeliveryDto.orderDate").description("주문 날짜"),
+                                fieldWithPath("_embedded.queryGeneralDeliveriesDtoList[0].orderDeliveryDto.deliveryStatus").description("배송 상태"),
+                                fieldWithPath("_embedded.queryGeneralDeliveriesDtoList[0].orderDeliveryDto.deliveryNumber").description("운송장 번호, 아직없으면 null"),
+                                fieldWithPath("_embedded.queryGeneralDeliveriesDtoList[0].itemNameList").description("구매한 상품 이름 배열"),
                                 fieldWithPath("page.size").description("한 페이지 당 개수"),
                                 fieldWithPath("page.totalElements").description("검색 총 결과 수"),
                                 fieldWithPath("page.totalPages").description("총 페이지 수"),
@@ -443,7 +523,7 @@ public class DeliveryApiControllerTest extends BaseTest {
         Subscribe subscribe = Subscribe.builder()
                 .subscribeCount(i+1)
                 .plan(SubscribePlan.FULL)
-                .nextPaymentDate(LocalDate.now().plusDays(6))
+                .nextPaymentDate(LocalDateTime.now().plusDays(6))
                 .nextDeliveryDate(LocalDate.now().plusDays(8))
                 .nextPaymentPrice(120000)
                 .status(SubscribeStatus.SUBSCRIBING)
@@ -535,7 +615,6 @@ public class DeliveryApiControllerTest extends BaseTest {
 
 
     private GeneralOrder generateGeneralOrder(Member member, int i, OrderStatus orderstatus) {
-
 
         Delivery delivery = generateDelivery(member, i);
         GeneralOrder generalOrder = GeneralOrder.builder()
@@ -634,7 +713,7 @@ public class DeliveryApiControllerTest extends BaseTest {
                 .dog(dog)
                 .subscribeCount(i)
                 .plan(SubscribePlan.FULL)
-                .nextPaymentDate(LocalDate.now().plusDays(6))
+                .nextPaymentDate(LocalDateTime.now().plusDays(6))
                 .nextDeliveryDate(LocalDate.now().plusDays(8))
                 .nextPaymentPrice(120000)
                 .status(SubscribeStatus.SUBSCRIBING)

@@ -1,13 +1,11 @@
 package com.bi.barfdog.domain.subscribe;
 
-import com.bi.barfdog.api.orderDto.SubscribeOrderRequestDto;
 import com.bi.barfdog.api.subscribeDto.UpdateSubscribeDto;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.dog.Dog;
 import com.bi.barfdog.domain.member.Card;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.domain.order.Order;
-import com.bi.barfdog.domain.order.SubscribeOrder;
 import com.bi.barfdog.domain.subscribeRecipe.SubscribeRecipe;
 import lombok.*;
 
@@ -54,7 +52,7 @@ public class Subscribe extends BaseTimeEntity {
 
     private int discount;
 
-    private LocalDate nextPaymentDate;
+    private LocalDateTime nextPaymentDate;
     private int nextPaymentPrice;
     private LocalDate nextDeliveryDate;
 
@@ -95,22 +93,42 @@ public class Subscribe extends BaseTimeEntity {
         this.beforeSubscribe = beforeSubscribe;
     }
 
-    public void order(SubscribeOrderRequestDto requestDto,Card card) {
-        this.subscribeCount++;
-        this.status = SubscribeStatus.SUBSCRIBING;
-        LocalDate nextDeliveryDate = requestDto.getNextDeliveryDate();
-        nextPaymentPrice = requestDto.getOrderPrice();
-        this.nextDeliveryDate = nextDeliveryDate;
-        this.card = card;
 
-        setNextPaymentDate(nextDeliveryDate);
-    }
-
-    private void setNextPaymentDate(LocalDate nextDeliveryDate) {
+    private void setNextPaymentDate(LocalDateTime paymentDateNow) {
         if (plan == SubscribePlan.FULL) {
-            nextPaymentDate = nextDeliveryDate.plusDays(14 - 7);
+            nextPaymentDate = paymentDateNow.plusDays(14);
         } else if (plan == SubscribePlan.HALF || plan == SubscribePlan.TOPPING) {
-            nextPaymentDate = nextDeliveryDate.plusDays(28 - 7);
+            nextPaymentDate = paymentDateNow.plusDays(28);
         }
     }
+
+    public void successPayment(Card card, Order order) {
+        this.subscribeCount++;
+        this.status = SubscribeStatus.SUBSCRIBING;
+        this.card = card;
+        this.nextDeliveryDate = calculateNextDeliveryDate();
+        this.nextPaymentPrice = order.getOrderPrice();
+        setNextPaymentDate(order.getPaymentDate());
+    }
+
+    private LocalDate calculateNextDeliveryDate() {
+        LocalDate today = LocalDate.now();
+        DayOfWeek dayOfWeek = today.getDayOfWeek();
+        int dayOfWeekNumber = dayOfWeek.getValue();
+        int i = dayOfWeekNumber - 3;
+        LocalDate nextDeliveryDate = null;
+        if (dayOfWeekNumber <= 5) {
+            nextDeliveryDate = today.minusDays(i+7);
+        } else {
+            nextDeliveryDate = today.minusDays(i+14);
+        }
+        return nextDeliveryDate;
+    }
+
+    public void failPayment() {
+        status = SubscribeStatus.BEFORE_PAYMENT;
+        nextDeliveryDate = null;
+        nextPaymentDate = null;
+    }
+
 }

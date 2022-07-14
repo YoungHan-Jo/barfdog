@@ -16,7 +16,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class QueryDeliveriesDto {
+public class QuerySubscribeDeliveriesDto {
 
     private String recipeName;
     private DeliveryDto deliveryDto;

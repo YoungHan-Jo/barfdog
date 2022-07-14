@@ -44,13 +44,13 @@ public class RewardRepositoryImpl implements RewardRepositoryCustom{
                 .from(reward)
                 .join(reward.member, member)
                 .where(
-                        nameEq(cond.getName()),
-                        emailEq(cond.getEmail()),
+                        nameContains(cond.getName()),
+                        emailContains(cond.getEmail()),
                         createdDateBetween(cond)
                 )
+                .orderBy(reward.createdDate.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
-                .orderBy(reward.createdDate.desc())
                 .fetch();
 
         Long totalCount = queryFactory
@@ -58,8 +58,8 @@ public class RewardRepositoryImpl implements RewardRepositoryCustom{
                 .from(reward)
                 .join(reward.member, member)
                 .where(
-                        nameEq(cond.getName()),
-                        emailEq(cond.getEmail()),
+                        nameContains(cond.getName()),
+                        emailContains(cond.getEmail()),
                         createdDateBetween(cond)
                 )
                 .fetchOne();
@@ -154,11 +154,11 @@ public class RewardRepositoryImpl implements RewardRepositoryCustom{
         return member.createdDate.between(from, to);
     }
 
-    private BooleanExpression nameEq(String name) {
-        return hasText(name) ? member.name.eq(name) : null;
+    private BooleanExpression nameContains(String name) {
+        return hasText(name) ? member.name.contains(name) : null;
     }
 
-    private BooleanExpression emailEq(String email) {
-        return hasText(email) ? member.email.eq(email) : null;
+    private BooleanExpression emailContains(String email) {
+        return hasText(email) ? member.email.contains(email) : null;
     }
 }

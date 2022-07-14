@@ -1,6 +1,7 @@
 package com.bi.barfdog.domain.order;
 
 import com.bi.barfdog.api.orderDto.SuccessGeneralRequestDto;
+import com.bi.barfdog.api.orderDto.SuccessSubscribeRequestDto;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.delivery.Delivery;
 import com.bi.barfdog.domain.member.Member;
@@ -27,7 +28,7 @@ public abstract class Order extends BaseTimeEntity {
 
     private String impUid; // 아임포트 결제번호
 
-    private String merchantUid; // 주문번호 yymmdd + 당일주문 순서(001~999)
+    private String merchantUid;
 
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
@@ -43,12 +44,9 @@ public abstract class Order extends BaseTimeEntity {
     private int discountCoupon;
 
     private int paymentPrice;
-
-//    private int saveReward;
-//    private boolean isSavedReward;
-
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod; // [CREDIT_CARD, NAVER_PAY, KAKAO_PAY]
+    private LocalDateTime paymentDate; // 결제 시간
 
     private LocalDateTime orderConfirmDate;
 
@@ -66,9 +64,21 @@ public abstract class Order extends BaseTimeEntity {
         this.impUid = requestDto.getImpUid();
         this.merchantUid = requestDto.getMerchantUid();
         this.orderStatus = OrderStatus.PAYMENT_DONE;
+        this.paymentDate = LocalDateTime.now();
     }
 
     public void failGeneral() {
+        orderStatus = OrderStatus.FAILED;
+    }
+
+    public void successSubscribe(SuccessSubscribeRequestDto requestDto) {
+        impUid = requestDto.getImpUid();
+        merchantUid = requestDto.getMerchantUid();
+        orderStatus = OrderStatus.PAYMENT_DONE;
+        paymentDate = LocalDateTime.now();
+    }
+
+    public void failSubscribe() {
         orderStatus = OrderStatus.FAILED;
     }
 }

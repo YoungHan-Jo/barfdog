@@ -15,4 +15,8 @@ public interface OrderRepositoryCustom {
     Page<QuerySubscribeOrdersDto> findSubscribeOrdersDto(Member member, Pageable pageable);
 
     QuerySubscribeOrderDto findSubscribeOrderDto(Long id);
+
+    Page<QueryGeneralOrdersDto> findGeneralOrdersDto(Member member, Pageable pageable);
+
+    QueryGeneralOrderDto findGeneralOrderDto(Long id);
 }

@@ -239,12 +239,9 @@ public class OrderService {
 
         Delivery delivery = saveDelivery(requestDto);
 
-        Card card = saveCard(member, requestDto);
-
         Subscribe subscribe = subscribeRepository.findById(subscribeId).get();
-        subscribe.order(requestDto,card);
         member.subscribeOrder(requestDto);
-        saveReward(member, requestDto);
+//        saveReward(member, requestDto);
 
         Long memberCouponId = requestDto.getMemberCouponId();
         MemberCoupon memberCoupon = null;
@@ -257,16 +254,7 @@ public class OrderService {
         return subscribeOrder;
     }
 
-    private Card saveCard(Member member, SubscribeOrderRequestDto requestDto) {
-        Card card = Card.builder()
-                .member(member)
-                .customerUid(requestDto.getCustomerUid())
-                .cardName(requestDto.getCardName())
-                .cardNumber(requestDto.getCardNumber())
-                .build();
-        cardRepository.save(card);
-        return card;
-    }
+
 
     private void useCoupon(MemberCoupon memberCoupon) {
         if (memberCoupon != null) {
@@ -276,9 +264,7 @@ public class OrderService {
 
     private SubscribeOrder saveSubscribeOrder(Member member, SubscribeOrderRequestDto requestDto, Delivery delivery, Subscribe subscribe, MemberCoupon memberCoupon) {
         SubscribeOrder subscribeOrder = SubscribeOrder.builder()
-                .impUid(requestDto.getImpUid())
-                .merchantUid(requestDto.getMerchantUid())
-                .orderStatus(OrderStatus.PAYMENT_DONE)
+                .orderStatus(OrderStatus.BEFORE_PAYMENT)
                 .member(member)
                 .orderPrice(requestDto.getOrderPrice())
                 .deliveryPrice(requestDto.getDeliveryPrice())
@@ -292,7 +278,7 @@ public class OrderService {
                 .delivery(delivery)
                 .subscribe(subscribe)
                 .memberCoupon(memberCoupon != null ? memberCoupon : null)
-                .subscribeCount(subscribe.getSubscribeCount())
+                .subscribeCount(subscribe.getSubscribeCount() + 1)
                 .build();
         return orderRepository.save(subscribeOrder);
     }
@@ -319,7 +305,7 @@ public class OrderService {
 
         Delivery delivery = Delivery.builder()
                 .recipient(recipient)
-                .status(DeliveryStatus.PAYMENT_DONE)
+                .status(DeliveryStatus.BEFORE_PAYMENT)
                 .request(requestDto.getDeliveryDto().getRequest())
                 .nextDeliveryDate(requestDto.getNextDeliveryDate())
                 .build();
@@ -490,5 +476,57 @@ public class OrderService {
         member.generalOrderFail(order.getDiscountReward());
 
 
+    }
+
+    @Transactional
+    public void successSubscribeOrder(Long id, Member member, SuccessSubscribeRequestDto requestDto) {
+
+        Card card = saveCard(member, requestDto);
+
+        SubscribeOrder order = (SubscribeOrder) orderRepository.findById(id).get();
+        order.successSubscribe(requestDto);
+
+        Subscribe subscribe = order.getSubscribe();
+        subscribe.successPayment(card, order);
+
+        member.subscribeOrderSuccess(order);
+
+        saveReward(member, order);
+
+    }
+
+    private void saveReward(Member member, SubscribeOrder order) {
+        Reward reward = Reward.builder()
+                .member(member)
+                .name(RewardName.USE_ORDER)
+                .rewardType(RewardType.ORDER)
+                .rewardStatus(RewardStatus.USED)
+                .tradeReward(order.getDiscountReward())
+                .build();
+        rewardRepository.save(reward);
+    }
+
+    private Card saveCard(Member member, SuccessSubscribeRequestDto requestDto) {
+        Card card = Card.builder()
+                .member(member)
+                .customerUid(requestDto.getCustomerUid())
+                .cardName(requestDto.getCardName())
+                .cardNumber(requestDto.getCardNumber())
+                .build();
+        cardRepository.save(card);
+        return card;
+    }
+
+    @Transactional
+    public void failSubscribeOrder(Long id, Member member) {
+        SubscribeOrder order = (SubscribeOrder) orderRepository.findById(id).get();
+        order.failSubscribe();
+        Subscribe subscribe = order.getSubscribe();
+        subscribe.failPayment();
+
+        MemberCoupon memberCoupon = order.getMemberCoupon();
+        memberCoupon.cancel();
+
+        member.subscribeOrderFail(order);
     }
 }

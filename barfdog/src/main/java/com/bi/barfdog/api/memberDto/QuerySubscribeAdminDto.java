@@ -22,6 +22,8 @@ public class QuerySubscribeAdminDto {
 
     private LocalDateTime subscribeStartDate;
 
+    private int subscribeCount;
+
     private SubscribePlan plan;
 
     private BigDecimal amount;
@@ -29,4 +31,8 @@ public class QuerySubscribeAdminDto {
     private int paymentPrice;
 
     private LocalDate deliveryDate;
+
+    private String inedibleFood;
+    private String inedibleFoodEtc; // 못먹는 음식 기타 일 때
+    private String caution; // 질병 및 주의사항
 }
