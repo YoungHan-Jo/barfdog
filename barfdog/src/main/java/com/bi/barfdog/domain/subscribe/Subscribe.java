@@ -56,6 +56,8 @@ public class Subscribe extends BaseTimeEntity {
     private int nextPaymentPrice;
     private LocalDate nextDeliveryDate;
 
+    private int skipCount;
+
     @Enumerated(EnumType.STRING)
     private SubscribeStatus status; // [BEFORE_PAYMENT, SUBSCRIBING, SUBSCRIBE_PENDING]
 
@@ -65,9 +67,6 @@ public class Subscribe extends BaseTimeEntity {
     @OneToOne(fetch = LAZY)
     @JoinColumn(name = "before_subscribe_id")
     private BeforeSubscribe beforeSubscribe;
-
-    @Builder.Default
-    private boolean isSkippable = true;
 
     /*
     * 연관관계 편의 메서드

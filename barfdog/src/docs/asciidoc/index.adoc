@@ -1577,12 +1577,18 @@ operation::query_deliveries_general[snippets='curl-request,request-headers,reque
 구독 관련 리소스.
 
 [[resources-query-subscribes]]
-=== 구독 리스트 검색(페이징)
+=== 구독 리스트 조회(페이징)
 
 `GET` 요청을 사용하여 페이징으로 구독 리스트를 조회할 수 있다.
 
 operation::query_subscribes[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
 
+[[resources-query-subscribe]]
+=== 구독 하나 조회
+
+`GET` 요청을 사용하여 구독 하나를 조회할 수 있다.
+
+operation::query_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 
 

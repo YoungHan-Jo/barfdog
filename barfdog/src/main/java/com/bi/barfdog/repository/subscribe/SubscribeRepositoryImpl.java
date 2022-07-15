@@ -3,10 +3,16 @@ package com.bi.barfdog.repository.subscribe;
 import com.bi.barfdog.api.memberDto.MemberSubscribeAdminDto;
 import com.bi.barfdog.api.memberDto.QuerySubscribeAdminDto;
 import com.bi.barfdog.api.orderDto.OrderSheetSubscribeResponseDto;
+import com.bi.barfdog.api.subscribeDto.QuerySubscribeDto;
 import com.bi.barfdog.api.subscribeDto.QuerySubscribesDto;
+import com.bi.barfdog.domain.coupon.CouponStatus;
+import com.bi.barfdog.domain.coupon.CouponTarget;
+import com.bi.barfdog.domain.coupon.QCoupon;
 import com.bi.barfdog.domain.dog.QDogPicture;
 import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.domain.memberCoupon.QMemberCoupon;
 import com.bi.barfdog.domain.recipe.QRecipe;
+import com.bi.barfdog.domain.recipe.RecipeStatus;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.domain.subscribeRecipe.QSubscribeRecipe;
 import com.bi.barfdog.repository.subscribeRecipe.SubscribeRecipeRepository;
@@ -18,12 +24,15 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.bi.barfdog.domain.coupon.QCoupon.*;
 import static com.bi.barfdog.domain.dog.QDog.dog;
 import static com.bi.barfdog.domain.dog.QDogPicture.*;
 import static com.bi.barfdog.domain.member.QMember.member;
+import static com.bi.barfdog.domain.memberCoupon.QMemberCoupon.*;
 import static com.bi.barfdog.domain.recipe.QRecipe.*;
 import static com.bi.barfdog.domain.subscribe.QSubscribe.subscribe;
 import static com.bi.barfdog.domain.subscribeRecipe.QSubscribeRecipe.*;
@@ -147,7 +156,7 @@ public class SubscribeRepositoryImpl implements SubscribeRepositoryCustom{
                 .select(Projections.constructor(QuerySubscribesDto.SubscribeDto.class,
                         subscribe.id,
                         dogPicture.filename,
-                        subscribe.isSkippable,
+                        subscribe.skipCount,
                         dog.name,
                         subscribe.plan,
                         subscribe.nextPaymentDate,
@@ -177,8 +186,108 @@ public class SubscribeRepositoryImpl implements SubscribeRepositoryCustom{
                 .where(dog.member.eq(member))
                 .fetchOne();
 
-
         return new PageImpl<>(result, pageable, totalCount);
+    }
+
+    @Override
+    public QuerySubscribeDto findSubscribeDto(Member user, Long id) {
+
+        QuerySubscribeDto.SubscribeDto subscribeDto = getSubscribeDto(id);
+        List<QuerySubscribeDto.SubscribeRecipeDto> subscribeRecipeDtoList = getSubscribeRecipeDtoList(id);
+        List<QuerySubscribeDto.MemberCouponDto> memberCouponDtoList = getMemberCouponDtos(user);
+        List<QuerySubscribeDto.RecipeDto> recipeDtoList = getRecipeDtoList();
+
+        QuerySubscribeDto responseEntity = QuerySubscribeDto.builder()
+                .subscribeDto(subscribeDto)
+                .subscribeRecipeDtoList(subscribeRecipeDtoList)
+                .memberCouponDtoList(memberCouponDtoList)
+                .recipeDtoList(recipeDtoList)
+                .build();
+
+        return responseEntity;
+    }
+
+    private QuerySubscribeDto.SubscribeDto getSubscribeDto(Long id) {
+        QuerySubscribeDto.SubscribeDto subscribeDto = queryFactory
+                .select(Projections.constructor(QuerySubscribeDto.SubscribeDto.class,
+                        subscribe.id,
+                        dog.name,
+                        subscribe.skipCount,
+                        subscribe.plan,
+                        surveyReport.foodAnalysis.oneMealRecommendGram,
+                        subscribe.nextPaymentDate,
+                        subscribe.nextPaymentPrice,
+                        subscribe.nextDeliveryDate,
+                        memberCoupon.id,
+                        coupon.name,
+                        subscribe.discount
+                ))
+                .from(subscribe)
+                .join(subscribe.dog, dog)
+                .join(dog.surveyReport, surveyReport)
+                .leftJoin(subscribe.memberCoupon, memberCoupon)
+                .leftJoin(memberCoupon.coupon, coupon)
+                .where(subscribe.id.eq(id))
+                .fetchOne();
+        return subscribeDto;
+    }
+
+    private List<QuerySubscribeDto.SubscribeRecipeDto> getSubscribeRecipeDtoList(Long id) {
+        List<QuerySubscribeDto.SubscribeRecipeDto> subscribeRecipeDtoList = queryFactory
+                .select(Projections.constructor(QuerySubscribeDto.SubscribeRecipeDto.class,
+                        recipe.id,
+                        recipe.name
+                ))
+                .from(subscribeRecipe)
+                .join(subscribeRecipe.subscribe, subscribe)
+                .join(subscribeRecipe.recipe, recipe)
+                .where(subscribe.id.eq(id))
+                .fetch();
+        return subscribeRecipeDtoList;
+    }
+
+    private List<QuerySubscribeDto.MemberCouponDto> getMemberCouponDtos(Member user) {
+        List<QuerySubscribeDto.MemberCouponDto> memberCouponDtoList = queryFactory
+                .select(Projections.constructor(QuerySubscribeDto.MemberCouponDto.class,
+                        memberCoupon.id,
+                        coupon.name,
+                        coupon.discountType,
+                        coupon.discountDegree,
+                        coupon.availableMaxDiscount,
+                        coupon.availableMinPrice,
+                        memberCoupon.remaining,
+                        memberCoupon.expiredDate
+                ))
+                .from(memberCoupon)
+                .join(memberCoupon.coupon, coupon)
+                .join(memberCoupon.member, member)
+                .where(member.eq(user)
+                        .and(memberCoupon.memberCouponStatus.eq(CouponStatus.ACTIVE)
+                                .and(coupon.couponTarget.in(CouponTarget.ALL, CouponTarget.SUBSCRIBE)
+                                        .and(memberCoupon.expiredDate.after(LocalDateTime.now())))))
+                .fetch();
+        return memberCouponDtoList;
+    }
+
+    private List<QuerySubscribeDto.RecipeDto> getRecipeDtoList() {
+        List<QuerySubscribeDto.RecipeDto> recipeDtoList = queryFactory
+                .select(Projections.constructor(QuerySubscribeDto.RecipeDto.class,
+                        recipe.id,
+                        recipe.name,
+                        recipe.description,
+                        recipe.pricePerGram,
+                        recipe.gramPerKcal,
+                        recipe.inStock,
+                        recipe.thumbnailImage.filename2
+                ))
+                .from(recipe)
+                .where(recipe.status.eq(RecipeStatus.ACTIVE))
+                .fetch();
+
+        for (QuerySubscribeDto.RecipeDto recipeDto : recipeDtoList) {
+            recipeDto.changeUrl(recipeDto.getImgUrl());
+        }
+        return recipeDtoList;
     }
 
     private String getRecipeNames(QuerySubscribesDto.SubscribeDto subscribeDto) {

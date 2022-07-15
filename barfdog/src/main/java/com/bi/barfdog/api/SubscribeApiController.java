@@ -1,6 +1,7 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.resource.SubscribesDtoResource;
+import com.bi.barfdog.api.subscribeDto.QuerySubscribeDto;
 import com.bi.barfdog.api.subscribeDto.QuerySubscribesDto;
 import com.bi.barfdog.api.subscribeDto.UpdateSubscribeDto;
 import com.bi.barfdog.auth.CurrentUser;
@@ -66,11 +67,23 @@ public class SubscribeApiController {
         PagedModel<SubscribesDtoResource> pagedModel = assembler.toModel(page, e -> new SubscribesDtoResource(e));
         pagedModel.add(profileRootUrlBuilder.slash("index.html#resources-query-subscribes").withRel("profile"));
 
-
-
-
-
         return ResponseEntity.ok(pagedModel);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity querySubscribe(@CurrentUser Member member,
+                                         @PathVariable Long id) {
+        Optional<Subscribe> optionalSubscribe = subscribeRepository.findById(id);
+        if (!optionalSubscribe.isPresent()) return notFound();
+
+        QuerySubscribeDto responseDto = subscribeRepository.findSubscribeDto(member, id);
+
+        EntityModel<QuerySubscribeDto> entityModel = EntityModel.of(responseDto,
+                linkTo(SubscribeApiController.class).slash(id).withSelfRel(),
+                profileRootUrlBuilder.slash("index.html#resources-query-subscribe").withRel("profile")
+        );
+
+        return ResponseEntity.ok(entityModel);
     }
 
 

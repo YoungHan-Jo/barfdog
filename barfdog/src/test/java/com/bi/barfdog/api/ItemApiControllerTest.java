@@ -11,12 +11,14 @@ import com.bi.barfdog.domain.review.ReviewImage;
 import com.bi.barfdog.domain.review.ReviewStatus;
 import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.ReviewImageRepository;
+import com.bi.barfdog.repository.coupon.CouponRepository;
 import com.bi.barfdog.repository.delivery.DeliveryRepository;
 import com.bi.barfdog.repository.dog.DogRepository;
 import com.bi.barfdog.repository.item.ItemImageRepository;
 import com.bi.barfdog.repository.item.ItemOptionRepository;
 import com.bi.barfdog.repository.item.ItemRepository;
 import com.bi.barfdog.repository.member.MemberRepository;
+import com.bi.barfdog.repository.memberCoupon.MemberCouponRepository;
 import com.bi.barfdog.repository.order.OrderRepository;
 import com.bi.barfdog.repository.orderItem.OrderItemRepository;
 import com.bi.barfdog.repository.review.ItemReviewRepository;
@@ -79,6 +81,10 @@ public class ItemApiControllerTest extends BaseTest {
     SurveyReportRepository surveyReportRepository;
     @Autowired
     DogRepository dogRepository;
+    @Autowired
+    MemberCouponRepository memberCouponRepository;
+    @Autowired
+    CouponRepository couponRepository;
 
     @Before
     public void setUp() {
@@ -91,6 +97,8 @@ public class ItemApiControllerTest extends BaseTest {
         deliveryRepository.deleteAll();
         surveyReportRepository.deleteAll();
         dogRepository.deleteAll();
+        memberCouponRepository.deleteAll();
+        couponRepository.deleteAll();
 
     }
 

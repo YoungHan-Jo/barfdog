@@ -355,7 +355,7 @@ public class SubscribeApiControllerTest extends BaseTest {
                                 fieldWithPath("_embedded.querySubscribesDtoList[0].subscribeDto.plan").description("플랜 [FULL,HALF,TOPPING]"),
                                 fieldWithPath("_embedded.querySubscribesDtoList[0].subscribeDto.nextPaymentDate").description("다음 결제일"),
                                 fieldWithPath("_embedded.querySubscribesDtoList[0].subscribeDto.nextPaymentPrice").description("다음 결제 금액"),
-                                fieldWithPath("_embedded.querySubscribesDtoList[0].subscribeDto.skippable").description("건너뛰기 가능 여부 true/false"),
+                                fieldWithPath("_embedded.querySubscribesDtoList[0].subscribeDto.skipCount").description("건너뛰기 회수"),
                                 fieldWithPath("_embedded.querySubscribesDtoList[0].recipeNames").description("레시피 이름 xxx,xxx  ,으로 구분"),
                                 fieldWithPath("_embedded.querySubscribesDtoList[0]._links.query_subscribe.href").description("구독 상세보기 링크"),
                                 fieldWithPath("_embedded.querySubscribesDtoList[0]._links.skip_subscribe.href").description("구독 건너뛰기 링크"),
@@ -371,6 +371,90 @@ public class SubscribeApiControllerTest extends BaseTest {
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
+    }
+    
+    @Test
+    @DisplayName("구독 하나 조회")
+    public void querySubscribe() throws Exception {
+       //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtc(member, 1, OrderStatus.PAYMENT_DONE);
+        Subscribe subscribe = subscribeOrder.getSubscribe();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/subscribes/{id}", subscribe.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("query_subscribe",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("구독 id")
+
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("subscribeDto.id").description("구독 id"),
+                                fieldWithPath("subscribeDto.dogName").description("강아지 이름"),
+                                fieldWithPath("subscribeDto.subscribeCount").description("구독 회차"),
+                                fieldWithPath("subscribeDto.plan").description("구독 플랜 [FULL,HALF,TOPPING]"),
+                                fieldWithPath("subscribeDto.oneMealRecommendGram").description("한끼 급여량"),
+                                fieldWithPath("subscribeDto.nextPaymentDate").description("다음 결제일"),
+                                fieldWithPath("subscribeDto.nextPaymentPrice").description("다음 회차 결제 금액(쿠폰 할인 전) -> 실제로는 nextPaymentPrice-discount 금액이 결제 됨"),
+                                fieldWithPath("subscribeDto.nextDeliveryDate").description("다음 배송일"),
+                                fieldWithPath("subscribeDto.usingMemberCouponId").description("사용한 보유쿠폰 id"),
+                                fieldWithPath("subscribeDto.couponName").description("적용된 쿠폰 이름"),
+                                fieldWithPath("subscribeDto.discount").description("쿠폰 할인량. nextPaymentPrice-discount 금액이 실제로 결제 됨"),
+                                fieldWithPath("subscribeRecipeDtoList[0].recipeId").description("구독한 레시피 id"),
+                                fieldWithPath("subscribeRecipeDtoList[0].recipeName").description("구독한 레시피 이름"),
+                                fieldWithPath("memberCouponDtoList[0].memberCouponId").description("보유 쿠폰 id"),
+                                fieldWithPath("memberCouponDtoList[0].name").description("쿠폰 이름"),
+                                fieldWithPath("memberCouponDtoList[0].discountType").description("할인 유형 [FIXED_RATE, FLAT_RATE]"),
+                                fieldWithPath("memberCouponDtoList[0].discountDegree").description("쿠폰 할인 정도"),
+                                fieldWithPath("memberCouponDtoList[0].availableMaxDiscount").description("최대 할인가능 금액"),
+                                fieldWithPath("memberCouponDtoList[0].availableMinPrice").description("쿠폰 적용 가능한 최소 주문 금액"),
+                                fieldWithPath("memberCouponDtoList[0].remaining").description("남은 매수"),
+                                fieldWithPath("memberCouponDtoList[0].expiredDate").description("쿠폰 만료일"),
+                                fieldWithPath("recipeDtoList[0].id").description("레시피 id"),
+                                fieldWithPath("recipeDtoList[0].name").description("레시피 이름"),
+                                fieldWithPath("recipeDtoList[0].description").description("레시피 설명"),
+                                fieldWithPath("recipeDtoList[0].pricePerGram").description("1그램 당 가격"),
+                                fieldWithPath("recipeDtoList[0].gramPerKcal").description("1칼로리 당 그램"),
+                                fieldWithPath("recipeDtoList[0].inStock").description("재고 유무 여부 true/false , 각 유/무"),
+                                fieldWithPath("recipeDtoList[0].imgUrl").description("레시피 이미지 url"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+    }
+
+    @Test
+    @DisplayName("구독 하나 조회 not found")
+    public void querySubscribe_notFound() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtc(member, 1, OrderStatus.PAYMENT_DONE);
+        Subscribe subscribe = subscribeOrder.getSubscribe();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/subscribes/999999")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
     }
 
 
@@ -456,7 +540,8 @@ public class SubscribeApiControllerTest extends BaseTest {
 
         Delivery delivery = generateDelivery(member, i);
 
-        Subscribe subscribe = generateSubscribe(i);
+
+        Subscribe subscribe = generateSubscribeUseCoupon(member, i);
         BeforeSubscribe beforeSubscribe = generateBeforeSubscribe(i);
         subscribe.setBeforeSubscribe(beforeSubscribe);
 
@@ -509,8 +594,9 @@ public class SubscribeApiControllerTest extends BaseTest {
         surveyReportRepository.save(surveyReport);
         dog.setSurveyReport(surveyReport);
 
-        Coupon coupon = generateGeneralCoupon(1);
-        MemberCoupon memberCoupon = generateMemberCoupon(member, coupon, 1, CouponStatus.ACTIVE);
+        Coupon coupon1 = generateGeneralCoupon(1);
+        MemberCoupon memberCoupon1 = generateMemberCoupon(member, coupon1, 3, CouponStatus.ACTIVE);
+
 
         SubscribeOrder subscribeOrder = SubscribeOrder.builder()
                 .impUid("imp_uid"+i)
@@ -527,7 +613,7 @@ public class SubscribeApiControllerTest extends BaseTest {
                 .isPackage(false)
                 .delivery(delivery)
                 .subscribe(subscribe)
-                .memberCoupon(memberCoupon)
+                .memberCoupon(memberCoupon1)
                 .subscribeCount(subscribe.getSubscribeCount())
                 .orderConfirmDate(LocalDateTime.now().minusHours(3))
                 .build();
@@ -668,6 +754,26 @@ public class SubscribeApiControllerTest extends BaseTest {
         subscribeRepository.save(subscribe);
         return subscribe;
     }
+
+    private Subscribe generateSubscribeUseCoupon(Member member, int i) {
+        Coupon coupon = generateGeneralCoupon(2);
+        MemberCoupon memberCoupon = generateMemberCoupon(member, coupon, 3, CouponStatus.ACTIVE);
+
+        Subscribe subscribe = Subscribe.builder()
+                .subscribeCount(i+1)
+                .plan(SubscribePlan.FULL)
+                .nextPaymentDate(LocalDateTime.now().plusDays(6))
+                .nextDeliveryDate(LocalDate.now().plusDays(8))
+                .nextPaymentPrice(120000)
+                .status(SubscribeStatus.SUBSCRIBING)
+                .memberCoupon(memberCoupon)
+                .discount(3000)
+                .build();
+        subscribeRepository.save(subscribe);
+        return subscribe;
+    }
+
+
 
 
     private SurveyReport generateSurveyReport(Member member) {

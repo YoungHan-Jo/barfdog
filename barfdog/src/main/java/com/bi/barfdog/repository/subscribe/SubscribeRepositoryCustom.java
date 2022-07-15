@@ -2,6 +2,7 @@ package com.bi.barfdog.repository.subscribe;
 
 import com.bi.barfdog.api.memberDto.MemberSubscribeAdminDto;
 import com.bi.barfdog.api.orderDto.OrderSheetSubscribeResponseDto;
+import com.bi.barfdog.api.subscribeDto.QuerySubscribeDto;
 import com.bi.barfdog.api.subscribeDto.QuerySubscribesDto;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.subscribe.Subscribe;
@@ -22,4 +23,6 @@ public interface SubscribeRepositoryCustom {
     List<Subscribe> findAllByMember(Member member);
 
     Page<QuerySubscribesDto> findSubscribesDto(Member member, Pageable pageable);
+
+    QuerySubscribeDto findSubscribeDto(Member member, Long id);
 }

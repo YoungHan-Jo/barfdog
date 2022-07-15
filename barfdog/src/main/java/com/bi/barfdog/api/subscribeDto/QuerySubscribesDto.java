@@ -28,7 +28,7 @@ public class QuerySubscribesDto {
     public static class SubscribeDto{
         private Long subscribeId;
         private String pictureUrl;
-        private boolean isSkippable;
+        private int skipCount;
         private String dogName;
         private SubscribePlan plan;
         private LocalDateTime nextPaymentDate;
