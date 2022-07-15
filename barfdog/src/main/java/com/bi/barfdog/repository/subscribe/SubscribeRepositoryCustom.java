@@ -2,6 +2,7 @@ package com.bi.barfdog.repository.subscribe;
 
 import com.bi.barfdog.api.memberDto.MemberSubscribeAdminDto;
 import com.bi.barfdog.api.orderDto.OrderSheetSubscribeResponseDto;
+import com.bi.barfdog.api.subscribeDto.QuerySubscribesDto;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import org.springframework.data.domain.Page;
@@ -19,4 +20,6 @@ public interface SubscribeRepositoryCustom {
     List<String> findRecipeNamesById(Long subscribeId);
 
     List<Subscribe> findAllByMember(Member member);
+
+    Page<QuerySubscribesDto> findSubscribesDto(Member member, Pageable pageable);
 }

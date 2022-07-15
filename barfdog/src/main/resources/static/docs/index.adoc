@@ -875,7 +875,7 @@ operation::query_dog_surveyReport[snippets='curl-request,path-parameters,request
 
 operation::query_dog_surveyReportResult[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
-[[resources-query-subscribe]]
+[[resources-update-subscribe]]
 === 구독정보 수정
 
 `PUT` 요청을 사용해서 구독정보를 수정할 수 있다.
@@ -1487,6 +1487,22 @@ operation::query_orderSheet_subscribe[snippets='curl-request,path-parameters,req
 
 operation::order_subscribeOrder[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
+[[resources-success-subscribeOrder]]
+=== 구독 주문 결제 성공 처리
+
+`POST` 요청을 사용하여 구독 주문 결제 성공 상태를 반영 할 수 있다.
+
+operation::success_subscribeOrder[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-fail-subscribeOrder]]
+=== 구독 주문 결제 실패 처리
+
+`POST` 요청을 사용하여 구독 주문 결제 실패 상태를 반영 할 수 있다.
+
+operation::fail_subscribeOrder[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+
+
 [[resources-query-subscribeOrders]]
 === 구독 주문 리스트 검색(페이징)
 
@@ -1502,6 +1518,36 @@ operation::query_subscribeOrders[snippets='curl-request,request-headers,request-
 operation::query_subscribeOrder[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 
+[[resources-query-generalOrders]]
+=== 일반 주문 리스트 검색(페이징)
+
+`GET` 요청을 사용하여 페이징으로 일반 주문 리스트를 조회할 수 있다.
+
+operation::query_generalOrders[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-query-generalOrder]]
+=== 일반 주문 하나 조회
+
+`GET` 요청을 사용하여 일반 주문 하나를 조회할 수 있다.
+
+operation::query_generalOrder[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-cancelRequest-general]]
+=== 일반 주문 취소 요청
+
+`POST` 요청을 사용하여 일반 주문을 취소 요청할 수 있다.
+
+operation::cancelRequest_general[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-confirm-generalOrders]]
+=== 일반 주문 구매확정
+
+`POST` 요청을 사용하여 일반주문 주문을 구매확정 할 수 있다.
+
+operation::confirm_generalOrders[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+
 
 [[resources-delivery-info]]
 == 유저 배송
@@ -1514,3 +1560,29 @@ operation::query_subscribeOrder[snippets='curl-request,path-parameters,request-h
 `GET` 요청을 사용하여 페이징으로 구독 배송 리스트를 조회할 수 있다.
 
 operation::query_deliveries_subscribe[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+
+[[resources-query-deliveries-general]]
+=== 일반 배송 리스트 검색(페이징)
+
+`GET` 요청을 사용하여 페이징으로 구독 배송 리스트를 조회할 수 있다.
+
+operation::query_deliveries_general[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+
+
+[[resources-subscribe-info]]
+== 구독
+
+구독 관련 리소스.
+
+[[resources-query-subscribes]]
+=== 구독 리스트 검색(페이징)
+
+`GET` 요청을 사용하여 페이징으로 구독 리스트를 조회할 수 있다.
+
+operation::query_subscribes[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+
+
+

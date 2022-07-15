@@ -23,6 +23,9 @@ import com.bi.barfdog.domain.reward.RewardPoint;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.domain.subscribe.SubscribeStatus;
 import com.bi.barfdog.jwt.JwtLoginDto;
+import com.bi.barfdog.repository.delivery.DeliveryRepository;
+import com.bi.barfdog.repository.item.ItemOptionRepository;
+import com.bi.barfdog.repository.memberCoupon.MemberCouponRepository;
 import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.repository.ReviewImageRepository;
 import com.bi.barfdog.repository.dog.DogRepository;
@@ -37,6 +40,7 @@ import com.bi.barfdog.repository.review.ReviewRepository;
 import com.bi.barfdog.repository.review.SubscribeReviewRepository;
 import com.bi.barfdog.repository.reward.RewardRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,7 +109,23 @@ public class ReviewAdminControllerTest extends BaseTest {
     RewardRepository rewardRepository;
     @Autowired
     BestReviewRepository bestReviewRepository;
+    @Autowired
+    MemberCouponRepository memberCouponRepository;
+    @Autowired
+    ItemOptionRepository itemOptionRepository;
+    @Autowired
+    DeliveryRepository deliveryRepository;
 
+    @Before
+    public void setUp() {
+        memberCouponRepository.deleteAll();
+        orderItemRepository.deleteAll();
+        orderRepository.deleteAll();
+        itemImageRepository.deleteAll();
+        itemOptionRepository.deleteAll();
+        itemRepository.deleteAll();
+        deliveryRepository.deleteAll();
+    }
     
     @Test
     @DisplayName("정상적으로 레시피 이름 리스트 조회")

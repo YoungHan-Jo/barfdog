@@ -8,8 +8,14 @@ import com.bi.barfdog.domain.member.*;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.coupon.CouponRepository;
+import com.bi.barfdog.repository.delivery.DeliveryRepository;
+import com.bi.barfdog.repository.item.ItemImageRepository;
+import com.bi.barfdog.repository.item.ItemOptionRepository;
+import com.bi.barfdog.repository.item.ItemRepository;
 import com.bi.barfdog.repository.memberCoupon.MemberCouponRepository;
 import com.bi.barfdog.repository.member.MemberRepository;
+import com.bi.barfdog.repository.order.OrderRepository;
+import com.bi.barfdog.repository.orderItem.OrderItemRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -57,11 +63,29 @@ public class CouponApiControllerTest extends BaseTest {
     @Autowired
     AppProperties appProperties;
 
+    @Autowired
+    OrderItemRepository orderItemRepository;
+    @Autowired
+    OrderRepository orderRepository;
+    @Autowired
+    ItemImageRepository itemImageRepository;
+    @Autowired
+    ItemOptionRepository itemOptionRepository;
+    @Autowired
+    ItemRepository itemRepository;
+    @Autowired
+    DeliveryRepository deliveryRepository;
+
     @Before
     public void setUp() {
         memberCouponRepository.deleteAll();
+        orderItemRepository.deleteAll();
+        orderRepository.deleteAll();
+        itemImageRepository.deleteAll();
+        itemOptionRepository.deleteAll();
+        itemRepository.deleteAll();
+        deliveryRepository.deleteAll();
     }
-    
     @Test
     @DisplayName("정상적으로 쿠폰함 리스트 조회")
     public void queryCoupons() throws Exception {

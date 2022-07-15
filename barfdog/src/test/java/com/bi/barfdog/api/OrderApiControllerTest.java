@@ -52,6 +52,7 @@ import com.bi.barfdog.repository.subscribe.BeforeSubscribeRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
 import com.bi.barfdog.repository.subscribeRecipe.SubscribeRecipeRepository;
 import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -135,7 +136,17 @@ public class OrderApiControllerTest extends BaseTest {
     @Autowired
     ItemImageRepository itemImageRepository;
 
+    @Before
+    public void setUp() {
 
+        orderItemRepository.deleteAll();
+        orderRepository.deleteAll();
+        itemImageRepository.deleteAll();
+        itemOptionRepository.deleteAll();
+        itemRepository.deleteAll();
+        deliveryRepository.deleteAll();
+
+    }
 
 
     @Test
@@ -395,6 +406,9 @@ public class OrderApiControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
                         ),
                         responseFields(
+                                fieldWithPath("id").description("주문 id"),
+                                fieldWithPath("merchantUid").description("주문 넘버 (아임포트로 넘겨야하는 uid) "),
+                                fieldWithPath("status").description("주문 상태"),
                                 fieldWithPath("_links.self.href").description("self 링크"),
                                 fieldWithPath("_links.success_generalOrder.href").description("결제 성공 링크"),
                                 fieldWithPath("_links.fail_generalOrder.href").description("결제 실패 링크"),
@@ -407,6 +421,7 @@ public class OrderApiControllerTest extends BaseTest {
         em.clear();
 
         GeneralOrder findOrder = (GeneralOrder) orderRepository.findAll().get(0);
+        assertThat(findOrder.getMerchantUid()).isNotNull();
         assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.BEFORE_PAYMENT);
         assertThat(findOrder.getOrderPrice()).isEqualTo(orderPrice);
         assertThat(findOrder.getDeliveryPrice()).isEqualTo(deliveryPrice);
@@ -1065,9 +1080,9 @@ public class OrderApiControllerTest extends BaseTest {
 
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-        Dog dogRepresentative = generateDogRepresentative(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+        Dog dogRepresentative = generateDogRepresentativeBeforePaymentSubscribe(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
 
-        Subscribe subscribe = generateSubscribe(dogRepresentative, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, 100000);
+        Subscribe subscribe = generateSubscribeBeforePayment(dogRepresentative, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, 100000);
 
        //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.get("/api/orders/sheet/subscribe/{id}", subscribe.getId())
@@ -1134,8 +1149,8 @@ public class OrderApiControllerTest extends BaseTest {
 
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
         int reward = member.getReward();
-        Dog dogRepresentative = generateDogRepresentative(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
-        Subscribe subscribe = generateSubscribe(dogRepresentative, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, 100000);
+        Dog dogRepresentative = generateDogRepresentativeBeforePaymentSubscribe(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+        Subscribe subscribe = generateSubscribeBeforePayment(dogRepresentative, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, 100000);
         int subscribeCount = subscribe.getSubscribeCount();
 
         String request = "안전배송 부탁드립니다.";
@@ -1228,6 +1243,9 @@ public class OrderApiControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
                         ),
                         responseFields(
+                                fieldWithPath("id").description("주문 id"),
+                                fieldWithPath("merchantUid").description("주문 넘버 (아임포트로 넘겨야하는 uid) "),
+                                fieldWithPath("status").description("주문 상태"),
                                 fieldWithPath("_links.self.href").description("self 링크"),
                                 fieldWithPath("_links.success_subscribeOrder.href").description("구독 결제 성공 링크"),
                                 fieldWithPath("_links.fail_subscribeOrder.href").description("구독 결제 실패 링크"),
@@ -1299,8 +1317,8 @@ public class OrderApiControllerTest extends BaseTest {
 
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
         int reward = member.getReward();
-        Dog dogRepresentative = generateDogRepresentative(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
-        Subscribe subscribe = generateSubscribe(dogRepresentative, SubscribePlan.HALF, SubscribeStatus.BEFORE_PAYMENT, 100000);
+        Dog dogRepresentative = generateDogRepresentativeBeforePaymentSubscribe(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+        Subscribe subscribe = generateSubscribeBeforePayment(dogRepresentative, SubscribePlan.HALF, SubscribeStatus.BEFORE_PAYMENT, 100000);
         int subscribeCount = subscribe.getSubscribeCount();
 
         String request = "안전배송 부탁드립니다.";
@@ -1407,8 +1425,8 @@ public class OrderApiControllerTest extends BaseTest {
 
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
         int reward = member.getReward();
-        Dog dogRepresentative = generateDogRepresentative(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
-        Subscribe subscribe = generateSubscribe(dogRepresentative, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, 100000);
+        Dog dogRepresentative = generateDogRepresentativeBeforePaymentSubscribe(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+        Subscribe subscribe = generateSubscribeBeforePayment(dogRepresentative, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, 100000);
 
         String request = "안전배송 부탁드립니다.";
         SubscribeOrderRequestDto.DeliveryDto deliveryDto = SubscribeOrderRequestDto.DeliveryDto.builder()
@@ -1496,7 +1514,7 @@ public class OrderApiControllerTest extends BaseTest {
         deliveryRepository.save(delivery);
 
         int orderPrice = 100000;
-        Subscribe subscribe = generateSubscribe(dog, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, orderPrice);
+        Subscribe subscribe = generateSubscribeBeforePayment(dog, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, orderPrice);
         int subscribeCount = subscribe.getSubscribeCount();
 
         Coupon coupon = generateGeneralCoupon(1);
@@ -1645,7 +1663,7 @@ public class OrderApiControllerTest extends BaseTest {
         deliveryRepository.save(delivery);
 
         int orderPrice = 100000;
-        Subscribe subscribe = generateSubscribe(dog, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, orderPrice);
+        Subscribe subscribe = generateSubscribeBeforePayment(dog, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, orderPrice);
         int subscribeCount = subscribe.getSubscribeCount();
 
         Coupon coupon = generateGeneralCoupon(1);
@@ -1740,7 +1758,7 @@ public class OrderApiControllerTest extends BaseTest {
         deliveryRepository.save(delivery);
 
         int orderPrice = 100000;
-        Subscribe subscribe = generateSubscribe(dog, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, orderPrice);
+        Subscribe subscribe = generateSubscribeBeforePayment(dog, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, orderPrice);
         int subscribeCount = subscribe.getSubscribeCount();
 
         Coupon coupon = generateGeneralCoupon(1);
@@ -2114,7 +2132,6 @@ public class OrderApiControllerTest extends BaseTest {
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
-
     }
 
 
@@ -2196,7 +2213,6 @@ public class OrderApiControllerTest extends BaseTest {
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
-
     }
 
     @Test
@@ -2449,7 +2465,7 @@ public class OrderApiControllerTest extends BaseTest {
 
         Delivery delivery = generateDelivery(member, i);
 
-        Subscribe subscribe = generateSubscribe(i);
+        Subscribe subscribe = generateSubscribeBeforePayment(i);
         BeforeSubscribe beforeSubscribe = generateBeforeSubscribe(i);
         subscribe.setBeforeSubscribe(beforeSubscribe);
 
@@ -2559,7 +2575,7 @@ public class OrderApiControllerTest extends BaseTest {
 
         Delivery delivery = generateDeliveryNoNumber(member, i);
 
-        Subscribe subscribe = generateSubscribe(i);
+        Subscribe subscribe = generateSubscribeBeforePayment(i);
 
         generateSubscribeRecipe(recipe1, subscribe);
         generateSubscribeRecipe(recipe2, subscribe);
@@ -2642,7 +2658,7 @@ public class OrderApiControllerTest extends BaseTest {
 
 
 
-    private Subscribe generateSubscribe(int i) {
+    private Subscribe generateSubscribeBeforePayment(int i) {
         Subscribe subscribe = Subscribe.builder()
                 .subscribeCount(i+1)
                 .plan(SubscribePlan.FULL)
@@ -3376,7 +3392,7 @@ public class OrderApiControllerTest extends BaseTest {
     }
 
 
-    private Subscribe generateSubscribe(Dog dog, SubscribePlan plan, SubscribeStatus status, int nextPaymentPrice) {
+    private Subscribe generateSubscribeBeforePayment(Dog dog, SubscribePlan plan, SubscribeStatus status, int nextPaymentPrice) {
         List<Recipe> recipes = recipeRepository.findAll();
 
         Subscribe subscribe = Subscribe.builder()
@@ -3423,7 +3439,7 @@ public class OrderApiControllerTest extends BaseTest {
         return couponRepository.save(coupon);
     }
 
-    private Dog generateDogRepresentative(Member admin, long startAgeMonth, DogSize dogSize, String weight, ActivityLevel activitylevel, int walkingCountPerWeek, double walkingTimePerOneTime, SnackCountLevel snackCountLevel) {
+    private Dog generateDogRepresentativeBeforePaymentSubscribe(Member admin, long startAgeMonth, DogSize dogSize, String weight, ActivityLevel activitylevel, int walkingCountPerWeek, double walkingTimePerOneTime, SnackCountLevel snackCountLevel) {
         Dog dog = Dog.builder()
                 .member(admin)
                 .name("대표견")

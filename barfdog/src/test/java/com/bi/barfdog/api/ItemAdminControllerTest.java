@@ -8,10 +8,14 @@ import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.coupon.DiscountType;
 import com.bi.barfdog.domain.item.*;
 import com.bi.barfdog.jwt.JwtLoginDto;
+import com.bi.barfdog.repository.delivery.DeliveryRepository;
 import com.bi.barfdog.repository.item.ItemContentImageRepository;
 import com.bi.barfdog.repository.item.ItemImageRepository;
 import com.bi.barfdog.repository.item.ItemOptionRepository;
 import com.bi.barfdog.repository.item.ItemRepository;
+import com.bi.barfdog.repository.order.OrderRepository;
+import com.bi.barfdog.repository.orderItem.OrderItemRepository;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +69,25 @@ public class ItemAdminControllerTest extends BaseTest {
 
     @Autowired
     ItemOptionRepository itemOptionRepository;
+
+    @Autowired
+    OrderItemRepository orderItemRepository;
+    @Autowired
+    OrderRepository orderRepository;
+    @Autowired
+    DeliveryRepository deliveryRepository;
+
+    @Before
+    public void setUp() {
+
+        orderItemRepository.deleteAll();
+        orderRepository.deleteAll();
+        itemImageRepository.deleteAll();
+        itemOptionRepository.deleteAll();
+        itemRepository.deleteAll();
+        deliveryRepository.deleteAll();
+
+    }
 
     
     @Test

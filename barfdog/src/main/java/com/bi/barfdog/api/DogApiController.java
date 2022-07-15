@@ -6,14 +6,13 @@ import com.bi.barfdog.api.dogDto.QueryDogDto;
 import com.bi.barfdog.api.dogDto.QueryDogsDto;
 import com.bi.barfdog.api.dogDto.UpdateDogPictureDto;
 import com.bi.barfdog.api.surveyReportDto.SurveyReportResponseDto;
-import com.bi.barfdog.api.surveyReportDto.SurveyResultResponseDto;
+import com.bi.barfdog.api.surveyReportDto.DogSurveyResultResponseDto;
 import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.dog.Dog;
 import com.bi.barfdog.domain.dog.DogPicture;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.recipe.Recipe;
-import com.bi.barfdog.domain.subscribe.SubscribeStatus;
 import com.bi.barfdog.domain.surveyReport.SurveyReport;
 import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
 import com.bi.barfdog.repository.dog.DogPictureRepository;
@@ -246,10 +245,10 @@ public class DogApiController {
         Optional<Dog> optionalDog = dogRepository.findById(id);
         if (!optionalDog.isPresent()) return notFound();
         SurveyReport surveyReport = optionalDog.get().getSurveyReport();
-        SurveyResultResponseDto responseDto = surveyReportService.getSurveyResultResponseDto(surveyReport.getId());
+        DogSurveyResultResponseDto responseDto = surveyReportService.getDogSurveyResultResponseDto(surveyReport.getId());
 
         Long subscribeId = responseDto.getSubscribeId();
-        EntityModel<SurveyResultResponseDto> entityModel = EntityModel.of(responseDto,
+        EntityModel<DogSurveyResultResponseDto> entityModel = EntityModel.of(responseDto,
                 linkTo(DogApiController.class).slash(id).slash("surveyReportResult").withSelfRel(),
                 linkTo(OrderApiController.class).slash("sheet/subscribe").slash(subscribeId).withRel("query-orderSheet-subscribe"),
                 linkTo(SubscribeApiController.class).slash(subscribeId).withRel("update_subscribe"),

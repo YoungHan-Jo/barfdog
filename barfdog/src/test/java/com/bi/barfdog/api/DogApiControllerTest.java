@@ -36,6 +36,7 @@ import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.card.CardRepository;
 import com.bi.barfdog.repository.coupon.CouponRepository;
 import com.bi.barfdog.repository.delivery.DeliveryRepository;
+import com.bi.barfdog.repository.item.ItemImageRepository;
 import com.bi.barfdog.repository.item.ItemOptionRepository;
 import com.bi.barfdog.repository.item.ItemRepository;
 import com.bi.barfdog.repository.memberCoupon.MemberCouponRepository;
@@ -52,6 +53,7 @@ import com.bi.barfdog.repository.member.MemberRepository;
 import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.repository.setting.SettingRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -135,6 +137,22 @@ public class DogApiControllerTest extends BaseTest {
     RewardRepository rewardRepository;
     @Autowired
     CardRepository cardRepository;
+    @Autowired
+    ItemImageRepository itemImageRepository;
+
+    @Before
+    public void setUp() {
+
+        orderItemRepository.deleteAll();
+        orderRepository.deleteAll();
+        itemImageRepository.deleteAll();
+        itemOptionRepository.deleteAll();
+        itemRepository.deleteAll();
+        deliveryRepository.deleteAll();
+        surveyReportRepository.deleteAll();
+        dogRepository.deleteAll();
+
+    }
 
     @Test
     @DisplayName("정상적으로 강아지 사진 업로드")
@@ -1602,6 +1620,7 @@ public class DogApiControllerTest extends BaseTest {
                 .snackAnalysis(getSnackAnalysis(dog))
                 .build();
         surveyReportRepository.save(surveyReport);
+        dog.setSurveyReport(surveyReport);
         return surveyReport;
     }
 

@@ -36,7 +36,9 @@ import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.card.CardRepository;
 import com.bi.barfdog.repository.coupon.CouponRepository;
 import com.bi.barfdog.repository.delivery.DeliveryRepository;
+import com.bi.barfdog.repository.dog.DogPictureRepository;
 import com.bi.barfdog.repository.dog.DogRepository;
+import com.bi.barfdog.repository.item.ItemImageRepository;
 import com.bi.barfdog.repository.item.ItemOptionRepository;
 import com.bi.barfdog.repository.item.ItemRepository;
 import com.bi.barfdog.repository.member.MemberRepository;
@@ -52,6 +54,7 @@ import com.bi.barfdog.repository.subscribe.SubscribeRepository;
 import com.bi.barfdog.repository.subscribeRecipe.SubscribeRecipeRepository;
 import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
 import org.assertj.core.api.Assertions;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,10 +88,11 @@ import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.li
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
-import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
-import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
+import static org.springframework.restdocs.request.RequestDocumentation.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Transactional
@@ -134,6 +138,26 @@ public class SubscribeApiControllerTest extends BaseTest {
     RewardRepository rewardRepository;
     @Autowired
     CardRepository cardRepository;
+    @Autowired
+    DogPictureRepository dogPictureRepository;
+    @Autowired
+    ItemImageRepository itemImageRepository;
+
+    @Before
+    public void setUp() {
+
+        orderItemRepository.deleteAll();
+        orderRepository.deleteAll();
+        itemImageRepository.deleteAll();
+        itemOptionRepository.deleteAll();
+        itemRepository.deleteAll();
+        deliveryRepository.deleteAll();
+        surveyReportRepository.deleteAll();
+        dogRepository.deleteAll();
+        memberCouponRepository.deleteAll();
+        couponRepository.deleteAll();
+
+    }
 
     @Test
     @DisplayName("정상적으로 구독 업데이트하는 테스트")
@@ -281,6 +305,75 @@ public class SubscribeApiControllerTest extends BaseTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    @DisplayName("구독 리스트 조회")
+    public void querySubscribes() throws Exception {
+       //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        IntStream.range(1,14).forEach(i -> {
+            generateSubscribeOrderAndEtc(member, i, OrderStatus.PAYMENT_DONE);
+        });
+
+       //when & then
+        mockMvc.perform(get("/api/subscribes")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("page", "1")
+                        .param("size", "5"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("page.totalElements").value(13))
+                .andExpect(jsonPath("page.totalPages").value(3))
+                .andDo(document("query_subscribes",
+                        links(
+                                linkWithRel("first").description("첫 페이지 링크"),
+                                linkWithRel("prev").description("이전 페이지 링크"),
+                                linkWithRel("self").description("현재 페이지 링크"),
+                                linkWithRel("next").description("다음 페이지 링크"),
+                                linkWithRel("last").description("마지막 페이지 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestParameters(
+                                parameterWithName("page").description("페이지 번호 [0번부터 시작 - 0번이 첫 페이지]"),
+                                parameterWithName("size").description("한 페이지 당 조회 개수")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_embedded.querySubscribesDtoList[0].subscribeDto.subscribeId").description("구독 id"),
+                                fieldWithPath("_embedded.querySubscribesDtoList[0].subscribeDto.pictureUrl").description("프로필사진 url"),
+                                fieldWithPath("_embedded.querySubscribesDtoList[0].subscribeDto.dogName").description("강아지 이름"),
+                                fieldWithPath("_embedded.querySubscribesDtoList[0].subscribeDto.plan").description("플랜 [FULL,HALF,TOPPING]"),
+                                fieldWithPath("_embedded.querySubscribesDtoList[0].subscribeDto.nextPaymentDate").description("다음 결제일"),
+                                fieldWithPath("_embedded.querySubscribesDtoList[0].subscribeDto.nextPaymentPrice").description("다음 결제 금액"),
+                                fieldWithPath("_embedded.querySubscribesDtoList[0].subscribeDto.skippable").description("건너뛰기 가능 여부 true/false"),
+                                fieldWithPath("_embedded.querySubscribesDtoList[0].recipeNames").description("레시피 이름 xxx,xxx  ,으로 구분"),
+                                fieldWithPath("_embedded.querySubscribesDtoList[0]._links.query_subscribe.href").description("구독 상세보기 링크"),
+                                fieldWithPath("_embedded.querySubscribesDtoList[0]._links.skip_subscribe.href").description("구독 건너뛰기 링크"),
+                                fieldWithPath("page.size").description("한 페이지 당 개수"),
+                                fieldWithPath("page.totalElements").description("검색 총 결과 수"),
+                                fieldWithPath("page.totalPages").description("총 페이지 수"),
+                                fieldWithPath("page.number").description("페이지 번호 [0페이지 부터 시작]"),
+                                fieldWithPath("_links.first.href").description("첫 페이지 링크"),
+                                fieldWithPath("_links.prev.href").description("이전 페이지 링크"),
+                                fieldWithPath("_links.self.href").description("현재 페이지 링크"),
+                                fieldWithPath("_links.next.href").description("다음 페이지 링크"),
+                                fieldWithPath("_links.last.href").description("마지막 페이지 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+    }
+
+
 
 
 
@@ -367,10 +460,8 @@ public class SubscribeApiControllerTest extends BaseTest {
         BeforeSubscribe beforeSubscribe = generateBeforeSubscribe(i);
         subscribe.setBeforeSubscribe(beforeSubscribe);
 
-        SubscribeRecipe subscribeRecipe = generateSubscribeRecipe(recipe1, subscribe);
-        SubscribeRecipe subscribeRecipe1 = generateSubscribeRecipe(recipe2, subscribe);
-//        subscribe.addSubscribeRecipe(subscribeRecipe);
-//        subscribe.addSubscribeRecipe(subscribeRecipe1);
+        generateSubscribeRecipe(recipe1, subscribe);
+        generateSubscribeRecipe(recipe2, subscribe);
 
         List<Dog> dogs = dogRepository.findByMember(member);
         Recipe findRecipe = recipeRepository.findById(requestDto.getRecommendRecipeId()).get();
@@ -398,6 +489,13 @@ public class SubscribeApiControllerTest extends BaseTest {
                 .build();
         dogRepository.save(dog);
         subscribe.setDog(dog);
+
+        DogPicture dogPicture = DogPicture.builder()
+                .dog(dog)
+                .folder("folder"+i)
+                .filename("filename"+i)
+                .build();
+        dogPictureRepository.save(dogPicture);
 
         SurveyReport surveyReport = SurveyReport.builder()
                 .dog(dog)

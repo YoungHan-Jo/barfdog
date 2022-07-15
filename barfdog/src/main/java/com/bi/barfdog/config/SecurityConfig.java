@@ -46,7 +46,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilter(new JwtAuthorizationFilter(authenticationManager(),memberRepository))
                 // ==== 권한 설정 ====
                 .authorizeRequests()
-                .antMatchers(HttpMethod.POST,"/api/login","/login","/join").permitAll()
+                .antMatchers(HttpMethod.POST,"/api/login","/login","/join","/iamport-webhook").permitAll()
 //                .antMatchers(HttpMethod.PUT,"/api/banners/main/**").permitAll()
                 .antMatchers("/api/admin/**").access("hasRole('ROLE_ADMIN')")
                 .antMatchers("/api/banners/**").access("hasRole('ROLE_ADMIN')")

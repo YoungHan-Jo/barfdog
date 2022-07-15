@@ -23,6 +23,10 @@ import com.bi.barfdog.domain.review.*;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.domain.subscribe.SubscribeStatus;
 import com.bi.barfdog.jwt.JwtLoginDto;
+import com.bi.barfdog.repository.coupon.CouponRepository;
+import com.bi.barfdog.repository.delivery.DeliveryRepository;
+import com.bi.barfdog.repository.item.ItemOptionRepository;
+import com.bi.barfdog.repository.memberCoupon.MemberCouponRepository;
 import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.repository.ReviewImageRepository;
 import com.bi.barfdog.repository.dog.DogRepository;
@@ -36,6 +40,8 @@ import com.bi.barfdog.repository.review.ItemReviewRepository;
 import com.bi.barfdog.repository.review.ReviewRepository;
 import com.bi.barfdog.repository.review.SubscribeReviewRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
+import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,6 +111,30 @@ public class ReviewApiControllerTest extends BaseTest {
     @Autowired
     BestReviewRepository bestReviewRepository;
 
+    @Autowired
+    ItemOptionRepository itemOptionRepository;
+    @Autowired
+    DeliveryRepository deliveryRepository;
+    @Autowired
+    SurveyReportRepository surveyReportRepository;
+    @Autowired
+    MemberCouponRepository memberCouponRepository;
+    @Autowired
+    CouponRepository couponRepository;
+
+    @Before
+    public void setUp() {
+        orderItemRepository.deleteAll();
+        orderRepository.deleteAll();
+        itemImageRepository.deleteAll();
+        itemOptionRepository.deleteAll();
+        itemRepository.deleteAll();
+        deliveryRepository.deleteAll();
+        surveyReportRepository.deleteAll();
+        dogRepository.deleteAll();
+        memberCouponRepository.deleteAll();
+        couponRepository.deleteAll();
+    }
 
     @Test
     @DisplayName("작성가능한 후기 리스트 조회")

@@ -59,10 +59,12 @@ import com.bi.barfdog.repository.review.SubscribeReviewRepository;
 import com.bi.barfdog.repository.reward.RewardRepository;
 import com.bi.barfdog.repository.setting.SettingRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
+import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
 import com.bi.barfdog.snsLogin.ConnectSnsRequestDto;
 import com.bi.barfdog.snsLogin.NaverLoginDto;
 import com.bi.barfdog.snsLogin.SnsProvider;
 import com.bi.barfdog.snsLogin.SnsResponse;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -154,8 +156,22 @@ public class IndexApiControllerTest extends BaseTest {
     RewardRepository rewardRepository;
     @Autowired
     BannerRepository bannerRepository;
+    @Autowired
+    SurveyReportRepository surveyReportRepository;
 
     @Autowired BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    @Before
+    public void setUp() {
+        orderItemRepository.deleteAll();
+        orderRepository.deleteAll();
+        itemImageRepository.deleteAll();
+        itemOptionRepository.deleteAll();
+        itemRepository.deleteAll();
+        deliveryRepository.deleteAll();
+        surveyReportRepository.deleteAll();
+        dogRepository.deleteAll();
+    }
 
     MediaType contentType = new MediaType("application", "hal+json", Charset.forName("UTF-8"));
 

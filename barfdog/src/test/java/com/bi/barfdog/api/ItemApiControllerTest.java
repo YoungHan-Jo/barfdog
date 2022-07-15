@@ -11,11 +11,17 @@ import com.bi.barfdog.domain.review.ReviewImage;
 import com.bi.barfdog.domain.review.ReviewStatus;
 import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.ReviewImageRepository;
+import com.bi.barfdog.repository.delivery.DeliveryRepository;
+import com.bi.barfdog.repository.dog.DogRepository;
 import com.bi.barfdog.repository.item.ItemImageRepository;
 import com.bi.barfdog.repository.item.ItemOptionRepository;
 import com.bi.barfdog.repository.item.ItemRepository;
 import com.bi.barfdog.repository.member.MemberRepository;
+import com.bi.barfdog.repository.order.OrderRepository;
+import com.bi.barfdog.repository.orderItem.OrderItemRepository;
 import com.bi.barfdog.repository.review.ItemReviewRepository;
+import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +69,30 @@ public class ItemApiControllerTest extends BaseTest {
     ItemImageRepository itemImageRepository;
     @Autowired
     ItemOptionRepository itemOptionRepository;
+    @Autowired
+    OrderItemRepository orderItemRepository;
+    @Autowired
+    OrderRepository orderRepository;
+    @Autowired
+    DeliveryRepository deliveryRepository;
+    @Autowired
+    SurveyReportRepository surveyReportRepository;
+    @Autowired
+    DogRepository dogRepository;
 
+    @Before
+    public void setUp() {
+
+        orderItemRepository.deleteAll();
+        orderRepository.deleteAll();
+        itemImageRepository.deleteAll();
+        itemOptionRepository.deleteAll();
+        itemRepository.deleteAll();
+        deliveryRepository.deleteAll();
+        surveyReportRepository.deleteAll();
+        dogRepository.deleteAll();
+
+    }
 
     @Test
     @DisplayName("정상적으로 전체 아이템 리스트 조회")
@@ -410,7 +439,6 @@ public class ItemApiControllerTest extends BaseTest {
                 .andExpect(jsonPath("_embedded.queryItemsDtoList[1].name").value("굿즈 상품2"))
                 .andExpect(jsonPath("_embedded.queryItemsDtoList[2].name").value("굿즈 상품3"))
                 .andExpect(jsonPath("_embedded.queryItemsDtoList[3].name").value("굿즈 상품4"))
-                .andExpect(jsonPath("_embedded.queryItemsDtoList[4].name").value("굿즈 상품5"))
         ;
     }
 

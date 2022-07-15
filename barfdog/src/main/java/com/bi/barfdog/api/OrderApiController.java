@@ -6,6 +6,7 @@ import com.bi.barfdog.api.resource.SubscribeOrdersDtoResource;
 import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.domain.order.GeneralOrder;
 import com.bi.barfdog.domain.order.Order;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.repository.member.MemberRepository;
@@ -66,15 +67,15 @@ public class OrderApiController {
                                             Errors errors) {
         if (errors.hasErrors()) return badRequest(errors);
 
-        Order order = orderService.orderGeneralOrder(member, requestDto);
+        OrderResponseDto responseDto = orderService.orderGeneralOrder(member, requestDto);
 
-        RepresentationModel representationModel = new RepresentationModel();
-        representationModel.add(linkTo(OrderApiController.class).slash("general").withSelfRel());
-        representationModel.add(linkTo(OrderApiController.class).slash(order.getId()).slash("general/success").withRel("success_generalOrder"));
-        representationModel.add(linkTo(OrderApiController.class).slash(order.getId()).slash("general/fail").withRel("fail_generalOrder"));
-        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-order-generalOrder").withRel("profile"));
+        EntityModel<OrderResponseDto> entityModel = EntityModel.of(responseDto);
+        entityModel.add(linkTo(OrderApiController.class).slash("general").withSelfRel());
+        entityModel.add(linkTo(OrderApiController.class).slash(responseDto.getId()).slash("general/success").withRel("success_generalOrder"));
+        entityModel.add(linkTo(OrderApiController.class).slash(responseDto.getId()).slash("general/fail").withRel("fail_generalOrder"));
+        entityModel.add(profileRootUrlBuilder.slash("index.html#resources-order-generalOrder").withRel("profile"));
 
-        return ResponseEntity.ok(representationModel);
+        return ResponseEntity.ok(entityModel);
     }
 
     @PostMapping("/{id}/general/success")
@@ -136,15 +137,15 @@ public class OrderApiController {
         Optional<Subscribe> optionalSubscribe = subscribeRepository.findById(id);
         if(!optionalSubscribe.isPresent()) return notFound();
 
-        Order order = orderService.orderSubscribeOrder(member, id, requestDto);
+        OrderResponseDto responseDto = orderService.orderSubscribeOrder(member, id, requestDto);
 
-        RepresentationModel representationModel = new RepresentationModel();
-        representationModel.add(linkTo(OrderApiController.class).slash("subscribe").slash(id).withSelfRel());
-        representationModel.add(linkTo(OrderApiController.class).slash(order.getId()).slash("subscribe/success").withRel("success_subscribeOrder"));
-        representationModel.add(linkTo(OrderApiController.class).slash(order.getId()).slash("subscribe/fail").withRel("fail_subscribeOrder"));
-        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-order-subscribeOrder").withRel("profile"));
+        EntityModel<OrderResponseDto> entityModel = EntityModel.of(responseDto);
+        entityModel.add(linkTo(OrderApiController.class).slash("subscribe").slash(id).withSelfRel());
+        entityModel.add(linkTo(OrderApiController.class).slash(responseDto.getId()).slash("subscribe/success").withRel("success_subscribeOrder"));
+        entityModel.add(linkTo(OrderApiController.class).slash(responseDto.getId()).slash("subscribe/fail").withRel("fail_subscribeOrder"));
+        entityModel.add(profileRootUrlBuilder.slash("index.html#resources-order-subscribeOrder").withRel("profile"));
 
-        return ResponseEntity.ok(representationModel);
+        return ResponseEntity.ok(entityModel);
     }
 
     @PostMapping("/{id}/subscribe/success")

@@ -1,5 +1,6 @@
 package com.bi.barfdog.api.surveyReportDto;
 
+import com.bi.barfdog.domain.subscribe.SubscribePlan;
 import com.bi.barfdog.domain.subscribe.SubscribeStatus;
 import com.bi.barfdog.domain.surveyReport.FoodAnalysis;
 import lombok.AllArgsConstructor;
@@ -7,6 +8,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +18,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class SurveyResultResponseDto {
+public class DogSurveyResultResponseDto {
 
     private Long dogId;
     private String dogName;
@@ -34,4 +38,10 @@ public class SurveyResultResponseDto {
     @Builder.Default
     private List<SurveyResultRecipeDto> recipeDtoList = new ArrayList<>();
 
+    private SubscribePlan plan;
+    private String recipeName;
+    private BigDecimal oneMealRecommendGram;
+    private LocalDateTime nextPaymentDate;
+    private int nextPaymentPrice;
+    private LocalDate nextDeliveryDate;
 }

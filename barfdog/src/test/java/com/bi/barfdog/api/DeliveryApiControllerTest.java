@@ -35,6 +35,7 @@ import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.coupon.CouponRepository;
 import com.bi.barfdog.repository.delivery.DeliveryRepository;
 import com.bi.barfdog.repository.dog.DogRepository;
+import com.bi.barfdog.repository.item.ItemImageRepository;
 import com.bi.barfdog.repository.item.ItemOptionRepository;
 import com.bi.barfdog.repository.item.ItemRepository;
 import com.bi.barfdog.repository.member.MemberRepository;
@@ -49,6 +50,7 @@ import com.bi.barfdog.repository.subscribe.BeforeSubscribeRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
 import com.bi.barfdog.repository.subscribeRecipe.SubscribeRecipeRepository;
 import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,7 +131,19 @@ public class DeliveryApiControllerTest extends BaseTest {
     MemberCouponRepository memberCouponRepository;
     @Autowired
     RewardRepository rewardRepository;
+    @Autowired
+    ItemImageRepository itemImageRepository;
 
+    @Before
+    public void setUp() {
+        memberCouponRepository.deleteAll();
+        orderItemRepository.deleteAll();
+        orderRepository.deleteAll();
+        itemImageRepository.deleteAll();
+        itemOptionRepository.deleteAll();
+        itemRepository.deleteAll();
+        deliveryRepository.deleteAll();
+    }
 
     @Test
     @DisplayName("정상적으로 구독 배송 리스트 조회")

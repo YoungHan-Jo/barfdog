@@ -1,6 +1,7 @@
 package com.bi.barfdog.service;
 
 import com.bi.barfdog.api.orderDto.*;
+import com.bi.barfdog.common.RandomString;
 import com.bi.barfdog.domain.delivery.Delivery;
 import com.bi.barfdog.domain.delivery.DeliveryStatus;
 import com.bi.barfdog.domain.delivery.Recipient;
@@ -39,8 +40,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -111,7 +114,7 @@ public class OrderService {
     }
 
     @Transactional
-    public Order orderGeneralOrder(Member member, GeneralOrderRequestDto requestDto) {
+    public OrderResponseDto orderGeneralOrder(Member member, GeneralOrderRequestDto requestDto) {
 
         member.generalOrder(requestDto);
         Delivery delivery = getDelivery(requestDto);
@@ -152,7 +155,13 @@ public class OrderService {
             }
         }
 
-        return generalOrder;
+        OrderResponseDto responseDto = OrderResponseDto.builder()
+                .id(generalOrder.getId())
+                .merchantUid(generalOrder.getMerchantUid())
+                .status(generalOrder.getOrderStatus())
+                .build();
+
+        return responseDto;
 
     }
 
@@ -179,7 +188,12 @@ public class OrderService {
     }
 
     private GeneralOrder saveGeneralOrder(Member member, GeneralOrderRequestDto requestDto, Delivery delivery) {
+        RandomString rs = new RandomString(15);
+        String randomString = rs.nextString();
+        LocalDate today = LocalDate.now();
+        String dateString = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         GeneralOrder generalOrder = GeneralOrder.builder()
+                .merchantUid(dateString + "_" + randomString)
                 .orderStatus(OrderStatus.BEFORE_PAYMENT)
                 .member(member)
                 .orderPrice(requestDto.getOrderPrice())
@@ -235,7 +249,7 @@ public class OrderService {
 
 
     @Transactional
-    public Order orderSubscribeOrder(Member member, Long subscribeId, SubscribeOrderRequestDto requestDto) {
+    public OrderResponseDto orderSubscribeOrder(Member member, Long subscribeId, SubscribeOrderRequestDto requestDto) {
 
         Delivery delivery = saveDelivery(requestDto);
 
@@ -251,7 +265,13 @@ public class OrderService {
         SubscribeOrder subscribeOrder = saveSubscribeOrder(member, requestDto, delivery, subscribe, memberCoupon);
         useCoupon(memberCoupon);
 
-        return subscribeOrder;
+        OrderResponseDto responseDto = OrderResponseDto.builder()
+                .id(subscribeOrder.getId())
+                .merchantUid(subscribeOrder.getMerchantUid())
+                .status(subscribeOrder.getOrderStatus())
+                .build();
+
+        return responseDto;
     }
 
 
@@ -263,7 +283,12 @@ public class OrderService {
     }
 
     private SubscribeOrder saveSubscribeOrder(Member member, SubscribeOrderRequestDto requestDto, Delivery delivery, Subscribe subscribe, MemberCoupon memberCoupon) {
+        RandomString rs = new RandomString(15);
+        String randomString = rs.nextString();
+        LocalDate today = LocalDate.now();
+        String dateString = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         SubscribeOrder subscribeOrder = SubscribeOrder.builder()
+                .merchantUid(dateString + "_" + randomString)
                 .orderStatus(OrderStatus.BEFORE_PAYMENT)
                 .member(member)
                 .orderPrice(requestDto.getOrderPrice())

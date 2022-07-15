@@ -1,6 +1,7 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.surveyReportDto.SurveyReportResponseDto;
+import com.bi.barfdog.api.surveyReportDto.DogSurveyResultResponseDto;
 import com.bi.barfdog.api.surveyReportDto.SurveyResultResponseDto;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.surveyReport.SurveyReport;

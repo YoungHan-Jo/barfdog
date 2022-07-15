@@ -3,6 +3,8 @@ package com.bi.barfdog.repository.subscribe;
 import com.bi.barfdog.api.memberDto.MemberSubscribeAdminDto;
 import com.bi.barfdog.api.memberDto.QuerySubscribeAdminDto;
 import com.bi.barfdog.api.orderDto.OrderSheetSubscribeResponseDto;
+import com.bi.barfdog.api.subscribeDto.QuerySubscribesDto;
+import com.bi.barfdog.domain.dog.QDogPicture;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.recipe.QRecipe;
 import com.bi.barfdog.domain.subscribe.Subscribe;
@@ -20,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.bi.barfdog.domain.dog.QDog.dog;
+import static com.bi.barfdog.domain.dog.QDogPicture.*;
 import static com.bi.barfdog.domain.member.QMember.member;
 import static com.bi.barfdog.domain.recipe.QRecipe.*;
 import static com.bi.barfdog.domain.subscribe.QSubscribe.subscribe;
@@ -133,5 +136,63 @@ public class SubscribeRepositoryImpl implements SubscribeRepositoryCustom{
                 .where(member.eq(user))
                 .orderBy(subscribe.nextDeliveryDate.asc())
                 .fetch();
+    }
+
+    @Override
+    public Page<QuerySubscribesDto> findSubscribesDto(Member member, Pageable pageable) {
+
+        List<QuerySubscribesDto> result = new ArrayList<>();
+
+        List<QuerySubscribesDto.SubscribeDto> subscribeDtoList = queryFactory
+                .select(Projections.constructor(QuerySubscribesDto.SubscribeDto.class,
+                        subscribe.id,
+                        dogPicture.filename,
+                        subscribe.isSkippable,
+                        dog.name,
+                        subscribe.plan,
+                        subscribe.nextPaymentDate,
+                        subscribe.nextPaymentPrice
+                ))
+                .from(subscribe)
+                .join(subscribe.dog, dog)
+                .leftJoin(dogPicture).on(dogPicture.dog.eq(dog))
+                .where(dog.member.eq(member))
+                .fetch();
+        for (QuerySubscribesDto.SubscribeDto subscribeDto : subscribeDtoList) {
+            subscribeDto.changeUrl(subscribeDto.getPictureUrl());
+
+            String recipeNames = getRecipeNames(subscribeDto);
+
+            QuerySubscribesDto dto = QuerySubscribesDto.builder()
+                    .subscribeDto(subscribeDto)
+                    .recipeNames(recipeNames)
+                    .build();
+            result.add(dto);
+        }
+
+        Long totalCount = queryFactory
+                .select(subscribe.count())
+                .from(subscribe)
+                .join(subscribe.dog, dog)
+                .where(dog.member.eq(member))
+                .fetchOne();
+
+
+        return new PageImpl<>(result, pageable, totalCount);
+    }
+
+    private String getRecipeNames(QuerySubscribesDto.SubscribeDto subscribeDto) {
+        List<String> nameList = queryFactory
+                .select(recipe.name)
+                .from(subscribeRecipe)
+                .join(subscribeRecipe.subscribe, subscribe)
+                .join(subscribeRecipe.recipe, recipe)
+                .where(subscribe.id.eq(subscribeDto.getSubscribeId()))
+                .fetch();
+        String recipeNames = nameList.get(0);
+        if (nameList.size() > 1) {
+            recipeNames += "," + nameList.get(1);
+        }
+        return recipeNames;
     }
 }

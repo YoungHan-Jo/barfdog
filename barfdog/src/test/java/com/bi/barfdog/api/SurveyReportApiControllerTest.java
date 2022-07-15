@@ -12,14 +12,17 @@ import com.bi.barfdog.domain.setting.Setting;
 import com.bi.barfdog.domain.setting.SnackConstant;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.domain.subscribe.SubscribeStatus;
+import com.bi.barfdog.domain.subscribeRecipe.SubscribeRecipe;
 import com.bi.barfdog.domain.surveyReport.*;
 import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.repository.setting.SettingRepository;
+import com.bi.barfdog.repository.subscribeRecipe.SubscribeRecipeRepository;
 import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
 import com.bi.barfdog.repository.dog.DogRepository;
 import com.bi.barfdog.repository.member.MemberRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +70,8 @@ public class SurveyReportApiControllerTest extends BaseTest {
     SubscribeRepository subscribeRepository;
     @Autowired
     MemberRepository memberRepository;
+    @Autowired
+    SubscribeRecipeRepository subscribeRecipeRepository;
 
     @Autowired
     AppProperties appProperties;
@@ -169,7 +174,6 @@ public class SurveyReportApiControllerTest extends BaseTest {
 
         SurveyReport surveyReport = generateSurveyReport();
 
-
         //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.get("/api/surveyReports/{id}/result", surveyReport.getId())
                         .header(HttpHeaders.AUTHORIZATION, getUserToken())
@@ -250,12 +254,19 @@ public class SurveyReportApiControllerTest extends BaseTest {
         List<Dog> dogs = dogRepository.findByMember(member);
         Recipe findRecipe = recipeRepository.findById(requestDto.getRecommendRecipeId()).get();
 
+
         String birth = requestDto.getBirth();
 
         Subscribe subscribe = Subscribe.builder()
                 .status(SubscribeStatus.BEFORE_PAYMENT)
                 .build();
         subscribeRepository.save(subscribe);
+
+        SubscribeRecipe subscribeRecipe = SubscribeRecipe.builder()
+                .subscribe(subscribe)
+                .recipe(recipe)
+                .build();
+        subscribeRecipeRepository.save(subscribeRecipe);
 
         DogSize dogSize = requestDto.getDogSize();
         Long startAgeMonth = getTerm(birth + "01");
@@ -287,6 +298,8 @@ public class SurveyReportApiControllerTest extends BaseTest {
                 .subscribe(subscribe)
                 .build();
         dogRepository.save(dog);
+        subscribe.setDog(dog);
+
 
         SurveyReport surveyReport = SurveyReport.builder()
                 .dog(dog)
@@ -298,6 +311,7 @@ public class SurveyReportApiControllerTest extends BaseTest {
                 .snackAnalysis(getSnackAnalysis(dog))
                 .build();
         surveyReportRepository.save(surveyReport);
+        dog.setSurveyReport(surveyReport);
         return surveyReport;
     }
 

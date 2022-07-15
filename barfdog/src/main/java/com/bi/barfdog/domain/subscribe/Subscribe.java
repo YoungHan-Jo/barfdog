@@ -66,6 +66,9 @@ public class Subscribe extends BaseTimeEntity {
     @JoinColumn(name = "before_subscribe_id")
     private BeforeSubscribe beforeSubscribe;
 
+    @Builder.Default
+    private boolean isSkippable = true;
+
     /*
     * 연관관계 편의 메서드
     * */

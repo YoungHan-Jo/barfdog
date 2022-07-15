@@ -11,8 +11,16 @@ import com.bi.barfdog.domain.member.*;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.coupon.CouponRepository;
+import com.bi.barfdog.repository.delivery.DeliveryRepository;
+import com.bi.barfdog.repository.dog.DogRepository;
+import com.bi.barfdog.repository.item.ItemImageRepository;
+import com.bi.barfdog.repository.item.ItemOptionRepository;
+import com.bi.barfdog.repository.item.ItemRepository;
 import com.bi.barfdog.repository.member.MemberRepository;
 import com.bi.barfdog.repository.memberCoupon.MemberCouponRepository;
+import com.bi.barfdog.repository.order.OrderRepository;
+import com.bi.barfdog.repository.orderItem.OrderItemRepository;
+import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -68,11 +76,37 @@ public class CouponAdminControllerTest extends BaseTest {
     @Autowired
     AppProperties appProperties;
 
+    @Autowired
+    OrderItemRepository orderItemRepository;
+    @Autowired
+    OrderRepository orderRepository;
+    @Autowired
+    ItemImageRepository itemImageRepository;
+    @Autowired
+    ItemOptionRepository itemOptionRepository;
+    @Autowired
+    ItemRepository itemRepository;
+    @Autowired
+    DeliveryRepository deliveryRepository;
+    @Autowired
+    SurveyReportRepository surveyReportRepository;
+    @Autowired
+    DogRepository dogRepository;
+
     @Before
     public void setUp() {
-        memberCouponRepository.deleteAll();
-    }
 
+        orderItemRepository.deleteAll();
+        orderRepository.deleteAll();
+        itemImageRepository.deleteAll();
+        itemOptionRepository.deleteAll();
+        itemRepository.deleteAll();
+        deliveryRepository.deleteAll();
+        surveyReportRepository.deleteAll();
+        dogRepository.deleteAll();
+        memberCouponRepository.deleteAll();
+        couponRepository.deleteAll();
+    }
 
     @Test
     @DisplayName("유저권한이 관리자가 아닐 경우 403 에러")
@@ -669,6 +703,10 @@ public class CouponAdminControllerTest extends BaseTest {
     public void queryCoupons_auto_keyword_emptyString() throws Exception {
         //given
 
+        IntStream.range(1,9).forEach(i -> {
+            generateAutoCoupon(i);
+        });
+
         String keyword = "";
 
         //when & then
@@ -751,10 +789,10 @@ public class CouponAdminControllerTest extends BaseTest {
     public void inactive_coupon_autoCoupon_bad_request() throws Exception {
         //given
 
-        Coupon findCoupon = couponRepository.findByName(AutoCoupon.SILVER_COUPON).get();
+        Coupon coupon = generateAutoCoupon(1);
 
         //when & then
-        mockMvc.perform(put("/api/admin/coupons/{id}/inactive", findCoupon.getId())
+        mockMvc.perform(put("/api/admin/coupons/{id}/inactive", coupon.getId())
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
@@ -1629,6 +1667,10 @@ public class CouponAdminControllerTest extends BaseTest {
     public void queryAutoCouponsForUpdate() throws Exception {
         //given
 
+        IntStream.range(1,9).forEach(i -> {
+            generateAutoCoupon(i);
+        });
+
         //when & then
         mockMvc.perform(get("/api/admin/coupons/auto/modification")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
@@ -1672,6 +1714,11 @@ public class CouponAdminControllerTest extends BaseTest {
     @DisplayName("정상적으로 자동 쿠폰 수정하는 테스트")
     public void updateAutoCoupons() throws Exception {
         //given
+
+        IntStream.range(1,5).forEach(i -> {
+            generateAutoCoupon(i);
+        });
+
         List<AutoCouponsForUpdateDto> autoCouponDtosForUpdate = couponRepository.findAutoCouponDtosForUpdate();
 
         List<UpdateAutoCouponRequest.UpdateAutoCouponRequestDto> dtoList = new ArrayList<>();
@@ -1729,8 +1776,8 @@ public class CouponAdminControllerTest extends BaseTest {
         em.flush();
         em.clear();
 
-        Coupon findCoupon = couponRepository.findByName(AutoCoupon.BARF_COUPON).get();
-        assertThat(findCoupon.getDiscountDegree()).isEqualTo(7000);
+        Coupon findCoupon = couponRepository.findAll().get(0);
+        assertThat(findCoupon.getDiscountDegree()).isEqualTo(20);
         assertThat(findCoupon.getAvailableMinPrice()).isEqualTo(51000);
 
     }
@@ -1755,7 +1802,7 @@ public class CouponAdminControllerTest extends BaseTest {
         }
 
         UpdateAutoCouponRequest requestDto = builder()
-                .updateAutoCouponRequestDtoList(dtoList)
+//                .updateAutoCouponRequestDtoList(dtoList)
                 .build();
 
         //when & then
@@ -1805,7 +1852,7 @@ public class CouponAdminControllerTest extends BaseTest {
                 .discountType(DiscountType.FIXED_RATE)
                 .discountDegree(10)
                 .availableMaxDiscount(10000)
-                .availableMinPrice(5000)
+                .availableMinPrice(50000)
                 .couponTarget(CouponTarget.ALL)
                 .couponStatus(CouponStatus.ACTIVE)
                 .build();
