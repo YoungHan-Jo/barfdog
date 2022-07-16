@@ -1,7 +1,10 @@
 package com.bi.barfdog.domain.subscribe;
 
+import com.bi.barfdog.api.subscribeDto.UpdateGramDto;
 import com.bi.barfdog.api.subscribeDto.UpdateSubscribeDto;
 import com.bi.barfdog.domain.BaseTimeEntity;
+import com.bi.barfdog.domain.coupon.Coupon;
+import com.bi.barfdog.domain.coupon.DiscountType;
 import com.bi.barfdog.domain.dog.Dog;
 import com.bi.barfdog.domain.member.Card;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
@@ -134,10 +137,41 @@ public class Subscribe extends BaseTimeEntity {
     }
 
     public void useCoupon(MemberCoupon memberCoupon, int discount) {
+        this.memberCoupon.cancel();
         this.memberCoupon = memberCoupon;
         this.discount = discount;
         memberCoupon.useCoupon();
     }
 
 
+    public void updateGram(UpdateGramDto requestDto) {
+        int totalPrice = requestDto.getTotalPrice();
+        this.nextPaymentPrice = totalPrice;
+        dog.updateGram(requestDto.getGram());
+        MemberCoupon memberCoupon = getMemberCoupon();
+        int newDiscount = calculateNewDiscount(totalPrice, memberCoupon);
+        this.discount = newDiscount;
+    }
+
+    private int calculateNewDiscount(int totalPrice, MemberCoupon memberCoupon) {
+        int newDiscount = 0;
+        if (memberCoupon != null) {
+            Coupon coupon = memberCoupon.getCoupon();
+            if (totalPrice < coupon.getAvailableMinPrice()) {
+                memberCoupon.cancel();
+                this.memberCoupon = null;
+            }else{
+                if (coupon.getDiscountType() == DiscountType.FIXED_RATE) {
+                    newDiscount = (int)Math.round(totalPrice * coupon.getDiscountDegree() / 100.0);
+                    int availableMaxDiscount = coupon.getAvailableMaxDiscount();
+                    if (newDiscount > availableMaxDiscount) {
+                        newDiscount = availableMaxDiscount;
+                    }
+                } else {
+                    newDiscount = coupon.getDiscountDegree();
+                }
+            }
+        }
+        return newDiscount;
+    }
 }

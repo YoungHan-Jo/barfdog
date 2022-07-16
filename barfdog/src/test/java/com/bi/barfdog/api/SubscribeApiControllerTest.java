@@ -1,6 +1,7 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
+import com.bi.barfdog.api.subscribeDto.UpdateGramDto;
 import com.bi.barfdog.api.subscribeDto.UpdateSubscribeDto;
 import com.bi.barfdog.api.subscribeDto.UseCouponDto;
 import com.bi.barfdog.common.AppProperties;
@@ -54,7 +55,6 @@ import com.bi.barfdog.repository.subscribe.BeforeSubscribeRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
 import com.bi.barfdog.repository.subscribeRecipe.SubscribeRecipeRepository;
 import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
-import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -82,7 +82,6 @@ import java.util.stream.IntStream;
 import static com.bi.barfdog.config.finalVariable.StandardVar.*;
 import static com.bi.barfdog.config.finalVariable.StandardVar.LACTATING;
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.Assert.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
@@ -167,7 +166,7 @@ public class SubscribeApiControllerTest extends BaseTest {
 
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtc(member, 1, OrderStatus.PAYMENT_DONE);
+        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtcUseCoupon(member, 1, OrderStatus.PAYMENT_DONE);
         Subscribe subscribe = subscribeOrder.getSubscribe();
 
         List<Long> recipeIdList = getRecipeIdList();
@@ -236,7 +235,7 @@ public class SubscribeApiControllerTest extends BaseTest {
 
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtc(member, 1, OrderStatus.PAYMENT_DONE);
+        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtcUseCoupon(member, 1, OrderStatus.PAYMENT_DONE);
         Subscribe subscribe = subscribeOrder.getSubscribe();
         SubscribePlan beforePlan = subscribe.getPlan();
         int beforeNextPaymentPrice = subscribe.getNextPaymentPrice();
@@ -314,7 +313,7 @@ public class SubscribeApiControllerTest extends BaseTest {
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
         IntStream.range(1,14).forEach(i -> {
-            generateSubscribeOrderAndEtc(member, i, OrderStatus.PAYMENT_DONE);
+            generateSubscribeOrderAndEtcUseCoupon(member, i, OrderStatus.PAYMENT_DONE);
         });
 
        //when & then
@@ -379,7 +378,7 @@ public class SubscribeApiControllerTest extends BaseTest {
     public void querySubscribe() throws Exception {
        //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
-        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtc(member, 1, OrderStatus.PAYMENT_DONE);
+        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtcUseCoupon(member, 1, OrderStatus.PAYMENT_DONE);
         Subscribe subscribe = subscribeOrder.getSubscribe();
 
         //when & then
@@ -446,7 +445,7 @@ public class SubscribeApiControllerTest extends BaseTest {
     public void querySubscribe_notFound() throws Exception {
         //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
-        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtc(member, 1, OrderStatus.PAYMENT_DONE);
+        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtcUseCoupon(member, 1, OrderStatus.PAYMENT_DONE);
         Subscribe subscribe = subscribeOrder.getSubscribe();
 
         //when & then
@@ -530,6 +529,54 @@ public class SubscribeApiControllerTest extends BaseTest {
     }
 
     @Test
+    @DisplayName("구독에 쿠폰 적용 - 이미 적용된 쿠폰이 있었음")
+    public void useCouponToSubscribe_modify() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtcUseCoupon(member, 1, OrderStatus.PAYMENT_DONE);
+        Subscribe subscribe = subscribeOrder.getSubscribe();
+        MemberCoupon beforeMemberCoupon = subscribe.getMemberCoupon();
+        int beforeMemberCouponRemaining = beforeMemberCoupon.getRemaining();
+
+        Coupon coupon = generateGeneralCoupon(1);
+        MemberCoupon memberCoupon = generateMemberCoupon(member, coupon, 1, CouponStatus.ACTIVE);
+        int remaining = memberCoupon.getRemaining();
+
+        int discount = 3000;
+        UseCouponDto requestDto = UseCouponDto.builder()
+                .memberCouponId(memberCoupon.getId())
+                .discount(discount)
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/subscribes/{id}/coupon",subscribe.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        em.flush();
+        em.clear();
+
+        Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
+        assertThat(findSubscribe.getMemberCoupon().getId()).isEqualTo(memberCoupon.getId());
+        assertThat(findSubscribe.getDiscount()).isEqualTo(discount);
+
+        MemberCoupon findBeforeMemberCoupon = memberCouponRepository.findById(beforeMemberCoupon.getId()).get();
+        assertThat(findBeforeMemberCoupon.getRemaining()).isEqualTo(beforeMemberCouponRemaining + 1);
+
+        MemberCoupon findMemberCoupon = memberCouponRepository.findById(memberCoupon.getId()).get();
+        assertThat(findMemberCoupon.getRemaining()).isEqualTo(remaining - 1);
+        if (findMemberCoupon.getRemaining() == 0) {
+            assertThat(findMemberCoupon.getMemberCouponStatus()).isEqualTo(CouponStatus.INACTIVE);
+        } else {
+            assertThat(findMemberCoupon.getMemberCouponStatus()).isEqualTo(CouponStatus.ACTIVE);
+        }
+    }
+
+    @Test
     @DisplayName("구독에 쿠폰 적용 not found")
     public void useCouponToSubscribe_notFound() throws Exception {
         //given
@@ -556,6 +603,189 @@ public class SubscribeApiControllerTest extends BaseTest {
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    @DisplayName("그램 수 변경")
+    public void updateGram() throws Exception {
+       //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtcUseCoupon(member, 1, OrderStatus.PAYMENT_DONE);
+        Subscribe subscribe = subscribeOrder.getSubscribe();
+
+        int gram = 100;
+        int totalPrice = 40000;
+        UpdateGramDto requestDto = UpdateGramDto.builder()
+                .gram(gram)
+                .totalPrice(totalPrice)
+                .build();
+
+        Coupon coupon = subscribe.getMemberCoupon().getCoupon();
+        DiscountType discountType = coupon.getDiscountType();
+        int discountDegree = coupon.getDiscountDegree();
+        int discount = 0;
+        if (discountType == DiscountType.FIXED_RATE) {
+            discount = (int) Math.round(totalPrice * discountDegree / 100.0);
+        }
+        int availableMaxDiscount = coupon.getAvailableMaxDiscount();
+        if (discount > availableMaxDiscount) {
+            discount = availableMaxDiscount;
+        }
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/subscribes/{id}/gram", subscribe.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("update_coupon_subscribe",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_subscribe").description("구독 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("구독 id")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestFields(
+                                fieldWithPath("gram").description("변경할 gram"),
+                                fieldWithPath("totalPrice").description("gram 변경 후 구독 금액")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_subscribe.href").description("구독 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+        ;
+
+        em.flush();
+        em.clear();
+
+        Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
+        assertThat(findSubscribe.getNextPaymentPrice()).isEqualTo(totalPrice);
+        assertThat(findSubscribe.getDiscount()).isEqualTo(discount);
+
+        SurveyReport surveyReport = findSubscribe.getDog().getSurveyReport();
+        assertThat(surveyReport.getFoodAnalysis().getOneMealRecommendGram()).isEqualTo(BigDecimal.valueOf(gram * 1.0).setScale(2));
+        assertThat(surveyReport.getFoodAnalysis().getOneDayRecommendGram()).isEqualTo(BigDecimal.valueOf(gram * 2.0).setScale(2));
+
+
+    }
+
+    @Test
+    @DisplayName("그램 수 변경 - 쿠폰 사용 불가일 경우")
+    public void updateGram_cannot_use_coupon() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtcUseCoupon(member, 1, OrderStatus.PAYMENT_DONE);
+        Subscribe subscribe = subscribeOrder.getSubscribe();
+
+        MemberCoupon memberCoupon = subscribe.getMemberCoupon();
+        int remaining = memberCoupon.getRemaining();
+        int availableMinPrice = memberCoupon.getCoupon().getAvailableMinPrice();
+
+        int gram = 100;
+        int totalPrice = availableMinPrice - 1;
+        UpdateGramDto requestDto = UpdateGramDto.builder()
+                .gram(gram)
+                .totalPrice(totalPrice)
+                .build();
+
+        Coupon coupon = memberCoupon.getCoupon();
+        DiscountType discountType = coupon.getDiscountType();
+        int discountDegree = coupon.getDiscountDegree();
+        int discount = 0;
+        if (discountType == DiscountType.FIXED_RATE) {
+            discount = (int) Math.round(totalPrice * discountDegree / 100.0);
+        }
+        int availableMaxDiscount = coupon.getAvailableMaxDiscount();
+        if (discount > availableMaxDiscount) {
+            discount = availableMaxDiscount;
+        }
+        if (totalPrice < coupon.getAvailableMinPrice()) {
+            discount = 0;
+        }
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/subscribes/{id}/gram", subscribe.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+        ;
+
+        em.flush();
+        em.clear();
+
+        Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
+        assertThat(findSubscribe.getNextPaymentPrice()).isEqualTo(totalPrice);
+        assertThat(findSubscribe.getDiscount()).isEqualTo(0);
+        assertThat(findSubscribe.getMemberCoupon()).isNull();
+
+        MemberCoupon findMemberCoupon = memberCouponRepository.findById(memberCoupon.getId()).get();
+        assertThat(findMemberCoupon.getRemaining()).isEqualTo(remaining + 1);
+
+        SurveyReport surveyReport = findSubscribe.getDog().getSurveyReport();
+        assertThat(surveyReport.getFoodAnalysis().getOneMealRecommendGram()).isEqualTo(BigDecimal.valueOf(gram * 1.0).setScale(2));
+        assertThat(surveyReport.getFoodAnalysis().getOneDayRecommendGram()).isEqualTo(BigDecimal.valueOf(gram * 2.0).setScale(2));
+
+
+    }
+
+    @Test
+    @DisplayName("그램 수 변경 not found")
+    public void updateGram_notFound() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtcUseCoupon(member, 1, OrderStatus.PAYMENT_DONE);
+        Subscribe subscribe = subscribeOrder.getSubscribe();
+
+        int gram = 100;
+        int totalPrice = 40000;
+        UpdateGramDto requestDto = UpdateGramDto.builder()
+                .gram(gram)
+                .totalPrice(totalPrice)
+                .build();
+
+        Coupon coupon = subscribe.getMemberCoupon().getCoupon();
+        DiscountType discountType = coupon.getDiscountType();
+        int discountDegree = coupon.getDiscountDegree();
+        int discount = 0;
+        if (discountType == DiscountType.FIXED_RATE) {
+            discount = (int) Math.round(totalPrice * discountDegree / 100.0);
+        }
+        int availableMaxDiscount = coupon.getAvailableMaxDiscount();
+        if (discount > availableMaxDiscount) {
+            discount = availableMaxDiscount;
+        }
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/subscribes/999999/gram")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+        ;
+
+    }
+
 
 
 
@@ -722,7 +952,7 @@ public class SubscribeApiControllerTest extends BaseTest {
     }
 
 
-    private SubscribeOrder generateSubscribeOrderAndEtc(Member member, int i, OrderStatus orderStatus) {
+    private SubscribeOrder generateSubscribeOrderAndEtcUseCoupon(Member member, int i, OrderStatus orderStatus) {
 
         Recipe recipe1 = recipeRepository.findAll().get(0);
         Recipe recipe2 = recipeRepository.findAll().get(1);

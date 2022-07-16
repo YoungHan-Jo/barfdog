@@ -141,4 +141,8 @@ public class Dog extends BaseTimeEntity {
         }
         return month;
     }
+
+    public void updateGram(int gram) {
+        surveyReport.updateGram(gram);
+    }
 }

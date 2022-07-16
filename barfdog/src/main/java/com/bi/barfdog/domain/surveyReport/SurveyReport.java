@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
+import java.math.BigDecimal;
+
 import static javax.persistence.FetchType.*;
 
 @AllArgsConstructor
@@ -57,4 +59,9 @@ public class SurveyReport extends BaseTimeEntity {
         foodAnalysis = newSurveyReport.getFoodAnalysis();
     }
 
+    public void updateGram(int gram) {
+        BigDecimal oneDayRecommendGram = BigDecimal.valueOf(gram * 2.0);
+        BigDecimal oneMealRecommendGram = BigDecimal.valueOf(gram * 1.0);
+        foodAnalysis = new FoodAnalysis(foodAnalysis.getOneDayRecommendKcal(), oneDayRecommendGram, oneMealRecommendGram);
+    }
 }

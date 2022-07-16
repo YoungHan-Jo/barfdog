@@ -1,10 +1,7 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.resource.SubscribesDtoResource;
-import com.bi.barfdog.api.subscribeDto.QuerySubscribeDto;
-import com.bi.barfdog.api.subscribeDto.QuerySubscribesDto;
-import com.bi.barfdog.api.subscribeDto.UpdateSubscribeDto;
-import com.bi.barfdog.api.subscribeDto.UseCouponDto;
+import com.bi.barfdog.api.subscribeDto.*;
 import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.member.Member;
@@ -103,10 +100,26 @@ public class SubscribeApiController {
         representationModel.add(linkTo(SubscribeApiController.class).slash(id).withRel("query_subscribe"));
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-use-coupon-subscribe").withRel("profile"));
 
-
         return ResponseEntity.ok(representationModel);
     }
 
+    @PostMapping("/{id}/gram")
+    public ResponseEntity updateGramSubscribe(@PathVariable Long id,
+                                              @RequestBody @Valid UpdateGramDto requestDto,
+                                              Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+        Optional<Subscribe> optionalSubscribe = subscribeRepository.findById(id);
+        if (!optionalSubscribe.isPresent()) return notFound();
+
+        subscribeService.updateGram(id, requestDto);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(SubscribeApiController.class).slash(id).withSelfRel());
+        representationModel.add(linkTo(SubscribeApiController.class).slash(id).withRel("query_subscribe"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-gram-subscribe").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
 
 
 
