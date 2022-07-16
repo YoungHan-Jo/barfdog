@@ -2,6 +2,7 @@ package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
 import com.bi.barfdog.api.subscribeDto.UpdateSubscribeDto;
+import com.bi.barfdog.api.subscribeDto.UseCouponDto;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.coupon.*;
@@ -414,8 +415,8 @@ public class SubscribeApiControllerTest extends BaseTest {
                                 fieldWithPath("subscribeDto.nextPaymentDate").description("다음 결제일"),
                                 fieldWithPath("subscribeDto.nextPaymentPrice").description("다음 회차 결제 금액(쿠폰 할인 전) -> 실제로는 nextPaymentPrice-discount 금액이 결제 됨"),
                                 fieldWithPath("subscribeDto.nextDeliveryDate").description("다음 배송일"),
-                                fieldWithPath("subscribeDto.usingMemberCouponId").description("사용한 보유쿠폰 id"),
-                                fieldWithPath("subscribeDto.couponName").description("적용된 쿠폰 이름"),
+                                fieldWithPath("subscribeDto.usingMemberCouponId").description("사용한 보유쿠폰 id, 없으면 null"),
+                                fieldWithPath("subscribeDto.couponName").description("적용된 쿠폰 이름, 없으면 null"),
                                 fieldWithPath("subscribeDto.discount").description("쿠폰 할인량. nextPaymentPrice-discount 금액이 실제로 결제 됨"),
                                 fieldWithPath("subscribeRecipeDtoList[0].recipeId").description("구독한 레시피 id"),
                                 fieldWithPath("subscribeRecipeDtoList[0].recipeName").description("구독한 레시피 이름"),
@@ -456,6 +457,106 @@ public class SubscribeApiControllerTest extends BaseTest {
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    @DisplayName("구독에 쿠폰 적용")
+    public void useCouponToSubscribe() throws Exception {
+       //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtcNoCoupon(member, 1, OrderStatus.PAYMENT_DONE);
+        Subscribe subscribe = subscribeOrder.getSubscribe();
+
+        Coupon coupon = generateGeneralCoupon(1);
+        MemberCoupon memberCoupon = generateMemberCoupon(member, coupon, 1, CouponStatus.ACTIVE);
+        int remaining = memberCoupon.getRemaining();
+
+        int discount = 3000;
+        UseCouponDto requestDto = UseCouponDto.builder()
+                .memberCouponId(memberCoupon.getId())
+                .discount(discount)
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/subscribes/{id}/coupon",subscribe.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("use_coupon_subscribe",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_subscribe").description("구독 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("구독 id")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestFields(
+                                fieldWithPath("memberCouponId").description("사용한 보유쿠폰id"),
+                                fieldWithPath("discount").description("쿠폰 할인량")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_subscribe.href").description("구독 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+        ;
+
+        em.flush();
+        em.clear();
+
+        Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
+        assertThat(findSubscribe.getMemberCoupon().getId()).isEqualTo(memberCoupon.getId());
+        assertThat(findSubscribe.getDiscount()).isEqualTo(discount);
+
+        MemberCoupon findMemberCoupon = memberCouponRepository.findById(memberCoupon.getId()).get();
+        assertThat(findMemberCoupon.getRemaining()).isEqualTo(remaining - 1);
+        if (findMemberCoupon.getRemaining() == 0) {
+            assertThat(findMemberCoupon.getMemberCouponStatus()).isEqualTo(CouponStatus.INACTIVE);
+        } else {
+            assertThat(findMemberCoupon.getMemberCouponStatus()).isEqualTo(CouponStatus.ACTIVE);
+        }
+    }
+
+    @Test
+    @DisplayName("구독에 쿠폰 적용 not found")
+    public void useCouponToSubscribe_notFound() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtcNoCoupon(member, 1, OrderStatus.PAYMENT_DONE);
+        Subscribe subscribe = subscribeOrder.getSubscribe();
+
+        Coupon coupon = generateGeneralCoupon(1);
+        MemberCoupon memberCoupon = generateMemberCoupon(member, coupon, 1, CouponStatus.ACTIVE);
+        int remaining = memberCoupon.getRemaining();
+
+        int discount = 3000;
+        UseCouponDto requestDto = UseCouponDto.builder()
+                .memberCouponId(memberCoupon.getId())
+                .discount(discount)
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/subscribes/999999/coupon")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
 
 
 
@@ -502,6 +603,124 @@ public class SubscribeApiControllerTest extends BaseTest {
     // ============================================================================================
 
 
+    private SubscribeOrder generateSubscribeOrderAndEtcNoCoupon(Member member, int i, OrderStatus orderStatus) {
+        Recipe recipe1 = recipeRepository.findAll().get(0);
+        Recipe recipe2 = recipeRepository.findAll().get(1);
+
+        DogSaveRequestDto requestDto = DogSaveRequestDto.builder()
+                .name("김바프")
+                .gender(Gender.MALE)
+                .birth("202102")
+                .oldDog(false)
+                .dogType("포메라니안")
+                .dogSize(DogSize.SMALL)
+                .weight("3.5")
+                .neutralization(true)
+                .activityLevel(ActivityLevel.NORMAL)
+                .walkingCountPerWeek("10")
+                .walkingTimePerOneTime("1.1")
+                .dogStatus(DogStatus.HEALTHY)
+                .snackCountLevel(SnackCountLevel.NORMAL)
+                .inedibleFood("NONE")
+                .inedibleFoodEtc("NONE")
+                .recommendRecipeId(recipe1.getId())
+                .caution("NONE")
+                .build();
+
+        String birth = requestDto.getBirth();
+
+        DogSize dogSize = requestDto.getDogSize();
+        Long startAgeMonth = getTerm(birth + "01");
+        boolean oldDog = requestDto.isOldDog();
+        boolean neutralization = requestDto.isNeutralization();
+        DogStatus dogStatus = requestDto.getDogStatus();
+        SnackCountLevel snackCountLevel = requestDto.getSnackCountLevel();
+        BigDecimal weight = new BigDecimal(requestDto.getWeight());
+
+        Delivery delivery = generateDelivery(member, i);
+
+        Subscribe subscribe = generateSubscribe(i);
+
+        BeforeSubscribe beforeSubscribe = generateBeforeSubscribe(i);
+        subscribe.setBeforeSubscribe(beforeSubscribe);
+
+        generateSubscribeRecipe(recipe1, subscribe);
+        generateSubscribeRecipe(recipe2, subscribe);
+
+        List<Dog> dogs = dogRepository.findByMember(member);
+        Recipe findRecipe = recipeRepository.findById(requestDto.getRecommendRecipeId()).get();
+
+        Dog dog = Dog.builder()
+                .member(member)
+                .representative(dogs.size() == 0 ? true : false)
+                .name(requestDto.getName())
+                .gender(requestDto.getGender())
+                .birth(birth)
+                .startAgeMonth(startAgeMonth)
+                .oldDog(oldDog)
+                .dogType(requestDto.getDogType())
+                .dogSize(dogSize)
+                .weight(weight)
+                .neutralization(neutralization)
+                .dogActivity(getDogActivity(requestDto))
+                .dogStatus(dogStatus)
+                .snackCountLevel(snackCountLevel)
+                .inedibleFood(requestDto.getInedibleFood())
+                .inedibleFoodEtc(requestDto.getInedibleFoodEtc())
+                .recommendRecipe(findRecipe)
+                .caution(requestDto.getCaution())
+                .subscribe(subscribe)
+                .build();
+        dogRepository.save(dog);
+        subscribe.setDog(dog);
+
+        DogPicture dogPicture = DogPicture.builder()
+                .dog(dog)
+                .folder("folder"+i)
+                .filename("filename"+i)
+                .build();
+        dogPictureRepository.save(dogPicture);
+
+        SurveyReport surveyReport = SurveyReport.builder()
+                .dog(dog)
+                .ageAnalysis(getAgeAnalysis(startAgeMonth))
+                .weightAnalysis(getWeightAnalysis(dogSize, weight))
+                .activityAnalysis(getActivityAnalysis(dogSize, dog))
+                .walkingAnalysis(getWalkingAnalysis(member, dog))
+                .foodAnalysis(getDogAnalysis(requestDto, findRecipe, dogSize, startAgeMonth, oldDog, neutralization, dogStatus, requestDto.getActivityLevel(), snackCountLevel))
+                .snackAnalysis(getSnackAnalysis(dog))
+                .build();
+        surveyReportRepository.save(surveyReport);
+        dog.setSurveyReport(surveyReport);
+
+        Coupon coupon1 = generateGeneralCoupon(1);
+        MemberCoupon memberCoupon1 = generateMemberCoupon(member, coupon1, 3, CouponStatus.ACTIVE);
+
+
+        SubscribeOrder subscribeOrder = SubscribeOrder.builder()
+                .impUid("imp_uid"+i)
+                .merchantUid("merchant_uid"+i)
+                .orderStatus(orderStatus)
+                .member(member)
+                .orderPrice(120000)
+                .deliveryPrice(0)
+                .discountTotal(0)
+                .discountReward(0)
+                .discountCoupon(0)
+                .paymentPrice(120000)
+                .paymentMethod(PaymentMethod.CREDIT_CARD)
+                .isPackage(false)
+                .delivery(delivery)
+                .subscribe(subscribe)
+                .memberCoupon(memberCoupon1)
+                .subscribeCount(subscribe.getSubscribeCount())
+                .orderConfirmDate(LocalDateTime.now().minusHours(3))
+                .build();
+        orderRepository.save(subscribeOrder);
+
+        return subscribeOrder;
+    }
+
 
     private SubscribeOrder generateSubscribeOrderAndEtc(Member member, int i, OrderStatus orderStatus) {
 
@@ -540,8 +759,8 @@ public class SubscribeApiControllerTest extends BaseTest {
 
         Delivery delivery = generateDelivery(member, i);
 
-
         Subscribe subscribe = generateSubscribeUseCoupon(member, i);
+
         BeforeSubscribe beforeSubscribe = generateBeforeSubscribe(i);
         subscribe.setBeforeSubscribe(beforeSubscribe);
 

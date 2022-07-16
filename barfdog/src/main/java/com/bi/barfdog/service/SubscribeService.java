@@ -1,10 +1,13 @@
 package com.bi.barfdog.service;
 
 import com.bi.barfdog.api.subscribeDto.UpdateSubscribeDto;
+import com.bi.barfdog.api.subscribeDto.UseCouponDto;
+import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.subscribe.BeforeSubscribe;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.domain.subscribeRecipe.SubscribeRecipe;
+import com.bi.barfdog.repository.memberCoupon.MemberCouponRepository;
 import com.bi.barfdog.repository.order.OrderRepository;
 import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.repository.subscribe.BeforeSubscribeRepository;
@@ -26,6 +29,7 @@ public class SubscribeService {
     private final SubscribeRecipeRepository subscribeRecipeRepository;
     private final BeforeSubscribeRepository beforeSubscribeRepository;
     private final OrderRepository orderRepository;
+    private final MemberCouponRepository memberCouponRepository;
 
     @Transactional
     public void updateSubscribe(Long id, UpdateSubscribeDto requestDto) {
@@ -82,5 +86,15 @@ public class SubscribeService {
                     .build();
             subscribeRecipeRepository.save(subscribeRecipe);
         }
+    }
+
+    @Transactional
+    public void useCoupon(Long id, UseCouponDto requestDto) {
+        Subscribe subscribe = subscribeRepository.findById(id).get();
+        Long memberCouponId = requestDto.getMemberCouponId();
+        MemberCoupon memberCoupon = memberCouponRepository.findById(memberCouponId).get();
+        int discount = requestDto.getDiscount();
+        subscribe.useCoupon(memberCoupon, discount);
+
     }
 }

@@ -4,6 +4,7 @@ import com.bi.barfdog.api.resource.SubscribesDtoResource;
 import com.bi.barfdog.api.subscribeDto.QuerySubscribeDto;
 import com.bi.barfdog.api.subscribeDto.QuerySubscribesDto;
 import com.bi.barfdog.api.subscribeDto.UpdateSubscribeDto;
+import com.bi.barfdog.api.subscribeDto.UseCouponDto;
 import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.member.Member;
@@ -22,6 +23,7 @@ import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
+import retrofit2.http.Path;
 
 import javax.validation.Valid;
 import java.util.Optional;
@@ -84,6 +86,25 @@ public class SubscribeApiController {
         );
 
         return ResponseEntity.ok(entityModel);
+    }
+
+    @PostMapping("/{id}/coupon")
+    public ResponseEntity useCouponToSubscribe(@PathVariable Long id,
+                                               @RequestBody @Valid UseCouponDto requestDto,
+                                               Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+        Optional<Subscribe> optionalSubscribe = subscribeRepository.findById(id);
+        if (!optionalSubscribe.isPresent()) return notFound();
+
+        subscribeService.useCoupon(id,requestDto);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(SubscribeApiController.class).slash(id).withSelfRel());
+        representationModel.add(linkTo(SubscribeApiController.class).slash(id).withRel("query_subscribe"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-use-coupon-subscribe").withRel("profile"));
+
+
+        return ResponseEntity.ok(representationModel);
     }
 
 

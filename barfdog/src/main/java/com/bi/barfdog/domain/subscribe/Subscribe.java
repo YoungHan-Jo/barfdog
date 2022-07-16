@@ -133,4 +133,11 @@ public class Subscribe extends BaseTimeEntity {
         nextPaymentDate = null;
     }
 
+    public void useCoupon(MemberCoupon memberCoupon, int discount) {
+        this.memberCoupon = memberCoupon;
+        this.discount = discount;
+        memberCoupon.useCoupon();
+    }
+
+
 }
