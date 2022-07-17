@@ -96,7 +96,7 @@ public class SubscribeApiController {
         subscribeService.useCoupon(id,requestDto);
 
         RepresentationModel representationModel = new RepresentationModel();
-        representationModel.add(linkTo(SubscribeApiController.class).slash(id).withSelfRel());
+        representationModel.add(linkTo(SubscribeApiController.class).slash(id).slash("coupon").withSelfRel());
         representationModel.add(linkTo(SubscribeApiController.class).slash(id).withRel("query_subscribe"));
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-use-coupon-subscribe").withRel("profile"));
 
@@ -114,9 +114,28 @@ public class SubscribeApiController {
         subscribeService.updateGram(id, requestDto);
 
         RepresentationModel representationModel = new RepresentationModel();
-        representationModel.add(linkTo(SubscribeApiController.class).slash(id).withSelfRel());
+        representationModel.add(linkTo(SubscribeApiController.class).slash(id).slash("gram").withSelfRel());
         representationModel.add(linkTo(SubscribeApiController.class).slash(id).withRel("query_subscribe"));
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-gram-subscribe").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @PostMapping("/{id}/plan")
+    public ResponseEntity updatePlanSubscribe(@PathVariable Long id,
+                                              @RequestBody @Valid UpdatePlanDto requestDto,
+                                              Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+        Optional<Subscribe> optionalSubscribe = subscribeRepository.findById(id);
+        if (!optionalSubscribe.isPresent()) return notFound();
+
+        subscribeService.updatePlan(id, requestDto);
+
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(SubscribeApiController.class).slash(id).slash("plan").withSelfRel());
+        representationModel.add(linkTo(SubscribeApiController.class).slash(id).withRel("query_subscribe"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-plan-subscribe").withRel("profile"));
 
         return ResponseEntity.ok(representationModel);
     }

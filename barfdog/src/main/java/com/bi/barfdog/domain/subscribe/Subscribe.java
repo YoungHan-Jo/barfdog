@@ -1,6 +1,7 @@
 package com.bi.barfdog.domain.subscribe;
 
 import com.bi.barfdog.api.subscribeDto.UpdateGramDto;
+import com.bi.barfdog.api.subscribeDto.UpdatePlanDto;
 import com.bi.barfdog.api.subscribeDto.UpdateSubscribeDto;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.coupon.Coupon;
@@ -137,7 +138,9 @@ public class Subscribe extends BaseTimeEntity {
     }
 
     public void useCoupon(MemberCoupon memberCoupon, int discount) {
-        this.memberCoupon.cancel();
+        if (this.memberCoupon != null) {
+            this.memberCoupon.cancel();
+        }
         this.memberCoupon = memberCoupon;
         this.discount = discount;
         memberCoupon.useCoupon();
@@ -173,5 +176,13 @@ public class Subscribe extends BaseTimeEntity {
             }
         }
         return newDiscount;
+    }
+
+    public void updatePlan(UpdatePlanDto requestDto) {
+        this.plan = requestDto.getPlan();
+        int totalPrice = requestDto.getNextPaymentPrice();
+        this.nextPaymentPrice = totalPrice;
+        int newDiscount = calculateNewDiscount(totalPrice, memberCoupon);
+        this.discount = newDiscount;
     }
 }

@@ -2,6 +2,7 @@ package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
 import com.bi.barfdog.api.subscribeDto.UpdateGramDto;
+import com.bi.barfdog.api.subscribeDto.UpdatePlanDto;
 import com.bi.barfdog.api.subscribeDto.UpdateSubscribeDto;
 import com.bi.barfdog.api.subscribeDto.UseCouponDto;
 import com.bi.barfdog.common.AppProperties;
@@ -640,7 +641,7 @@ public class SubscribeApiControllerTest extends BaseTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andDo(document("update_coupon_subscribe",
+                .andDo(document("update_gram_subscribe",
                         links(
                                 linkWithRel("self").description("self 링크"),
                                 linkWithRel("query_subscribe").description("구독 조회 링크"),
@@ -785,6 +786,145 @@ public class SubscribeApiControllerTest extends BaseTest {
         ;
 
     }
+
+    @Test
+    @DisplayName("구독 플랜 업데이트")
+    public void updatePlan() throws Exception {
+       //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtcUseCoupon(member, 1, OrderStatus.PAYMENT_DONE);
+        Subscribe subscribe = subscribeOrder.getSubscribe();
+
+        Recipe recipe = recipeRepository.findAll().get(2);
+        List<Long> recipeIdList = new ArrayList<>();
+        Long recipeId = recipe.getId();
+        recipeIdList.add(recipeId);
+
+        SubscribePlan plan = SubscribePlan.TOPPING;
+        int nextPaymentPrice = 40000;
+        UpdatePlanDto requestDto = UpdatePlanDto.builder()
+                .plan(plan)
+                .nextPaymentPrice(nextPaymentPrice)
+                .recipeIdList(recipeIdList)
+                .build();
+
+        MemberCoupon memberCoupon = subscribe.getMemberCoupon();
+        int remaining = memberCoupon.getRemaining();
+        int availableMinPrice = memberCoupon.getCoupon().getAvailableMinPrice();
+        Coupon coupon = subscribe.getMemberCoupon().getCoupon();
+        DiscountType discountType = coupon.getDiscountType();
+        int discountDegree = coupon.getDiscountDegree();
+        int discount = 0;
+        if (discountType == DiscountType.FIXED_RATE) {
+            discount = (int) Math.round(nextPaymentPrice * discountDegree / 100.0);
+        }
+        int availableMaxDiscount = coupon.getAvailableMaxDiscount();
+        if (discount > availableMaxDiscount) {
+            discount = availableMaxDiscount;
+        }
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/subscribes/{id}/plan", subscribe.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("update_plan_subscribe",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_subscribe").description("구독 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("구독 id")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestFields(
+                                fieldWithPath("plan").description("변경할 플랜 [FULL, HALF, TOPPING]"),
+                                fieldWithPath("nextPaymentPrice").description("변경 후 구독 가격(쿠폰할인 적용 전)"),
+                                fieldWithPath("recipeIdList").description("변경할 레시피 id 리스트")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_subscribe.href").description("구독 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+        ;
+
+        em.flush();
+        em.clear();
+
+        Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
+        assertThat(findSubscribe.getPlan()).isEqualTo(plan);
+        assertThat(findSubscribe.getNextPaymentPrice()).isEqualTo(nextPaymentPrice);
+        assertThat(findSubscribe.getDiscount()).isEqualTo(discount);
+
+        List<SubscribeRecipe> subscribeRecipes = subscribeRecipeRepository.findBySubscribe(findSubscribe);
+        assertThat(subscribeRecipes.size()).isEqualTo(1);
+        assertThat(subscribeRecipes.get(0).getRecipe().getId()).isEqualTo(recipeId);
+
+
+    }
+
+    @Test
+    @DisplayName("구독 플랜 업데이트 not found")
+    public void updatePlan_not_found() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtcUseCoupon(member, 1, OrderStatus.PAYMENT_DONE);
+        Subscribe subscribe = subscribeOrder.getSubscribe();
+
+        Recipe recipe = recipeRepository.findAll().get(2);
+        List<Long> recipeIdList = new ArrayList<>();
+        Long recipeId = recipe.getId();
+        recipeIdList.add(recipeId);
+
+        SubscribePlan plan = SubscribePlan.TOPPING;
+        int nextPaymentPrice = 40000;
+        UpdatePlanDto requestDto = UpdatePlanDto.builder()
+                .plan(plan)
+                .nextPaymentPrice(nextPaymentPrice)
+                .recipeIdList(recipeIdList)
+                .build();
+
+        MemberCoupon memberCoupon = subscribe.getMemberCoupon();
+        int remaining = memberCoupon.getRemaining();
+        int availableMinPrice = memberCoupon.getCoupon().getAvailableMinPrice();
+        Coupon coupon = subscribe.getMemberCoupon().getCoupon();
+        DiscountType discountType = coupon.getDiscountType();
+        int discountDegree = coupon.getDiscountDegree();
+        int discount = 0;
+        if (discountType == DiscountType.FIXED_RATE) {
+            discount = (int) Math.round(nextPaymentPrice * discountDegree / 100.0);
+        }
+        int availableMaxDiscount = coupon.getAvailableMaxDiscount();
+        if (discount > availableMaxDiscount) {
+            discount = availableMaxDiscount;
+        }
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/subscribes/999999/plan")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+        ;
+    }
+
 
 
 

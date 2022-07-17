@@ -1,6 +1,7 @@
 package com.bi.barfdog.service;
 
 import com.bi.barfdog.api.subscribeDto.UpdateGramDto;
+import com.bi.barfdog.api.subscribeDto.UpdatePlanDto;
 import com.bi.barfdog.api.subscribeDto.UpdateSubscribeDto;
 import com.bi.barfdog.api.subscribeDto.UseCouponDto;
 import com.bi.barfdog.domain.coupon.Coupon;
@@ -105,5 +106,28 @@ public class SubscribeService {
     public void updateGram(Long id, UpdateGramDto requestDto) {
         Subscribe subscribe = subscribeRepository.findById(id).get();
         subscribe.updateGram(requestDto);
+    }
+
+    @Transactional
+    public void updatePlan(Long id, UpdatePlanDto requestDto) {
+        Subscribe subscribe = subscribeRepository.findById(id).get();
+        subscribe.updatePlan(requestDto);
+
+        subscribeRecipeRepository.deleteAllBySubscribe(subscribe);
+        List<Long> recipeIdList = requestDto.getRecipeIdList();
+        for (Long recipeId : recipeIdList) {
+            saveSubscribeRecipe(subscribe, recipeId);
+        }
+    }
+
+
+
+    private void saveSubscribeRecipe(Subscribe subscribe, Long recipeId) {
+        Recipe recipe = recipeRepository.findById(recipeId).get();
+        SubscribeRecipe subscribeRecipe = SubscribeRecipe.builder()
+                .subscribe(subscribe)
+                .recipe(recipe)
+                .build();
+        subscribeRecipeRepository.save(subscribeRecipe);
     }
 }

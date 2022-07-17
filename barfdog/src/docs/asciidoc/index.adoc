@@ -1602,5 +1602,12 @@ operation::use_coupon_subscribe[snippets='curl-request,path-parameters,request-h
 
 `POST` 요청을 사용하여 구독 그램 변경을 적용할 수 있다.
 
-operation::update_coupon_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+operation::update_gram_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-update-plan-subscribe]]
+=== 구독 플랜 변경 적용
+
+`POST` 요청을 사용하여 구독 플랜 변경을 적용할 수 있다.
+
+operation::update_plan_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
