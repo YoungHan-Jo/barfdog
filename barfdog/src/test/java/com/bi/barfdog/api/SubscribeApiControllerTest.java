@@ -926,6 +926,24 @@ public class SubscribeApiControllerTest extends BaseTest {
     }
 
 
+    @Test
+    @DisplayName("구독 중단하기")
+    public void stopSubscribe() throws Exception {
+       //given
+
+       //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/subscribes/{id}/cancel")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+        ;
+
+    }
+
+
+
 
 
 

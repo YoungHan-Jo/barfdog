@@ -20,6 +20,7 @@ public class QueryAdminOrdersDto {
     private Long orderItemId;
     private OrderStatus orderStatus;
     private LocalDateTime OrderDate;
+    private String deliveryNumber;
     private String memberEmail;
     private String memberName;
     private String memberPhoneNumber;

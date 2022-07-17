@@ -42,6 +42,15 @@ public class OrderItem extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
+    @Embedded
+    private OrderCancel orderCancel;
+
+    @Embedded
+    private OrderReturn orderReturn;
+
+    @Embedded
+    private OrderExchange orderExchange;
+
     private int saveReward;
     private boolean isSavedReward;
 

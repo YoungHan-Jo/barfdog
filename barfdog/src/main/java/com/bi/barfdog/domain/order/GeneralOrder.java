@@ -2,6 +2,7 @@ package com.bi.barfdog.domain.order;
 
 import com.bi.barfdog.domain.delivery.Delivery;
 import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.domain.orderItem.OrderCancel;
 import com.bi.barfdog.domain.orderItem.OrderItem;
 import lombok.*;
 

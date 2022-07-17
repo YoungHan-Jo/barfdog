@@ -2,7 +2,6 @@ package com.bi.barfdog.repository.order;
 
 import com.bi.barfdog.api.InfoController;
 import com.bi.barfdog.api.orderDto.*;
-import com.bi.barfdog.domain.item.QItemImage;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.order.OrderStatus;
 import com.bi.barfdog.domain.orderItem.OrderItem;
@@ -645,7 +644,11 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         member.name,
                         member.phoneNumber,
                         member.email,
-                        member.isSubscribe
+                        member.isSubscribe,
+                        subscribeOrder.orderCancel.cancelReason,
+                        subscribeOrder.orderCancel.cancelDetailReason,
+                        subscribeOrder.orderCancel.cancelRequestDate,
+                        subscribeOrder.orderCancel.cancelConfirmDate
                 ))
                 .from(subscribeOrder)
                 .join(subscribeOrder.member, member)
@@ -666,6 +669,7 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         subscribeOrder.subscribe.id,
                         order.orderStatus,
                         order.createdDate,
+                        delivery.deliveryNumber,
                         order.member.email,
                         order.member.name,
                         order.member.phoneNumber,
@@ -675,13 +679,14 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                 ))
                 .from(order)
                 .join(subscribeOrder).on(subscribeOrder.eq(order))
+                .join(order.delivery, delivery)
                 .where(
                         order.createdDate.between(from, to),
                         merchantUidEq(cond.getMerchantUid()),
                         memberNameEq(cond.getMemberName()),
                         memberEmailEq(cond.getMemberEmail()),
                         recipientNameEq(cond.getRecipientName()),
-                        orderStatusEq(cond.getStatus())
+                        orderStatusIn(cond.getStatusList())
                 )
                 .orderBy(order.createdDate.desc())
                 .offset(pageable.getOffset())
@@ -698,7 +703,7 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         memberNameEq(cond.getMemberName()),
                         memberEmailEq(cond.getMemberEmail()),
                         recipientNameEq(cond.getRecipientName()),
-                        orderStatusEq(cond.getStatus())
+                        orderStatusIn(cond.getStatusList())
                 )
                 .fetchOne();
         return new PageImpl<>(result, pageable, totalCount);
@@ -718,6 +723,7 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         orderItem.id,
                         generalOrder.orderStatus,
                         generalOrder.createdDate,
+                        delivery.deliveryNumber,
                         generalOrder.member.email,
                         generalOrder.member.name,
                         generalOrder.member.phoneNumber,
@@ -727,13 +733,14 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                 ))
                 .from(orderItem)
                 .join(orderItem.generalOrder, generalOrder)
+                .join(generalOrder.delivery, delivery)
                 .where(
                         generalOrder.createdDate.between(from, to),
                         orderItemMerchantUidEq(cond.getMerchantUid()),
                         orderItemMemberNameEq(cond.getMemberName()),
                         orderItemMemberEmail(cond.getMemberEmail()),
                         orderItemRecipientNameEq(cond.getRecipientName()),
-                        orderItemStatusEq(cond.getStatus())
+                        orderItemStatusIn(cond.getStatusList())
                 )
                 .orderBy(generalOrder.createdDate.desc())
                 .offset(pageable.getOffset())
@@ -750,18 +757,19 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         orderItemMemberNameEq(cond.getMemberName()),
                         orderItemMemberEmail(cond.getMemberEmail()),
                         orderItemRecipientNameEq(cond.getRecipientName()),
-                        orderItemStatusEq(cond.getStatus())
+                        orderItemStatusIn(cond.getStatusList())
                 )
                 .fetchOne();
 
         return new PageImpl<>(result, pageable, totalCount);
     }
 
-    private BooleanExpression orderItemStatusEq(OrderStatus orderstatus) {
-        if (orderstatus == com.bi.barfdog.domain.order.OrderStatus.ALL) {
+    private BooleanExpression orderItemStatusIn(List<OrderStatus> orderStatusList) {
+        if (orderStatusList == null || orderStatusList.size() == 0) {
             return null;
+        } else {
+            return orderItem.status.in(orderStatusList);
         }
-        return orderItem.status.eq(orderstatus);
     }
 
     private BooleanExpression orderItemRecipientNameEq(String name) {
@@ -780,11 +788,11 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
         return isNotEmpty(merchantUid) ? orderItem.generalOrder.merchantUid.eq(merchantUid) : null;
     }
 
-    private BooleanExpression orderStatusEq(com.bi.barfdog.domain.order.OrderStatus orderStatus) {
-        if (orderStatus == com.bi.barfdog.domain.order.OrderStatus.ALL) {
+    private BooleanExpression orderStatusIn(List<OrderStatus> orderStatusList) {
+        if (orderStatusList == null || orderStatusList.size() == 0) {
             return null;
         } else {
-            return order.orderStatus.eq(orderStatus);
+            return order.orderStatus.in(orderStatusList);
         }
     }
 

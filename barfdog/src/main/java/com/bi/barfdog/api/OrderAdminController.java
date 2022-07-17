@@ -1,13 +1,12 @@
 package com.bi.barfdog.api;
 
-import com.bi.barfdog.api.orderDto.OrderAdminCond;
-import com.bi.barfdog.api.orderDto.QueryAdminGeneralOrderDto;
-import com.bi.barfdog.api.orderDto.QueryAdminOrdersDto;
-import com.bi.barfdog.api.orderDto.QueryAdminSubscribeOrderDto;
+import com.bi.barfdog.api.orderDto.*;
 import com.bi.barfdog.api.resource.AdminOrdersDtoResource;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.order.Order;
+import com.bi.barfdog.domain.orderItem.OrderItem;
 import com.bi.barfdog.repository.order.OrderRepository;
+import com.bi.barfdog.repository.orderItem.OrderItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,15 +32,16 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 public class OrderAdminController {
 
     private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
 
     WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
 
-    @GetMapping
+    @PostMapping("/search")
     public ResponseEntity queryOrders(Pageable pageable,
                                       PagedResourcesAssembler<QueryAdminOrdersDto> assembler,
-                                      @ModelAttribute @Valid OrderAdminCond cond,
-                                      BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) return badRequest(bindingResult);
+                                      @RequestBody @Valid OrderAdminCond cond,
+                                      Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
 
         Page<QueryAdminOrdersDto> page = orderRepository.findAdminOrdersDto(pageable, cond);
 
@@ -66,6 +66,22 @@ public class OrderAdminController {
 
         return ResponseEntity.ok(entityModel);
     }
+
+    @GetMapping("/orderItem/{id}")
+    public ResponseEntity queryOrderItem(@PathVariable Long id) {
+        Optional<OrderItem> optionalOrderItem = orderItemRepository.findById(id);
+        if (!optionalOrderItem.isPresent()) return notFound();
+
+        QueryAdminOrderItemDto responseDto = orderItemRepository.findAdminOrderItemDto(id);
+
+        EntityModel<QueryAdminOrderItemDto> entityModel = EntityModel.of(responseDto,
+                linkTo(OrderAdminController.class).slash("orderItem").slash(id).withSelfRel(),
+                profileRootUrlBuilder.slash("index.html#resources-query-admin-order-orderItem").withRel("profile")
+        );
+
+        return ResponseEntity.ok(entityModel);
+    }
+
 
     @GetMapping("/{id}/subscribe")
     public ResponseEntity querySubscribeOrder(@PathVariable Long id) {

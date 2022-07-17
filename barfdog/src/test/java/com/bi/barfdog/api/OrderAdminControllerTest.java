@@ -1,6 +1,8 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
+import com.bi.barfdog.api.orderDto.OrderAdminCond;
+import com.bi.barfdog.api.orderDto.OrderType;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.coupon.*;
@@ -15,8 +17,7 @@ import com.bi.barfdog.domain.member.Gender;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.domain.order.*;
-import com.bi.barfdog.domain.orderItem.OrderItem;
-import com.bi.barfdog.domain.orderItem.SelectOption;
+import com.bi.barfdog.domain.orderItem.*;
 import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.setting.ActivityConstant;
 import com.bi.barfdog.domain.setting.Setting;
@@ -54,6 +55,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
+import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,6 +64,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
@@ -77,8 +80,7 @@ import static org.springframework.restdocs.headers.HeaderDocumentation.headerWit
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
-import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -185,24 +187,21 @@ public class OrderAdminControllerTest extends BaseTest {
             generateGeneralOrder(admin, i, OrderStatus.PAYMENT_DONE);
         });
 
-        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        OrderAdminCond request = OrderAdminCond.builder()
+                .from(LocalDate.now().minusMonths(1))
+                .to(LocalDate.now())
+                .orderType(OrderType.GENERAL)
+                .build();
 
         //when & then
-        mockMvc.perform(get("/api/admin/orders")
+        mockMvc.perform(post("/api/admin/orders/search")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .param("page", "1")
                         .param("size", "5")
-                        .param("from", "2022-06-01")
-                        .param("to", today)
-                        .param("merchantUid", "")
-                        .param("memberName", "")
-                        .param("memberEmail", "")
-                        .param("recipientName", "")
-                        .param("status", "ALL")
-                        .param("orderType", "GENERAL")
-                )
+                        .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("page.totalElements").value(14))
@@ -222,20 +221,22 @@ public class OrderAdminControllerTest extends BaseTest {
                         ),
                         requestParameters(
                                 parameterWithName("page").description("페이지 번호 [0번부터 시작 - 0번이 첫 페이지]"),
-                                parameterWithName("size").description("한 페이지 당 조회 개수"),
-                                parameterWithName("from").description("검색 날짜 from 'yyyy-MM-dd'"),
-                                parameterWithName("to").description("검색 날짜 to 'yyyy-MM-dd'"),
-                                parameterWithName("merchantUid").description("주문 번호 - 검색조건 없으면 null or 빈문자열"),
-                                parameterWithName("memberName").description("주문자 이름 - 검색조건 없으면 null or 빈문자열"),
-                                parameterWithName("memberEmail").description("주문자 email - 검색조건 없으면 null or 빈문자열"),
-                                parameterWithName("recipientName").description("수령자 이름 - 검색조건 없으면 null or 빈문자열"),
-                                parameterWithName("status").description("주문 상태 반드시 대문자 [ALL, HOLD, PAYMENT_DONE, PRODUCING, " +
+                                parameterWithName("size").description("한 페이지 당 조회 개수")
+                        ),
+                        requestFields(
+                                fieldWithPath("from").description("검색 날짜 from 'yyyy-MM-dd'"),
+                                fieldWithPath("to").description("검색 날짜 to 'yyyy-MM-dd'"),
+                                fieldWithPath("merchantUid").description("주문 번호 - 검색조건 없으면 null or 빈문자열"),
+                                fieldWithPath("memberName").description("주문자 이름 - 검색조건 없으면 null or 빈문자열"),
+                                fieldWithPath("memberEmail").description("주문자 email - 검색조건 없으면 null or 빈문자열"),
+                                fieldWithPath("recipientName").description("수령자 이름 - 검색조건 없으면 null or 빈문자열"),
+                                fieldWithPath("statusList").description("주문 상태 리스트. 전체 상태 검색 시 null or 빈 배열 [HOLD, PAYMENT_DONE, PRODUCING, " +
                                         "DELIVERY_READY, DELIVERY_START, " +
                                         "SELLING_CANCEL, CANCEL_REQUEST, CANCEL_DONE, " +
                                         "RETURN_REQUEST, RETURN_DONE, " +
                                         "EXCHANGE_REQUEST, EXCHANGE_DONE, " +
                                         "FAILED, CONFIRM] "),
-                                parameterWithName("orderType").description("주문 타입 반드시 대문자 [ALL,GENERAL,SUBSCRIBE] ")
+                                fieldWithPath("orderType").description("주문 타입 [GENERAL,SUBSCRIBE] ")
                         ),
                         responseHeaders(
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
@@ -246,6 +247,7 @@ public class OrderAdminControllerTest extends BaseTest {
                                 fieldWithPath("_embedded.queryAdminOrdersDtoList[0].merchantUid").description("상품 주문 번호"),
                                 fieldWithPath("_embedded.queryAdminOrdersDtoList[0].orderItemId").description("주문한 상품 id, 구독상품일 경우 구독 id"),
                                 fieldWithPath("_embedded.queryAdminOrdersDtoList[0].orderStatus").description("주문 상태"),
+                                fieldWithPath("_embedded.queryAdminOrdersDtoList[0].deliveryNumber").description("운송장 번호, 없으면 null"),
                                 fieldWithPath("_embedded.queryAdminOrdersDtoList[0].memberEmail").description("구매자 email"),
                                 fieldWithPath("_embedded.queryAdminOrdersDtoList[0].memberName").description("구매자 이름"),
                                 fieldWithPath("_embedded.queryAdminOrdersDtoList[0].memberPhoneNumber").description("구매자 휴대전화"),
@@ -281,37 +283,34 @@ public class OrderAdminControllerTest extends BaseTest {
         });
 
         IntStream.range(6,9).forEach(i -> {
-            generateGeneralOrder(member, i, OrderStatus.PAYMENT_DONE);
+            generateSubscribeOrder(admin,i, OrderStatus.DELIVERY_READY);
         });
 
         IntStream.range(9,13).forEach(i -> {
-            generateSubscribeOrder(admin,i, OrderStatus.DELIVERY_READY);
+            generateGeneralOrder(member, i, OrderStatus.PAYMENT_DONE);
         });
 
         IntStream.range(13,17).forEach(i -> {
             generateGeneralOrder(admin, i, OrderStatus.PAYMENT_DONE);
         });
 
-        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        OrderAdminCond request = OrderAdminCond.builder()
+                .from(LocalDate.now().minusMonths(1))
+                .to(LocalDate.now())
+                .orderType(OrderType.SUBSCRIBE)
+                .build();
 
         //when & then
-        mockMvc.perform(get("/api/admin/orders")
+        mockMvc.perform(post("/api/admin/orders/search")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
-                        .param("page", "0")
+                        .param("page", "1")
                         .param("size", "5")
-                        .param("from", "2022-06-01")
-                        .param("to", today)
-                        .param("merchantUid", "")
-                        .param("memberName", "")
-                        .param("recipientName", "")
-                        .param("memberEmail", appProperties.getUserEmail())
-                        .param("status", "ALL")
-                        .param("orderType", "SUBSCRIBE"))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("page.totalElements").value(5))
+                .andExpect(jsonPath("page.totalElements").value(8))
         ;
     }
 
@@ -339,23 +338,21 @@ public class OrderAdminControllerTest extends BaseTest {
             generateGeneralOrder(admin, i, OrderStatus.PAYMENT_DONE);
         });
 
-        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        OrderAdminCond request = OrderAdminCond.builder()
+                .from(LocalDate.now().minusMonths(1))
+                .to(LocalDate.now())
+                .memberName(member.getName())
+                .orderType(OrderType.SUBSCRIBE)
+                .build();
 
         //when & then
-        mockMvc.perform(get("/api/admin/orders")
+        mockMvc.perform(post("/api/admin/orders/search")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
-                        .param("page", "1")
+                        .param("page", "0")
                         .param("size", "5")
-                        .param("from", "2022-06-01")
-                        .param("to", today)
-                        .param("merchantUid", "")
-                        .param("memberEmail", "")
-                        .param("recipientName", "")
-                        .param("memberName", member.getName())
-                        .param("status", "ALL")
-                        .param("orderType", "SUBSCRIBE"))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("page.totalElements").value(5))
@@ -371,7 +368,7 @@ public class OrderAdminControllerTest extends BaseTest {
         Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
 
         IntStream.range(1,6).forEach(i -> {
-            generateSubscribeOrder(member,i, OrderStatus.DELIVERY_READY);
+            generateGeneralOrder(admin, i, OrderStatus.PAYMENT_DONE);
         });
 
         IntStream.range(6,15).forEach(i -> {
@@ -379,33 +376,31 @@ public class OrderAdminControllerTest extends BaseTest {
         });
 
         IntStream.range(15,18).forEach(i -> {
-            generateSubscribeOrder(admin,i, OrderStatus.DELIVERY_READY);
+            generateSubscribeOrder(member,i, OrderStatus.DELIVERY_READY);
         });
 
         IntStream.range(18,25).forEach(i -> {
-            generateGeneralOrder(admin, i, OrderStatus.PAYMENT_DONE);
+            generateSubscribeOrder(admin,i, OrderStatus.DELIVERY_READY);
         });
 
-        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        OrderAdminCond request = OrderAdminCond.builder()
+                .from(LocalDate.now().minusMonths(1))
+                .to(LocalDate.now())
+                .memberName(member.getName())
+                .orderType(OrderType.GENERAL)
+                .build();
 
         //when & then
-        mockMvc.perform(get("/api/admin/orders")
+        mockMvc.perform(post("/api/admin/orders/search")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .param("page", "1")
                         .param("size", "5")
-                        .param("from", "2022-06-01")
-                        .param("to", today)
-                        .param("merchantUid", "")
-                        .param("memberEmail", "")
-                        .param("recipientName", "")
-                        .param("memberName", admin.getName())
-                        .param("status", "ALL")
-                        .param("orderType", "GENERAL"))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("page.totalElements").value(14))
+                .andExpect(jsonPath("page.totalElements").value(18))
         ;
     }
 
@@ -436,26 +431,24 @@ public class OrderAdminControllerTest extends BaseTest {
         GeneralOrder generalOrder = generateGeneralOrder(admin, 26, OrderStatus.PAYMENT_DONE);
 
 
-        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        OrderAdminCond request = OrderAdminCond.builder()
+                .from(LocalDate.now().minusMonths(1))
+                .to(LocalDate.now())
+                .merchantUid(generalOrder.getMerchantUid())
+                .orderType(OrderType.GENERAL)
+                .build();
 
         //when & then
-        mockMvc.perform(get("/api/admin/orders")
+        mockMvc.perform(post("/api/admin/orders/search")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .param("page", "0")
                         .param("size", "5")
-                        .param("from", "2022-06-01")
-                        .param("to", today)
-                        .param("memberName", "")
-                        .param("memberEmail", "")
-                        .param("recipientName", "")
-                        .param("merchantUid", generalOrder.getMerchantUid())
-                        .param("status", "ALL")
-                        .param("orderType", "GENERAL"))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("page.totalElements").value(2))
+                .andExpect(jsonPath("page.totalElements").value(2)) // orderitem이 2개 라서
                 .andExpect(jsonPath("_embedded.queryAdminOrdersDtoList[0].merchantUid").value(generalOrder.getMerchantUid()))
         ;
     }
@@ -485,20 +478,21 @@ public class OrderAdminControllerTest extends BaseTest {
         });
 
 
-        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        OrderAdminCond request = OrderAdminCond.builder()
+                .from(LocalDate.now().minusMonths(1))
+                .to(LocalDate.now())
+                .recipientName(admin.getName())
+                .orderType(OrderType.SUBSCRIBE)
+                .build();
 
         //when & then
-        mockMvc.perform(get("/api/admin/orders")
+        mockMvc.perform(post("/api/admin/orders/search")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .param("page", "0")
                         .param("size", "5")
-                        .param("from", "2022-06-01")
-                        .param("to", today)
-                        .param("status", "ALL")
-                        .param("recipientName", admin.getName())
-                        .param("orderType", "SUBSCRIBE"))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("page.totalElements").value(3))
@@ -530,23 +524,24 @@ public class OrderAdminControllerTest extends BaseTest {
         });
 
 
-        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        OrderAdminCond request = OrderAdminCond.builder()
+                .from(LocalDate.now().minusMonths(1))
+                .to(LocalDate.now())
+                .recipientName(member.getName())
+                .orderType(OrderType.GENERAL)
+                .build();
 
         //when & then
-        mockMvc.perform(get("/api/admin/orders")
+        mockMvc.perform(post("/api/admin/orders/search")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
-                        .param("page", "0")
+                        .param("page", "1")
                         .param("size", "5")
-                        .param("from", "2022-06-01")
-                        .param("to", today)
-                        .param("status", "ALL")
-                        .param("recipientName", member.getName())
-                        .param("orderType", "GENERAL"))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("page.totalElements").value(18))
+                .andExpect(jsonPath("page.totalElements").value(18)) // orderitem 2개씩 생성
         ;
     }
 
@@ -581,21 +576,25 @@ public class OrderAdminControllerTest extends BaseTest {
 
         String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
+        List<OrderStatus> orderStatusList = new ArrayList<>();
+        orderStatusList.add(OrderStatus.RETURN_REQUEST);
+
+        OrderAdminCond request = OrderAdminCond.builder()
+                .from(LocalDate.now().minusMonths(1))
+                .to(LocalDate.now())
+                .memberName(admin.getName())
+                .statusList(orderStatusList)
+                .orderType(OrderType.SUBSCRIBE)
+                .build();
+
         //when & then
-        mockMvc.perform(get("/api/admin/orders")
+        mockMvc.perform(post("/api/admin/orders/search")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .param("page", "1")
                         .param("size", "5")
-                        .param("from", "2022-06-01")
-                        .param("to", today)
-                        .param("merchantUid", "")
-                        .param("memberEmail", "")
-                        .param("recipientName", "")
-                        .param("memberName", admin.getName())
-                        .param("status", "RETURN_REQUEST")
-                        .param("orderType", "SUBSCRIBE"))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("page.totalElements").value(10))
@@ -677,7 +676,7 @@ public class OrderAdminControllerTest extends BaseTest {
     }
 
     @Test
-    @DisplayName("조회할 일반상품이 없음")
+    @DisplayName("조회할 일반주문이 없음")
     public void queryGeneralOrder_notfound() throws Exception {
         //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
@@ -694,6 +693,109 @@ public class OrderAdminControllerTest extends BaseTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    @DisplayName("취소 반품 환불 상세보기 주문한 상품 하나 조회하기")
+    public void queryOrderItem() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        GeneralOrder generalOrder = generateGeneralOrder(member, 1, OrderStatus.CONFIRM);
+        OrderItem orderItem = generalOrder.getOrderItemList().get(1);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/admin/orders/orderItem/{id}", orderItem.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("query_admin_order_orderItem",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("일반 주문 주문 id")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("orderInfoDto.orderId").description("주문 id"),
+                                fieldWithPath("orderInfoDto.merchantUid").description("주문 번호"),
+                                fieldWithPath("orderInfoDto.orderDate").description("주문 날짜"),
+                                fieldWithPath("orderInfoDto.orderType").description("주문 유형 ['general','subscribe']"),
+                                fieldWithPath("orderInfoDto.memberName").description("구매자 이름"),
+                                fieldWithPath("orderInfoDto.phoneNumber").description("구매자 연락처"),
+                                fieldWithPath("orderInfoDto.package").description("묶음배송 여부 true/false"),
+                                fieldWithPath("orderInfoDto.email").description("구매자 email"),
+                                fieldWithPath("orderInfoDto.subscribe").description("구독 여부 true/false"),
+                                fieldWithPath("orderItemAndOptionDto.orderItemDto.orderItemId").description("상품주문번호 id"),
+                                fieldWithPath("orderItemAndOptionDto.orderItemDto.itemName").description("상품 이름"),
+                                fieldWithPath("orderItemAndOptionDto.orderItemDto.amount").description("상품 수량"),
+                                fieldWithPath("orderItemAndOptionDto.orderItemDto.finalPrice").description("총 상품 금액"),
+                                fieldWithPath("orderItemAndOptionDto.orderItemDto.couponName").description("사용한 쿠폰 이름"),
+                                fieldWithPath("orderItemAndOptionDto.orderItemDto.discountAmount").description("쿠폰 할인 금액"),
+                                fieldWithPath("orderItemAndOptionDto.orderItemDto.status").description("주문한 상품 목록 하나 상태"),
+                                fieldWithPath("orderItemAndOptionDto.orderItemDto.cancelReason").description("취소 이유, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDto.orderItemDto.cancelDetailReason").description("취소 상세 이유, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDto.orderItemDto.cancelRequestDate").description("취소 요청 날짜, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDto.orderItemDto.cancelConfirmDate").description("취소 컨펌 날짜, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDto.orderItemDto.returnReason").description("반품 이유, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDto.orderItemDto.returnDetailReason").description("반품 상세 이유, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDto.orderItemDto.returnRequestDate").description("반품 요청 날짜, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDto.orderItemDto.returnConfirmDate").description("반품 컨펌 날짜, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDto.orderItemDto.exchangeReason").description("교환 이유, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDto.orderItemDto.exchangeDetailReason").description("교환 상세 이유, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDto.orderItemDto.exchangeRequestDate").description("교환 요청 날짜, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDto.orderItemDto.exchangeConfirmDate").description("교환 컨펌 날짜, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDto.selectOptionDtoList[0].optionName").description("옵션 이름, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDto.selectOptionDtoList[0].price").description("옵션 금액, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDto.selectOptionDtoList[0].amount").description("옵션 개수, 없으면 null"),
+                                fieldWithPath("paymentDto.orderPrice").description("상품 총 금액"),
+                                fieldWithPath("paymentDto.deliveryPrice").description("배달 요금"),
+                                fieldWithPath("paymentDto.discountReward").description("사용한 적립금"),
+                                fieldWithPath("paymentDto.paymentPrice").description("결제 금액"),
+                                fieldWithPath("paymentDto.orderStatus").description("주문 상태"),
+                                fieldWithPath("paymentDto.orderConfirmDate").description("구매 확정일"),
+                                fieldWithPath("deliveryDto.recipientName").description("수령자 이름"),
+                                fieldWithPath("deliveryDto.recipientPhone").description("수령자 휴대전화"),
+                                fieldWithPath("deliveryDto.zipcode").description("우편번호"),
+                                fieldWithPath("deliveryDto.street").description("도로명 주소"),
+                                fieldWithPath("deliveryDto.detailAddress").description("상세 주소"),
+                                fieldWithPath("deliveryDto.departureDate").description("배송 출발 시각"),
+                                fieldWithPath("deliveryDto.arrivalDate").description("배송 도착 시각"),
+                                fieldWithPath("deliveryDto.deliveryNumber").description("운송장 번호"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+    }
+
+    @Test
+    @DisplayName("취소 반품 환불 상세보기 주문한 상품 하나 조회하기 not found")
+    public void queryOrderItem_notFound() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        GeneralOrder generalOrder = generateGeneralOrder(member, 1, OrderStatus.CONFIRM);
+        OrderItem orderItem = generalOrder.getOrderItemList().get(1);
+
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/admin/orders/orderItem/999999")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
 
     @Test
     @DisplayName("정상적으로 구독 주문 하나 조회")
@@ -702,7 +804,7 @@ public class OrderAdminControllerTest extends BaseTest {
 
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtc(member, 1, OrderStatus.CONFIRM);
+        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtcCancelDone(member, 1, OrderStatus.CANCEL_DONE);
 
         List<Order> orders = orderRepository.findAll();
         assertThat(orders.size()).isEqualTo(1);
@@ -738,6 +840,10 @@ public class OrderAdminControllerTest extends BaseTest {
                                 fieldWithPath("subscribeOrderInfoDto.orderType").description("주문 유형 ['general','subscribe']"),
                                 fieldWithPath("subscribeOrderInfoDto.memberName").description("구매자 이름"),
                                 fieldWithPath("subscribeOrderInfoDto.phoneNumber").description("구매자 연락처"),
+                                fieldWithPath("subscribeOrderInfoDto.cancelReason").description("취소 이유 , 없으면 null"),
+                                fieldWithPath("subscribeOrderInfoDto.cancelDetailReason").description("취소 상세 이유, 없으면 null"),
+                                fieldWithPath("subscribeOrderInfoDto.cancelRequestDate").description("취소 신청 날짜 , 없으면 null"),
+                                fieldWithPath("subscribeOrderInfoDto.cancelConfirmDate").description("취소 컨펌 날짜, 없으면 null"),
                                 fieldWithPath("subscribeOrderInfoDto.package").description("묶음배송 여부 true/false"),
                                 fieldWithPath("subscribeOrderInfoDto.subscribe").description("구독 여부 true/false"),
                                 fieldWithPath("subscribeOrderInfoDto.email").description("구매자 email"),
@@ -893,6 +999,123 @@ public class OrderAdminControllerTest extends BaseTest {
         return subscribeOrder;
     }
 
+    private SubscribeOrder generateSubscribeOrderAndEtcCancelDone(Member member, int i, OrderStatus orderStatus) {
+
+        Recipe recipe1 = recipeRepository.findAll().get(0);
+        Recipe recipe2 = recipeRepository.findAll().get(1);
+
+        DogSaveRequestDto requestDto = DogSaveRequestDto.builder()
+                .name("김바프")
+                .gender(Gender.MALE)
+                .birth("202102")
+                .oldDog(false)
+                .dogType("포메라니안")
+                .dogSize(DogSize.SMALL)
+                .weight("3.5")
+                .neutralization(true)
+                .activityLevel(ActivityLevel.NORMAL)
+                .walkingCountPerWeek("10")
+                .walkingTimePerOneTime("1.1")
+                .dogStatus(DogStatus.HEALTHY)
+                .snackCountLevel(SnackCountLevel.NORMAL)
+                .inedibleFood("NONE")
+                .inedibleFoodEtc("NONE")
+                .recommendRecipeId(recipe1.getId())
+                .caution("NONE")
+                .build();
+
+        String birth = requestDto.getBirth();
+
+        DogSize dogSize = requestDto.getDogSize();
+        Long startAgeMonth = getTerm(birth + "01");
+        boolean oldDog = requestDto.isOldDog();
+        boolean neutralization = requestDto.isNeutralization();
+        DogStatus dogStatus = requestDto.getDogStatus();
+        SnackCountLevel snackCountLevel = requestDto.getSnackCountLevel();
+        BigDecimal weight = new BigDecimal(requestDto.getWeight());
+
+        Delivery delivery = generateDelivery(member, i);
+
+        Subscribe subscribe = generateSubscribe(i);
+        BeforeSubscribe beforeSubscribe = generateBeforeSubscribe(i);
+        subscribe.setBeforeSubscribe(beforeSubscribe);
+
+        generateSubscribeRecipe(recipe1, subscribe);
+        generateSubscribeRecipe(recipe2, subscribe);
+
+        List<Dog> dogs = dogRepository.findByMember(member);
+        Recipe findRecipe = recipeRepository.findById(requestDto.getRecommendRecipeId()).get();
+
+        Dog dog = Dog.builder()
+                .member(member)
+                .representative(dogs.size() == 0 ? true : false)
+                .name(requestDto.getName())
+                .gender(requestDto.getGender())
+                .birth(birth)
+                .startAgeMonth(startAgeMonth)
+                .oldDog(oldDog)
+                .dogType(requestDto.getDogType())
+                .dogSize(dogSize)
+                .weight(weight)
+                .neutralization(neutralization)
+                .dogActivity(getDogActivity(requestDto))
+                .dogStatus(dogStatus)
+                .snackCountLevel(snackCountLevel)
+                .inedibleFood(requestDto.getInedibleFood())
+                .inedibleFoodEtc(requestDto.getInedibleFoodEtc())
+                .recommendRecipe(findRecipe)
+                .caution(requestDto.getCaution())
+                .subscribe(subscribe)
+                .build();
+        dogRepository.save(dog);
+        subscribe.setDog(dog);
+
+        SurveyReport surveyReport = SurveyReport.builder()
+                .dog(dog)
+                .ageAnalysis(getAgeAnalysis(startAgeMonth))
+                .weightAnalysis(getWeightAnalysis(dogSize, weight))
+                .activityAnalysis(getActivityAnalysis(dogSize, dog))
+                .walkingAnalysis(getWalkingAnalysis(member, dog))
+                .foodAnalysis(getDogAnalysis(requestDto, findRecipe, dogSize, startAgeMonth, oldDog, neutralization, dogStatus, requestDto.getActivityLevel(), snackCountLevel))
+                .snackAnalysis(getSnackAnalysis(dog))
+                .build();
+        surveyReportRepository.save(surveyReport);
+        dog.setSurveyReport(surveyReport);
+
+        Coupon coupon = generateGeneralCoupon(1);
+        MemberCoupon memberCoupon = generateMemberCoupon(member, coupon, 1, CouponStatus.ACTIVE);
+
+        OrderCancel ordercancel = OrderCancel.builder()
+                .cancelReason("취소 사유")
+                .cancelDetailReason("취소 상세 사유")
+                .cancelRequestDate(LocalDateTime.now().minusDays(3))
+                .cancelConfirmDate(LocalDateTime.now().minusDays(1))
+                .build();
+
+        SubscribeOrder subscribeOrder = SubscribeOrder.builder()
+                .impUid("imp_uid"+i)
+                .merchantUid("merchant_uid"+i)
+                .orderStatus(orderStatus)
+                .orderCancel(ordercancel)
+                .member(member)
+                .orderPrice(120000)
+                .deliveryPrice(0)
+                .discountTotal(0)
+                .discountReward(0)
+                .discountCoupon(0)
+                .paymentPrice(120000)
+                .paymentMethod(PaymentMethod.CREDIT_CARD)
+                .isPackage(false)
+                .delivery(delivery)
+                .subscribe(subscribe)
+                .memberCoupon(memberCoupon)
+                .orderConfirmDate(LocalDateTime.now().minusHours(3))
+                .build();
+        orderRepository.save(subscribeOrder);
+
+        return subscribeOrder;
+    }
+
     private BeforeSubscribe generateBeforeSubscribe(int i) {
         BeforeSubscribe beforeSubscribe = BeforeSubscribe.builder()
                 .subscribeCount(i)
@@ -923,6 +1146,7 @@ public class OrderAdminControllerTest extends BaseTest {
         subscribeRepository.save(subscribe);
         return subscribe;
     }
+
 
 
     private SurveyReport generateSurveyReport(Member member) {
@@ -1008,7 +1232,6 @@ public class OrderAdminControllerTest extends BaseTest {
 
     private GeneralOrder generateGeneralOrder(Member member, int i, OrderStatus orderstatus) {
 
-
         Delivery delivery = generateDelivery(member, i);
         GeneralOrder generalOrder = GeneralOrder.builder()
                 .impUid("imp_uid" + i)
@@ -1042,12 +1265,13 @@ public class OrderAdminControllerTest extends BaseTest {
                         .build();
                 selectOptionRepository.save(selectOption);
             });
-
+            generalOrder.addOrderItemList(orderItem);
         });
 
 
         return orderRepository.save(generalOrder);
     }
+
 
     private OrderItem generateOrderItem(Member member, GeneralOrder generalOrder, int j, Item item, OrderStatus orderStatus) {
 
@@ -1061,7 +1285,24 @@ public class OrderAdminControllerTest extends BaseTest {
                 .memberCoupon(memberCoupon)
                 .finalPrice(item.getSalePrice() * j)
                 .status(orderStatus)
-
+                .orderCancel(OrderCancel.builder()
+                        .cancelConfirmDate(LocalDateTime.now().minusDays(1))
+                        .cancelRequestDate(LocalDateTime.now().minusDays(3))
+                        .cancelDetailReason("상세이유")
+                        .cancelReason("이유")
+                        .build())
+                .orderReturn(OrderReturn.builder()
+                        .returnConfirmDate(LocalDateTime.now().minusDays(1))
+                        .returnRequestDate(LocalDateTime.now().minusDays(3))
+                        .returnDetailReason("상세이유")
+                        .returnReason("이유")
+                        .build())
+                .orderExchange(OrderExchange.builder()
+                        .exchangeConfirmDate(LocalDateTime.now().minusDays(1))
+                        .exchangeRequestDate(LocalDateTime.now().minusDays(3))
+                        .exchangeDetailReason("상세이유")
+                        .exchangeReason("이유")
+                        .build())
                 .build();
         return orderItemRepository.save(orderItem);
     }

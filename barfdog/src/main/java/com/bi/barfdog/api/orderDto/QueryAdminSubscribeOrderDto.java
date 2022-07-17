@@ -39,6 +39,11 @@ public class QueryAdminSubscribeOrderDto {
         private String Email;
         private boolean isSubscribe;
 
+        private String cancelReason;
+        private String cancelDetailReason;
+        private LocalDateTime cancelRequestDate;
+        private LocalDateTime cancelConfirmDate;
+
     }
 
     @Data

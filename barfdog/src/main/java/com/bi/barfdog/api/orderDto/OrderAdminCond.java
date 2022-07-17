@@ -9,6 +9,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -27,9 +29,10 @@ public class OrderAdminCond {
     private String memberName;
     private String memberEmail;
     private String recipientName;
+    
+    @Builder.Default
+    private List<OrderStatus> statusList = new ArrayList<>();
 
-    @NotNull
-    private OrderStatus status;
     @NotNull
     private OrderType orderType; // GENERAL,SUBSCRIBE;
 
