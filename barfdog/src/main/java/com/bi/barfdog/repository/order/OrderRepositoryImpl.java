@@ -1,14 +1,19 @@
 package com.bi.barfdog.repository.order;
 
 import com.bi.barfdog.api.InfoController;
+import com.bi.barfdog.api.barfDto.AdminDashBoardRequestDto;
+import com.bi.barfdog.api.barfDto.AdminDashBoardResponseDto;
 import com.bi.barfdog.api.orderDto.*;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.order.OrderStatus;
 import com.bi.barfdog.domain.orderItem.OrderItem;
 import com.bi.barfdog.domain.subscribe.QSubscribe;
+import com.bi.barfdog.domain.subscribe.SubscribeStatus;
+import com.querydsl.core.types.ConstantImpl;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.StringTemplate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,6 +21,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -215,6 +221,9 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                     .discountAmount(orderItemSample.getDiscountAmount())
                     .status(orderItemSample.getStatus())
                     .saveReward(orderItemSample.getSaveReward())
+                    .orderCancel(orderItemSample.getOrderCancel())
+                    .orderReturn(orderItemSample.getOrderReturn())
+                    .orderExchange(orderItemSample.getOrderExchange())
                     .build();
             orderItemDtoList.add(orderItemDto);
         }
@@ -253,6 +262,96 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                 .build();
 
         return result;
+    }
+
+    @Override
+    public AdminDashBoardResponseDto findAdminDashBoard(AdminDashBoardRequestDto requestDto) {
+        LocalDateTime from = requestDto.getFrom().atStartOfDay();
+        LocalDateTime to = requestDto.getTo().atTime(23, 59, 59);
+
+        Long newOrderCount = getNewOrderCount(from, to);
+        Long newMemberCount = getNewMemberCount(from, to);
+        Long subscribePendingCount = getSubscribePendingCount();
+
+        List<AdminDashBoardResponseDto.OrderStatusCountDto> orderStatusCountDtoList = getOrderStatusCountDtoList();
+
+
+//        StringTemplate formattedDate = Expressions.stringTemplate(
+//                "DATE_FORMAT({0}, {1})"
+//                , order.createdDate
+//                , ConstantImpl.create("%Y-%m"));
+//
+//        int year = LocalDate.now().getYear();
+//        int month = LocalDate.now().getMonthValue();
+//        LocalDateTime oneYearAgo = LocalDate.of(year, month, 1).atStartOfDay().minusYears(1);
+//
+//
+//        List<AdminDashBoardResponseDto.OrderCountByMonth> orderCountByMonthList = queryFactory
+//                .select(Projections.constructor(AdminDashBoardResponseDto.OrderCountByMonth.class,
+//                        formattedDate.as("month"),
+//                        generalOrder.count(),
+//                        subscribeOrder.count()
+//                ))
+//                .from(order)
+//                .leftJoin(generalOrder).on(generalOrder.eq(order))
+//                .leftJoin(subscribeOrder).on(subscribeOrder.eq(order))
+//                .where(order.createdDate.after(oneYearAgo))
+//                .groupBy(formattedDate)
+//                .orderBy(formattedDate.asc())
+//                .fetch();
+
+
+        AdminDashBoardResponseDto result = AdminDashBoardResponseDto.builder()
+                .newOrderCount(newOrderCount)
+                .newMemberCount(newMemberCount)
+                .subscribePendingCount(subscribePendingCount)
+                .orderStatusCountDtoList(orderStatusCountDtoList)
+                .orderCountByMonthList(null)
+                .build();
+
+        return result;
+    }
+
+    private Long getSubscribePendingCount() {
+        Long subscribePendingCount = queryFactory
+                .select(subscribe.count())
+                .from(subscribe)
+                .where(subscribe.status.eq(SubscribeStatus.SUBSCRIBE_PENDING))
+                .fetchOne();
+        return subscribePendingCount;
+    }
+
+    private List<AdminDashBoardResponseDto.OrderStatusCountDto> getOrderStatusCountDtoList() {
+        List<AdminDashBoardResponseDto.OrderStatusCountDto> orderStatusCountDtoList = queryFactory
+                .select(Projections.constructor(AdminDashBoardResponseDto.OrderStatusCountDto.class,
+                        order.orderStatus,
+                        order.count()
+                ))
+                .from(order)
+                .where(order.orderStatus.in(OrderStatus.FAILED, OrderStatus.PAYMENT_DONE, OrderStatus.DELIVERY_START,
+                                OrderStatus.CANCEL_REQUEST, OrderStatus.RETURN_REQUEST, OrderStatus.EXCHANGE_REQUEST)
+                        .and(order.createdDate.after(LocalDateTime.now().minusDays(30))))
+                .groupBy(order.orderStatus)
+                .fetch();
+        return orderStatusCountDtoList;
+    }
+
+    private Long getNewMemberCount(LocalDateTime from, LocalDateTime to) {
+        Long newMemberCount = queryFactory
+                .select(member.count())
+                .from(member)
+                .where(member.createdDate.between(from, to))
+                .fetchOne();
+        return newMemberCount;
+    }
+
+    private Long getNewOrderCount(LocalDateTime from, LocalDateTime to) {
+        Long newOrderCount = queryFactory
+                .select(order.count())
+                .from(order)
+                .where(order.createdDate.between(from, to))
+                .fetchOne();
+        return newOrderCount;
     }
 
     private String getThumbnailUrl(OrderItem orderItemDto) {

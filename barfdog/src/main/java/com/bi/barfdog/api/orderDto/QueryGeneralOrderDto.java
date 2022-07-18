@@ -2,11 +2,15 @@ package com.bi.barfdog.api.orderDto;
 
 import com.bi.barfdog.domain.order.OrderStatus;
 import com.bi.barfdog.domain.order.PaymentMethod;
+import com.bi.barfdog.domain.orderItem.OrderCancel;
+import com.bi.barfdog.domain.orderItem.OrderExchange;
+import com.bi.barfdog.domain.orderItem.OrderReturn;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.Embedded;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +43,10 @@ public class QueryGeneralOrderDto {
         private int discountAmount;
         private OrderStatus status;
         private int saveReward;
+
+        private OrderCancel orderCancel;
+        private OrderReturn orderReturn;
+        private OrderExchange orderExchange;
     }
     @Data
     @AllArgsConstructor

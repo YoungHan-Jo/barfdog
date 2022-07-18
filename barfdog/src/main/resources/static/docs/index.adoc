@@ -1408,9 +1408,11 @@ operation::get_code_coupon[snippets='curl-request,request-headers,request-body,r
 [[resources-query-admin-orders]]
 === 주문 리스트 검색(페이징)
 
-`GET` 요청을 사용하여 페이징으로 조건에 맞는 주문 리스트를 조회할 수 있다.
+`POST` 요청을 사용하여 페이징으로 조건에 맞는 주문 리스트를 조회할 수 있다.
 
-operation::query_admin_orders[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+요청 파라미터 복잡해서 조회api지만 POST 사용
+
+operation::query_admin_orders[snippets='curl-request,request-headers,request-parameters,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 [[resources-query-admin-order-general]]
 === 일반 주문 하나 조회
@@ -1419,12 +1421,36 @@ operation::query_admin_orders[snippets='curl-request,request-headers,request-par
 
 operation::query_admin_general_order[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
+[[resources-query-admin-order-orderItem]]
+=== 취소/반품/교환 관련 일반 주문 하나 조회
+
+`GET` 요청을 사용하여 취소/반품/교환 관련 일반 주문 하나를 조회할 수 있다.
+
+operation::query_admin_order_orderItem[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+
+
 [[resources-query-admin-order-subscribe]]
 === 구독 주문 하나 조회
 
 `GET` 요청을 사용하여 구독 주문 하나를 조회할 수 있다.
 
 operation::query_admin_subscribe_order[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-query-admin-orderConfirm-general]]
+=== 일반 주문 주문확인 처리
+
+`POST` 요청을 사용하여 일반 주문을 주문확인 처리할 수 있다.
+
+operation::admin_orderConfirm_general[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-query-admin-orderConfirm-subscribe]]
+=== 구독 주문 주문확인 처리
+
+`POST` 요청을 사용하여 구독 주문을 주문확인 처리할 수 있다.
+
+operation::admin_orderConfirm_subscribe[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
 
 
 
@@ -1546,7 +1572,19 @@ operation::cancelRequest_general[snippets='curl-request,path-parameters,request-
 
 operation::confirm_generalOrders[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
+[[resources-return-generalOrders]]
+=== 일반 주문 반품 요청
 
+`POST` 요청을 사용하여 일반주문 주문을 반품 요청 할 수 있다.
+
+operation::request_returnOrders[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-exchange-generalOrders]]
+=== 일반 주문 교환 요청
+
+`POST` 요청을 사용하여 일반주문 주문을 교환 요청 할 수 있다.
+
+operation::request_exchangeOrders[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
 [[resources-delivery-info]]
@@ -1577,12 +1615,37 @@ operation::query_deliveries_general[snippets='curl-request,request-headers,reque
 구독 관련 리소스.
 
 [[resources-query-subscribes]]
-=== 구독 리스트 검색(페이징)
+=== 구독 리스트 조회(페이징)
 
 `GET` 요청을 사용하여 페이징으로 구독 리스트를 조회할 수 있다.
 
 operation::query_subscribes[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
 
+[[resources-query-subscribe]]
+=== 구독 하나 조회
 
+`GET` 요청을 사용하여 구독 하나를 조회할 수 있다.
 
+operation::query_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-use-coupon-subscribe]]
+=== 구독 쿠폰 적용
+
+`POST` 요청을 사용하여 구독에 쿠폰을 적용할 수 있다.
+
+operation::use_coupon_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-update-gram-subscribe]]
+=== 구독 그램 변경 적용
+
+`POST` 요청을 사용하여 구독 그램 변경을 적용할 수 있다.
+
+operation::update_gram_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-update-plan-subscribe]]
+=== 구독 플랜 변경 적용
+
+`POST` 요청을 사용하여 구독 플랜 변경을 적용할 수 있다.
+
+operation::update_plan_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 

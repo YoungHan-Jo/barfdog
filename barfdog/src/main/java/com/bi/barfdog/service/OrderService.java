@@ -15,7 +15,9 @@ import com.bi.barfdog.domain.order.GeneralOrder;
 import com.bi.barfdog.domain.order.Order;
 import com.bi.barfdog.domain.order.OrderStatus;
 import com.bi.barfdog.domain.order.SubscribeOrder;
+import com.bi.barfdog.domain.orderItem.OrderExchange;
 import com.bi.barfdog.domain.orderItem.OrderItem;
+import com.bi.barfdog.domain.orderItem.OrderReturn;
 import com.bi.barfdog.domain.orderItem.SelectOption;
 import com.bi.barfdog.domain.reward.Reward;
 import com.bi.barfdog.domain.reward.RewardName;
@@ -40,10 +42,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -599,4 +601,52 @@ public class OrderService {
                 .build();
         rewardRepository.save(reward);
     }
+
+    @Transactional
+    public void requestReturn(RequestReturnExchangeOrdersDto requestDto) {
+        OrderReturn orderReturn = OrderReturn.builder()
+                .returnReason(requestDto.getReason())
+                .returnDetailReason(requestDto.getDetailReason())
+                .returnRequestDate(LocalDateTime.now())
+                .build();
+        List<Long> orderItemIdList = requestDto.getOrderItemIdList();
+        for (Long orderItemId : orderItemIdList) {
+            OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
+            orderItem.returnRequest(orderReturn);
+        }
+    }
+
+    @Transactional
+    public void requestExchange(RequestReturnExchangeOrdersDto requestDto) {
+        OrderExchange orderExchange = OrderExchange.builder()
+                .exchangeReason(requestDto.getReason())
+                .exchangeDetailReason(requestDto.getDetailReason())
+                .exchangeRequestDate(LocalDateTime.now())
+                .build();
+        List<Long> orderItemIdList = requestDto.getOrderItemIdList();
+        for (Long orderItemId : orderItemIdList) {
+            OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
+            orderItem.exchangeRequest(orderExchange);
+        }
+
+    }
+
+    @Transactional
+    public void orderConfirmGeneral(OrderConfirmGeneralRequestDto requestDto) {
+        List<Long> orderItemIdList = requestDto.getOrderItemIdList();
+        for (Long orderItemId : orderItemIdList) {
+            OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
+            orderItem.orderConfirm();
+        }
+    }
+
+    @Transactional
+    public void orderConfirmSubscribe(OrderConfirmSubscribeRequestDto requestDto) {
+        List<Long> orderIdList = requestDto.getOrderIdList();
+        for (Long orderId : orderIdList) {
+            Order order = orderRepository.findById(orderId).get();
+            order.orderConfirmSubscribe();
+        }
+    }
+
 }

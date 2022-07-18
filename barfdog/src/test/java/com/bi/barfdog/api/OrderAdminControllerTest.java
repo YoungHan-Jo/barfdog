@@ -2,6 +2,8 @@ package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
 import com.bi.barfdog.api.orderDto.OrderAdminCond;
+import com.bi.barfdog.api.orderDto.OrderConfirmGeneralRequestDto;
+import com.bi.barfdog.api.orderDto.OrderConfirmSubscribeRequestDto;
 import com.bi.barfdog.api.orderDto.OrderType;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
@@ -58,7 +60,9 @@ import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PostMapping;
 
+import javax.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -91,6 +95,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 public class OrderAdminControllerTest extends BaseTest {
 
+    @Autowired
+    EntityManager em;
     @Autowired
     AppProperties appProperties;
     @Autowired
@@ -804,7 +810,7 @@ public class OrderAdminControllerTest extends BaseTest {
 
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtcCancelDone(member, 1, OrderStatus.CANCEL_DONE);
+        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtcCancelDone(member, 1, OrderStatus.CANCEL_DONE_SELLER);
 
         List<Order> orders = orderRepository.findAll();
         assertThat(orders.size()).isEqualTo(1);
@@ -882,6 +888,137 @@ public class OrderAdminControllerTest extends BaseTest {
                         )
                 ));
     }
+
+
+
+    @Test
+    @DisplayName("일반 주문 주문확인 처리")
+    public void orderConfirmGeneral() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        GeneralOrder generalOrder = generateGeneralOrder(member, 1, OrderStatus.CONFIRM);
+
+        List<Long> orderItemIdList = new ArrayList<>();
+
+        List<OrderItem> orderItemList = generalOrder.getOrderItemList();
+        for (OrderItem orderItem : orderItemList) {
+            orderItemIdList.add(orderItem.getId());
+        }
+
+        OrderConfirmGeneralRequestDto requestDto = OrderConfirmGeneralRequestDto.builder()
+                .orderItemIdList(orderItemIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/orders/general/orderConfirm")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto))
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("admin_orderConfirm_general",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_orders").description("주문 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestFields(
+                                fieldWithPath("orderItemIdList").description("주문확인 처리 할 주문한상품(orderItem) id 리스트")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_orders.href").description("주문 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+
+        em.flush();
+        em.clear();
+
+        assertThat(orderItemIdList.size()).isEqualTo(2);
+        for (Long orderItemId : orderItemIdList) {
+            OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
+            assertThat(orderItem.getGeneralOrder().getOrderStatus()).isEqualTo(OrderStatus.DELIVERY_READY);
+            assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.DELIVERY_READY);
+        }
+
+    }
+
+    @Test
+    @DisplayName("구독 주문 주문확인 처리")
+    public void orderConfirmSubscribe() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        List<Long> orderIdList = new ArrayList<>();
+
+        IntStream.range(1,6).forEach(i -> {
+            SubscribeOrder subscribeOrder = generateSubscribeOrder(member, i, OrderStatus.PAYMENT_DONE);
+            orderIdList.add(subscribeOrder.getId());
+        });
+
+        OrderConfirmSubscribeRequestDto requestDto = OrderConfirmSubscribeRequestDto.builder()
+                .orderIdList(orderIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/orders/subscribe/orderConfirm")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("admin_orderConfirm_subscribe",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_orders").description("주문 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestFields(
+                                fieldWithPath("orderIdList").description("주문확인 처리 할 구독주문(order) id 리스트")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_orders.href").description("주문 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+        ;
+
+        em.flush();
+        em.clear();
+
+        assertThat(orderIdList.size()).isEqualTo(5);
+        for (Long orderId : orderIdList) {
+            Order order = orderRepository.findById(orderId).get();
+            assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.PRODUCING);
+        }
+
+    }
+
 
 
 

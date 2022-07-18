@@ -74,7 +74,6 @@ import java.util.stream.IntStream;
 
 import static com.bi.barfdog.config.finalVariable.StandardVar.*;
 import static com.bi.barfdog.config.finalVariable.StandardVar.LACTATING;
-import static org.junit.Assert.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
@@ -239,9 +238,9 @@ public class DeliveryApiControllerTest extends BaseTest {
             generateGeneralOrder(member, i, OrderStatus.HOLD);
             generateGeneralOrder(member, i, OrderStatus.FAILED);
             generateGeneralOrder(member, i, OrderStatus.SELLING_CANCEL);
-            generateGeneralOrder(member, i, OrderStatus.CANCEL_DONE);
-            generateGeneralOrder(member, i, OrderStatus.RETURN_DONE);
-            generateGeneralOrder(member, i, OrderStatus.EXCHANGE_DONE);
+            generateGeneralOrder(member, i, OrderStatus.CANCEL_DONE_SELLER);
+            generateGeneralOrder(member, i, OrderStatus.RETURN_DONE_SELLER);
+            generateGeneralOrder(member, i, OrderStatus.EXCHANGE_DONE_SELLER);
             generateGeneralOrder(member, i, OrderStatus.CONFIRM);
         });
 

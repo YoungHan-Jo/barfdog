@@ -1,5 +1,7 @@
 package com.bi.barfdog.repository.order;
 
+import com.bi.barfdog.api.barfDto.AdminDashBoardRequestDto;
+import com.bi.barfdog.api.barfDto.AdminDashBoardResponseDto;
 import com.bi.barfdog.api.orderDto.*;
 import com.bi.barfdog.domain.member.Member;
 import org.springframework.data.domain.Page;
@@ -19,4 +21,6 @@ public interface OrderRepositoryCustom {
     Page<QueryGeneralOrdersDto> findGeneralOrdersDto(Member member, Pageable pageable);
 
     QueryGeneralOrderDto findGeneralOrderDto(Long id);
+
+    AdminDashBoardResponseDto findAdminDashBoard(AdminDashBoardRequestDto requestDto);
 }

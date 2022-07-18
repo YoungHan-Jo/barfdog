@@ -1437,6 +1437,21 @@ operation::query_admin_order_orderItem[snippets='curl-request,path-parameters,re
 
 operation::query_admin_subscribe_order[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
+[[resources-query-admin-orderConfirm-general]]
+=== 일반 주문 주문확인 처리
+
+`POST` 요청을 사용하여 일반 주문을 주문확인 처리할 수 있다.
+
+operation::admin_orderConfirm_general[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-query-admin-orderConfirm-subscribe]]
+=== 구독 주문 주문확인 처리
+
+`POST` 요청을 사용하여 구독 주문을 주문확인 처리할 수 있다.
+
+operation::admin_orderConfirm_subscribe[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
 
 
 
@@ -1557,7 +1572,19 @@ operation::cancelRequest_general[snippets='curl-request,path-parameters,request-
 
 operation::confirm_generalOrders[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
+[[resources-return-generalOrders]]
+=== 일반 주문 반품 요청
 
+`POST` 요청을 사용하여 일반주문 주문을 반품 요청 할 수 있다.
+
+operation::request_returnOrders[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-exchange-generalOrders]]
+=== 일반 주문 교환 요청
+
+`POST` 요청을 사용하여 일반주문 주문을 교환 요청 할 수 있다.
+
+operation::request_exchangeOrders[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
 [[resources-delivery-info]]

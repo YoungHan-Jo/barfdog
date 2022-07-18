@@ -175,6 +175,32 @@ public class IndexApiControllerTest extends BaseTest {
 
     MediaType contentType = new MediaType("application", "hal+json", Charset.forName("UTF-8"));
 
+
+    @Test
+    @DisplayName("관리자 대시보드 조회")
+    public void queryAdminDashBoard() throws Exception {
+       //given
+
+
+        LocalDate now = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String from = now.minusDays(7).format(formatter);
+        String to = now.format(formatter);
+
+        //when & then
+        mockMvc.perform(get("/api/admin/dashBoard")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("from",from)
+                        .param("to",to))
+                .andDo(print())
+                .andExpect(status().isOk())
+        ;
+
+    }
+
+
     @Ignore
     @Test
     @DisplayName("정상적으로 home 화면에 필요한 값 조회")

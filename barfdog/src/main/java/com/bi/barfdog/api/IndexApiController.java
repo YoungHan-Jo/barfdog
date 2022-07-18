@@ -2,9 +2,7 @@ package com.bi.barfdog.api;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.bi.barfdog.api.barfDto.HomePageDto;
-import com.bi.barfdog.api.barfDto.MypageDto;
-import com.bi.barfdog.api.barfDto.SendInviteSmsDto;
+import com.bi.barfdog.api.barfDto.*;
 import com.bi.barfdog.api.memberDto.*;
 import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
@@ -14,6 +12,7 @@ import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.jwt.JwtProperties;
 import com.bi.barfdog.jwt.JwtTokenProvider;
 import com.bi.barfdog.repository.member.MemberRepository;
+import com.bi.barfdog.repository.order.OrderRepository;
 import com.bi.barfdog.service.BarfService;
 import com.bi.barfdog.service.MemberService;
 import com.bi.barfdog.snsLogin.*;
@@ -26,6 +25,7 @@ import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,6 +50,7 @@ public class IndexApiController {
     private final LoginService loginService;
     private final JwtTokenProvider jwtTokenProvider;
     private final BarfService barfService;
+    private final OrderRepository orderRepository;
 
 
     WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
@@ -99,8 +100,24 @@ public class IndexApiController {
             e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
-
     }
+
+    @GetMapping("/api/admin/dashBoard")
+    public ResponseEntity queryDashBoard(@ModelAttribute @Valid AdminDashBoardRequestDto requestDto,
+                                         BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) return badRequest(bindingResult);
+
+        AdminDashBoardResponseDto responseDto = orderRepository.findAdminDashBoard(requestDto);
+
+        EntityModel<AdminDashBoardResponseDto> entityModel = EntityModel.of(responseDto);
+
+        return ResponseEntity.ok(entityModel);
+    }
+
+
+
+
+
 
     @GetMapping("/api")
     public RepresentationModel index(){

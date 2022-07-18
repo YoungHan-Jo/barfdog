@@ -90,4 +90,12 @@ public abstract class Order extends BaseTimeEntity {
         orderStatus = OrderStatus.CONFIRM;
         orderConfirmDate = LocalDateTime.now();
     }
+
+    public void orderConfirmGeneral() {
+        this.orderStatus = OrderStatus.DELIVERY_READY;
+    }
+
+    public void orderConfirmSubscribe() {
+        this.orderStatus = OrderStatus.PRODUCING;
+    }
 }

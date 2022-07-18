@@ -16,8 +16,7 @@ import com.bi.barfdog.domain.member.Grade;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.domain.order.*;
-import com.bi.barfdog.domain.orderItem.OrderItem;
-import com.bi.barfdog.domain.orderItem.SelectOption;
+import com.bi.barfdog.domain.orderItem.*;
 import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.reward.Reward;
 import com.bi.barfdog.domain.reward.RewardName;
@@ -2177,7 +2176,6 @@ public class OrderApiControllerTest extends BaseTest {
                                 fieldWithPath("orderItemDtoList[0].finalPrice").description("쿠폰적용 후 주문 금액"),
                                 fieldWithPath("orderItemDtoList[0].discountAmount").description("쿠폰 할인 금액"),
                                 fieldWithPath("orderItemDtoList[0].status").description("주문 상태 " +
-                                        "[ALL,\n" +
                                         "    BEFORE_PAYMENT,\n" +
                                         "    HOLD, FAILED,\n" +
                                         "    PAYMENT_DONE,\n" +
@@ -2189,6 +2187,18 @@ public class OrderApiControllerTest extends BaseTest {
                                         "    EXCHANGE_REQUEST, EXCHANGE_DONE,\n" +
                                         "    CONFIRM]"),
                                 fieldWithPath("orderItemDtoList[0].saveReward").description("적립예정금액"),
+                                fieldWithPath("orderItemDtoList[0].orderCancel.cancelReason").description("취소 이유, 없으면 null"),
+                                fieldWithPath("orderItemDtoList[0].orderCancel.cancelDetailReason").description("취소 상세 이유, 없으면 null"),
+                                fieldWithPath("orderItemDtoList[0].orderCancel.cancelRequestDate").description("취소 요청 날짜, 없으면 null"),
+                                fieldWithPath("orderItemDtoList[0].orderCancel.cancelConfirmDate").description("취소 컨펌 날짜, 없으면 null"),
+                                fieldWithPath("orderItemDtoList[0].orderReturn.returnReason").description("반품 이유, 없으면 null"),
+                                fieldWithPath("orderItemDtoList[0].orderReturn.returnDetailReason").description("반품 상세 이유, 없으면 null"),
+                                fieldWithPath("orderItemDtoList[0].orderReturn.returnRequestDate").description("반품 요청 날짜, 없으면 null"),
+                                fieldWithPath("orderItemDtoList[0].orderReturn.returnConfirmDate").description("반품 컨펌 날짜, 없으면 null"),
+                                fieldWithPath("orderItemDtoList[0].orderExchange.exchangeReason").description("교환 이유, 없으면 null"),
+                                fieldWithPath("orderItemDtoList[0].orderExchange.exchangeDetailReason").description("교환 상세 이유, 없으면 null"),
+                                fieldWithPath("orderItemDtoList[0].orderExchange.exchangeRequestDate").description("교환 요청 날짜, 없으면 null"),
+                                fieldWithPath("orderItemDtoList[0].orderExchange.exchangeConfirmDate").description("교환 컨펌 날짜, 없으면 null"),
                                 fieldWithPath("orderDto.orderId").description("주문 id"),
                                 fieldWithPath("orderDto.merchantUid").description("주문 번호 . 결제실패 시 null"),
                                 fieldWithPath("orderDto.paymentDate").description("결제 날짜 . 결제 실패 시 null"),
@@ -2299,7 +2309,6 @@ public class OrderApiControllerTest extends BaseTest {
                 .andDo(print())
                 .andExpect(status().isNotFound())
         ;
-
     }
 
 
@@ -2389,6 +2398,146 @@ public class OrderApiControllerTest extends BaseTest {
 
 
     }
+
+
+    @Test
+    @DisplayName("반품 요청 하기")
+    public void requestReturnOrders() throws Exception {
+       //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int reward = member.getReward();
+        GeneralOrder order = generateGeneralOrder(member, 1, OrderStatus.PAYMENT_DONE);
+
+        List<Long> orderItemIdList = new ArrayList<>();
+        List<OrderItem> orderItemList = order.getOrderItemList();
+        for (OrderItem orderItem : orderItemList) {
+            orderItemIdList.add(orderItem.getId());
+        }
+
+        String reason = "사유";
+        String detailReason = "상세 사유";
+        RequestReturnExchangeOrdersDto requestDto = RequestReturnExchangeOrdersDto.builder()
+                .orderItemIdList(orderItemIdList)
+                .reason(reason)
+                .detailReason(detailReason)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/orders/general/return")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("request_returnOrders",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestFields(
+                                fieldWithPath("orderItemIdList").description("주문한 상품 orderItem id 리스트"),
+                                fieldWithPath("reason").description("사유"),
+                                fieldWithPath("detailReason").description("상세 사유")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+
+        em.flush();
+        em.clear();
+
+        assertThat(orderItemIdList.size()).isEqualTo(2);
+        for (Long orderItemId : orderItemIdList) {
+            OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
+            assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.RETURN_REQUEST);
+            assertThat(orderItem.getOrderReturn().getReturnReason()).isEqualTo(reason);
+            assertThat(orderItem.getOrderReturn().getReturnDetailReason()).isEqualTo(detailReason);
+        }
+
+    }
+
+    @Test
+    @DisplayName("교환 요청 하기")
+    public void requestExchangeOrders() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int reward = member.getReward();
+        GeneralOrder order = generateGeneralOrder(member, 1, OrderStatus.PAYMENT_DONE);
+
+        List<Long> orderItemIdList = new ArrayList<>();
+        List<OrderItem> orderItemList = order.getOrderItemList();
+        for (OrderItem orderItem : orderItemList) {
+            orderItemIdList.add(orderItem.getId());
+        }
+
+        String reason = "사유";
+        String detailReason = "상세 사유";
+        RequestReturnExchangeOrdersDto requestDto = RequestReturnExchangeOrdersDto.builder()
+                .orderItemIdList(orderItemIdList)
+                .reason(reason)
+                .detailReason(detailReason)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/orders/general/exchange")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("request_exchangeOrders",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestFields(
+                                fieldWithPath("orderItemIdList").description("주문한 상품 orderItem id 리스트"),
+                                fieldWithPath("reason").description("사유"),
+                                fieldWithPath("detailReason").description("상세 사유")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+        ;
+
+        em.flush();
+        em.clear();
+
+        assertThat(orderItemIdList.size()).isEqualTo(2);
+        for (Long orderItemId : orderItemIdList) {
+            OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
+            assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.EXCHANGE_REQUEST);
+            assertThat(orderItem.getOrderExchange().getExchangeReason()).isEqualTo(reason);
+            assertThat(orderItem.getOrderExchange().getExchangeDetailReason()).isEqualTo(detailReason);
+        }
+
+    }
+
 
 
 
@@ -2822,6 +2971,24 @@ public class OrderApiControllerTest extends BaseTest {
                 .status(orderStatus)
                 .isSavedReward(false)
                 .saveReward(500*j)
+                .orderCancel(OrderCancel.builder()
+                        .cancelConfirmDate(LocalDateTime.now().minusDays(1))
+                        .cancelRequestDate(LocalDateTime.now().minusDays(3))
+                        .cancelDetailReason("상세이유")
+                        .cancelReason("이유")
+                        .build())
+                .orderReturn(OrderReturn.builder()
+                        .returnConfirmDate(LocalDateTime.now().minusDays(1))
+                        .returnRequestDate(LocalDateTime.now().minusDays(3))
+                        .returnDetailReason("상세이유")
+                        .returnReason("이유")
+                        .build())
+                .orderExchange(OrderExchange.builder()
+                        .exchangeConfirmDate(LocalDateTime.now().minusDays(1))
+                        .exchangeRequestDate(LocalDateTime.now().minusDays(3))
+                        .exchangeDetailReason("상세이유")
+                        .exchangeReason("이유")
+                        .build())
                 .build();
         return orderItemRepository.save(orderItem);
     }

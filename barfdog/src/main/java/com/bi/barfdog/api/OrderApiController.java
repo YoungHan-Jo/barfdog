@@ -268,6 +268,34 @@ public class OrderApiController {
         return ResponseEntity.ok(representationModel);
     }
 
+    @PostMapping("/general/return")
+    public ResponseEntity requestReturnOrders(@RequestBody @Valid RequestReturnExchangeOrdersDto requestDto,
+                                              Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+
+        orderService.requestReturn(requestDto);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderApiController.class).slash("general/return").withSelfRel());
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-return-generalOrders").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @PostMapping("/general/exchange")
+    public ResponseEntity requestExchangeOrders(@RequestBody @Valid RequestReturnExchangeOrdersDto requestDto,
+                                              Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+
+        orderService.requestExchange(requestDto);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderApiController.class).slash("general/exchange").withSelfRel());
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-exchange-generalOrders").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
 
 
 

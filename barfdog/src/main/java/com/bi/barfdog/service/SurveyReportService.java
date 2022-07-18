@@ -77,10 +77,14 @@ public class SurveyReportService {
 
         Subscribe subscribe = dog.getSubscribe();
         List<SubscribeRecipe> subscribeRecipes = subscribeRecipeRepository.findBySubscribe(subscribe);
-        String recipeName = subscribeRecipes.get(0).getRecipe().getName();
-        if (subscribeRecipes.size() > 1) {
-            recipeName += "," + subscribeRecipes.get(1).getRecipe().getName();
+        String recipeName = "";
+        if (subscribeRecipes.size() > 0) {
+            recipeName = subscribeRecipes.get(0).getRecipe().getName();
+            if (subscribeRecipes.size() > 1) {
+                recipeName += "," + subscribeRecipes.get(1).getRecipe().getName();
+            }
         }
+
 
         DogSurveyResultResponseDto responseDto = DogSurveyResultResponseDto.builder()
                 .dogId(dog.getId())
@@ -138,11 +142,15 @@ public class SurveyReportService {
         }
 
         Subscribe subscribe = dog.getSubscribe();
-        List<SubscribeRecipe> subscribeRecipes = subscribeRecipeRepository.findBySubscribe(subscribe);
-        String recipeName = subscribeRecipes.get(0).getRecipe().getName();
-        if (subscribeRecipes.size() > 1) {
-            recipeName += "," + subscribeRecipes.get(1).getRecipe().getName();
-        }
+//        List<SubscribeRecipe> subscribeRecipes = subscribeRecipeRepository.findBySubscribe(subscribe);
+
+//        String recipeName = "";
+//        if (subscribeRecipes.size() > 0) {
+//            recipeName = subscribeRecipes.get(0).getRecipe().getName();
+//            if (subscribeRecipes.size() > 1) {
+//                recipeName += "," + subscribeRecipes.get(1).getRecipe().getName();
+//            }
+//        }
 
         SurveyResultResponseDto responseDto = SurveyResultResponseDto.builder()
                 .dogId(dog.getId())

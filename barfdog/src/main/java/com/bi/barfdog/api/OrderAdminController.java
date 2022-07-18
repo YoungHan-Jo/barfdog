@@ -7,6 +7,7 @@ import com.bi.barfdog.domain.order.Order;
 import com.bi.barfdog.domain.orderItem.OrderItem;
 import com.bi.barfdog.repository.order.OrderRepository;
 import com.bi.barfdog.repository.orderItem.OrderItemRepository;
+import com.bi.barfdog.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,9 +15,9 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
+import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,6 +34,7 @@ public class OrderAdminController {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final OrderService orderService;
 
     WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
 
@@ -100,11 +102,33 @@ public class OrderAdminController {
     }
 
 
-//    @PutMapping("/general/orderConfirm")
-//    public ResponseEntity orderConfirm(@RequestBody @Valid ) {
-//
-//        return ResponseEntity.ok(null);
-//    }
+    @PostMapping("/general/orderConfirm")
+    public ResponseEntity orderConfirmGeneral(@RequestBody OrderConfirmGeneralRequestDto requestDto) {
+
+        orderService.orderConfirmGeneral(requestDto);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderAdminController.class).slash("general/orderConfirm").withSelfRel());
+        representationModel.add(linkTo(OrderAdminController.class).slash("search").withRel("query_orders"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-query-admin-orderConfirm-general").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @PostMapping("/subscribe/orderConfirm")
+    public ResponseEntity orderConfirmSubscribe(@RequestBody OrderConfirmSubscribeRequestDto requestDto) {
+
+        orderService.orderConfirmSubscribe(requestDto);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderAdminController.class).slash("subscribe/orderConfirm").withSelfRel());
+        representationModel.add(linkTo(OrderAdminController.class).slash("search").withRel("query_orders"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-query-admin-orderConfirm-subscribe").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+
 
 
 

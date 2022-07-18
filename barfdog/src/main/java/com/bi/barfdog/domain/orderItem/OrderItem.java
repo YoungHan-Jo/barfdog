@@ -81,4 +81,20 @@ public class OrderItem extends BaseTimeEntity {
         status = OrderStatus.CONFIRM;
         isSavedReward = true;
     }
+
+    public void returnRequest(OrderReturn orderReturn) {
+        this.orderReturn = orderReturn;
+        this.status = OrderStatus.RETURN_REQUEST;
+    }
+
+
+    public void exchangeRequest(OrderExchange orderExchange) {
+        this.orderExchange = orderExchange;
+        this.status = OrderStatus.EXCHANGE_REQUEST;
+    }
+
+    public void orderConfirm() {
+        this.status = OrderStatus.DELIVERY_READY;
+        this.generalOrder.orderConfirmGeneral();
+    }
 }

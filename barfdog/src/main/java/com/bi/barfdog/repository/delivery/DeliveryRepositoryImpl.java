@@ -3,11 +3,8 @@ package com.bi.barfdog.repository.delivery;
 import com.bi.barfdog.api.deliveryDto.QueryGeneralDeliveriesDto;
 import com.bi.barfdog.api.deliveryDto.QuerySubscribeDeliveriesDto;
 import com.bi.barfdog.domain.delivery.Delivery;
-import com.bi.barfdog.domain.item.QItem;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.order.OrderStatus;
-import com.bi.barfdog.domain.order.QGeneralOrder;
-import com.bi.barfdog.domain.orderItem.QOrderItem;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
@@ -58,8 +55,8 @@ public class DeliveryRepositoryImpl implements DeliveryRepositoryCustom{
                 .join(subscribeOrder.subscribe, subscribe)
                 .join(subscribe.dog, dog)
                 .where(subscribeOrder.member.eq(member)
-                        .and(subscribeOrder.orderStatus.notIn(OrderStatus.CONFIRM, OrderStatus.CANCEL_DONE, OrderStatus.RETURN_DONE,
-                                OrderStatus.EXCHANGE_DONE, OrderStatus.FAILED, OrderStatus.BEFORE_PAYMENT, OrderStatus.HOLD, OrderStatus.SELLING_CANCEL))
+                        .and(subscribeOrder.orderStatus.notIn(OrderStatus.CONFIRM, OrderStatus.CANCEL_DONE_SELLER, OrderStatus.RETURN_DONE_SELLER,
+                                OrderStatus.EXCHANGE_DONE_SELLER, OrderStatus.FAILED, OrderStatus.BEFORE_PAYMENT, OrderStatus.HOLD, OrderStatus.SELLING_CANCEL))
                 )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -93,8 +90,8 @@ public class DeliveryRepositoryImpl implements DeliveryRepositoryCustom{
                 .select(subscribeOrder.count())
                 .from(subscribeOrder)
                 .where(subscribeOrder.member.eq(member)
-                        .and(subscribeOrder.orderStatus.notIn(OrderStatus.CONFIRM, OrderStatus.CANCEL_DONE, OrderStatus.RETURN_DONE,
-                                OrderStatus.EXCHANGE_DONE, OrderStatus.FAILED, OrderStatus.BEFORE_PAYMENT, OrderStatus.HOLD, OrderStatus.SELLING_CANCEL))
+                        .and(subscribeOrder.orderStatus.notIn(OrderStatus.CONFIRM, OrderStatus.CANCEL_DONE_SELLER, OrderStatus.RETURN_DONE_SELLER,
+                                OrderStatus.EXCHANGE_DONE_SELLER, OrderStatus.FAILED, OrderStatus.BEFORE_PAYMENT, OrderStatus.HOLD, OrderStatus.SELLING_CANCEL))
                 )
                 .fetchOne();
 
@@ -117,8 +114,8 @@ public class DeliveryRepositoryImpl implements DeliveryRepositoryCustom{
                 .from(generalOrder)
                 .join(generalOrder.delivery, delivery)
                 .where(generalOrder.member.eq(member)
-                        .and(generalOrder.orderStatus.notIn(OrderStatus.CONFIRM, OrderStatus.CANCEL_DONE, OrderStatus.RETURN_DONE,
-                                OrderStatus.EXCHANGE_DONE, OrderStatus.FAILED, OrderStatus.BEFORE_PAYMENT, OrderStatus.HOLD, OrderStatus.SELLING_CANCEL))
+                        .and(generalOrder.orderStatus.notIn(OrderStatus.CONFIRM, OrderStatus.CANCEL_DONE_SELLER, OrderStatus.RETURN_DONE_SELLER,
+                                OrderStatus.EXCHANGE_DONE_SELLER, OrderStatus.FAILED, OrderStatus.BEFORE_PAYMENT, OrderStatus.HOLD, OrderStatus.SELLING_CANCEL))
                 )
                 .orderBy(generalOrder.createdDate.desc())
                 .offset(pageable.getOffset())
@@ -132,8 +129,8 @@ public class DeliveryRepositoryImpl implements DeliveryRepositoryCustom{
                 .from(generalOrder)
                 .join(generalOrder.delivery, delivery)
                 .where(generalOrder.member.eq(member)
-                        .and(generalOrder.orderStatus.notIn(OrderStatus.CONFIRM, OrderStatus.CANCEL_DONE, OrderStatus.RETURN_DONE,
-                                OrderStatus.EXCHANGE_DONE, OrderStatus.FAILED, OrderStatus.BEFORE_PAYMENT, OrderStatus.HOLD, OrderStatus.SELLING_CANCEL))
+                        .and(generalOrder.orderStatus.notIn(OrderStatus.CONFIRM, OrderStatus.CANCEL_DONE_SELLER, OrderStatus.RETURN_DONE_SELLER,
+                                OrderStatus.EXCHANGE_DONE_SELLER, OrderStatus.FAILED, OrderStatus.BEFORE_PAYMENT, OrderStatus.HOLD, OrderStatus.SELLING_CANCEL))
                 )
                 .fetchOne();
 
