@@ -37,6 +37,7 @@ import com.bi.barfdog.domain.subscribe.SubscribePlan;
 import com.bi.barfdog.domain.subscribe.SubscribeStatus;
 import com.bi.barfdog.domain.subscribeRecipe.SubscribeRecipe;
 import com.bi.barfdog.domain.surveyReport.*;
+import com.bi.barfdog.iamport.Iamport_API;
 import com.bi.barfdog.repository.article.ArticleRepository;
 import com.bi.barfdog.repository.banner.BannerRepository;
 import com.bi.barfdog.repository.blog.BlogImageRepository;
@@ -59,6 +60,7 @@ import com.bi.barfdog.repository.subscribeRecipe.SubscribeRecipeRepository;
 import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
 import com.bi.barfdog.service.BannerService;
 import com.bi.barfdog.service.DogService;
+import com.siot.IamportRestClient.IamportClient;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItem;
 import org.apache.commons.io.IOUtils;
@@ -94,6 +96,11 @@ public class AppConfig {
     @Bean
     public ModelMapper modelMapper() {
         return new ModelMapper();
+    }
+
+    @Bean
+    public IamportClient iamportClient() {
+        return new IamportClient(Iamport_API.API_KEY, Iamport_API.API_SECRET);
     }
 
     @Bean
