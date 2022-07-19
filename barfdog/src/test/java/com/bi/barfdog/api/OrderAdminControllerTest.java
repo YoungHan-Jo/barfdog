@@ -1,10 +1,7 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
-import com.bi.barfdog.api.orderDto.OrderAdminCond;
-import com.bi.barfdog.api.orderDto.OrderConfirmGeneralRequestDto;
-import com.bi.barfdog.api.orderDto.OrderConfirmSubscribeRequestDto;
-import com.bi.barfdog.api.orderDto.OrderType;
+import com.bi.barfdog.api.orderDto.*;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.coupon.*;
@@ -21,6 +18,9 @@ import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.domain.order.*;
 import com.bi.barfdog.domain.orderItem.*;
 import com.bi.barfdog.domain.recipe.Recipe;
+import com.bi.barfdog.domain.reward.Reward;
+import com.bi.barfdog.domain.reward.RewardName;
+import com.bi.barfdog.domain.reward.RewardStatus;
 import com.bi.barfdog.domain.setting.ActivityConstant;
 import com.bi.barfdog.domain.setting.Setting;
 import com.bi.barfdog.domain.setting.SnackConstant;
@@ -43,6 +43,7 @@ import com.bi.barfdog.repository.order.OrderRepository;
 import com.bi.barfdog.repository.orderItem.OrderItemRepository;
 import com.bi.barfdog.repository.orderItem.SelectOptionRepository;
 import com.bi.barfdog.repository.recipe.RecipeRepository;
+import com.bi.barfdog.repository.reward.RewardRepository;
 import com.bi.barfdog.repository.setting.SettingRepository;
 import com.bi.barfdog.repository.subscribe.BeforeSubscribeRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
@@ -57,10 +58,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
-import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.persistence.EntityManager;
 import java.math.BigDecimal;
@@ -133,6 +132,8 @@ public class OrderAdminControllerTest extends BaseTest {
     MemberCouponRepository memberCouponRepository;
     @Autowired
     ItemImageRepository itemImageRepository;
+    @Autowired
+    RewardRepository rewardRepository;
 
 
     @Before
@@ -907,7 +908,7 @@ public class OrderAdminControllerTest extends BaseTest {
             orderItemIdList.add(orderItem.getId());
         }
 
-        OrderConfirmGeneralRequestDto requestDto = OrderConfirmGeneralRequestDto.builder()
+        OrderConfirmGeneralDto requestDto = OrderConfirmGeneralDto.builder()
                 .orderItemIdList(orderItemIdList)
                 .build();
 
@@ -971,7 +972,7 @@ public class OrderAdminControllerTest extends BaseTest {
             orderIdList.add(subscribeOrder.getId());
         });
 
-        OrderConfirmSubscribeRequestDto requestDto = OrderConfirmSubscribeRequestDto.builder()
+        OrderConfirmSubscribeDto requestDto = OrderConfirmSubscribeDto.builder()
                 .orderIdList(orderIdList)
                 .build();
 
@@ -1018,6 +1019,418 @@ public class OrderAdminControllerTest extends BaseTest {
         }
 
     }
+
+
+    @Test
+    @DisplayName("일반 주문 관리자 주문취소하기")
+    public void orderCancelGeneral() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int rewardAmount = member.getReward();
+
+        GeneralOrder generalOrder = generateGeneralOrder(member, 1, OrderStatus.CONFIRM);
+
+        List<Long> orderItemIdList = new ArrayList<>();
+        List<MemberCoupon> memberCouponList = new ArrayList<>();
+        List<Integer> remainingList = new ArrayList<>();
+
+        List<OrderItem> orderItemList = generalOrder.getOrderItemList();
+        for (OrderItem orderItem : orderItemList) {
+            orderItemIdList.add(orderItem.getId());
+            MemberCoupon memberCoupon = orderItem.getMemberCoupon();
+            memberCouponList.add(memberCoupon);
+            remainingList.add(memberCoupon.getRemaining());
+        }
+
+
+        String reason = "취소 이유";
+        String detailReason = "취소 상세 이유";
+        OrderCancelGeneralDto requestDto = OrderCancelGeneralDto.builder()
+                .orderItemIdList(orderItemIdList)
+                .reason(reason)
+                .detailReason(detailReason)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/orders/general/orderCancel")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("admin_orderCancel_general",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_orders").description("주문 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestFields(
+                                fieldWithPath("orderItemIdList").description("취소 컨펌 처리 할 주문한상품(orderItem) id 리스트"),
+                                fieldWithPath("reason").description("취소 이유"),
+                                fieldWithPath("detailReason").description("취소 상세 이유")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_orders.href").description("주문 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        for (Long orderItemId : orderItemIdList) {
+            OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
+            assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.CANCEL_DONE_SELLER);
+            assertThat(orderItem.getOrderCancel().getCancelReason()).isEqualTo(reason);
+            assertThat(orderItem.getOrderCancel().getCancelDetailReason()).isEqualTo(detailReason);
+            assertThat(orderItem.getOrderCancel().getCancelConfirmDate()).isNotNull();
+            assertThat(orderItem.getOrderCancel().getCancelRequestDate()).isNotNull();
+            assertThat(orderItem.getCancelReward()).isNotEqualTo(0);
+            assertThat(orderItem.getCancelPrice()).isEqualTo(orderItem.getFinalPrice() - orderItem.getCancelReward());
+        }
+
+        Order findOrder = orderRepository.findById(generalOrder.getId()).get();
+        assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCEL_DONE_SELLER);
+
+        List<Reward> rewardList = rewardRepository.findAll();
+        assertThat(rewardList.size()).isEqualTo(orderItemIdList.size());
+
+        int cancelRewards = 0;
+
+        for (Reward reward : rewardList) {
+            assertThat(reward.getRewardStatus()).isEqualTo(RewardStatus.SAVED);
+            assertThat(reward.getName()).isEqualTo(RewardName.CANCEL_ORDER);
+            assertThat(reward.getTradeReward()).isNotEqualTo(0);
+            cancelRewards += reward.getTradeReward();
+        }
+
+        Member findMember = memberRepository.findById(member.getId()).get();
+        assertThat(findMember.getReward()).isNotEqualTo(rewardAmount);
+        assertThat(findMember.getReward()).isEqualTo(rewardAmount + cancelRewards);
+
+        assertThat(memberCouponList.size()).isNotEqualTo(0);
+        for (int i = 0; i < memberCouponList.size(); i++) {
+            assertThat(memberCouponList.get(i).getRemaining()).isEqualTo(remainingList.get(i) + 1);
+            assertThat(memberCouponList.get(i).getMemberCouponStatus()).isEqualTo(CouponStatus.ACTIVE);
+        }
+    }
+
+
+    @Test
+    @DisplayName("구독주문 관리자 판매취소")
+    public void orderCancelSubscribe() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        List<Long> orderIdList = new ArrayList<>();
+        List<MemberCoupon> memberCouponList = new ArrayList<>();
+        List<Integer> remainingList = new ArrayList<>();
+
+        IntStream.range(1,6).forEach(i -> {
+            SubscribeOrder subscribeOrder = generateSubscribeOrder(member, i, OrderStatus.PAYMENT_DONE);
+            orderIdList.add(subscribeOrder.getId());
+            MemberCoupon memberCoupon = subscribeOrder.getMemberCoupon();
+            memberCouponList.add(memberCoupon);
+            remainingList.add(memberCoupon.getRemaining());
+        });
+
+        String reason = "취소 사유";
+        String detailReason = "취소 상세 사유";
+        OrderCancelSubscribeDto requestDto = OrderCancelSubscribeDto.builder()
+                .orderIdList(orderIdList)
+                .reason(reason)
+                .detailReason(detailReason)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/orders/subscribe/orderCancel")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("admin_orderCancel_subscribe",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_orders").description("주문 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestFields(
+                                fieldWithPath("orderIdList").description("판매 취소 처리 할 구독 주문(order) id 리스트"),
+                                fieldWithPath("reason").description("취소 이유"),
+                                fieldWithPath("detailReason").description("취소 상세 이유")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_orders.href").description("주문 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+        ;
+
+        em.flush();
+        em.clear();
+
+        for (Long orderId : orderIdList) {
+            SubscribeOrder findOrder = (SubscribeOrder) orderRepository.findById(orderId).get();
+            assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCEL_DONE_SELLER);
+            assertThat(findOrder.getOrderCancel().getCancelReason()).isEqualTo(reason);
+            assertThat(findOrder.getOrderCancel().getCancelDetailReason()).isEqualTo(detailReason);
+            assertThat(findOrder.getOrderCancel().getCancelConfirmDate()).isNotNull();
+        }
+
+        List<Reward> allRewards = rewardRepository.findAll();
+        assertThat(allRewards.size()).isNotEqualTo(0);
+        assertThat(allRewards.size()).isEqualTo(orderIdList.size());
+
+        assertThat(memberCouponList.size()).isNotEqualTo(0);
+        for (int i = 0; i < memberCouponList.size(); i++) {
+            assertThat(memberCouponList.get(i).getRemaining()).isEqualTo(remainingList.get(i) + 1);
+        }
+
+
+
+    }
+
+
+
+
+
+
+    @Test
+    @DisplayName("일반 주문 주문취소 컨펌")
+    public void cancelConfirmGeneral() throws Exception {
+       //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int rewardAmount = member.getReward();
+
+        GeneralOrder generalOrder = generateGeneralOrder(member, 1, OrderStatus.CONFIRM);
+
+        List<Long> orderItemIdList = new ArrayList<>();
+        List<MemberCoupon> memberCouponList = new ArrayList<>();
+        List<Integer> remainingList = new ArrayList<>();
+
+        List<OrderItem> orderItemList = generalOrder.getOrderItemList();
+        for (OrderItem orderItem : orderItemList) {
+            orderItemIdList.add(orderItem.getId());
+            MemberCoupon memberCoupon = orderItem.getMemberCoupon();
+            memberCouponList.add(memberCoupon);
+            remainingList.add(memberCoupon.getRemaining());
+        }
+
+
+        CancelConfirmGeneralDto requestDto = CancelConfirmGeneralDto.builder()
+                .orderItemIdList(orderItemIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/orders/general/cancelConfirm")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("admin_cancelConfirm_general",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_orders").description("주문 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestFields(
+                                fieldWithPath("orderItemIdList").description("취소 컨펌 처리 할 주문한상품(orderItem) id 리스트")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_orders.href").description("주문 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        for (Long orderItemId : orderItemIdList) {
+            OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
+            assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.CANCEL_DONE_BUYER);
+            assertThat(orderItem.getCancelReward()).isNotEqualTo(0);
+            assertThat(orderItem.getCancelPrice()).isEqualTo(orderItem.getFinalPrice() - orderItem.getCancelReward());
+        }
+
+        Order findOrder = orderRepository.findById(generalOrder.getId()).get();
+        assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCEL_DONE_SELLER);
+
+        List<Reward> rewardList = rewardRepository.findAll();
+        assertThat(rewardList.size()).isEqualTo(orderItemIdList.size());
+
+        int cancelRewards = 0;
+
+        for (Reward reward : rewardList) {
+            assertThat(reward.getRewardStatus()).isEqualTo(RewardStatus.SAVED);
+            assertThat(reward.getName()).isEqualTo(RewardName.CANCEL_ORDER);
+            assertThat(reward.getTradeReward()).isNotEqualTo(0);
+            cancelRewards += reward.getTradeReward();
+        }
+
+        Member findMember = memberRepository.findById(member.getId()).get();
+        assertThat(findMember.getReward()).isNotEqualTo(rewardAmount);
+        assertThat(findMember.getReward()).isEqualTo(rewardAmount + cancelRewards);
+
+        assertThat(memberCouponList.size()).isNotEqualTo(0);
+        for (int i = 0; i < memberCouponList.size(); i++) {
+            assertThat(memberCouponList.get(i).getRemaining()).isEqualTo(remainingList.get(i) + 1);
+            assertThat(memberCouponList.get(i).getMemberCouponStatus()).isEqualTo(CouponStatus.ACTIVE);
+        }
+    }
+
+    @Test
+    @DisplayName("일반 주문 취소 컨펌 . 일부 orderitem만 취소")
+    public void cancelConfirmGeneral_일부만() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        GeneralOrder generalOrder = generateGeneralOrder(member, 1, OrderStatus.CONFIRM);
+
+        List<Long> orderItemIdList = new ArrayList<>();
+
+        List<OrderItem> orderItemList = generalOrder.getOrderItemList();
+        orderItemIdList.add(orderItemList.get(0).getId());
+
+        CancelConfirmGeneralDto requestDto = CancelConfirmGeneralDto.builder()
+                .orderItemIdList(orderItemIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/orders/general/cancelConfirm")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        em.flush();
+        em.clear();
+
+        for (Long orderItemId : orderItemIdList) {
+            OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
+            assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.CANCEL_DONE_BUYER);
+        }
+
+        Order findOrder = orderRepository.findById(generalOrder.getId()).get();
+        assertThat(findOrder.getOrderStatus()).isNotEqualTo(OrderStatus.CANCEL_DONE_SELLER);
+
+    }
+
+    @Test
+    @DisplayName("구독주문 주문취소 컨펌")
+    public void cancelConfirmSubscribe() throws Exception {
+       //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        List<Long> orderIdList = new ArrayList<>();
+        List<MemberCoupon> memberCouponList = new ArrayList<>();
+        List<Integer> remainingList = new ArrayList<>();
+
+        IntStream.range(1,6).forEach(i -> {
+            SubscribeOrder subscribeOrder = generateSubscribeOrder(member, i, OrderStatus.PAYMENT_DONE);
+            orderIdList.add(subscribeOrder.getId());
+            MemberCoupon memberCoupon = subscribeOrder.getMemberCoupon();
+            memberCouponList.add(memberCoupon);
+            remainingList.add(memberCoupon.getRemaining());
+        });
+
+        CancelConfirmSubscribeDto requestDto = CancelConfirmSubscribeDto.builder()
+                .orderIdList(orderIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/orders/subscribe/cancelConfirm")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("admin_cancelConfirm_subscribe",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_orders").description("주문 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestFields(
+                                fieldWithPath("orderIdList").description("취소 컨펌 처리 할 구독 주문(order) id 리스트")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_orders.href").description("주문 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+        ;
+
+        em.flush();
+        em.clear();
+
+        for (Long orderId : orderIdList) {
+            Order findOrder = orderRepository.findById(orderId).get();
+            assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCEL_DONE_BUYER);
+        }
+
+        List<Reward> allRewards = rewardRepository.findAll();
+        assertThat(allRewards.size()).isNotEqualTo(0);
+        assertThat(allRewards.size()).isEqualTo(orderIdList.size());
+
+        assertThat(memberCouponList.size()).isNotEqualTo(0);
+        for (int i = 0; i < memberCouponList.size(); i++) {
+            assertThat(memberCouponList.get(i).getRemaining()).isEqualTo(remainingList.get(i) + 1);
+        }
+
+
+
+    }
+
+
 
 
 
@@ -1500,21 +1913,25 @@ public class OrderAdminControllerTest extends BaseTest {
                 .build();
         subscribeRepository.save(subscribe);
 
+        Coupon coupon = generateGeneralCoupon(i);
+        MemberCoupon memberCoupon = generateMemberCoupon(member, coupon, 3, CouponStatus.ACTIVE);
+
         SubscribeOrder subscribeOrder = SubscribeOrder.builder()
-                .impUid("imp_uid"+i)
-                .merchantUid("merchant_uid"+i)
+                .impUid("imp_uid" + i)
+                .merchantUid("merchant_uid" + i)
                 .orderStatus(orderStatus)
                 .member(member)
                 .orderPrice(120000)
                 .deliveryPrice(0)
                 .discountTotal(0)
-                .discountReward(0)
-                .discountCoupon(0)
-                .paymentPrice(120000)
+                .discountReward(5000)
+                .discountCoupon(4000)
+                .paymentPrice(115000)
                 .paymentMethod(PaymentMethod.CREDIT_CARD)
                 .isPackage(false)
                 .delivery(delivery)
                 .subscribe(subscribe)
+                .memberCoupon(memberCoupon)
                 .build();
         return orderRepository.save(subscribeOrder);
     }

@@ -2289,6 +2289,7 @@ public class OrderApiControllerTest extends BaseTest {
         List<OrderItem> orderItems = orderItemRepository.findAllByGeneralOrder(findOrder);
         for (OrderItem orderItem : orderItems) {
             assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.CANCEL_REQUEST);
+            assertThat(orderItem.getOrderCancel().getCancelRequestDate()).isNotNull();
         }
 
     }

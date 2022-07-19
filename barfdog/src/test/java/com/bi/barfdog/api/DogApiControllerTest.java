@@ -275,6 +275,9 @@ public class DogApiControllerTest extends BaseTest {
         List<DogPicture> dogPictureList = dogPictureRepository.findByDog(dog);
         assertThat(dogPictureList.size()).isEqualTo(1);
         assertThat(dogPictureList.get(0).getId()).isEqualTo(newDogPicture.getId());
+
+        DogPicture findPicture = dogPictureRepository.findById(newDogPicture.getId()).get();
+        assertThat(findPicture.getDog().getId()).isEqualTo(dog.getId());
     }
 
     @Test
@@ -570,6 +573,10 @@ public class DogApiControllerTest extends BaseTest {
                         responseFields(
                                 fieldWithPath("lastSurveyDate").description("마지막 설문조사 날짜"),
                                 fieldWithPath("myDogName").description("설문 강아지 이름"),
+                                fieldWithPath("dogSize").description("강아지 크기 [LARGE, MIDDLE, SMALL]"),
+                                fieldWithPath("dogActivity.activityLevel").description("활동량 레벨 [VERY_LITTLE, LITTLE, NORMAL, MUCH, VERY_MUCH]"),
+                                fieldWithPath("dogActivity.walkingCountPerWeek").description("주 당 산책 회수"),
+                                fieldWithPath("dogActivity.walkingTimePerOneTime").description("한 번 당 산책 시간"),
                                 fieldWithPath("ageAnalysis.avgAgeMonth").description("바프독을 시작한 평균 나이"),
                                 fieldWithPath("ageAnalysis.ageGroupOneCount").description("1그룹(가장어린)에 포함된 강아지 수"),
                                 fieldWithPath("ageAnalysis.ageGroupTwoCount").description("2그룹에 포함된 강아지 수"),
@@ -859,7 +866,7 @@ public class DogApiControllerTest extends BaseTest {
                         ),
                         responseFields(
                                 fieldWithPath("_embedded.queryDogsDtoList[0].id").description("강아지 id"),
-                                fieldWithPath("_embedded.queryDogsDtoList[0].pictureUrl").description("강아지 프로필사진 url, 사진없으면 null").optional(),
+                                fieldWithPath("_embedded.queryDogsDtoList[0].pictureUrl").description("강아지 프로필사진 url, 사진없으면 null"),
                                 fieldWithPath("_embedded.queryDogsDtoList[0].name").description("강아지 이름"),
                                 fieldWithPath("_embedded.queryDogsDtoList[0].birth").description("강아지 생일 'yyyyMM'"),
                                 fieldWithPath("_embedded.queryDogsDtoList[0].gender").description("강아지 성별 [MALE, FEMALE]"),

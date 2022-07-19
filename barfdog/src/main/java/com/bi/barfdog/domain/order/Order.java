@@ -98,4 +98,8 @@ public abstract class Order extends BaseTimeEntity {
     public void orderConfirmSubscribe() {
         this.orderStatus = OrderStatus.PRODUCING;
     }
+
+    public void confirmAs(OrderStatus status) {
+        orderStatus = status;
+    }
 }

@@ -182,7 +182,7 @@ public class BlogRepositoryImpl implements BlogRepositoryCustom{
                         ))
                 .from(blog)
                 .leftJoin(blog.blogThumbnail, blogThumbnail)
-                .where(categoryNotInNotice())
+                .where(categoryNotInNotice().and(blog.status.eq(BlogStatus.LEAKED)))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .orderBy(blog.createdDate.desc())
@@ -194,7 +194,7 @@ public class BlogRepositoryImpl implements BlogRepositoryCustom{
         Long totalCount = queryFactory
                 .select(blog.count())
                 .from(blog)
-                .where(categoryNotInNotice())
+                .where(categoryNotInNotice().and(blog.status.eq(BlogStatus.LEAKED)))
                 .fetchOne();
 
         return new PageImpl<>(result, pageable, totalCount);
@@ -213,7 +213,7 @@ public class BlogRepositoryImpl implements BlogRepositoryCustom{
                 ))
                 .from(blog)
                 .leftJoin(blog.blogThumbnail, blogThumbnail)
-                .where(blog.category.eq(blogCategory))
+                .where(blog.category.eq(blogCategory).and(blog.status.eq(BlogStatus.LEAKED)))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .orderBy(blog.createdDate.desc())
@@ -225,7 +225,7 @@ public class BlogRepositoryImpl implements BlogRepositoryCustom{
         Long totalCount = queryFactory
                 .select(blog.count())
                 .from(blog)
-                .where(blog.category.eq(blogCategory))
+                .where(blog.category.eq(blogCategory).and(blog.status.eq(BlogStatus.LEAKED)))
                 .fetchOne();
 
         return new PageImpl<>(result, pageable, totalCount);

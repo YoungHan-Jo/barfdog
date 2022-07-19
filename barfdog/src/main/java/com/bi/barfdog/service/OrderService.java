@@ -25,6 +25,7 @@ import com.bi.barfdog.domain.reward.RewardStatus;
 import com.bi.barfdog.domain.reward.RewardType;
 import com.bi.barfdog.domain.setting.Setting;
 import com.bi.barfdog.domain.subscribe.Subscribe;
+import com.bi.barfdog.iamport.Iamport_API;
 import com.bi.barfdog.repository.card.CardRepository;
 import com.bi.barfdog.repository.delivery.DeliveryRepository;
 import com.bi.barfdog.repository.item.ItemOptionRepository;
@@ -36,16 +37,24 @@ import com.bi.barfdog.repository.orderItem.SelectOptionRepository;
 import com.bi.barfdog.repository.reward.RewardRepository;
 import com.bi.barfdog.repository.setting.SettingRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
+import com.siot.IamportRestClient.IamportClient;
+import com.siot.IamportRestClient.exception.IamportResponseException;
+import com.siot.IamportRestClient.request.CancelData;
+import com.siot.IamportRestClient.response.IamportResponse;
+import com.siot.IamportRestClient.response.Payment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -552,7 +561,7 @@ public class OrderService {
         subscribe.failPayment();
 
         MemberCoupon memberCoupon = order.getMemberCoupon();
-        memberCoupon.cancel();
+        memberCoupon.revival();
 
         member.subscribeOrderFail(order);
     }
@@ -632,7 +641,7 @@ public class OrderService {
     }
 
     @Transactional
-    public void orderConfirmGeneral(OrderConfirmGeneralRequestDto requestDto) {
+    public void orderConfirmGeneral(OrderConfirmGeneralDto requestDto) {
         List<Long> orderItemIdList = requestDto.getOrderItemIdList();
         for (Long orderItemId : orderItemIdList) {
             OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
@@ -641,7 +650,7 @@ public class OrderService {
     }
 
     @Transactional
-    public void orderConfirmSubscribe(OrderConfirmSubscribeRequestDto requestDto) {
+    public void orderConfirmSubscribe(OrderConfirmSubscribeDto requestDto) {
         List<Long> orderIdList = requestDto.getOrderIdList();
         for (Long orderId : orderIdList) {
             Order order = orderRepository.findById(orderId).get();
@@ -649,4 +658,187 @@ public class OrderService {
         }
     }
 
+    private IamportClient client = new IamportClient(Iamport_API.API_KEY, Iamport_API.API_SECRET);
+
+    @Transactional
+    public void cancelConfirmGeneral(CancelConfirmGeneralDto requestDto) {
+        List<Long> orderItemIdList = requestDto.getOrderItemIdList();
+        for (Long orderItemId : orderItemIdList) {
+            OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
+            GeneralOrder order = orderItem.getGeneralOrder();
+
+            int finalPrice = orderItem.getFinalPrice();
+            int cancelReward = getCancelReward(order, finalPrice);
+            int cancelPrice = finalPrice - cancelReward;
+
+            String impUid = order.getImpUid();
+            CancelData cancelData = new CancelData(impUid, true, BigDecimal.valueOf(cancelPrice));
+
+            try {
+                IamportResponse<Payment> paymentIamportResponse = client.cancelPaymentByImpUid(cancelData);
+                orderItem.cancelConfirm(cancelReward, cancelPrice, OrderStatus.CANCEL_DONE_BUYER);
+                saveCancelReward(orderItem, order, RewardName.CANCEL_ORDER);
+                orderStatusCancelDone(order);
+                revivalCoupon(orderItem);
+
+            } catch (IamportResponseException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void revivalCoupon(OrderItem orderItem) {
+        MemberCoupon memberCoupon = orderItem.getMemberCoupon();
+        if (memberCoupon != null) {
+            memberCoupon.revival();
+        }
+    }
+
+    private int getCancelReward(GeneralOrder order, int finalPrice) {
+        int allRewards = order.getDiscountReward();
+        int paymentPrice = order.getPaymentPrice();
+        int allAmount = paymentPrice + allRewards;
+        int percent = (int) Math.round(((double)finalPrice / allAmount) * 100);
+        int cancelReward = (int) (allRewards / 100) * percent;
+        return cancelReward;
+    }
+
+    private void orderStatusCancelDone(GeneralOrder order) {
+        List<OrderItem> allOrderItem = orderItemRepository.findAllByGeneralOrder(order);
+        int count = 0;
+        for (OrderItem oi : allOrderItem) {
+            if (oi.getStatus() == OrderStatus.CANCEL_DONE_BUYER || oi.getStatus() == OrderStatus.CANCEL_DONE_SELLER) {
+                count++;
+            }
+        }
+        if (count == allOrderItem.size()) {
+            order.confirmAs(OrderStatus.CANCEL_DONE_SELLER);
+        }
+    }
+
+    private void saveCancelReward(OrderItem orderItem, GeneralOrder order, String name) {
+        int cancelReward = orderItem.getCancelReward();
+
+        if (cancelReward > 0) {
+            Member member = order.getMember();
+            member.saveReward(cancelReward);
+            saveReward(name, cancelReward, member);
+        }
+    }
+
+    private void saveReward(String name, int cancelReward, Member member) {
+        Reward reward = Reward.builder()
+                .member(member)
+                .name(name)
+                .rewardType(RewardType.ORDER)
+                .rewardStatus(RewardStatus.SAVED)
+                .tradeReward(cancelReward)
+                .build();
+        rewardRepository.save(reward);
+    }
+
+    @Transactional
+    public void cancelConfirmSubscribe(CancelConfirmSubscribeDto requestDto) {
+        List<Long> orderIdList = requestDto.getOrderIdList();
+        for (Long orderId : orderIdList) {
+            SubscribeOrder order = (SubscribeOrder) orderRepository.findById(orderId).get();
+            Member member = order.getMember();
+
+            String impUid = order.getImpUid();
+
+            CancelData cancelData = new CancelData(impUid, true);
+
+            try {
+                IamportResponse<Payment> paymentIamportResponse = client.cancelPaymentByImpUid(cancelData);
+                saveCancelReward(order, member);
+                order.confirmAs(OrderStatus.CANCEL_DONE_BUYER);
+                revivalCoupon(order);
+
+            } catch (IamportResponseException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    private void revivalCoupon(SubscribeOrder order) {
+        MemberCoupon memberCoupon = order.getMemberCoupon();
+        if (memberCoupon != null) {
+            memberCoupon.revival();
+        }
+    }
+
+    private void saveCancelReward(SubscribeOrder order, Member member) {
+        int discountReward = order.getDiscountReward();
+        if (discountReward > 0) {
+            member.saveReward(discountReward);
+            saveReward(RewardName.CANCEL_ORDER, discountReward, member);
+        }
+    }
+
+    @Transactional
+    public void orderCancelGeneral(OrderCancelGeneralDto requestDto) {
+        List<Long> orderItemIdList = requestDto.getOrderItemIdList();
+        String reason = requestDto.getReason();
+        String detailReason = requestDto.getDetailReason();
+        for (Long orderItemId : orderItemIdList) {
+            Optional<OrderItem> optionalOrderItem = orderItemRepository.findById(orderItemId);
+            if (!optionalOrderItem.isPresent()) continue;
+            OrderItem orderItem = optionalOrderItem.get();
+            GeneralOrder order = orderItem.getGeneralOrder();
+
+            int finalPrice = orderItem.getFinalPrice();
+            int cancelReward = getCancelReward(order, finalPrice);
+            int cancelPrice = finalPrice - cancelReward;
+
+            String impUid = order.getImpUid();
+            CancelData cancelData = new CancelData(impUid, true, BigDecimal.valueOf(cancelPrice));
+
+            try {
+                IamportResponse<Payment> paymentIamportResponse = client.cancelPaymentByImpUid(cancelData);
+                orderItem.cancelConfirm(cancelReward, cancelPrice, OrderStatus.CANCEL_DONE_SELLER, reason, detailReason);
+                saveCancelReward(orderItem, order, RewardName.CANCEL_ORDER);
+                orderStatusCancelDone(order);
+                revivalCoupon(orderItem);
+
+            } catch (IamportResponseException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Transactional
+    public void orderCancelSubscribe(OrderCancelSubscribeDto requestDto) {
+        String reason = requestDto.getReason();
+        String detailReason = requestDto.getDetailReason();
+        List<Long> orderIdList = requestDto.getOrderIdList();
+        for (Long orderId : orderIdList) {
+            SubscribeOrder order = (SubscribeOrder) orderRepository.findById(orderId).get();
+            Member member = order.getMember();
+
+            String impUid = order.getImpUid();
+
+            CancelData cancelData = new CancelData(impUid, true);
+
+            try {
+                IamportResponse<Payment> paymentIamportResponse = client.cancelPaymentByImpUid(cancelData);
+                saveCancelReward(order, member);
+                order.confirmAs(OrderStatus.CANCEL_DONE_SELLER);
+                order.cancelReason(reason, detailReason);
+                revivalCoupon(order);
+
+            } catch (IamportResponseException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
 }

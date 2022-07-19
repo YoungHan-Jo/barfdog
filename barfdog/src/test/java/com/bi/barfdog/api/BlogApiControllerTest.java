@@ -5,6 +5,7 @@ import com.bi.barfdog.domain.blog.*;
 import com.bi.barfdog.repository.article.ArticleRepository;
 import com.bi.barfdog.repository.blog.BlogRepository;
 import com.bi.barfdog.repository.blog.BlogThumbnailRepository;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,14 @@ public class BlogApiControllerTest extends BaseTest {
     BlogThumbnailRepository blogThumbnailRepository;
     @Autowired
     ArticleRepository articleRepository;
+
+    @Before
+    public void setUp() {
+
+        articleRepository.deleteAll();
+        blogThumbnailRepository.deleteAll();
+        blogRepository.deleteAll();
+    }
 
     @Test
     @DisplayName("정상적으로 아티클 조회하는 테스트")
@@ -91,14 +100,17 @@ public class BlogApiControllerTest extends BaseTest {
        //given
 
         IntStream.range(1,6).forEach(i -> {
-            generateBlog(i, BlogCategory.LIFE);
+            generateBlog(i, BlogCategory.LIFE, BlogStatus.LEAKED);
         });
         IntStream.range(6,11).forEach(i -> {
-            generateBlog(i, BlogCategory.HEALTH);
+            generateBlog(i, BlogCategory.HEALTH, BlogStatus.LEAKED);
         });
         IntStream.range(11,14).forEach(i -> {
-            generateBlog(i, BlogCategory.NUTRITION);
-            generateBlog(i, BlogCategory.NOTICE);
+            generateBlog(i, BlogCategory.NUTRITION, BlogStatus.LEAKED);
+            generateBlog(i, BlogCategory.NOTICE, BlogStatus.LEAKED);
+        });
+        IntStream.range(14, 17).forEach(i -> {
+            generateBlog(i, BlogCategory.NUTRITION, BlogStatus.HIDDEN);
         });
 
        //when & then
@@ -109,7 +121,7 @@ public class BlogApiControllerTest extends BaseTest {
                         .param("size", "5"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("page.totalElements").value(15))
+                .andExpect(jsonPath("page.totalElements").value(13))
                 .andDo(document("query_blogs",
                         links(
                                 linkWithRel("first").description("첫 페이지 링크"),
@@ -158,14 +170,17 @@ public class BlogApiControllerTest extends BaseTest {
        //given
 
         IntStream.range(1,14).forEach(i -> {
-            generateBlog(i, BlogCategory.LIFE);
+            generateBlog(i, BlogCategory.LIFE, BlogStatus.LEAKED);
         });
         IntStream.range(6,11).forEach(i -> {
-            generateBlog(i, BlogCategory.HEALTH);
+            generateBlog(i, BlogCategory.HEALTH, BlogStatus.LEAKED);
         });
         IntStream.range(11,14).forEach(i -> {
-            generateBlog(i, BlogCategory.NUTRITION);
-            generateBlog(i, BlogCategory.NOTICE);
+            generateBlog(i, BlogCategory.NUTRITION, BlogStatus.LEAKED);
+            generateBlog(i, BlogCategory.NOTICE, BlogStatus.LEAKED);
+        });
+        IntStream.range(11,14).forEach(i -> {
+            generateBlog(i, BlogCategory.LIFE, BlogStatus.HIDDEN);
         });
 
         String category = "life";
@@ -230,14 +245,14 @@ public class BlogApiControllerTest extends BaseTest {
         //given
 
         IntStream.range(1,5).forEach(i -> {
-            generateBlog(i, BlogCategory.LIFE);
+            generateBlog(i, BlogCategory.LIFE, BlogStatus.LEAKED);
         });
         IntStream.range(6,11).forEach(i -> {
-            generateBlog(i, BlogCategory.HEALTH);
-            generateBlog(i, BlogCategory.NOTICE);
+            generateBlog(i, BlogCategory.HEALTH, BlogStatus.LEAKED);
+            generateBlog(i, BlogCategory.NOTICE, BlogStatus.LEAKED);
         });
         IntStream.range(1,14).forEach(i -> {
-            generateBlog(i, BlogCategory.NUTRITION);
+            generateBlog(i, BlogCategory.NUTRITION, BlogStatus.LEAKED);
         });
 
         String category = "nutrition";
@@ -260,14 +275,14 @@ public class BlogApiControllerTest extends BaseTest {
         //given
 
         IntStream.range(1,5).forEach(i -> {
-            generateBlog(i, BlogCategory.LIFE);
+            generateBlog(i, BlogCategory.LIFE, BlogStatus.LEAKED);
         });
         IntStream.range(6,11).forEach(i -> {
-            generateBlog(i, BlogCategory.NOTICE);
-            generateBlog(i, BlogCategory.NUTRITION);
+            generateBlog(i, BlogCategory.NOTICE, BlogStatus.LEAKED);
+            generateBlog(i, BlogCategory.NUTRITION, BlogStatus.LEAKED);
         });
         IntStream.range(1,14).forEach(i -> {
-            generateBlog(i, BlogCategory.HEALTH);
+            generateBlog(i, BlogCategory.HEALTH, BlogStatus.LEAKED);
         });
 
         String category = "health";
@@ -290,14 +305,14 @@ public class BlogApiControllerTest extends BaseTest {
         //given
 
         IntStream.range(1,5).forEach(i -> {
-            generateBlog(i, BlogCategory.LIFE);
+            generateBlog(i, BlogCategory.LIFE, BlogStatus.LEAKED);
         });
         IntStream.range(6,11).forEach(i -> {
-            generateBlog(i, BlogCategory.NOTICE);
-            generateBlog(i, BlogCategory.NUTRITION);
+            generateBlog(i, BlogCategory.NOTICE, BlogStatus.LEAKED);
+            generateBlog(i, BlogCategory.NUTRITION, BlogStatus.LEAKED);
         });
         IntStream.range(1,14).forEach(i -> {
-            generateBlog(i, BlogCategory.HEALTH);
+            generateBlog(i, BlogCategory.HEALTH, BlogStatus.LEAKED);
         });
 
         String category = "wrong";
@@ -317,7 +332,7 @@ public class BlogApiControllerTest extends BaseTest {
     public void queryBlog() throws Exception {
        //given
 
-        Blog blog = generateBlog(1, BlogCategory.LIFE);
+        Blog blog = generateBlog(1, BlogCategory.LIFE, BlogStatus.LEAKED);
 
         //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.get("/api/blogs/{id}", blog.getId())
@@ -359,7 +374,7 @@ public class BlogApiControllerTest extends BaseTest {
     public void queryBlog_notFound() throws Exception {
         //given
 
-        Blog blog = generateBlog(1, BlogCategory.LIFE);
+        Blog blog = generateBlog(1, BlogCategory.LIFE, BlogStatus.LEAKED);
 
         //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.get("/api/blogs/999999")
@@ -391,23 +406,10 @@ public class BlogApiControllerTest extends BaseTest {
 
 
     private Blog generateBlog(int i) {
-        BlogThumbnail thumbnail = BlogThumbnail.builder()
-                .folder("folder" + i)
-                .filename("filename" + i + ".jpg")
-                .build();
-        blogThumbnailRepository.save(thumbnail);
-
-        Blog blog = Blog.builder()
-                .status(BlogStatus.LEAKED)
-                .title("제목" + i)
-                .category(BlogCategory.HEALTH)
-                .contents("컨텐츠 내용")
-                .blogThumbnail(thumbnail)
-                .build();
-        return blogRepository.save(blog);
+        return generateBlog(i, BlogCategory.HEALTH, BlogStatus.LEAKED);
     }
 
-    private Blog generateBlog(int i, BlogCategory category) {
+    private Blog generateBlog(int i, BlogCategory category, BlogStatus status) {
         BlogThumbnail thumbnail = BlogThumbnail.builder()
                 .folder("folder" + i)
                 .filename("filename" + i + ".jpg")
@@ -415,7 +417,7 @@ public class BlogApiControllerTest extends BaseTest {
         blogThumbnailRepository.save(thumbnail);
 
         Blog blog = Blog.builder()
-                .status(BlogStatus.LEAKED)
+                .status(status)
                 .title("제목" + i)
                 .category(category)
                 .contents("컨텐츠 내용")

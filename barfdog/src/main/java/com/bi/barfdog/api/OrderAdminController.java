@@ -103,27 +103,80 @@ public class OrderAdminController {
 
 
     @PostMapping("/general/orderConfirm")
-    public ResponseEntity orderConfirmGeneral(@RequestBody OrderConfirmGeneralRequestDto requestDto) {
+    public ResponseEntity orderConfirmGeneral(@RequestBody OrderConfirmGeneralDto requestDto) {
 
         orderService.orderConfirmGeneral(requestDto);
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(OrderAdminController.class).slash("general/orderConfirm").withSelfRel());
         representationModel.add(linkTo(OrderAdminController.class).slash("search").withRel("query_orders"));
-        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-query-admin-orderConfirm-general").withRel("profile"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-orderConfirm-general").withRel("profile"));
 
         return ResponseEntity.ok(representationModel);
     }
 
     @PostMapping("/subscribe/orderConfirm")
-    public ResponseEntity orderConfirmSubscribe(@RequestBody OrderConfirmSubscribeRequestDto requestDto) {
+    public ResponseEntity orderConfirmSubscribe(@RequestBody OrderConfirmSubscribeDto requestDto) {
 
         orderService.orderConfirmSubscribe(requestDto);
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(OrderAdminController.class).slash("subscribe/orderConfirm").withSelfRel());
         representationModel.add(linkTo(OrderAdminController.class).slash("search").withRel("query_orders"));
-        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-query-admin-orderConfirm-subscribe").withRel("profile"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-orderConfirm-subscribe").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+
+    @PostMapping("/general/cancelConfirm")
+    public ResponseEntity cancelConfirmGeneral(@RequestBody CancelConfirmGeneralDto requestDto) {
+
+        orderService.cancelConfirmGeneral(requestDto);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderAdminController.class).slash("general/cancelConfirm").withSelfRel());
+        representationModel.add(linkTo(OrderAdminController.class).slash("search").withRel("query_orders"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-cancelConfirm-general").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @PostMapping("/subscribe/cancelConfirm")
+    public ResponseEntity cancelConfirmSubscribe(@RequestBody CancelConfirmSubscribeDto requestDto) {
+
+        orderService.cancelConfirmSubscribe(requestDto);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderAdminController.class).slash("subscribe/cancelConfirm").withSelfRel());
+        representationModel.add(linkTo(OrderAdminController.class).slash("search").withRel("query_orders"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-cancelConfirm-subscribe").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @PostMapping("/general/orderCancel")
+    public ResponseEntity orderCancelGeneral(@RequestBody OrderCancelGeneralDto requestDto) {
+
+        orderService.orderCancelGeneral(requestDto);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderAdminController.class).slash("general/orderCancel").withSelfRel());
+        representationModel.add(linkTo(OrderAdminController.class).slash("search").withRel("query_orders"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-orderCancel-general").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @PostMapping("/subscribe/orderCancel")
+    public ResponseEntity orderCancelGeneral(@RequestBody OrderCancelSubscribeDto requestDto) {
+
+        orderService.orderCancelSubscribe(requestDto);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderAdminController.class).slash("subscribe/orderCancel").withSelfRel());
+        representationModel.add(linkTo(OrderAdminController.class).slash("search").withRel("query_orders"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-orderCancel-subscribe").withRel("profile"));
 
         return ResponseEntity.ok(representationModel);
     }

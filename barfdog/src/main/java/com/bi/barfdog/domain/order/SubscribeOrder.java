@@ -48,4 +48,12 @@ public class SubscribeOrder extends Order{
         this.subscribe = subscribe;
     }
 
+    public void cancelReason(String reason, String detailReason) {
+        orderCancel = OrderCancel.builder()
+                .cancelReason(reason)
+                .cancelDetailReason(detailReason)
+                .cancelRequestDate(orderCancel != null ? orderCancel.getCancelRequestDate() : null)
+                .cancelConfirmDate(LocalDateTime.now())
+                .build();
+    }
 }

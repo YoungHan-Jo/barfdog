@@ -12,8 +12,11 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class OrderConfirmSubscribeRequestDto {
+public class OrderCancelGeneralDto {
 
-    private List<Long> orderIdList = new ArrayList<>();
+    @Builder.Default
+    private List<Long> orderItemIdList = new ArrayList<>();
 
+    private String reason;
+    private String detailReason;
 }

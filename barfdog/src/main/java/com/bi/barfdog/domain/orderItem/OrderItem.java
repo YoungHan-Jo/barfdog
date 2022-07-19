@@ -9,6 +9,9 @@ import lombok.*;
 
 import javax.persistence.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import static javax.persistence.FetchType.LAZY;
 
 @AllArgsConstructor
@@ -42,6 +45,9 @@ public class OrderItem extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
+    private int cancelReward; // 취소 반품으로 돌려받는 적립금
+    private int cancelPrice; // 취소 반품으로 돌려받는 금액
+
     @Embedded
     private OrderCancel orderCancel;
 
@@ -70,11 +76,14 @@ public class OrderItem extends BaseTimeEntity {
         status = OrderStatus.FAILED;
         writeableReview = false;
         item.remainingUp(amount);
-        memberCoupon.cancel();
+        memberCoupon.revival();
     }
 
     public void cancelRequest() {
         status = OrderStatus.CANCEL_REQUEST;
+        orderCancel = OrderCancel.builder()
+                .cancelRequestDate(LocalDateTime.now())
+                .build();
     }
 
     public void confirm() {
@@ -87,7 +96,6 @@ public class OrderItem extends BaseTimeEntity {
         this.status = OrderStatus.RETURN_REQUEST;
     }
 
-
     public void exchangeRequest(OrderExchange orderExchange) {
         this.orderExchange = orderExchange;
         this.status = OrderStatus.EXCHANGE_REQUEST;
@@ -97,4 +105,26 @@ public class OrderItem extends BaseTimeEntity {
         this.status = OrderStatus.DELIVERY_READY;
         this.generalOrder.orderConfirmGeneral();
     }
+
+    public void confirmAs(OrderStatus status) {
+        this.status = status;
+    }
+
+    public void cancelConfirm(int cancelReward, int cancelPrice, OrderStatus status) {
+        this.cancelConfirm(cancelReward, cancelPrice, status, null, null);
+    }
+
+    public void cancelConfirm(int cancelReward, int cancelPrice, OrderStatus status, String reason, String detailReason) {
+        this.status = status;
+        this.cancelPrice = cancelPrice;
+        this.cancelReward = cancelReward;
+        orderCancel = OrderCancel.builder()
+                .cancelReason(reason)
+                .cancelDetailReason(detailReason)
+                .cancelRequestDate(orderCancel != null ? orderCancel.getCancelRequestDate() : null)
+                .cancelConfirmDate(LocalDateTime.now())
+                .build();
+    }
+
+
 }

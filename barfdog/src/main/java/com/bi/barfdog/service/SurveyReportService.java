@@ -35,10 +35,13 @@ public class SurveyReportService {
 
     public SurveyReportResponseDto getSurveyReportResponseDto(Long id) {
         SurveyReport surveyReport = surveyReportRepository.findById(id).get();
+        Dog dog = surveyReport.getDog();
 
         SurveyReportResponseDto responseDto = modelMapper.map(surveyReport, SurveyReportResponseDto.class);
         responseDto.setLastSurveyDate(surveyReport.getModifiedDate().toLocalDate());
-        responseDto.setMyDogName(surveyReport.getDog().getName());
+        responseDto.setMyDogName(dog.getName());
+        responseDto.setDogSize(dog.getDogSize());
+        responseDto.setDogActivity(dog.getDogActivity());
 
         return responseDto;
     }

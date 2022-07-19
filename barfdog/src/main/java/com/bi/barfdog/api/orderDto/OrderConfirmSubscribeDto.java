@@ -12,8 +12,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class OrderConfirmGeneralRequestDto {
+public class OrderConfirmSubscribeDto {
 
-    @Builder.Default
-    private List<Long> orderItemIdList = new ArrayList<>();
+    private List<Long> orderIdList = new ArrayList<>();
+
 }

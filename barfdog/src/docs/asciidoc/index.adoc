@@ -1400,8 +1400,10 @@ operation::query_coupons[snippets='curl-request,request-headers,request-paramete
 
 operation::get_code_coupon[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
+
+
 [[resources-admin-order-info]]
-== 관리자 페이지 주문 배송 관리
+== 관리자 주문 배송 관리
 
 관리자 페이지 주문 배송 관리 관련 리소스.
 
@@ -1451,9 +1453,33 @@ operation::admin_orderConfirm_general[snippets='curl-request,request-headers,req
 
 operation::admin_orderConfirm_subscribe[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
+[[resources-admin-cancelConfirm-general]]
+=== 일반 주문 주문취소요청을 컨펌 처리
 
+`POST` 요청을 사용하여 일반 주문 주문취소요청을 컨펌 처리할 수 있다.
 
+operation::admin_cancelConfirm_general[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
+[[resources-admin-cancelConfirm-subscribe]]
+=== 구독 주문 주문취소요청을 컨펌 처리
+
+`POST` 요청을 사용하여 구독 주문 주문취소요청을 컨펌 처리할 수 있다.
+
+operation::admin_cancelConfirm_subscribe[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-admin-orderCancel-general]]
+=== 일반 주문 관리자 판매취소 처리
+
+`POST` 요청을 사용하여 일반 주문 관리자 판매취소 처리할 수 있다.
+
+operation::admin_orderCancel_general[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-admin-orderCancel-subscribe]]
+=== 구독 주문 관리자 판매취소 처리
+
+`POST` 요청을 사용하여 구독 주문 관리자 판매취소 처리할 수 있다.
+
+operation::admin_orderCancel_subscribe[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
 
@@ -1585,6 +1611,24 @@ operation::request_returnOrders[snippets='curl-request,request-headers,request-b
 `POST` 요청을 사용하여 일반주문 주문을 교환 요청 할 수 있다.
 
 operation::request_exchangeOrders[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+
+
+[[resources-subscribeCard-info]]
+== 구독 카드 관리
+
+구독 카드 관련 리소스.
+
+[[resources-query-deliveries]]
+=== 구독 카드 리스트 검색
+
+`GET` 요청을 사용하여 구독 카드 리스트를 조회할 수 있다.
+
+operation::query_subscribeCards[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+
+
 
 
 [[resources-delivery-info]]

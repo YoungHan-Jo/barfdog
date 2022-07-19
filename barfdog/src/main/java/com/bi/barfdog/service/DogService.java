@@ -539,7 +539,6 @@ public class DogService {
         dogPictureRepository.deleteAllByDog(dog);
         DogPicture dogPicture = dogPictureRepository.findById(requestDto.getDogPictureId()).get();
         dogPicture.setDog(dog);
-
     }
 
     @Transactional
