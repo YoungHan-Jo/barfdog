@@ -56,6 +56,8 @@ public class Subscribe extends BaseTimeEntity {
 
     private int discount;
 
+    private String nextOrderMerchant_uid;
+
     private LocalDateTime nextPaymentDate;
     private int nextPaymentPrice;
     private LocalDate nextDeliveryDate;

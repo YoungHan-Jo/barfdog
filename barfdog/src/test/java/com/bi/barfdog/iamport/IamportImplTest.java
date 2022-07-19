@@ -162,7 +162,7 @@ public class IamportImplTest {
     @Test
     public void testSubscribeScheduleAndUnschedule() {
         String test_customer_uid = "customer_123456";
-        ScheduleData schedule_data = new ScheduleData(test_customer_uid);
+        ScheduleData schedule_data = new ScheduleData(test_customer_uid); // customer_uid 장착
 
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.YEAR, 2022);
@@ -180,14 +180,14 @@ public class IamportImplTest {
         cal.set(Calendar.DAY_OF_MONTH, 25);
         Date d3 = cal.getTime();
 
-        schedule_data.addSchedule(new ScheduleEntry(getRandomMerchantUid(), d1, BigDecimal.valueOf(1004)));
+        schedule_data.addSchedule(new ScheduleEntry(getRandomMerchantUid(), d1, BigDecimal.valueOf(1004))); // 예약 정보 추가
         schedule_data.addSchedule(new ScheduleEntry(getRandomMerchantUid(), d2, BigDecimal.valueOf(1005)));
         schedule_data.addSchedule(new ScheduleEntry(getRandomMerchantUid(), d3, BigDecimal.valueOf(1006)));
 
         System.out.println("예약 요청");
         IamportResponse<List<Schedule>> schedule_response = null;
         try {
-            schedule_response = client.subscribeSchedule(schedule_data);
+            schedule_response = client.subscribeSchedule(schedule_data); // 예약 하기
         } catch (IamportResponseException e) {
             e.printStackTrace();
         } catch (IOException e) {
