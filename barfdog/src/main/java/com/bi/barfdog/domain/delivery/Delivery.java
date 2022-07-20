@@ -39,4 +39,8 @@ public class Delivery extends BaseTimeEntity {
         status = DeliveryStatus.PAYMENT_DONE;
     }
 
+    public void firstPaymentDone(LocalDate nextDeliveryDate) {
+        status = DeliveryStatus.PAYMENT_DONE;
+        this.nextDeliveryDate = nextDeliveryDate;
+    }
 }

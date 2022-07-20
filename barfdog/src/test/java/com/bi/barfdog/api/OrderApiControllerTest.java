@@ -72,6 +72,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 import static com.bi.barfdog.config.finalVariable.StandardVar.*;
@@ -1485,6 +1486,7 @@ public class OrderApiControllerTest extends BaseTest {
 
     }
 
+
     @Test
     @DisplayName("구독 결제 성공")
     public void successSubscribeOrder() throws Exception {
@@ -1614,6 +1616,9 @@ public class OrderApiControllerTest extends BaseTest {
         assertThat(findOrder.getMerchantUid()).isEqualTo(merchantUid);
         assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.PAYMENT_DONE);
 
+        Delivery findDelivery = findOrder.getDelivery();
+        assertThat(findDelivery.getNextDeliveryDate()).isEqualTo(calculateFirstDeliveryDate());
+
         Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
         assertThat(findSubscribe.getCard().getId()).isEqualTo(card.getId());
         assertThat(findSubscribe.getSubscribeCount()).isEqualTo(subscribeCount + 1);
@@ -1623,7 +1628,7 @@ public class OrderApiControllerTest extends BaseTest {
         } else {
             assertThat(findSubscribe.getNextPaymentDate()).isEqualTo(findOrder.getPaymentDate().plusDays(28));
         }
-        assertThat(findSubscribe.getNextDeliveryDate()).isEqualTo(calculateNextDeliveryDate());
+        assertThat(findSubscribe.getNextDeliveryDate()).isEqualTo(calculateFirstDeliveryDate());
 
         Reward findReward = rewardRepository.findAll().get(0);
         assertThat(findReward.getMember().getId()).isEqualTo(findMember.getId());
@@ -1632,6 +1637,20 @@ public class OrderApiControllerTest extends BaseTest {
         assertThat(findReward.getRewardStatus()).isEqualTo(RewardStatus.USED);
         assertThat(findReward.getTradeReward()).isEqualTo(discountReward);
 
+        // 다음 회차 예약 주문 생성 확인
+        Optional<SubscribeOrder> optionalSubscribeOrder = orderRepository.findByMerchantUid(findSubscribe.getNextOrderMerchant_uid());
+        assertThat(optionalSubscribeOrder.isPresent()).isTrue();
+        if (optionalSubscribeOrder.isPresent()) {
+            SubscribeOrder nextOrder = optionalSubscribeOrder.get();
+            assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.BEFORE_PAYMENT);
+            Delivery nextDelivery = nextOrder.getDelivery();
+            SubscribePlan plan = nextOrder.getSubscribe().getPlan();
+            if (plan == SubscribePlan.FULL) {
+                assertThat(nextDelivery.getNextDeliveryDate()).isEqualTo(findDelivery.getNextDeliveryDate().plusDays(14));
+            } else {
+                assertThat(nextDelivery.getNextDeliveryDate()).isEqualTo(findDelivery.getNextDeliveryDate().plusDays(28));
+            }
+        }
     }
 
     @Test
@@ -1714,16 +1733,16 @@ public class OrderApiControllerTest extends BaseTest {
                 .andExpect(status().isNotFound());
     }
 
-    private LocalDate calculateNextDeliveryDate() {
+    private LocalDate calculateFirstDeliveryDate() {
         LocalDate today = LocalDate.now();
         DayOfWeek dayOfWeek = today.getDayOfWeek();
         int dayOfWeekNumber = dayOfWeek.getValue();
         int i = dayOfWeekNumber - 3;
         LocalDate nextDeliveryDate = null;
         if (dayOfWeekNumber <= 5) {
-            nextDeliveryDate = today.minusDays(i+7);
+            nextDeliveryDate = today.plusDays(i+7);
         } else {
-            nextDeliveryDate = today.minusDays(i+14);
+            nextDeliveryDate = today.plusDays(i+14);
         }
         return nextDeliveryDate;
     }
@@ -2535,6 +2554,7 @@ public class OrderApiControllerTest extends BaseTest {
             assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.EXCHANGE_REQUEST);
             assertThat(orderItem.getOrderExchange().getExchangeReason()).isEqualTo(reason);
             assertThat(orderItem.getOrderExchange().getExchangeDetailReason()).isEqualTo(detailReason);
+            assertThat(orderItem.getOrderExchange().getExchangeConfirmDate()).isNull();
         }
 
     }

@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 public class BeforeSubscribe {
 
     @Id @GeneratedValue
-    @Column(name = "befor_subscribe_id")
+    @Column(name = "before_subscribe_id")
     private Long id;
 
     private int subscribeCount;

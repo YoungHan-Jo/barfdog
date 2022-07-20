@@ -56,4 +56,13 @@ public class SubscribeOrder extends Order{
                 .cancelConfirmDate(LocalDateTime.now())
                 .build();
     }
+
+    public void setCancelConfirmDate() {
+        orderCancel = OrderCancel.builder()
+                .cancelReason(orderCancel != null ? orderCancel.getCancelReason() : null)
+                .cancelDetailReason(orderCancel != null ? orderCancel.getCancelDetailReason() : null)
+                .cancelRequestDate(orderCancel != null ? orderCancel.getCancelRequestDate() : null)
+                .cancelConfirmDate(LocalDateTime.now())
+                .build();
+    }
 }

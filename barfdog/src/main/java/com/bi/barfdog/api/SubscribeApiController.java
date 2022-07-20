@@ -37,16 +37,17 @@ public class SubscribeApiController {
 
     WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
 
+    // 플랜 변경 적용하기
     @PutMapping("/{id}")
     public ResponseEntity updateSubscribe(@CurrentUser Member member,
                                           @PathVariable Long id,
-                                          @RequestBody @Valid UpdateSubscribeDto requestDto,
+                                          @RequestBody @Valid UpdatePlanDto requestDto,
                                           Errors errors) {
         if (errors.hasErrors()) return badRequest(errors);
         Optional<Subscribe> optionalSubscribe = subscribeRepository.findById(id);
         if (!optionalSubscribe.isPresent()) return notFound();
 
-        subscribeService.updateSubscribe(id, requestDto);
+        subscribeService.updatePlan(id, requestDto);
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(SubscribeApiController.class).slash(id).withSelfRel());
@@ -138,6 +139,13 @@ public class SubscribeApiController {
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-plan-subscribe").withRel("profile"));
 
         return ResponseEntity.ok(representationModel);
+    }
+
+    @PostMapping("/{id}/skip/{count}")
+    public ResponseEntity skipSubscribe(@PathVariable Long id,
+                                        @PathVariable int count) {
+
+
     }
 
 

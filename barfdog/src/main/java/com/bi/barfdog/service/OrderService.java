@@ -25,6 +25,7 @@ import com.bi.barfdog.domain.reward.RewardStatus;
 import com.bi.barfdog.domain.reward.RewardType;
 import com.bi.barfdog.domain.setting.Setting;
 import com.bi.barfdog.domain.subscribe.Subscribe;
+import com.bi.barfdog.domain.subscribe.SubscribePlan;
 import com.bi.barfdog.iamport.Iamport_API;
 import com.bi.barfdog.repository.card.CardRepository;
 import com.bi.barfdog.repository.delivery.DeliveryRepository;
@@ -40,6 +41,8 @@ import com.bi.barfdog.repository.subscribe.SubscribeRepository;
 import com.siot.IamportRestClient.IamportClient;
 import com.siot.IamportRestClient.exception.IamportResponseException;
 import com.siot.IamportRestClient.request.CancelData;
+import com.siot.IamportRestClient.request.ScheduleData;
+import com.siot.IamportRestClient.request.ScheduleEntry;
 import com.siot.IamportRestClient.response.IamportResponse;
 import com.siot.IamportRestClient.response.Payment;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +56,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -72,6 +76,8 @@ public class OrderService {
     private final SettingRepository settingRepository;
     private final OrderItemRepository orderItemRepository;
     private final SelectOptionRepository selectOptionRepository;
+
+    private IamportClient client = new IamportClient(Iamport_API.API_KEY, Iamport_API.API_SECRET);
 
     public OrderSheetSubscribeResponseDto getOrderSheetSubsDto(Member member, Long subscribeId) {
 
@@ -266,7 +272,6 @@ public class OrderService {
 
         Subscribe subscribe = subscribeRepository.findById(subscribeId).get();
         member.subscribeOrder(requestDto);
-//        saveReward(member, requestDto);
 
         Long memberCouponId = requestDto.getMemberCouponId();
         MemberCoupon memberCoupon = null;
@@ -274,6 +279,7 @@ public class OrderService {
             memberCoupon = memberCouponRepository.findById(memberCouponId).get();
         }
         SubscribeOrder subscribeOrder = saveSubscribeOrder(member, requestDto, delivery, subscribe, memberCoupon);
+
         useCoupon(memberCoupon);
 
         OrderResponseDto responseDto = OrderResponseDto.builder()
@@ -294,12 +300,9 @@ public class OrderService {
     }
 
     private SubscribeOrder saveSubscribeOrder(Member member, SubscribeOrderRequestDto requestDto, Delivery delivery, Subscribe subscribe, MemberCoupon memberCoupon) {
-        RandomString rs = new RandomString(15);
-        String randomString = rs.nextString();
-        LocalDate today = LocalDate.now();
-        String dateString = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String merchantUid = getMerchantUid();
         SubscribeOrder subscribeOrder = SubscribeOrder.builder()
-                .merchantUid(dateString + "_" + randomString)
+                .merchantUid(merchantUid)
                 .orderStatus(OrderStatus.BEFORE_PAYMENT)
                 .member(member)
                 .orderPrice(requestDto.getOrderPrice())
@@ -317,6 +320,15 @@ public class OrderService {
                 .subscribeCount(subscribe.getSubscribeCount() + 1)
                 .build();
         return orderRepository.save(subscribeOrder);
+    }
+
+    private String getMerchantUid() {
+        RandomString rs = new RandomString(15);
+        String randomString = rs.nextString();
+        LocalDate orderDate = LocalDate.now();
+        String dateString = orderDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String merchantUid = dateString + "_" + randomString;
+        return merchantUid;
     }
 
     private void saveReward(Member member, SubscribeOrderRequestDto requestDto) {
@@ -520,15 +532,83 @@ public class OrderService {
         Card card = saveCard(member, requestDto);
 
         SubscribeOrder order = (SubscribeOrder) orderRepository.findById(id).get();
+        Delivery delivery = order.getDelivery();
+        delivery.firstPaymentDone(calculateFirstDeliveryDate());
         order.successSubscribe(requestDto);
 
         Subscribe subscribe = order.getSubscribe();
         subscribe.successPayment(card, order);
 
         member.subscribeOrderSuccess(order);
-
         saveReward(member, order);
 
+        SubscribeOrder nextOrder = saveNextOrderAndDelivery(member, order, subscribe);
+
+        String customerUid = card.getCustomerUid();
+        ScheduleData scheduleData = new ScheduleData(customerUid);
+        Date nextPaymentDate = java.sql.Timestamp.valueOf(subscribe.getNextPaymentDate());
+        scheduleData.addSchedule(new ScheduleEntry(nextOrder.getMerchantUid(),nextPaymentDate, BigDecimal.valueOf(subscribe.getNextPaymentPrice())));
+
+        try {
+            client.subscribeSchedule(scheduleData);
+        } catch (IamportResponseException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private LocalDate calculateFirstDeliveryDate() {
+        LocalDate today = LocalDate.now();
+        DayOfWeek dayOfWeek = today.getDayOfWeek();
+        int dayOfWeekNumber = dayOfWeek.getValue();
+        int i = dayOfWeekNumber - 3;
+        LocalDate nextDeliveryDate = null;
+        if (dayOfWeekNumber <= 5) {
+            nextDeliveryDate = today.plusDays(i+7);
+        } else {
+            nextDeliveryDate = today.plusDays(i+14);
+        }
+        return nextDeliveryDate;
+    }
+
+    private SubscribeOrder saveNextOrderAndDelivery(Member member, SubscribeOrder order, Subscribe subscribe) {
+        Delivery nextDelivery = saveNextDelivery(order, subscribe);
+
+        String merchantUid = getMerchantUid();
+        SubscribeOrder nextSubscribeOrder = SubscribeOrder.builder()
+                .merchantUid(merchantUid)
+                .orderStatus(OrderStatus.BEFORE_PAYMENT)
+                .member(member)
+                .orderPrice(subscribe.getNextPaymentPrice())
+                .paymentPrice(subscribe.getNextPaymentPrice())
+                .paymentMethod(order.getPaymentMethod())
+                .isAgreePrivacy(true)
+                .delivery(nextDelivery)
+                .subscribe(subscribe)
+                .subscribeCount(subscribe.getSubscribeCount() + 1)
+                .build();
+        orderRepository.save(nextSubscribeOrder);
+
+        subscribe.setNextOrderMerchantUid(merchantUid);
+
+        return nextSubscribeOrder;
+    }
+
+    private Delivery saveNextDelivery(SubscribeOrder order, Subscribe subscribe) {
+        Delivery delivery = order.getDelivery();
+
+        SubscribePlan plan = subscribe.getPlan();
+        LocalDate nextDeliveryDate = delivery.getNextDeliveryDate().plusDays(plan == SubscribePlan.FULL ? 14 : 28);
+
+        Delivery nextDelivery = Delivery.builder()
+                .recipient(delivery.getRecipient())
+                .status(DeliveryStatus.BEFORE_PAYMENT)
+                .request(delivery.getRequest())
+                .nextDeliveryDate(nextDeliveryDate)
+                .build();
+        return deliveryRepository.save(nextDelivery);
     }
 
     private void saveReward(Member member, SubscribeOrder order) {
@@ -658,7 +738,7 @@ public class OrderService {
         }
     }
 
-    private IamportClient client = new IamportClient(Iamport_API.API_KEY, Iamport_API.API_SECRET);
+
 
     @Transactional
     public void cancelConfirmGeneral(CancelConfirmGeneralDto requestDto) {
@@ -755,6 +835,7 @@ public class OrderService {
                 saveCancelReward(order, member);
                 order.confirmAs(OrderStatus.CANCEL_DONE_BUYER);
                 revivalCoupon(order);
+                order.setCancelConfirmDate();
 
             } catch (IamportResponseException e) {
                 e.printStackTrace();
@@ -840,5 +921,40 @@ public class OrderService {
             }
         }
 
+    }
+
+    @Transactional
+    public void denyReturn(OrderItemIdListDto requestDto) {
+        List<Long> orderItemIdList = requestDto.getOrderItemIdList();
+        for (Long orderItemId : orderItemIdList) {
+            Optional<OrderItem> optionalOrderItem = orderItemRepository.findById(orderItemId);
+            if (!optionalOrderItem.isPresent()) continue;
+            OrderItem orderItem = optionalOrderItem.get();
+            orderItem.denyReturn();
+        }
+    }
+
+
+    @Transactional
+    public void denyExchange(OrderItemIdListDto requestDto) {
+        List<Long> orderItemIdList = requestDto.getOrderItemIdList();
+        for (Long orderItemId : orderItemIdList) {
+            Optional<OrderItem> optionalOrderItem = orderItemRepository.findById(orderItemId);
+            if (!optionalOrderItem.isPresent()) continue;
+            OrderItem orderItem = optionalOrderItem.get();
+            orderItem.denyExchange();
+        }
+    }
+
+
+    @Transactional
+    public void confirmExchange(OrderItemIdListDto requestDto, OrderStatus status) {
+        List<Long> orderItemIdList = requestDto.getOrderItemIdList();
+        for (Long orderItemId : orderItemIdList) {
+            Optional<OrderItem> optionalOrderItem = orderItemRepository.findById(orderItemId);
+            if (!optionalOrderItem.isPresent()) continue;
+            OrderItem orderItem = optionalOrderItem.get();
+            orderItem.exchangeConfirm(status);
+        }
     }
 }

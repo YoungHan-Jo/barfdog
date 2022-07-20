@@ -890,6 +890,27 @@ public class OrderAdminControllerTest extends BaseTest {
                 ));
     }
 
+    @Test
+    @DisplayName("정상적으로 구독 주문 하나 조회 - 이전 구독 정보 없음")
+    public void querySubscribeOrder_noBeforeSubscribe() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtcCancelDone_NoBeforeSubscribe(member, 1, OrderStatus.CANCEL_DONE_SELLER);
+
+        List<Order> orders = orderRepository.findAll();
+        assertThat(orders.size()).isEqualTo(1);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/admin/orders/{id}/subscribe", subscribeOrder.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
+
 
 
     @Test
@@ -1425,10 +1446,285 @@ public class OrderAdminControllerTest extends BaseTest {
         for (int i = 0; i < memberCouponList.size(); i++) {
             assertThat(memberCouponList.get(i).getRemaining()).isEqualTo(remainingList.get(i) + 1);
         }
+    }
 
+    @Test
+    @DisplayName("일반 주문 반품 요청 거절하기")
+    public void denyReturnGeneral() throws Exception {
+        //given
 
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int rewardAmount = member.getReward();
+
+        GeneralOrder generalOrder = generateGeneralOrder(member, 1, OrderStatus.CONFIRM);
+
+        List<Long> orderItemIdList = new ArrayList<>();
+        List<MemberCoupon> memberCouponList = new ArrayList<>();
+        List<Integer> remainingList = new ArrayList<>();
+
+        List<OrderItem> orderItemList = generalOrder.getOrderItemList();
+        for (OrderItem orderItem : orderItemList) {
+            orderItemIdList.add(orderItem.getId());
+            MemberCoupon memberCoupon = orderItem.getMemberCoupon();
+            memberCouponList.add(memberCoupon);
+            remainingList.add(memberCoupon.getRemaining());
+        }
+
+        OrderItemIdListDto requestDto = OrderItemIdListDto.builder()
+                .orderItemIdList(orderItemIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/orders/general/denyReturn")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("admin_denyReturn_general",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_orders").description("주문 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestFields(
+                                fieldWithPath("orderItemIdList").description("반품 거절 처리 할 주문한상품(orderItem) id 리스트")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_orders.href").description("주문 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        
+        em.flush();
+        em.clear();
+
+        for (Long orderItemId : orderItemIdList) {
+            OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
+            assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.CONFIRM);
+        }
 
     }
+
+    @Test
+    @DisplayName("일반 주문 교환요청 거절하기")
+    public void denyExchangeGeneral() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int rewardAmount = member.getReward();
+
+        GeneralOrder generalOrder = generateGeneralOrder(member, 1, OrderStatus.CONFIRM);
+
+        List<Long> orderItemIdList = new ArrayList<>();
+        List<MemberCoupon> memberCouponList = new ArrayList<>();
+        List<Integer> remainingList = new ArrayList<>();
+
+        List<OrderItem> orderItemList = generalOrder.getOrderItemList();
+        for (OrderItem orderItem : orderItemList) {
+            orderItemIdList.add(orderItem.getId());
+            MemberCoupon memberCoupon = orderItem.getMemberCoupon();
+            memberCouponList.add(memberCoupon);
+            remainingList.add(memberCoupon.getRemaining());
+        }
+
+        OrderItemIdListDto requestDto = OrderItemIdListDto.builder()
+                .orderItemIdList(orderItemIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/orders/general/denyExchange")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("admin_denyExchange_general",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_orders").description("주문 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestFields(
+                                fieldWithPath("orderItemIdList").description("교환 거절 처리 할 주문한상품(orderItem) id 리스트")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_orders.href").description("주문 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        for (Long orderItemId : orderItemIdList) {
+            OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
+            assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.CONFIRM);
+        }
+
+    }
+
+    @Test
+    @DisplayName("교환 컨펌 구매자 실책")
+    public void confirmExchangeBuyer() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int rewardAmount = member.getReward();
+
+        GeneralOrder generalOrder = generateGeneralOrder(member, 1, OrderStatus.CONFIRM);
+
+        List<Long> orderItemIdList = new ArrayList<>();
+        List<MemberCoupon> memberCouponList = new ArrayList<>();
+        List<Integer> remainingList = new ArrayList<>();
+
+        List<OrderItem> orderItemList = generalOrder.getOrderItemList();
+        for (OrderItem orderItem : orderItemList) {
+            orderItemIdList.add(orderItem.getId());
+            MemberCoupon memberCoupon = orderItem.getMemberCoupon();
+            memberCouponList.add(memberCoupon);
+            remainingList.add(memberCoupon.getRemaining());
+        }
+
+        OrderItemIdListDto requestDto = OrderItemIdListDto.builder()
+                .orderItemIdList(orderItemIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/orders/general/confirmExchange/buyer")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("admin_confirmExchange_buyer",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_orders").description("주문 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestFields(
+                                fieldWithPath("orderItemIdList").description("구매자 귀책 교환컨펌 처리 할 주문한상품(orderItem) id 리스트")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_orders.href").description("주문 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        for (Long orderItemId : orderItemIdList) {
+            OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
+            assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.EXCHANGE_DONE_BUYER);
+            assertThat(orderItem.getOrderExchange().getExchangeConfirmDate()).isNotNull();
+            assertThat(orderItem.getOrderExchange().getExchangeRequestDate()).isNotNull();
+
+        }
+    }
+
+    @Test
+    @DisplayName("교환 컨펌 판매자 실책")
+    public void confirmExchangeSeller() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int rewardAmount = member.getReward();
+
+        GeneralOrder generalOrder = generateGeneralOrder(member, 1, OrderStatus.CONFIRM);
+
+        List<Long> orderItemIdList = new ArrayList<>();
+        List<MemberCoupon> memberCouponList = new ArrayList<>();
+        List<Integer> remainingList = new ArrayList<>();
+
+        List<OrderItem> orderItemList = generalOrder.getOrderItemList();
+        for (OrderItem orderItem : orderItemList) {
+            orderItemIdList.add(orderItem.getId());
+            MemberCoupon memberCoupon = orderItem.getMemberCoupon();
+            memberCouponList.add(memberCoupon);
+            remainingList.add(memberCoupon.getRemaining());
+        }
+
+        OrderItemIdListDto requestDto = OrderItemIdListDto.builder()
+                .orderItemIdList(orderItemIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/orders/general/confirmExchange/seller")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("admin_confirmExchange_seller",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_orders").description("주문 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestFields(
+                                fieldWithPath("orderItemIdList").description("판매자 귀책 교환컨펌 처리 할 주문한상품(orderItem) id 리스트")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_orders.href").description("주문 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        for (Long orderItemId : orderItemIdList) {
+            OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
+            assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.EXCHANGE_DONE_SELLER);
+            assertThat(orderItem.getOrderExchange().getExchangeConfirmDate()).isNotNull();
+            assertThat(orderItem.getOrderExchange().getExchangeRequestDate()).isNotNull();
+        }
+
+    }
+
 
 
 
@@ -1589,6 +1885,123 @@ public class OrderAdminControllerTest extends BaseTest {
         Subscribe subscribe = generateSubscribe(i);
         BeforeSubscribe beforeSubscribe = generateBeforeSubscribe(i);
         subscribe.setBeforeSubscribe(beforeSubscribe);
+
+        generateSubscribeRecipe(recipe1, subscribe);
+        generateSubscribeRecipe(recipe2, subscribe);
+
+        List<Dog> dogs = dogRepository.findByMember(member);
+        Recipe findRecipe = recipeRepository.findById(requestDto.getRecommendRecipeId()).get();
+
+        Dog dog = Dog.builder()
+                .member(member)
+                .representative(dogs.size() == 0 ? true : false)
+                .name(requestDto.getName())
+                .gender(requestDto.getGender())
+                .birth(birth)
+                .startAgeMonth(startAgeMonth)
+                .oldDog(oldDog)
+                .dogType(requestDto.getDogType())
+                .dogSize(dogSize)
+                .weight(weight)
+                .neutralization(neutralization)
+                .dogActivity(getDogActivity(requestDto))
+                .dogStatus(dogStatus)
+                .snackCountLevel(snackCountLevel)
+                .inedibleFood(requestDto.getInedibleFood())
+                .inedibleFoodEtc(requestDto.getInedibleFoodEtc())
+                .recommendRecipe(findRecipe)
+                .caution(requestDto.getCaution())
+                .subscribe(subscribe)
+                .build();
+        dogRepository.save(dog);
+        subscribe.setDog(dog);
+
+        SurveyReport surveyReport = SurveyReport.builder()
+                .dog(dog)
+                .ageAnalysis(getAgeAnalysis(startAgeMonth))
+                .weightAnalysis(getWeightAnalysis(dogSize, weight))
+                .activityAnalysis(getActivityAnalysis(dogSize, dog))
+                .walkingAnalysis(getWalkingAnalysis(member, dog))
+                .foodAnalysis(getDogAnalysis(requestDto, findRecipe, dogSize, startAgeMonth, oldDog, neutralization, dogStatus, requestDto.getActivityLevel(), snackCountLevel))
+                .snackAnalysis(getSnackAnalysis(dog))
+                .build();
+        surveyReportRepository.save(surveyReport);
+        dog.setSurveyReport(surveyReport);
+
+        Coupon coupon = generateGeneralCoupon(1);
+        MemberCoupon memberCoupon = generateMemberCoupon(member, coupon, 1, CouponStatus.ACTIVE);
+
+        OrderCancel ordercancel = OrderCancel.builder()
+                .cancelReason("취소 사유")
+                .cancelDetailReason("취소 상세 사유")
+                .cancelRequestDate(LocalDateTime.now().minusDays(3))
+                .cancelConfirmDate(LocalDateTime.now().minusDays(1))
+                .build();
+
+        SubscribeOrder subscribeOrder = SubscribeOrder.builder()
+                .impUid("imp_uid"+i)
+                .merchantUid("merchant_uid"+i)
+                .orderStatus(orderStatus)
+                .orderCancel(ordercancel)
+                .member(member)
+                .orderPrice(120000)
+                .deliveryPrice(0)
+                .discountTotal(0)
+                .discountReward(0)
+                .discountCoupon(0)
+                .paymentPrice(120000)
+                .paymentMethod(PaymentMethod.CREDIT_CARD)
+                .isPackage(false)
+                .delivery(delivery)
+                .subscribe(subscribe)
+                .memberCoupon(memberCoupon)
+                .orderConfirmDate(LocalDateTime.now().minusHours(3))
+                .build();
+        orderRepository.save(subscribeOrder);
+
+        return subscribeOrder;
+    }
+
+    private SubscribeOrder generateSubscribeOrderAndEtcCancelDone_NoBeforeSubscribe(Member member, int i, OrderStatus orderStatus) {
+
+        Recipe recipe1 = recipeRepository.findAll().get(0);
+        Recipe recipe2 = recipeRepository.findAll().get(1);
+
+        DogSaveRequestDto requestDto = DogSaveRequestDto.builder()
+                .name("김바프")
+                .gender(Gender.MALE)
+                .birth("202102")
+                .oldDog(false)
+                .dogType("포메라니안")
+                .dogSize(DogSize.SMALL)
+                .weight("3.5")
+                .neutralization(true)
+                .activityLevel(ActivityLevel.NORMAL)
+                .walkingCountPerWeek("10")
+                .walkingTimePerOneTime("1.1")
+                .dogStatus(DogStatus.HEALTHY)
+                .snackCountLevel(SnackCountLevel.NORMAL)
+                .inedibleFood("NONE")
+                .inedibleFoodEtc("NONE")
+                .recommendRecipeId(recipe1.getId())
+                .caution("NONE")
+                .build();
+
+        String birth = requestDto.getBirth();
+
+        DogSize dogSize = requestDto.getDogSize();
+        Long startAgeMonth = getTerm(birth + "01");
+        boolean oldDog = requestDto.isOldDog();
+        boolean neutralization = requestDto.isNeutralization();
+        DogStatus dogStatus = requestDto.getDogStatus();
+        SnackCountLevel snackCountLevel = requestDto.getSnackCountLevel();
+        BigDecimal weight = new BigDecimal(requestDto.getWeight());
+
+        Delivery delivery = generateDelivery(member, i);
+
+        Subscribe subscribe = generateSubscribe(i);
+//        BeforeSubscribe beforeSubscribe = generateBeforeSubscribe(i);
+//        subscribe.setBeforeSubscribe(beforeSubscribe);
 
         generateSubscribeRecipe(recipe1, subscribe);
         generateSubscribeRecipe(recipe2, subscribe);
@@ -1836,19 +2249,19 @@ public class OrderAdminControllerTest extends BaseTest {
                 .finalPrice(item.getSalePrice() * j)
                 .status(orderStatus)
                 .orderCancel(OrderCancel.builder()
-                        .cancelConfirmDate(LocalDateTime.now().minusDays(1))
+//                        .cancelConfirmDate(LocalDateTime.now().minusDays(1))
                         .cancelRequestDate(LocalDateTime.now().minusDays(3))
                         .cancelDetailReason("상세이유")
                         .cancelReason("이유")
                         .build())
                 .orderReturn(OrderReturn.builder()
-                        .returnConfirmDate(LocalDateTime.now().minusDays(1))
+//                        .returnConfirmDate(LocalDateTime.now().minusDays(1))
                         .returnRequestDate(LocalDateTime.now().minusDays(3))
                         .returnDetailReason("상세이유")
                         .returnReason("이유")
                         .build())
                 .orderExchange(OrderExchange.builder()
-                        .exchangeConfirmDate(LocalDateTime.now().minusDays(1))
+//                        .exchangeConfirmDate(LocalDateTime.now().minusDays(1))
                         .exchangeRequestDate(LocalDateTime.now().minusDays(3))
                         .exchangeDetailReason("상세이유")
                         .exchangeReason("이유")

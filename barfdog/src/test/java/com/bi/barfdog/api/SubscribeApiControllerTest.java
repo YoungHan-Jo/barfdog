@@ -246,7 +246,7 @@ public class SubscribeApiControllerTest extends BaseTest {
 
         int nextPaymentPrice = 100000;
         SubscribePlan plan = SubscribePlan.HALF;
-        UpdateSubscribeDto requestDto = UpdateSubscribeDto.builder()
+        UpdatePlanDto requestDto = UpdatePlanDto.builder()
                 .plan(plan)
                 .recipeIdList(recipeIdList)
                 .nextPaymentPrice(nextPaymentPrice)

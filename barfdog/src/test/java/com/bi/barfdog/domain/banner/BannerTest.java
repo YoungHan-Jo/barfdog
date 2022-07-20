@@ -11,6 +11,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(JUnitParamsRunner.class)
 public class BannerTest {
 
+
+
+
     @Test
     @DisplayName("빌더 테스트")
     public void builder() {

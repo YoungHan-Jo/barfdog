@@ -577,14 +577,14 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
     private SubscribeDto getSubscribeDto(SubscribeDto subscribeDto) {
         SubscribeDto beforeSubscribeDto = queryFactory
                 .select(Projections.constructor(SubscribeDto.class,
-                        subscribe.id,
+                        beforeSubscribe.id,
                         beforeSubscribe.subscribeCount,
                         beforeSubscribe.plan,
                         beforeSubscribe.oneMealRecommendGram,
                         beforeSubscribe.recipeName
                 ))
                 .from(subscribe)
-                .join(subscribe.beforeSubscribe, beforeSubscribe)
+                .leftJoin(subscribe.beforeSubscribe, beforeSubscribe)
                 .where(subscribe.id.eq(subscribeDto.getId()))
                 .fetchOne();
         return beforeSubscribeDto;

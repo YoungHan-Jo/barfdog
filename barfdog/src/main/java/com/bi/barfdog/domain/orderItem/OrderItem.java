@@ -126,5 +126,21 @@ public class OrderItem extends BaseTimeEntity {
                 .build();
     }
 
+    public void denyReturn() {
+        this.status = OrderStatus.CONFIRM;
+    }
 
+    public void denyExchange() {
+        this.status = OrderStatus.CONFIRM;
+    }
+
+    public void exchangeConfirm(OrderStatus status) {
+        this.status = status;
+        orderExchange = OrderExchange.builder()
+                .exchangeReason(orderExchange.getExchangeReason())
+                .exchangeDetailReason(orderExchange.getExchangeDetailReason())
+                .exchangeRequestDate(orderExchange.getExchangeRequestDate())
+                .exchangeConfirmDate(LocalDateTime.now())
+                .build();
+    }
 }

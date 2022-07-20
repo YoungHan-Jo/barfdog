@@ -59,10 +59,12 @@ public class Subscribe extends BaseTimeEntity {
     private String nextOrderMerchant_uid;
 
     private LocalDateTime nextPaymentDate;
-    private int nextPaymentPrice;
+    private int nextPaymentPrice; // 다음 회차 결제 금액(쿠폰적용 전) -> 실제로는 nextpaymentprice - discount 금액이 결제 됨
     private LocalDate nextDeliveryDate;
 
     private int skipCount;
+
+    private String cancelReason; // 구독 취소 사유. , 콤마 기준으로 나열
 
     @Enumerated(EnumType.STRING)
     private SubscribeStatus status; // [BEFORE_PAYMENT, SUBSCRIBING, SUBSCRIBE_PENDING]
@@ -70,7 +72,7 @@ public class Subscribe extends BaseTimeEntity {
     @Builder.Default
     private boolean writeableReview = true; // status 가 SUBSCRIBING 이고 true 일 때 리뷰 가능
 
-    @OneToOne(fetch = LAZY)
+    @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "before_subscribe_id")
     private BeforeSubscribe beforeSubscribe;
 
@@ -86,7 +88,6 @@ public class Subscribe extends BaseTimeEntity {
     public void setDog(Dog dog) {
         this.dog = dog;
     }
-
 
     public void writeReview() {
         this.writeableReview = false;
@@ -126,9 +127,9 @@ public class Subscribe extends BaseTimeEntity {
         int i = dayOfWeekNumber - 3;
         LocalDate nextDeliveryDate = null;
         if (dayOfWeekNumber <= 5) {
-            nextDeliveryDate = today.minusDays(i+7);
+            nextDeliveryDate = today.plusDays(i+7);
         } else {
-            nextDeliveryDate = today.minusDays(i+14);
+            nextDeliveryDate = today.plusDays(i+14);
         }
         return nextDeliveryDate;
     }
@@ -186,5 +187,9 @@ public class Subscribe extends BaseTimeEntity {
         this.nextPaymentPrice = totalPrice;
         int newDiscount = calculateNewDiscount(totalPrice, memberCoupon);
         this.discount = newDiscount;
+    }
+
+    public void setNextOrderMerchantUid(String merchantUid) {
+        this.nextOrderMerchant_uid = merchantUid;
     }
 }

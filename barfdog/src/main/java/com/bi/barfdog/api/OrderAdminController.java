@@ -4,6 +4,7 @@ import com.bi.barfdog.api.orderDto.*;
 import com.bi.barfdog.api.resource.AdminOrdersDtoResource;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.order.Order;
+import com.bi.barfdog.domain.order.OrderStatus;
 import com.bi.barfdog.domain.orderItem.OrderItem;
 import com.bi.barfdog.repository.order.OrderRepository;
 import com.bi.barfdog.repository.orderItem.OrderItemRepository;
@@ -181,7 +182,57 @@ public class OrderAdminController {
         return ResponseEntity.ok(representationModel);
     }
 
+    @PostMapping("/general/denyReturn")
+    public ResponseEntity denyReturn(@RequestBody OrderItemIdListDto requestDto) {
 
+        orderService.denyReturn(requestDto);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderAdminController.class).slash("general/denyReturn").withSelfRel());
+        representationModel.add(linkTo(OrderAdminController.class).slash("search").withRel("query_orders"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-denyReturn").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @PostMapping("/general/denyExchange")
+    public ResponseEntity denyExchange(@RequestBody OrderItemIdListDto requestDto) {
+
+        orderService.denyExchange(requestDto);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderAdminController.class).slash("general/denyExchange").withSelfRel());
+        representationModel.add(linkTo(OrderAdminController.class).slash("search").withRel("query_orders"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-denyExchange").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @PostMapping("/general/confirmExchange/buyer")
+    public ResponseEntity confirmExchangeBuyer(@RequestBody OrderItemIdListDto requestDto) {
+
+        orderService.confirmExchange(requestDto, OrderStatus.EXCHANGE_DONE_BUYER);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderAdminController.class).slash("general/confirmExchange/buyer").withSelfRel());
+        representationModel.add(linkTo(OrderAdminController.class).slash("search").withRel("query_orders"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-confirmExchange-buyer").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @PostMapping("/general/confirmExchange/seller")
+    public ResponseEntity confirmExchangeSeller(@RequestBody OrderItemIdListDto requestDto) {
+
+        orderService.confirmExchange(requestDto, OrderStatus.EXCHANGE_DONE_SELLER);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderAdminController.class).slash("general/confirmExchange/seller").withSelfRel());
+        representationModel.add(linkTo(OrderAdminController.class).slash("search").withRel("query_orders"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-confirmExchange-seller").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
 
 
 

@@ -1481,6 +1481,39 @@ operation::admin_orderCancel_general[snippets='curl-request,request-headers,requ
 
 operation::admin_orderCancel_subscribe[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
+[[resources-admin-denyReturn]]
+=== 일반 주문 반품요청 거절 처리
+
+`POST` 요청을 사용하여 일반 주문 반품요청 거절 처리할 수 있다.
+
+operation::admin_denyReturn_general[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+
+[[resources-admin-confirmExchange-buyer]]
+=== 일반 주문 교환요청을 구매자 귀책으로 컨펌 처리
+
+`POST` 요청을 사용하여 일반 주문 교환요청을 구매자 귀책으로 컨펌 처리할 수 있다.
+
+operation::admin_confirmExchange_buyer[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+[[resources-admin-confirmExchange-seller]]
+=== 일반 주문 교환요청을 판매자 귀책으로 컨펌 처리
+
+`POST` 요청을 사용하여 일반 주문 교환요청을 판매자 귀책으로 컨펌 처리할 수 있다.
+
+operation::admin_confirmExchange_seller[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+[[resources-admin-denyReturn]]
+=== 일반 주문 교환요청 거절 처리
+
+`POST` 요청을 사용하여 일반 주문 교환요청 거절 처리할 수 있다.
+
+operation::admin_denyExchange_general[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
 
 
 
