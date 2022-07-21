@@ -1,4 +1,4 @@
-package com.bi.barfdog.jwt;
+package com.bi.barfdog.api.memberDto.jwt;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;

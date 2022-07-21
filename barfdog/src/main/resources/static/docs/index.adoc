@@ -636,7 +636,7 @@ operation::join_phoneAuth[snippets='curl-request,request-headers,request-body,re
 
 `POST` 요청을 사용해서 일반 로그인을 할 수 있다.
 
-operation::login[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body']
+operation::login[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields']
 
 [[resources-login-naver]]
 === 네이버 로그인 하기
@@ -1400,8 +1400,10 @@ operation::query_coupons[snippets='curl-request,request-headers,request-paramete
 
 operation::get_code_coupon[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
+
+
 [[resources-admin-order-info]]
-== 관리자 페이지 주문 배송 관리
+== 관리자 주문 배송 관리
 
 관리자 페이지 주문 배송 관리 관련 리소스.
 
@@ -1451,8 +1453,65 @@ operation::admin_orderConfirm_general[snippets='curl-request,request-headers,req
 
 operation::admin_orderConfirm_subscribe[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
+[[resources-admin-cancelConfirm-general]]
+=== 일반 주문 주문취소요청을 컨펌 처리
+
+`POST` 요청을 사용하여 일반 주문 주문취소요청을 컨펌 처리할 수 있다.
+
+operation::admin_cancelConfirm_general[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-admin-cancelConfirm-subscribe]]
+=== 구독 주문 주문취소요청을 컨펌 처리
+
+`POST` 요청을 사용하여 구독 주문 주문취소요청을 컨펌 처리할 수 있다.
+
+operation::admin_cancelConfirm_subscribe[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-admin-orderCancel-general]]
+=== 일반 주문 관리자 판매취소 처리
+
+`POST` 요청을 사용하여 일반 주문 관리자 판매취소 처리할 수 있다.
+
+operation::admin_orderCancel_general[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-admin-orderCancel-subscribe]]
+=== 구독 주문 관리자 판매취소 처리
+
+`POST` 요청을 사용하여 구독 주문 관리자 판매취소 처리할 수 있다.
+
+operation::admin_orderCancel_subscribe[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-admin-denyReturn]]
+=== 일반 주문 반품요청 거절 처리
+
+`POST` 요청을 사용하여 일반 주문 반품요청 거절 처리할 수 있다.
+
+operation::admin_denyReturn_general[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
+
+[[resources-admin-confirmExchange-buyer]]
+=== 일반 주문 교환요청을 구매자 귀책으로 컨펌 처리
+
+`POST` 요청을 사용하여 일반 주문 교환요청을 구매자 귀책으로 컨펌 처리할 수 있다.
+
+operation::admin_confirmExchange_buyer[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+[[resources-admin-confirmExchange-seller]]
+=== 일반 주문 교환요청을 판매자 귀책으로 컨펌 처리
+
+`POST` 요청을 사용하여 일반 주문 교환요청을 판매자 귀책으로 컨펌 처리할 수 있다.
+
+operation::admin_confirmExchange_seller[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+[[resources-admin-denyReturn]]
+=== 일반 주문 교환요청 거절 처리
+
+`POST` 요청을 사용하여 일반 주문 교환요청 거절 처리할 수 있다.
+
+operation::admin_denyExchange_general[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
 
@@ -1587,6 +1646,24 @@ operation::request_returnOrders[snippets='curl-request,request-headers,request-b
 operation::request_exchangeOrders[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
+
+
+[[resources-subscribeCard-info]]
+== 구독 카드 관리
+
+구독 카드 관련 리소스.
+
+[[resources-query-deliveries]]
+=== 구독 카드 리스트 검색
+
+`GET` 요청을 사용하여 구독 카드 리스트를 조회할 수 있다.
+
+operation::query_subscribeCards[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+
+
+
+
 [[resources-delivery-info]]
 == 유저 배송
 
@@ -1649,3 +1726,16 @@ operation::update_gram_subscribe[snippets='curl-request,path-parameters,request-
 
 operation::update_plan_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
+[[resources-skip-subscribe]]
+=== 구독 건너뛰기
+
+`POST` 요청을 사용하여 구독을 n주 건너 뛰기 할 수 있다.
+
+operation::skip_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-stop-subscribe]]
+=== 구독 취소하기
+
+`POST` 요청을 사용하여 구독을 취소 할 수 있다.
+
+operation::stop_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']

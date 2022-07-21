@@ -1,4 +1,4 @@
-package com.bi.barfdog.jwt;
+package com.bi.barfdog.api.memberDto.jwt;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

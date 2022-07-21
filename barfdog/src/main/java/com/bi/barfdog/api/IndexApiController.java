@@ -9,8 +9,8 @@ import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.directsend.PhoneAuthRequestDto;
 import com.bi.barfdog.directsend.DirectSendResponseDto;
 import com.bi.barfdog.domain.member.Member;
-import com.bi.barfdog.jwt.JwtProperties;
-import com.bi.barfdog.jwt.JwtTokenProvider;
+import com.bi.barfdog.api.memberDto.jwt.JwtProperties;
+import com.bi.barfdog.api.memberDto.jwt.JwtTokenProvider;
 import com.bi.barfdog.repository.member.MemberRepository;
 import com.bi.barfdog.repository.order.OrderRepository;
 import com.bi.barfdog.service.BarfService;
@@ -33,7 +33,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -295,20 +298,43 @@ public class IndexApiController {
         if (errors.hasErrors()) return badRequest(errors);
 
         memberService.login(member);
-        generateAccessToken(response, member);
+        LocalDateTime expiresAt = generateAccessToken(response, member, loginDto.getTokenValidDays());
 
-        return ResponseEntity.ok(null);
+        List<String> roleList = member.getRoleList();
+
+        LoginResponseDto responseDto = LoginResponseDto.builder()
+                .name(member.getName())
+                .email(member.getEmail())
+                .roleList(roleList)
+                .expiresAt(expiresAt)
+                .build();
+
+        EntityModel<LoginResponseDto> entityModel = EntityModel.of(responseDto);
+
+        return ResponseEntity.ok(entityModel);
     }
 
-    private void generateAccessToken(HttpServletResponse response, Member member) {
+    private LocalDateTime generateAccessToken(HttpServletResponse response, Member member, int tokenValidDays){
+
+        int expirationTime = tokenValidDays != 0 ? 1000 * 60 * 60 * 24 * tokenValidDays : JwtProperties.EXPIRATION_TIME;
+
+        Date expiresAt = new Date(System.currentTimeMillis() + expirationTime);
+
         String jwtToken = JwtProperties.TOKEN_PREFIX + JWT.create()
                 .withSubject("토큰 이름")
-                .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperties.EXPIRATION_TIME))
+                .withExpiresAt(expiresAt)
                 .withClaim("email", member.getEmail())
                 .withClaim("id", member.getId())
                 .sign(Algorithm.HMAC512(JwtProperties.SECRET));
 
         response.addHeader(JwtProperties.HEADER_STRING, jwtToken);
+
+        LocalDateTime localDateTime = expiresAt.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
+
+
+        return localDateTime;
     }
 
     @PostMapping("/api/login/naver")
@@ -330,7 +356,7 @@ public class IndexApiController {
         if (resultcode.equals(SnsResponse.SUCCESS_CODE)) {
             String providerId = responseDto.getResponse().getId();
             Member member = memberRepository.findByProviderAndProviderId(SnsProvider.NAVER, providerId).get();
-            generateAccessToken(response, member);
+            generateAccessToken(response, member, requestDto.getTokenValidDays());
         }
 
         return ResponseEntity.ok(entityModel);
@@ -348,7 +374,7 @@ public class IndexApiController {
         if (errors.hasErrors()) return badRequest(errors);
 
         ConnectSnsResponseDto responseDto = memberService.connectSns(requestDto);
-        generateAccessToken(response, member);
+        generateAccessToken(response, member, requestDto.getTokenValidDays());
 
         EntityModel<ConnectSnsResponseDto> entityModel = EntityModel.of(responseDto);
         entityModel.add(linkTo(IndexApiController.class).slash("api/connectSns").withSelfRel());

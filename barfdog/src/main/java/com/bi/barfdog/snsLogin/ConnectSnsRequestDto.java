@@ -22,4 +22,6 @@ public class ConnectSnsRequestDto {
     @NotEmpty
     private String providerId;
 
+    private int tokenValidDays;
+
 }

@@ -9,7 +9,7 @@ import com.bi.barfdog.domain.basket.BasketOption;
 import com.bi.barfdog.domain.coupon.DiscountType;
 import com.bi.barfdog.domain.item.*;
 import com.bi.barfdog.domain.member.Member;
-import com.bi.barfdog.jwt.JwtLoginDto;
+import com.bi.barfdog.api.memberDto.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.basket.BasketRepository;
 import com.bi.barfdog.repository.basket.BasketOptionRepository;
 import com.bi.barfdog.repository.item.ItemImageRepository;

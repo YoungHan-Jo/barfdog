@@ -22,7 +22,7 @@ import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.review.*;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.domain.subscribe.SubscribeStatus;
-import com.bi.barfdog.jwt.JwtLoginDto;
+import com.bi.barfdog.api.memberDto.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.coupon.CouponRepository;
 import com.bi.barfdog.repository.delivery.DeliveryRepository;
 import com.bi.barfdog.repository.item.ItemOptionRepository;

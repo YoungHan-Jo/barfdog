@@ -1,5 +1,6 @@
 package com.bi.barfdog.api;
 
+import com.bi.barfdog.api.orderDto.StopSubscribeDto;
 import com.bi.barfdog.api.resource.SubscribesDtoResource;
 import com.bi.barfdog.api.subscribeDto.*;
 import com.bi.barfdog.auth.CurrentUser;
@@ -144,14 +145,34 @@ public class SubscribeApiController {
     @PostMapping("/{id}/skip/{count}")
     public ResponseEntity skipSubscribe(@PathVariable Long id,
                                         @PathVariable int count) {
+        Optional<Subscribe> optionalSubscribe = subscribeRepository.findById(id);
+        if (!optionalSubscribe.isPresent()) return notFound();
 
+        subscribeService.skipSubscribe(id, count);
 
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(SubscribeApiController.class).slash(id).slash("skip").slash(count).withSelfRel());
+        representationModel.add(linkTo(SubscribeApiController.class).slash(id).withRel("query_subscribe"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-skip-subscribe").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
     }
 
+    @PostMapping("/{id}/stop")
+    public ResponseEntity stopSubscribe(@PathVariable Long id,
+                                        @RequestBody StopSubscribeDto requestDto) {
+        Optional<Subscribe> optionalSubscribe = subscribeRepository.findById(id);
+        if (!optionalSubscribe.isPresent()) return notFound();
 
+        subscribeService.stopSubscribe(id,requestDto);
 
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(SubscribeApiController.class).slash(id).slash("stop").withSelfRel());
+        representationModel.add(linkTo(SubscribeApiController.class).withRel("query_subscribes"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-stop-subscribe").withRel("profile"));
 
-
+        return ResponseEntity.ok(representationModel);
+    }
 
 
     private ResponseEntity<EntityModel<Errors>> badRequest(Errors errors) {

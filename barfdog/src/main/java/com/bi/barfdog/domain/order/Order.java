@@ -9,6 +9,7 @@ import lombok.*;
 
 import javax.persistence.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static javax.persistence.FetchType.*;
@@ -101,5 +102,9 @@ public abstract class Order extends BaseTimeEntity {
 
     public void confirmAs(OrderStatus status) {
         orderStatus = status;
+    }
+
+    public void skipDelivery(LocalDate nextDeliveryDate) {
+        delivery.skip(nextDeliveryDate);
     }
 }

@@ -7,7 +7,7 @@ import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.coupon.DiscountType;
 import com.bi.barfdog.domain.item.*;
-import com.bi.barfdog.jwt.JwtLoginDto;
+import com.bi.barfdog.api.memberDto.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.delivery.DeliveryRepository;
 import com.bi.barfdog.repository.item.ItemContentImageRepository;
 import com.bi.barfdog.repository.item.ItemImageRepository;

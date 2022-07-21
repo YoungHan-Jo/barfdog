@@ -2,10 +2,7 @@ package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.barfDto.SendInviteSmsDto;
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
-import com.bi.barfdog.api.memberDto.EmailAuthDto;
-import com.bi.barfdog.api.memberDto.FindPasswordRequestDto;
-import com.bi.barfdog.api.memberDto.MemberSaveRequestDto;
-import com.bi.barfdog.api.memberDto.UpdateAdminPasswordRequestDto;
+import com.bi.barfdog.api.memberDto.*;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.common.BaseTest;
@@ -35,8 +32,8 @@ import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.domain.subscribe.SubscribePlan;
 import com.bi.barfdog.domain.subscribe.SubscribeStatus;
 import com.bi.barfdog.domain.surveyReport.*;
-import com.bi.barfdog.jwt.JwtLoginDto;
-import com.bi.barfdog.jwt.JwtProperties;
+import com.bi.barfdog.api.memberDto.jwt.JwtLoginDto;
+import com.bi.barfdog.api.memberDto.jwt.JwtProperties;
 import com.bi.barfdog.repository.ReviewImageRepository;
 import com.bi.barfdog.repository.banner.BannerRepository;
 import com.bi.barfdog.repository.coupon.CouponRepository;
@@ -1370,8 +1367,6 @@ public class IndexApiControllerTest extends BaseTest {
     }
 
 
-
-
     @Test
     @DisplayName("정상적으로 로그인 성공 후 jwt 토큰 받는 테스트")
     public void login() throws Exception {
@@ -1382,9 +1377,10 @@ public class IndexApiControllerTest extends BaseTest {
 
         System.out.println("findMember = " + findMember.getEmail());
 
-        JwtLoginDto requestDto = JwtLoginDto.builder()
+        LoginDto requestDto = LoginDto.builder()
                 .email(member.getEmail())
                 .password("1234")
+                .tokenValidDays(10)
                 .build();
 
         //when & then
@@ -1402,10 +1398,17 @@ public class IndexApiControllerTest extends BaseTest {
                         ),
                         requestFields(
                                 fieldWithPath("email").description("회원 이메일(로그인 ID)"),
-                                fieldWithPath("password").description("회원 비밀번호")
+                                fieldWithPath("password").description("회원 비밀번호"),
+                                fieldWithPath("tokenValidDays").description("토큰 유효 날짜 설정 null 이면 기본 2시간짜리 토큰, ex) 10을 입력하면 10일 짜리 토큰이 발급됨")
                         ),
                         responseHeaders(
                                 headerWithName("Authorization").description("bearer 방식 JWT 토큰")
+                        ),
+                        responseFields(
+                                fieldWithPath("name").description("이름"),
+                                fieldWithPath("email").description("이메일"),
+                                fieldWithPath("roleList").description("역할 리스트 [USER,SUBSCRIBER,ADMIN], 하위 역할을 포함 함"),
+                                fieldWithPath("expiresAt").description("토큰 만료 시간")
                         )
                 ));
     }
@@ -1604,16 +1607,18 @@ public class IndexApiControllerTest extends BaseTest {
                 .andExpect(status().isNotFound())
         ;
     }
-    @Ignore
+
     @Test
+    @Ignore
     @DisplayName("정상적으로 네이버 회원 정보 호출")
     public void naverLogin_newMember() throws Exception {
        //given
 
-        String accessToken = SnsResponse.TEST_ACCESS_CODE;
+        String accessToken = SnsResponse.TEST_NAVER_ACCESS_TOKEN;
 
         NaverLoginDto requestDto = NaverLoginDto.builder()
                 .accessToken(accessToken)
+                .tokenValidDays(10)
                 .build();
 
         //when & then
@@ -1635,7 +1640,8 @@ public class IndexApiControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
                         ),
                         requestFields(
-                                fieldWithPath("accessToken").description("네이버 api 엑세스 토큰")
+                                fieldWithPath("accessToken").description("네이버 api 엑세스 토큰"),
+                                fieldWithPath("tokenValidDays").description("토큰 유효 날짜 설정 null 이면 기본 2시간짜리 토큰, ex) 10을 입력하면 10일 짜리 토큰이 발급됨")
                         ),
                         responseHeaders(
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
@@ -1664,7 +1670,7 @@ public class IndexApiControllerTest extends BaseTest {
 
         Member member = generateSampleMember();
 
-        String accessToken = SnsResponse.TEST_ACCESS_CODE;
+        String accessToken = SnsResponse.TEST_NAVER_ACCESS_TOKEN;
 
         NaverLoginDto requestDto = NaverLoginDto.builder()
                 .accessToken(accessToken)
@@ -1690,7 +1696,7 @@ public class IndexApiControllerTest extends BaseTest {
         Member member = generateSampleMember();
         member.connectSns("kakao","sdjfaksdlfjaksdjfiasldf");
 
-        String accessToken = SnsResponse.TEST_ACCESS_CODE;
+        String accessToken = SnsResponse.TEST_NAVER_ACCESS_TOKEN;
 
         NaverLoginDto requestDto = NaverLoginDto.builder()
                 .accessToken(accessToken)
@@ -1717,7 +1723,7 @@ public class IndexApiControllerTest extends BaseTest {
         Member member = generateSampleMember();
         member.connectSns("naver","p4N4jAY5Q0qszLDW8Wx2W30K3eKkRUlHEVivAHgR0XQ");
 
-        String accessToken = SnsResponse.TEST_ACCESS_CODE;
+        String accessToken = SnsResponse.TEST_NAVER_ACCESS_TOKEN;
 
         NaverLoginDto requestDto = NaverLoginDto.builder()
                 .accessToken(accessToken)
@@ -1773,7 +1779,8 @@ public class IndexApiControllerTest extends BaseTest {
                                 fieldWithPath("phoneNumber").description("휴대전화 번호 '010xxxxxxxx' "),
                                 fieldWithPath("password").description("유저 비밀번호"),
                                 fieldWithPath("provider").description("sns api 제공사 ['naver'/'kakao']"),
-                                fieldWithPath("providerId").description("sns api 제공사 해당 유저 고유 id 값")
+                                fieldWithPath("providerId").description("sns api 제공사 해당 유저 고유 id 값"),
+                                fieldWithPath("tokenValidDays").description("토큰 유효 날짜 설정 null 이면 기본 2시간짜리 토큰, ex) 10을 입력하면 10일 짜리 토큰이 발급됨")
                         ),
                         responseHeaders(
                                 headerWithName("Authorization").description("bearer 방식 JWT 토큰")
@@ -1874,7 +1881,7 @@ public class IndexApiControllerTest extends BaseTest {
                 .gender(Gender.FEMALE)
                 .agreement(new Agreement(true, true, true, true, true))
                 .myRecommendationCode(BarfUtils.generateRandomCode())
-                .roles("USER")
+                .roles("USER,SUBSCRIBER,ADMIN")
                 .reward(0)
                 .firstReward(new FirstReward(true,true))
                 .build();

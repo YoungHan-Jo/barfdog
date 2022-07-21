@@ -1,8 +1,8 @@
 package com.bi.barfdog.config;
 
 import com.bi.barfdog.common.CommonUtils;
-import com.bi.barfdog.jwt.JwtAuthenticationFilter;
-import com.bi.barfdog.jwt.JwtAuthorizationFilter;
+import com.bi.barfdog.api.memberDto.jwt.JwtAuthenticationFilter;
+import com.bi.barfdog.api.memberDto.jwt.JwtAuthorizationFilter;
 import com.bi.barfdog.oauth.PrincipalOauth2UserService;
 import com.bi.barfdog.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;

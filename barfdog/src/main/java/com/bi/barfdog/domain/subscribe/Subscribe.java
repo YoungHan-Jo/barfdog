@@ -192,4 +192,40 @@ public class Subscribe extends BaseTimeEntity {
     public void setNextOrderMerchantUid(String merchantUid) {
         this.nextOrderMerchant_uid = merchantUid;
     }
+
+    public LocalDate skipAndGetNextDeliveryDate(int count) {
+        nextPaymentDate = nextPaymentDate.plusDays(count * 7);
+        nextDeliveryDate = nextDeliveryDate.plusDays(count * 7);
+        skipCount++;
+        return nextDeliveryDate;
+    }
+
+    public void stopSubscribe(List<String> reasonList) {
+        String reasons = getReasons(reasonList);
+        this.cancelReason = reasons;
+        this.discount = 0;
+        this.nextOrderMerchant_uid = null;
+        this.nextPaymentDate = null;
+        this.nextDeliveryDate = null;
+        this.nextPaymentPrice = 0;
+        this.status = SubscribeStatus.SUBSCRIBE_PENDING;
+        this.skipCount = 0;
+        if (this.memberCoupon != null) {
+            memberCoupon.revival();
+        }
+
+    }
+
+    private String getReasons(List<String> reasonList) {
+        String reasons = "";
+        if (reasonList.size() > 0) {
+            reasons = reasonList.get(0);
+            if (reasonList.size() > 1) {
+                for (int i = 1; i < reasonList.size(); i++) {
+                    reasons += "," + reasonList.get(i);
+                }
+            }
+        }
+        return reasons;
+    }
 }

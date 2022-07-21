@@ -9,7 +9,7 @@ import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.Address;
 import com.bi.barfdog.domain.blog.*;
 import com.bi.barfdog.domain.member.*;
-import com.bi.barfdog.jwt.JwtLoginDto;
+import com.bi.barfdog.api.memberDto.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.article.ArticleRepository;
 import com.bi.barfdog.repository.blog.BlogImageRepository;
 import com.bi.barfdog.repository.blog.BlogRepository;

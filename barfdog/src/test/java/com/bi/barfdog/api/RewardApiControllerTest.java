@@ -10,7 +10,7 @@ import com.bi.barfdog.domain.reward.Reward;
 import com.bi.barfdog.domain.reward.RewardPoint;
 import com.bi.barfdog.domain.reward.RewardStatus;
 import com.bi.barfdog.domain.reward.RewardType;
-import com.bi.barfdog.jwt.JwtLoginDto;
+import com.bi.barfdog.api.memberDto.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.member.MemberRepository;
 import com.bi.barfdog.repository.reward.RewardRepository;
 import org.junit.Test;

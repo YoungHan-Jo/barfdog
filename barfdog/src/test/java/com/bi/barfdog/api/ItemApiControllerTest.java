@@ -9,7 +9,7 @@ import com.bi.barfdog.domain.review.ItemReview;
 import com.bi.barfdog.domain.review.Review;
 import com.bi.barfdog.domain.review.ReviewImage;
 import com.bi.barfdog.domain.review.ReviewStatus;
-import com.bi.barfdog.jwt.JwtLoginDto;
+import com.bi.barfdog.api.memberDto.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.ReviewImageRepository;
 import com.bi.barfdog.repository.coupon.CouponRepository;
 import com.bi.barfdog.repository.delivery.DeliveryRepository;
@@ -39,7 +39,6 @@ import java.time.LocalDate;
 import java.util.stream.IntStream;
 
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;

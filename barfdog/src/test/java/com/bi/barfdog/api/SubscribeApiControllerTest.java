@@ -1,6 +1,7 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
+import com.bi.barfdog.api.orderDto.StopSubscribeDto;
 import com.bi.barfdog.api.subscribeDto.UpdateGramDto;
 import com.bi.barfdog.api.subscribeDto.UpdatePlanDto;
 import com.bi.barfdog.api.subscribeDto.UpdateSubscribeDto;
@@ -16,13 +17,11 @@ import com.bi.barfdog.domain.item.Item;
 import com.bi.barfdog.domain.item.ItemOption;
 import com.bi.barfdog.domain.item.ItemStatus;
 import com.bi.barfdog.domain.item.ItemType;
+import com.bi.barfdog.domain.member.Card;
 import com.bi.barfdog.domain.member.Gender;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
-import com.bi.barfdog.domain.order.GeneralOrder;
-import com.bi.barfdog.domain.order.OrderStatus;
-import com.bi.barfdog.domain.order.PaymentMethod;
-import com.bi.barfdog.domain.order.SubscribeOrder;
+import com.bi.barfdog.domain.order.*;
 import com.bi.barfdog.domain.orderItem.OrderItem;
 import com.bi.barfdog.domain.orderItem.SelectOption;
 import com.bi.barfdog.domain.recipe.Recipe;
@@ -35,7 +34,7 @@ import com.bi.barfdog.domain.subscribe.SubscribePlan;
 import com.bi.barfdog.domain.subscribe.SubscribeStatus;
 import com.bi.barfdog.domain.subscribeRecipe.SubscribeRecipe;
 import com.bi.barfdog.domain.surveyReport.*;
-import com.bi.barfdog.jwt.JwtLoginDto;
+import com.bi.barfdog.api.memberDto.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.card.CardRepository;
 import com.bi.barfdog.repository.coupon.CouponRepository;
 import com.bi.barfdog.repository.delivery.DeliveryRepository;
@@ -56,6 +55,7 @@ import com.bi.barfdog.repository.subscribe.BeforeSubscribeRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
 import com.bi.barfdog.repository.subscribeRecipe.SubscribeRecipeRepository;
 import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
+import org.hibernate.boot.model.relational.QualifiedSequenceName;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -78,6 +78,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 import static com.bi.barfdog.config.finalVariable.StandardVar.*;
@@ -268,10 +269,6 @@ public class SubscribeApiControllerTest extends BaseTest {
         assertThat(findSubscribe.getNextPaymentPrice()).isEqualTo(nextPaymentPrice);
         assertThat(findSubscribe.getPlan()).isEqualTo(plan);
 
-        BeforeSubscribe beforeSubscribe = findSubscribe.getBeforeSubscribe();
-        assertThat(beforeSubscribe.getSubscribeCount()).isEqualTo(beforeSubscribeCount);
-        assertThat(beforeSubscribe.getPlan()).isEqualTo(beforePlan);
-        assertThat(beforeSubscribe.getPaymentPrice()).isEqualTo(beforeNextPaymentPrice);
 
     }
 
@@ -927,12 +924,80 @@ public class SubscribeApiControllerTest extends BaseTest {
 
 
     @Test
-    @DisplayName("구독 중단하기")
-    public void stopSubscribe() throws Exception {
+    @DisplayName("구독 1주 건너뛰기")
+    public void skipSubscribe() throws Exception {
        //given
 
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtcUseCoupon(member, 1, OrderStatus.PAYMENT_DONE);
+        Subscribe subscribe = subscribeOrder.getSubscribe();
+        int skipCount = subscribe.getSkipCount();
+        LocalDateTime nextPaymentDate = subscribe.getNextPaymentDate();
+        LocalDate nextDeliveryDate = subscribe.getNextDeliveryDate();
+
+        int count = 1;
+
        //when & then
-        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/subscribes/{id}/cancel")
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/subscribes/{id}/skip/{count}", subscribe.getId(), count)
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("skip_subscribe",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_subscribe").description("구독 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("구독 id"),
+                                parameterWithName("count").description("건너뛰기 n 주 (플랜에 맞게 건너 뛸 n주 입력. 1주 건너뛰기면 n=1)")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_subscribe.href").description("구독 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
+        assertThat(findSubscribe.getNextDeliveryDate()).isEqualTo(nextDeliveryDate.plusDays(count * 7));
+        assertThat(findSubscribe.getNextPaymentDate()).isEqualTo(nextPaymentDate.plusDays(count * 7));
+        assertThat(findSubscribe.getSkipCount()).isEqualTo(skipCount + 1);
+
+        String nextOrderMerchant_uid = findSubscribe.getNextOrderMerchant_uid();
+        SubscribeOrder findOrder = orderRepository.findByMerchantUid(nextOrderMerchant_uid).get();
+        assertThat(findOrder.getDelivery().getNextDeliveryDate()).isEqualTo(nextDeliveryDate.plusDays(count * 7));
+    }
+
+    @Test
+    @DisplayName("구독 2주 건너뛰기")
+    public void skipSubscribe_2week() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtcUseCoupon(member, 1, OrderStatus.PAYMENT_DONE);
+        Subscribe subscribe = subscribeOrder.getSubscribe();
+        int skipCount = subscribe.getSkipCount();
+        LocalDateTime nextPaymentDate = subscribe.getNextPaymentDate();
+        LocalDate nextDeliveryDate = subscribe.getNextDeliveryDate();
+
+        int count = 2;
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/subscribes/{id}/skip/{count}", subscribe.getId(), count)
                         .header(HttpHeaders.AUTHORIZATION, getUserToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
@@ -940,8 +1005,102 @@ public class SubscribeApiControllerTest extends BaseTest {
                 .andExpect(status().isOk())
         ;
 
+        em.flush();
+        em.clear();
+
+        Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
+        assertThat(findSubscribe.getNextDeliveryDate()).isEqualTo(nextDeliveryDate.plusDays(count * 7));
+        assertThat(findSubscribe.getNextPaymentDate()).isEqualTo(nextPaymentDate.plusDays(count * 7));
+        assertThat(findSubscribe.getSkipCount()).isEqualTo(skipCount + 1);
+
+        String nextOrderMerchant_uid = findSubscribe.getNextOrderMerchant_uid();
+        SubscribeOrder findOrder = orderRepository.findByMerchantUid(nextOrderMerchant_uid).get();
+        assertThat(findOrder.getDelivery().getNextDeliveryDate()).isEqualTo(nextDeliveryDate.plusDays(count * 7));
     }
 
+
+    @Test
+    @DisplayName("구독 취소 테스트")
+    public void stopSubscribe() throws Exception {
+       //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtcUseCoupon(member, 1, OrderStatus.BEFORE_PAYMENT);
+        MemberCoupon memberCoupon = subscribeOrder.getMemberCoupon();
+        int remaining = memberCoupon.getRemaining();
+        Delivery delivery = subscribeOrder.getDelivery();
+        Subscribe subscribe = subscribeOrder.getSubscribe();
+
+        List<String> reasonList = new ArrayList<>();
+        String aaa = "구독 취소 사유1";
+        reasonList.add(aaa);
+        String bbb = "구독 취소 사유 2";
+        reasonList.add(bbb);
+        String ccc = "구독 취소 사유 3";
+        reasonList.add(ccc);
+
+        StopSubscribeDto requestDto = StopSubscribeDto.builder()
+                .reasonList(reasonList)
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/subscribes/{id}/stop", subscribe.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("stop_subscribe",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_subscribes").description("구독 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("구독 id")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestFields(
+                                fieldWithPath("reasonList").description("구독 취소 사유 리스트")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_subscribes.href").description("구독 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
+        assertThat(findSubscribe.getCancelReason()).isEqualTo(aaa+","+bbb+","+ccc);
+        assertThat(findSubscribe.getDiscount()).isEqualTo(0);
+        assertThat(findSubscribe.getNextPaymentPrice()).isEqualTo(0);
+        assertThat(findSubscribe.getNextPaymentDate()).isNull();
+        assertThat(findSubscribe.getStatus()).isEqualTo(SubscribeStatus.SUBSCRIBE_PENDING);
+        assertThat(findSubscribe.getNextOrderMerchant_uid()).isNull();
+        assertThat(findSubscribe.getSkipCount()).isEqualTo(0);
+        assertThat(findSubscribe.getNextDeliveryDate()).isNull();
+
+        Optional<Order> optionalOrder = orderRepository.findById(subscribeOrder.getId());
+        assertThat(optionalOrder.isPresent()).isFalse();
+
+        Optional<Delivery> optionalDelivery = deliveryRepository.findById(delivery.getId());
+        assertThat(optionalDelivery.isPresent()).isFalse();
+
+        MemberCoupon findMemberCoupon = memberCouponRepository.findById(memberCoupon.getId()).get();
+        assertThat(findMemberCoupon.getRemaining()).isEqualTo(remaining + 1);
+
+    }
 
 
 
@@ -1027,7 +1186,7 @@ public class SubscribeApiControllerTest extends BaseTest {
 
         Delivery delivery = generateDelivery(member, i);
 
-        Subscribe subscribe = generateSubscribe(i);
+        Subscribe subscribe = generateSubscribe(member, i);
 
         BeforeSubscribe beforeSubscribe = generateBeforeSubscribe(i);
         subscribe.setBeforeSubscribe(beforeSubscribe);
@@ -1148,6 +1307,7 @@ public class SubscribeApiControllerTest extends BaseTest {
         Delivery delivery = generateDelivery(member, i);
 
         Subscribe subscribe = generateSubscribeUseCoupon(member, i);
+        MemberCoupon memberCoupon = subscribe.getMemberCoupon();
 
         BeforeSubscribe beforeSubscribe = generateBeforeSubscribe(i);
         subscribe.setBeforeSubscribe(beforeSubscribe);
@@ -1201,13 +1361,10 @@ public class SubscribeApiControllerTest extends BaseTest {
         surveyReportRepository.save(surveyReport);
         dog.setSurveyReport(surveyReport);
 
-        Coupon coupon1 = generateGeneralCoupon(1);
-        MemberCoupon memberCoupon1 = generateMemberCoupon(member, coupon1, 3, CouponStatus.ACTIVE);
-
-
+        String merchantUid = "merchant_uid" + i;
         SubscribeOrder subscribeOrder = SubscribeOrder.builder()
                 .impUid("imp_uid"+i)
-                .merchantUid("merchant_uid"+i)
+                .merchantUid(merchantUid)
                 .orderStatus(orderStatus)
                 .member(member)
                 .orderPrice(120000)
@@ -1220,11 +1377,13 @@ public class SubscribeApiControllerTest extends BaseTest {
                 .isPackage(false)
                 .delivery(delivery)
                 .subscribe(subscribe)
-                .memberCoupon(memberCoupon1)
+                .memberCoupon(memberCoupon)
                 .subscribeCount(subscribe.getSubscribeCount())
                 .orderConfirmDate(LocalDateTime.now().minusHours(3))
                 .build();
         orderRepository.save(subscribeOrder);
+
+        subscribe.setNextOrderMerchantUid(merchantUid);
 
         return subscribeOrder;
     }
@@ -1266,7 +1425,7 @@ public class SubscribeApiControllerTest extends BaseTest {
 
         Delivery delivery = generateDeliveryNoNumber(member, i);
 
-        Subscribe subscribe = generateSubscribe(i);
+        Subscribe subscribe = generateSubscribe(member, i);
 
         generateSubscribeRecipe(recipe1, subscribe);
         generateSubscribeRecipe(recipe2, subscribe);
@@ -1349,13 +1508,23 @@ public class SubscribeApiControllerTest extends BaseTest {
 
 
 
-    private Subscribe generateSubscribe(int i) {
+    private Subscribe generateSubscribe(Member member, int i) {
+
+        Card card = Card.builder()
+                .member(member)
+                .customerUid("custom_uid" + i)
+                .cardName("cardName" + i)
+                .cardNumber("카드번호" + i)
+                .build();
+        cardRepository.save(card);
+
         Subscribe subscribe = Subscribe.builder()
                 .subscribeCount(i+1)
                 .plan(SubscribePlan.FULL)
                 .nextPaymentDate(LocalDateTime.now().plusDays(6))
                 .nextDeliveryDate(LocalDate.now().plusDays(8))
                 .nextPaymentPrice(120000)
+                .card(card)
                 .status(SubscribeStatus.SUBSCRIBING)
                 .build();
         subscribeRepository.save(subscribe);
@@ -1366,8 +1535,16 @@ public class SubscribeApiControllerTest extends BaseTest {
         Coupon coupon = generateGeneralCoupon(2);
         MemberCoupon memberCoupon = generateMemberCoupon(member, coupon, 3, CouponStatus.ACTIVE);
 
+        Card card = Card.builder()
+                .member(member)
+                .customerUid("custom_uid" + i)
+                .cardName("cardName" + i)
+                .cardNumber("카드번호" + i)
+                .build();
+        cardRepository.save(card);
+
         Subscribe subscribe = Subscribe.builder()
-                .subscribeCount(i+1)
+                .subscribeCount(i + 1)
                 .plan(SubscribePlan.FULL)
                 .nextPaymentDate(LocalDateTime.now().plusDays(6))
                 .nextDeliveryDate(LocalDate.now().plusDays(8))
@@ -1375,8 +1552,11 @@ public class SubscribeApiControllerTest extends BaseTest {
                 .status(SubscribeStatus.SUBSCRIBING)
                 .memberCoupon(memberCoupon)
                 .discount(3000)
+                .skipCount(3)
+                .card(card)
                 .build();
         subscribeRepository.save(subscribe);
+
         return subscribe;
     }
 

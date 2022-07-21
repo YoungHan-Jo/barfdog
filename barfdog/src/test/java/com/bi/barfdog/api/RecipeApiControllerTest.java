@@ -7,7 +7,7 @@ import com.bi.barfdog.domain.recipe.Leaked;
 import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.recipe.RecipeStatus;
 import com.bi.barfdog.domain.recipe.ThumbnailImage;
-import com.bi.barfdog.jwt.JwtLoginDto;
+import com.bi.barfdog.api.memberDto.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.recipe.RecipeRepository;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;

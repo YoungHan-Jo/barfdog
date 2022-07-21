@@ -7,7 +7,7 @@ import com.bi.barfdog.domain.blog.Article;
 import com.bi.barfdog.domain.blog.Blog;
 import com.bi.barfdog.domain.blog.BlogCategory;
 import com.bi.barfdog.domain.blog.BlogStatus;
-import com.bi.barfdog.jwt.JwtLoginDto;
+import com.bi.barfdog.api.memberDto.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.article.ArticleRepository;
 import com.bi.barfdog.repository.blog.BlogRepository;
 import com.bi.barfdog.repository.member.MemberRepository;

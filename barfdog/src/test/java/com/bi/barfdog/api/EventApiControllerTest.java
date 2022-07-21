@@ -6,7 +6,7 @@ import com.bi.barfdog.domain.event.Event;
 import com.bi.barfdog.domain.event.EventImage;
 import com.bi.barfdog.domain.event.EventStatus;
 import com.bi.barfdog.domain.event.EventThumbnail;
-import com.bi.barfdog.jwt.JwtLoginDto;
+import com.bi.barfdog.api.memberDto.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.event.EventImageRepository;
 import com.bi.barfdog.repository.event.EventRepository;
 import com.bi.barfdog.repository.event.EventThumbnailRepository;

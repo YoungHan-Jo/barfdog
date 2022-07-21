@@ -15,4 +15,6 @@ public class NaverLoginDto {
 
     @NotEmpty
     private String accessToken;
+
+    private int tokenValidDays;
 }

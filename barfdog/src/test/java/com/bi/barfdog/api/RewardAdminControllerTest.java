@@ -1,7 +1,6 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.couponDto.Area;
-import com.bi.barfdog.api.memberDto.QueryMembersCond;
 import com.bi.barfdog.api.rewardDto.PublishToGroupDto;
 import com.bi.barfdog.api.rewardDto.PublishToPersonalDto;
 import com.bi.barfdog.common.AppProperties;
@@ -11,7 +10,7 @@ import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.reward.Reward;
 import com.bi.barfdog.domain.reward.RewardStatus;
 import com.bi.barfdog.domain.reward.RewardType;
-import com.bi.barfdog.jwt.JwtLoginDto;
+import com.bi.barfdog.api.memberDto.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.member.MemberRepository;
 import com.bi.barfdog.repository.reward.RewardRepository;
 import org.junit.Test;

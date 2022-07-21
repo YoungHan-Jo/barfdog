@@ -1,14 +1,18 @@
 package com.bi.barfdog.service;
 
+import com.bi.barfdog.api.orderDto.StopSubscribeDto;
 import com.bi.barfdog.api.subscribeDto.UpdateGramDto;
 import com.bi.barfdog.api.subscribeDto.UpdatePlanDto;
 import com.bi.barfdog.api.subscribeDto.UseCouponDto;
+import com.bi.barfdog.domain.delivery.Delivery;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
+import com.bi.barfdog.domain.order.SubscribeOrder;
 import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.subscribe.BeforeSubscribe;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.domain.subscribeRecipe.SubscribeRecipe;
 import com.bi.barfdog.iamport.Iamport_API;
+import com.bi.barfdog.repository.delivery.DeliveryRepository;
 import com.bi.barfdog.repository.memberCoupon.MemberCouponRepository;
 import com.bi.barfdog.repository.order.OrderRepository;
 import com.bi.barfdog.repository.recipe.RecipeRepository;
@@ -26,9 +30,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -41,6 +46,7 @@ public class SubscribeService {
     private final BeforeSubscribeRepository beforeSubscribeRepository;
     private final OrderRepository orderRepository;
     private final MemberCouponRepository memberCouponRepository;
+    private final DeliveryRepository deliveryRepository;
 
     private IamportClient client = new IamportClient(Iamport_API.API_KEY, Iamport_API.API_SECRET);
 
@@ -85,10 +91,40 @@ public class SubscribeService {
 
     }
 
-    private void unscheduleAndNewSchedule(Subscribe subscribe) {
+    @Transactional
+    public void skipSubscribe(Long id, int count) {
+        Subscribe subscribe = subscribeRepository.findById(id).get();
+        LocalDate nextDeliveryDate = subscribe.skipAndGetNextDeliveryDate(count);
+
+        unscheduleAndNewSchedule(subscribe);
+
+        String nextOrderMerchant_uid = subscribe.getNextOrderMerchant_uid();
+        Optional<SubscribeOrder> optionalSubscriberOrder = orderRepository.findByMerchantUid(nextOrderMerchant_uid);
+        if (optionalSubscriberOrder.isPresent()) {
+            SubscribeOrder order = optionalSubscriberOrder.get();
+            order.skipDelivery(nextDeliveryDate);
+        }
+
+    }
+
+    @Transactional
+    public void stopSubscribe(Long id, StopSubscribeDto requestDto) {
+        Subscribe subscribe = subscribeRepository.findById(id).get();
+        unschedule(subscribe);
+        Optional<SubscribeOrder> optionalSubscribeOrder = orderRepository.findByMerchantUid(subscribe.getNextOrderMerchant_uid());
+        if (optionalSubscribeOrder.isPresent()) {
+            SubscribeOrder order = optionalSubscribeOrder.get();
+            Delivery delivery = order.getDelivery();
+            orderRepository.delete(order);
+            deliveryRepository.delete(delivery);
+
+            subscribe.stopSubscribe(requestDto.getReasonList());
+        }
+    }
+
+    private void unschedule(Subscribe subscribe) {
         String customerUid = subscribe.getCard().getCustomerUid();
         String merchant_uid = subscribe.getNextOrderMerchant_uid();
-
 
         UnscheduleData unscheduleData = new UnscheduleData(customerUid);
         unscheduleData.addMerchantUid(merchant_uid);
@@ -100,7 +136,24 @@ public class SubscribeService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        sleepThread(1000);
+    }
+
+
+    private void unscheduleAndNewSchedule(Subscribe subscribe) {
+        String customerUid = subscribe.getCard().getCustomerUid();
+        String merchant_uid = subscribe.getNextOrderMerchant_uid();
+
+        UnscheduleData unscheduleData = new UnscheduleData(customerUid);
+        unscheduleData.addMerchantUid(merchant_uid);
+
+        try {
+            client.unsubscribeSchedule(unscheduleData);
+        } catch (IamportResponseException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        sleepThread(500);
 
         Date nextPaymentDate = java.sql.Timestamp.valueOf(subscribe.getNextPaymentDate());
         int nextPaymentPrice = subscribe.getNextPaymentPrice() - subscribe.getDiscount();
@@ -157,4 +210,7 @@ public class SubscribeService {
         }
         return recipeName;
     }
+
+
+
 }

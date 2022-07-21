@@ -636,7 +636,7 @@ operation::join_phoneAuth[snippets='curl-request,request-headers,request-body,re
 
 `POST` 요청을 사용해서 일반 로그인을 할 수 있다.
 
-operation::login[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body']
+operation::login[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields']
 
 [[resources-login-naver]]
 === 네이버 로그인 하기
@@ -1726,3 +1726,16 @@ operation::update_gram_subscribe[snippets='curl-request,path-parameters,request-
 
 operation::update_plan_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
+[[resources-skip-subscribe]]
+=== 구독 건너뛰기
+
+`POST` 요청을 사용하여 구독을 n주 건너 뛰기 할 수 있다.
+
+operation::skip_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-stop-subscribe]]
+=== 구독 취소하기
+
+`POST` 요청을 사용하여 구독을 취소 할 수 있다.
+
+operation::stop_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']

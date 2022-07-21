@@ -8,7 +8,7 @@ import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.Address;
 import com.bi.barfdog.domain.member.Gender;
 import com.bi.barfdog.domain.member.Member;
-import com.bi.barfdog.jwt.JwtLoginDto;
+import com.bi.barfdog.api.memberDto.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.member.MemberRepository;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
