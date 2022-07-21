@@ -143,4 +143,16 @@ public class OrderItem extends BaseTimeEntity {
                 .exchangeConfirmDate(LocalDateTime.now())
                 .build();
     }
+
+    public void returnConfirm(int cancelReward, int cancelPrice, OrderStatus status) {
+        this.status = status;
+        this.cancelPrice = cancelPrice;
+        this.cancelReward = cancelReward;
+        orderReturn = OrderReturn.builder()
+                .returnReason(orderReturn.getReturnReason())
+                .returnDetailReason(orderReturn.getReturnDetailReason())
+                .returnRequestDate(orderReturn.getReturnRequestDate())
+                .returnConfirmDate(LocalDateTime.now())
+                .build();
+    }
 }

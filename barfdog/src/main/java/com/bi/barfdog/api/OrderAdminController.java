@@ -234,6 +234,19 @@ public class OrderAdminController {
         return ResponseEntity.ok(representationModel);
     }
 
+    @PostMapping("/general/confirmReturn/seller")
+    public ResponseEntity confirmReturnSeller(@RequestBody OrderItemIdListDto requestDto) {
+
+        orderService.confirmReturnSeller(requestDto);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderAdminController.class).slash("general/confirmReturn/seller").withSelfRel());
+        representationModel.add(linkTo(OrderAdminController.class).slash("search").withRel("query_orders"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-confirmReturn-seller").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
 
 
 

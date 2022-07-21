@@ -957,4 +957,47 @@ public class OrderService {
             orderItem.exchangeConfirm(status);
         }
     }
+
+    @Transactional
+    public void confirmReturnSeller(OrderItemIdListDto requestDto) {
+        List<Long> orderItemIdList = requestDto.getOrderItemIdList();
+
+        for (Long orderItemId : orderItemIdList) {
+            Optional<OrderItem> optionalOrderItem = orderItemRepository.findById(orderItemId);
+            if (!optionalOrderItem.isPresent()) continue;
+            OrderItem orderItem = optionalOrderItem.get();
+
+            GeneralOrder order = orderItem.getGeneralOrder();
+
+            int finalPrice = orderItem.getFinalPrice();
+            int cancelReward = getCancelReward(order, finalPrice);
+            int cancelPrice = finalPrice - cancelReward;
+
+            String impUid = order.getImpUid();
+            CancelData cancelData = new CancelData(impUid, true, BigDecimal.valueOf(cancelPrice));
+
+            try {
+                client.cancelPaymentByImpUid(cancelData);
+                orderItem.returnConfirm(cancelReward, cancelPrice, OrderStatus.RETURN_DONE_SELLER);
+                saveCancelReward(orderItem, order, RewardName.RETURN_ORDER);
+                revivalCoupon(orderItem);
+            } catch (IamportResponseException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
 }

@@ -21,6 +21,7 @@ import com.bi.barfdog.domain.recipe.Recipe;
 import com.bi.barfdog.domain.reward.Reward;
 import com.bi.barfdog.domain.reward.RewardName;
 import com.bi.barfdog.domain.reward.RewardStatus;
+import com.bi.barfdog.domain.reward.RewardType;
 import com.bi.barfdog.domain.setting.ActivityConstant;
 import com.bi.barfdog.domain.setting.Setting;
 import com.bi.barfdog.domain.setting.SnackConstant;
@@ -1725,6 +1726,98 @@ public class OrderAdminControllerTest extends BaseTest {
 
     }
 
+    @Test
+    @DisplayName("반품 컨펌 판매자 실책")
+    public void confirmReturnSeller() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int rewardAmount = member.getReward();
+
+        GeneralOrder generalOrder = generateGeneralOrder(member, 1, OrderStatus.CONFIRM);
+
+        List<Long> orderItemIdList = new ArrayList<>();
+        List<MemberCoupon> memberCouponList = new ArrayList<>();
+        List<Integer> remainingList = new ArrayList<>();
+
+        List<OrderItem> orderItemList = generalOrder.getOrderItemList();
+        for (OrderItem orderItem : orderItemList) {
+            orderItemIdList.add(orderItem.getId());
+            MemberCoupon memberCoupon = orderItem.getMemberCoupon();
+            memberCouponList.add(memberCoupon);
+            remainingList.add(memberCoupon.getRemaining());
+        }
+
+        OrderItemIdListDto requestDto = OrderItemIdListDto.builder()
+                .orderItemIdList(orderItemIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/orders/general/confirmReturn/seller")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("admin_confirmReturn_seller",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_orders").description("주문 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestFields(
+                                fieldWithPath("orderItemIdList").description("판매자 귀책 반품컨펌 처리 할 주문한상품(orderItem) id 리스트")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_orders.href").description("주문 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        for (Long orderItemId : orderItemIdList) {
+            OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
+            GeneralOrder order = orderItem.getGeneralOrder();
+            int finalPrice = orderItem.getFinalPrice();
+            int cancelReward = getCancelReward(order, finalPrice);
+            int cancelPrice = finalPrice - cancelReward;
+            assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.RETURN_DONE_SELLER);
+            assertThat(orderItem.getCancelPrice()).isEqualTo(cancelPrice);
+            assertThat(orderItem.getCancelPrice()).isEqualTo(cancelPrice);
+            OrderReturn orderReturn = orderItem.getOrderReturn();
+            assertThat(orderReturn.getReturnReason()).isNotNull();
+            assertThat(orderReturn.getReturnDetailReason()).isNotNull();
+            assertThat(orderReturn.getReturnRequestDate()).isNotNull();
+            assertThat(orderReturn.getReturnConfirmDate()).isNotNull();
+        }
+
+        Member findMember = memberRepository.findById(member.getId()).get();
+        List<Reward> rewards = rewardRepository.findByMember(findMember);
+        assertThat(rewards.size()).isEqualTo(orderItemIdList.size());
+        for (Reward reward : rewards) {
+            assertThat(reward.getName()).isEqualTo(RewardName.RETURN_ORDER);
+            assertThat(reward.getRewardType()).isEqualTo(RewardType.ORDER);
+            assertThat(reward.getRewardStatus()).isEqualTo(RewardStatus.SAVED);
+        }
+
+        assertThat(memberCouponList.size()).isNotEqualTo(0);
+        for (int i = 0; i < memberCouponList.size(); i++) {
+            assertThat(memberCouponList.get(i).getRemaining()).isEqualTo(remainingList.get(i) + 1);
+        }
+
+    }
 
 
 
@@ -1732,6 +1825,14 @@ public class OrderAdminControllerTest extends BaseTest {
 
 
 
+    private int getCancelReward(GeneralOrder order, int finalPrice) {
+        int allRewards = order.getDiscountReward();
+        int paymentPrice = order.getPaymentPrice();
+        int allAmount = paymentPrice + allRewards;
+        int percent = (int) Math.round(((double)finalPrice / allAmount) * 100);
+        int cancelReward = (int) (allRewards / 100) * percent;
+        return cancelReward;
+    }
 
 
 

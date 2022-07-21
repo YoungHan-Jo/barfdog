@@ -7,5 +7,6 @@ public interface RewardName {
 
     String USE_ORDER = "[주문] 주문 사용 적립금";
     String CANCEL_ORDER = "[주문취소] 주문 취소 적립금";
+    String RETURN_ORDER = "[반품] 반품 적립금";
     String CONFIRM_ORDER = "[구매확정] 구매확정 적립금";
 }
