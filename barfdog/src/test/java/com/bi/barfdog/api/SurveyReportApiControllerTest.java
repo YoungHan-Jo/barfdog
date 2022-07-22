@@ -109,6 +109,10 @@ public class SurveyReportApiControllerTest extends BaseTest {
                         responseFields(
                                 fieldWithPath("lastSurveyDate").description("마지막 설문조사 날짜"),
                                 fieldWithPath("myDogName").description("설문 강아지 이름"),
+                                fieldWithPath("dogSize").description("설문 강아지 [LARGE, MIDDLE, SMALL]"),
+                                fieldWithPath("dogActivity.activityLevel").description("설문 강아지 [VERY_LITTLE, LITTLE, NORMAL, MUCH, VERY_MUCH]"),
+                                fieldWithPath("dogActivity.walkingCountPerWeek").description("설문 강아지 주 당 산책 회수"),
+                                fieldWithPath("dogActivity.walkingTimePerOneTime").description("설문 강아지 1회 산책 당 산책 시간"),
                                 fieldWithPath("ageAnalysis.avgAgeMonth").description("바프독을 시작한 평균 나이"),
                                 fieldWithPath("ageAnalysis.ageGroupOneCount").description("1그룹(가장어린)에 포함된 강아지 수"),
                                 fieldWithPath("ageAnalysis.ageGroupTwoCount").description("2그룹에 포함된 강아지 수"),

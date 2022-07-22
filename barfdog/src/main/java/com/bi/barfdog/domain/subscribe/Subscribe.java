@@ -228,4 +228,8 @@ public class Subscribe extends BaseTimeEntity {
         }
         return reasons;
     }
+
+    public void changeCard(Card card) {
+        this.card = card;
+    }
 }

@@ -537,8 +537,11 @@ public class DogService {
     public void updatePicture(Long id, UpdateDogPictureDto requestDto) {
         Dog dog = dogRepository.findById(id).get();
         dogPictureRepository.deleteAllByDog(dog);
-        DogPicture dogPicture = dogPictureRepository.findById(requestDto.getDogPictureId()).get();
-        dogPicture.setDog(dog);
+        Long pictureId = requestDto.getDogPictureId();
+        if (pictureId != null) {
+            DogPicture dogPicture = dogPictureRepository.findById(pictureId).get();
+            dogPicture.setDog(dog);
+        }
     }
 
     @Transactional

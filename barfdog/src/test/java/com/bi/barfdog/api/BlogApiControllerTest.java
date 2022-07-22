@@ -295,7 +295,7 @@ public class BlogApiControllerTest extends BaseTest {
                         .param("size", "5"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("page.totalElements").value(15));
+                .andExpect(jsonPath("page.totalElements").value(13));
 
     }
 

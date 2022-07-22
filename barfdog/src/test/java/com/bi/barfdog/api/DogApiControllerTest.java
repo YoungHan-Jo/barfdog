@@ -256,7 +256,7 @@ public class DogApiControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.AUTHORIZATION).description("jwt 토큰")
                         ),
                         requestFields(
-                                fieldWithPath("dogPictureId").description("강아지 사진 id")
+                                fieldWithPath("dogPictureId").description("강아지 사진 id, null 일 경우 사진 삭제 기능")
                         ),
                         responseHeaders(
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
@@ -278,6 +278,43 @@ public class DogApiControllerTest extends BaseTest {
 
         DogPicture findPicture = dogPictureRepository.findById(newDogPicture.getId()).get();
         assertThat(findPicture.getDog().getId()).isEqualTo(dog.getId());
+    }
+
+    @Test
+    @DisplayName("강아지 사진 수정 시 파일 없으면 강아지 사진 삭제")
+    public void updateDogPicture_noFile() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        Dog dog = generateDog(member, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+
+        DogPicture dogPicture = generateDogPicture(1);
+        dogPicture.setDog(dog);
+
+        List<DogPicture> dogPictures = dogPictureRepository.findByDog(dog);
+        assertThat(dogPictures.size()).isEqualTo(1);
+        assertThat(dogPictures.get(0).getId()).isEqualTo(dogPicture.getId());
+
+
+        UpdateDogPictureDto requestDto = UpdateDogPictureDto.builder()
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/dogs/{id}/picture",dog.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        em.flush();
+        em.clear();
+
+        List<DogPicture> dogPictureList = dogPictureRepository.findByDog(dog);
+        assertThat(dogPictureList.size()).isEqualTo(0);
+
     }
 
     @Test
@@ -825,7 +862,6 @@ public class DogApiControllerTest extends BaseTest {
     public void queryDogs() throws Exception {
        //given
 
-
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
         Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
         Dog dogRepresentative = generateDogRepresentative(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
@@ -836,6 +872,8 @@ public class DogApiControllerTest extends BaseTest {
         IntStream.range(1,4).forEach(i -> {
             Dog dog = generateDog(i, member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
             generateSubscribe(dog);
+            DogPicture dogPic = generateDogPicture(i);
+            dogPic.setDog(dog);
             Dog adminDog = generateDog(i, admin, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
             generateSubscribe(adminDog);
         });

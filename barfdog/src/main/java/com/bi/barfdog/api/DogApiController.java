@@ -151,8 +151,11 @@ public class DogApiController {
         if (errors.hasErrors()) return badRequest(errors);
         Optional<Dog> optionalDog = dogRepository.findById(id);
         if (!optionalDog.isPresent()) return notFound();
-        Optional<DogPicture> optionalDogPicture = dogPictureRepository.findById(requestDto.getDogPictureId());
-        if (!optionalDogPicture.isPresent()) return notFound();
+        Long pictureId = requestDto.getDogPictureId();
+        if (pictureId != null) {
+            Optional<DogPicture> optionalDogPicture = dogPictureRepository.findById(pictureId);
+            if (!optionalDogPicture.isPresent()) return notFound();
+        }
         dogValidator.validateMyDog(member, id, errors);
         if (errors.hasErrors()) return badRequest(errors);
 

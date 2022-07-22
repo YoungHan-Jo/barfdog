@@ -107,4 +107,8 @@ public abstract class Order extends BaseTimeEntity {
     public void skipDelivery(LocalDate nextDeliveryDate) {
         delivery.skip(nextDeliveryDate);
     }
+
+    public void startDelivery() {
+        orderStatus = OrderStatus.DELIVERY_START;
+    }
 }

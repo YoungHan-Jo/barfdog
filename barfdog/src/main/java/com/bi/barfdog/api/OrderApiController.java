@@ -174,7 +174,6 @@ public class OrderApiController {
 
         orderService.failSubscribeOrder(id, member);
 
-
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(OrderApiController.class).slash(id).slash("subscribe/fail").slash(id).withSelfRel());
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-fail-subscribeOrder").withRel("profile"));

@@ -230,8 +230,8 @@ public class DogRepositoryImpl implements DogRepositoryCustom{
                         subscribe.status
                 ))
                 .from(dog)
-                .leftJoin(dogPicture).on(dogPicture.dog.eq(dog))
                 .join(dog.subscribe, subscribe)
+                .leftJoin(dogPicture).on(dogPicture.dog.eq(dog))
                 .where(validDogsByMember(member).and(dog.representative.eq(true)))
                 .fetch();
 
@@ -246,8 +246,8 @@ public class DogRepositoryImpl implements DogRepositoryCustom{
                         subscribe.status
                 ))
                 .from(dog)
-                .leftJoin(dogPicture).on(dogPicture.dog.eq(dog))
                 .join(dog.subscribe, subscribe)
+                .leftJoin(dogPicture).on(dogPicture.dog.eq(dog))
                 .where(validDogsByMember(member).and(dog.representative.eq(false)))
                 .orderBy(dog.createdDate.asc())
                 .fetch();

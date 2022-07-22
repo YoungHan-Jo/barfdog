@@ -1,5 +1,6 @@
 package com.bi.barfdog.api;
 
+import com.bi.barfdog.api.cardDto.ChangeCardDto;
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
@@ -48,6 +49,7 @@ import com.bi.barfdog.repository.subscribe.BeforeSubscribeRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
 import com.bi.barfdog.repository.subscribeRecipe.SubscribeRecipeRepository;
 import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -56,6 +58,7 @@ import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,6 +75,7 @@ import java.util.stream.IntStream;
 
 import static com.bi.barfdog.config.finalVariable.StandardVar.*;
 import static com.bi.barfdog.config.finalVariable.StandardVar.LACTATING;
+import static org.assertj.core.api.Assertions.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
@@ -79,6 +83,7 @@ import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.li
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -143,8 +148,6 @@ public class CardApiControllerTest extends BaseTest {
 
     }
 
-
-
     @Test
     @DisplayName("구독 카드 리스트 조회하기")
     public void querySubscribeCards() throws Exception {
@@ -193,6 +196,76 @@ public class CardApiControllerTest extends BaseTest {
         ;
 
     }
+
+    @Test
+    @DisplayName("카드 변경")
+    public void changeCard() throws Exception {
+       //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        SubscribeOrder order = generateSubscribeOrderAndEtc(member, 1, OrderStatus.DELIVERY_START);
+
+        Subscribe subscribe = order.getSubscribe();
+
+        String customerUid = "customerUid_111";
+        String cardName = "cardName111";
+        String cardNumber = "cardNumber1234";
+        ChangeCardDto requestDto = ChangeCardDto.builder()
+                .customerUid(customerUid)
+                .cardName(cardName)
+                .cardNumber(cardNumber)
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/cards/subscribes/{id}", subscribe.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("change_subscribeCard",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_cards").description("구독카드 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("카드 변경 시킬 구독의 id")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer jwt 토큰")
+                        ),
+                        requestFields(
+                                fieldWithPath("customerUid").description("새로 발급 받은 아임포트 customerUid"),
+                                fieldWithPath("cardName").description("신규 카드 이름"),
+                                fieldWithPath("cardNumber").description("신규 카드 번호")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_cards.href").description("구독카드 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ))
+        ;
+
+        em.flush();
+        em.clear();
+
+        Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
+        Card findCard = findSubscribe.getCard();
+        assertThat(findCard.getMember().getId()).isEqualTo(member.getId());
+        assertThat(findCard.getCustomerUid()).isEqualTo(customerUid);
+        assertThat(findCard.getCardName()).isEqualTo(cardName);
+        assertThat(findCard.getCardNumber()).isEqualTo(cardNumber);
+
+    }
+
 
 
 

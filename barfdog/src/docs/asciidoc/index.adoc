@@ -1672,6 +1672,13 @@ operation::request_exchangeOrders[snippets='curl-request,request-headers,request
 
 operation::query_subscribeCards[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
 
+[[resources-change-card]]
+=== 구독 카드 변경
+
+`POST` 요청을 사용하여 구독 카드를 변경할 수 있다.
+
+operation::change_subscribeCard[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
 
 
 

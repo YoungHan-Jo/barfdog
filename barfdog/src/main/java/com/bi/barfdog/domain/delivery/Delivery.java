@@ -20,6 +20,8 @@ public class Delivery extends BaseTimeEntity {
     @Column(name = "delivery_id")
     private Long id;
 
+    private String transUniqueCd;
+
     private String deliveryNumber;
 
     @Embedded
@@ -46,5 +48,11 @@ public class Delivery extends BaseTimeEntity {
 
     public void skip(LocalDate nextDeliveryDate) {
         this.nextDeliveryDate = nextDeliveryDate;
+    }
+
+    public void start(String transUniqueCd) {
+        status = DeliveryStatus.DELIVERY_START;
+        this.transUniqueCd = transUniqueCd;
+        this.departureDate = LocalDateTime.now();
     }
 }
