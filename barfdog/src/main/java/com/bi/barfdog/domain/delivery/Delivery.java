@@ -50,9 +50,13 @@ public class Delivery extends BaseTimeEntity {
         this.nextDeliveryDate = nextDeliveryDate;
     }
 
-    public void start(String transUniqueCd) {
+    public void start(String deliveryNumber) {
         status = DeliveryStatus.DELIVERY_START;
-        this.transUniqueCd = transUniqueCd;
+        this.deliveryNumber = deliveryNumber;
         this.departureDate = LocalDateTime.now();
+    }
+
+    public void generateTransUniqueCd(String transUniqueCd) {
+        this.transUniqueCd = transUniqueCd;
     }
 }

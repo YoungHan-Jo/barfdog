@@ -1430,8 +1430,6 @@ operation::query_admin_general_order[snippets='curl-request,path-parameters,requ
 
 operation::query_admin_order_orderItem[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
-
-
 [[resources-query-admin-order-subscribe]]
 === 구독 주문 하나 조회
 
@@ -1452,6 +1450,28 @@ operation::admin_orderConfirm_general[snippets='curl-request,request-headers,req
 `POST` 요청을 사용하여 구독 주문을 주문확인 처리할 수 있다.
 
 operation::admin_orderConfirm_subscribe[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+[[resources-admin-query-deliveries-info]]
+=== 주문 발송 api에 필요한 배송 정보 조회
+
+`POST` 요청을 사용하여 주문 발송 api에 필요한 배송 정보를 조회할 수 있다.
+
+operation::query_admin_deliveries_info[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-admin-update-deliveryNumber]]
+=== 운송장 번호 등록
+
+`POST` 요청을 사용하여 운송장 번호를 등록할 수 있다.
+
+operation::update_deliveryNumber[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+
+
+
+
+
 
 [[resources-admin-cancelConfirm-general]]
 === 일반 주문 주문취소요청을 컨펌 처리

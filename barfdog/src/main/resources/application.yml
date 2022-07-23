@@ -67,8 +67,8 @@ spring:
 # 파일 업로드 설정
   servlet:
     multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
+      max-file-size: 20MB
+      max-request-size: 20MB
       location: C:/upload
 
 

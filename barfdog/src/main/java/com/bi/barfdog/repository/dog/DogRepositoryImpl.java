@@ -262,6 +262,16 @@ public class DogRepositoryImpl implements DogRepositoryCustom{
         return result;
     }
 
+    @Override
+    public List<Dog> findRepresentativeDogByMember(Member member) {
+        return queryFactory
+                .selectFrom(dog)
+                .where(dog.member.eq(member)
+                        .and(dog.representative.isTrue()))
+                .fetch()
+                ;
+    }
+
     private BooleanExpression validDogsByMember(Member member) {
         return dog.member.eq(member).and(dog.isDeleted.eq(false));
     }

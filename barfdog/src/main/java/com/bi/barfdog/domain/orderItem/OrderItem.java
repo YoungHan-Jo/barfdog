@@ -155,4 +155,10 @@ public class OrderItem extends BaseTimeEntity {
                 .returnConfirmDate(LocalDateTime.now())
                 .build();
     }
+
+    public void startDelivery() {
+        if (status == OrderStatus.PRODUCING || status == OrderStatus.DELIVERY_READY) {
+            status = OrderStatus.DELIVERY_START;
+        }
+    }
 }

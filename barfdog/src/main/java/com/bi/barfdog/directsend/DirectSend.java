@@ -8,4 +8,11 @@ public interface DirectSend {
 
     String CODE_PUBLISH_TEMPLATE = "1";
     String GENERAL_PUBLISH_TEMPLATE = "4";
+
+    String ORDER_SUCCESS_TEMPLATE = "10";
+    String ORDER_CANCEL_TEMPLATE = "16";
+    String ORDER_PRODUCING_TEMPLATE = "25";
+    String ORDER_DELIVERY_READY_TEMPLATE = "31";
+    String DELIVERY_START_TEMPLATE = "28";
+
 }

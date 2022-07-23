@@ -2,9 +2,11 @@ package com.bi.barfdog.service;
 
 import com.bi.barfdog.api.orderDto.*;
 import com.bi.barfdog.common.RandomString;
+import com.bi.barfdog.directsend.DirectSendUtils;
 import com.bi.barfdog.domain.delivery.Delivery;
 import com.bi.barfdog.domain.delivery.DeliveryStatus;
 import com.bi.barfdog.domain.delivery.Recipient;
+import com.bi.barfdog.domain.dog.Dog;
 import com.bi.barfdog.domain.item.Item;
 import com.bi.barfdog.domain.item.ItemOption;
 import com.bi.barfdog.domain.member.Card;
@@ -29,6 +31,7 @@ import com.bi.barfdog.domain.subscribe.SubscribePlan;
 import com.bi.barfdog.iamport.Iamport_API;
 import com.bi.barfdog.repository.card.CardRepository;
 import com.bi.barfdog.repository.delivery.DeliveryRepository;
+import com.bi.barfdog.repository.dog.DogRepository;
 import com.bi.barfdog.repository.item.ItemOptionRepository;
 import com.bi.barfdog.repository.item.ItemRepository;
 import com.bi.barfdog.repository.memberCoupon.MemberCouponRepository;
@@ -76,6 +79,7 @@ public class OrderService {
     private final SettingRepository settingRepository;
     private final OrderItemRepository orderItemRepository;
     private final SelectOptionRepository selectOptionRepository;
+    private final DogRepository dogRepository;
 
     private IamportClient client = new IamportClient(Iamport_API.API_KEY, Iamport_API.API_SECRET);
 
@@ -495,6 +499,25 @@ public class OrderService {
             orderItem.successPayment();
         }
 
+
+        try {
+            String dogName = getRepresentativeDogName(member);
+            DirectSendUtils.sendGeneralOrderSuccessAlim(order, dogName, orderItems);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("알림톡 전송 중 에러");
+        }
+
+
+    }
+
+    private String getRepresentativeDogName(Member member) {
+        List<Dog> dogList = dogRepository.findRepresentativeDogByMember(member);
+        String dogName = "";
+        if (dogList.size() > 0) {
+            dogName = dogList.get(0).getName();
+        }
+        return dogName;
     }
 
     private void saveReward(Member member, Order order) {
@@ -551,11 +574,22 @@ public class OrderService {
 
         try {
             client.subscribeSchedule(scheduleData);
+
+            try {
+                String dogName = getRepresentativeDogName(member);
+                DirectSendUtils.sendSubscribeOrderSuccessAlim(order);
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.out.println("알림톡 전송 중 에러");
+            }
+
         } catch (IamportResponseException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+
 
     }
 

@@ -35,4 +35,6 @@ public interface DogRepositoryCustom {
     QueryDogDto findDogDtoByDog(Long id);
 
     List<QueryDogsDto> findDogsDtoByMember(Member member);
+
+    List<Dog> findRepresentativeDogByMember(Member member);
 }

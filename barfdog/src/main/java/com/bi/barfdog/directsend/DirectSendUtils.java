@@ -3,8 +3,13 @@ package com.bi.barfdog.directsend;
 import com.bi.barfdog.domain.coupon.Coupon;
 import com.bi.barfdog.domain.coupon.CouponType;
 import com.bi.barfdog.domain.coupon.DiscountType;
+import com.bi.barfdog.domain.delivery.Recipient;
+import com.bi.barfdog.domain.dog.Dog;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
+import com.bi.barfdog.domain.order.Order;
+import com.bi.barfdog.domain.order.SubscribeOrder;
+import com.bi.barfdog.domain.orderItem.OrderItem;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -13,8 +18,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class DirectSendUtils {
@@ -91,6 +97,206 @@ public class DirectSendUtils {
         } else if (isGeneralPublished(memberCouponList)) {
             sendAlimTalk(DirectSend.GENERAL_PUBLISH_TEMPLATE, getReceiverOfCoupon(memberCouponList));
         }
+    }
+
+    public static void sendGeneralOrderSuccessAlim(Order order, String dogName, List<OrderItem> orderItemList) throws IOException {
+
+        Member member = order.getMember();
+        String itemName = getItemNames(orderItemList);
+
+        String orderDate = getOrderDate(order);
+
+        String delivery = getDeliveryInfo(order);
+
+        String receiver = "";
+
+        receiver += ",{\"name\": \"" + member.getName() + "\", " +
+                "\"mobile\":\"" + member.getPhoneNumber() + "\", " +
+                "\"note1\":\"" + dogName + "\"," +
+                "\"note2\":\"" + orderDate + "\"," +
+                "\"note3\":\"" + itemName + "\"," +
+                "\"note4\":\"" + order.getPaymentPrice() + "\"," +
+                "\"note5\":\"" + delivery + "\"}";
+
+        receiver = receiver.substring(1);
+
+        sendAlimTalk(DirectSend.ORDER_SUCCESS_TEMPLATE, receiver);
+    }
+
+    private static String getItemNames(List<OrderItem> orderItemList) {
+        String itemName ="";
+        if (orderItemList.size() > 0) {
+            OrderItem orderItem = orderItemList.get(0);
+            itemName += orderItem.getItem().getName();
+            if (orderItemList.size() > 1) {
+                int i = orderItemList.size() - 1;
+                itemName += " 외 " + i +"건";
+            }
+        }
+        return itemName;
+    }
+
+    private static String getDeliveryInfo(Order order) {
+        Recipient recipient = order.getDelivery().getRecipient();
+        String street = recipient.getStreet();
+        String detailAddress = recipient.getDetailAddress();
+        String delivery = street + ", " + detailAddress;
+        return delivery;
+    }
+
+    public static void sendSubscribeOrderProducingAlim(Order order) throws IOException {
+
+        Member member = order.getMember();
+        String itemName ="정기 구독 상품";
+
+        String orderDate = getOrderDate(order);
+
+        SubscribeOrder subscribeOrder = (SubscribeOrder) order;
+        Dog dog = subscribeOrder.getSubscribe().getDog();
+
+        String delivery = getDeliveryInfo(order);
+
+        String receiver = "";
+
+        receiver += ",{\"name\": \"" + member.getName() + "\", " +
+                "\"mobile\":\"" + member.getPhoneNumber() + "\", " +
+                "\"note1\":\"" + dog.getName() + "\"," +
+                "\"note2\":\"" + orderDate + "\"," +
+                "\"note3\":\"" + itemName + "\"," +
+                "\"note4\":\"" + order.getPaymentPrice() + "\"," +
+                "\"note5\":\"" + delivery + "\"}";
+
+        receiver = receiver.substring(1);
+
+        sendAlimTalk(DirectSend.ORDER_PRODUCING_TEMPLATE, receiver);
+    }
+
+    public static void sendGeneralOrderDeliveryReadyAlim(Order order, String dogName, String itemName) throws IOException {
+
+        Member member = order.getMember();
+
+        String orderDate = getOrderDate(order);
+        String delivery = getDeliveryInfo(order);
+
+        String receiver = "";
+        receiver += ",{\"name\": \"" + member.getName() + "\", " +
+                "\"mobile\":\"" + member.getPhoneNumber() + "\", " +
+                "\"note1\":\"" + dogName + "\"," +
+                "\"note2\":\"" + orderDate + "\"," +
+                "\"note3\":\"" + itemName + "\"," +
+                "\"note4\":\"" + order.getPaymentPrice() + "\"," +
+                "\"note5\":\"" + delivery + "\"}";
+
+        receiver = receiver.substring(1);
+
+        sendAlimTalk(DirectSend.ORDER_DELIVERY_READY_TEMPLATE, receiver);
+    }
+
+    public static void sendGeneralOrderDeliveryStartAlim(Order order, String dogName, List<OrderItem> orderItemList) throws IOException {
+
+        Member member = order.getMember();
+        String itemName = getItemNames(orderItemList);
+
+        String receiver = "";
+        receiver += ",{\"name\": \"" + member.getName() + "\", " +
+                "\"mobile\":\"" + member.getPhoneNumber() + "\", " +
+                "\"note1\":\"" + dogName + "\"," +
+                "\"note2\":\"" + order.getMerchantUid() + "\"," +
+                "\"note3\":\"" + itemName + "\"}";
+
+        receiver = receiver.substring(1);
+
+        sendAlimTalk(DirectSend.DELIVERY_START_TEMPLATE, receiver);
+    }
+
+    public static void sendSubscribeOrderDeliveryStartAlim(Order order) throws IOException {
+
+        Member member = order.getMember();
+        String itemName = "정기 구독 상품";
+
+        SubscribeOrder subscribeOrder = (SubscribeOrder) order;
+        String dogName = subscribeOrder.getSubscribe().getDog().getName();
+
+        String receiver = "";
+        receiver += ",{\"name\": \"" + member.getName() + "\", " +
+                "\"mobile\":\"" + member.getPhoneNumber() + "\", " +
+                "\"note1\":\"" + dogName + "\"," +
+                "\"note2\":\"" + order.getMerchantUid() + "\"," +
+                "\"note3\":\"" + itemName + "\"}";
+
+        receiver = receiver.substring(1);
+
+        sendAlimTalk(DirectSend.DELIVERY_START_TEMPLATE, receiver);
+    }
+
+    private static String getOrderDate(Order order) {
+        LocalDateTime createdDate = order.getCreatedDate();
+        String orderDate = createdDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        return orderDate;
+    }
+
+    public static void sendSubscribeOrderSuccessAlim(Order order) throws IOException {
+
+        Member member = order.getMember();
+        String itemName ="정기 구독 상품";
+
+        String orderDate = getOrderDate(order);
+
+        SubscribeOrder subscribeOrder = (SubscribeOrder) order;
+        Dog dog = subscribeOrder.getSubscribe().getDog();
+
+        String delivery = getDeliveryInfo(order);
+
+        String receiver = "";
+
+        receiver += ",{\"name\": \"" + member.getName() + "\", " +
+                "\"mobile\":\"" + member.getPhoneNumber() + "\", " +
+                "\"note1\":\"" + dog.getName() + "\"," +
+                "\"note2\":\"" + orderDate + "\"," +
+                "\"note3\":\"" + itemName + "\"," +
+                "\"note4\":\"" + order.getPaymentPrice() + "\"," +
+                "\"note5\":\"" + delivery + "\"}";
+
+        receiver = receiver.substring(1);
+
+        sendAlimTalk(DirectSend.ORDER_SUCCESS_TEMPLATE, receiver);
+    }
+
+
+    public static void sendSubscribeOrderCancelAlim(Order order) throws IOException {
+
+        Member member = order.getMember();
+        String itemName ="정기 구독 상품";
+
+        SubscribeOrder subscribeOrder = (SubscribeOrder) order;
+        Dog dog = subscribeOrder.getSubscribe().getDog();
+
+        String receiver = "";
+
+        receiver += ",{\"name\": \"" + member.getName() + "\", " +
+                "\"mobile\":\"" + member.getPhoneNumber() + "\", " +
+                "\"note1\":\"" + dog.getName() + "\"," +
+                "\"note2\":\"" + itemName + "\"}";
+
+        receiver = receiver.substring(1);
+
+        sendAlimTalk(DirectSend.ORDER_CANCEL_TEMPLATE, receiver);
+    }
+
+    public static void sendGeneralOrderCancelAlim(Order order, String dogName, String itemName) throws IOException {
+
+        Member member = order.getMember();
+
+        String receiver = "";
+
+        receiver += ",{\"name\": \"" + member.getName() + "\", " +
+                "\"mobile\":\"" + member.getPhoneNumber() + "\", " +
+                "\"note1\":\"" + dogName + "\"," +
+                "\"note2\":\"" + itemName + "\"}";
+
+        receiver = receiver.substring(1);
+
+        sendAlimTalk(DirectSend.ORDER_CANCEL_TEMPLATE, receiver);
     }
 
     private static boolean isGeneralPublished(List<MemberCoupon> memberCouponList) {
@@ -180,6 +386,14 @@ public class DirectSendUtils {
         receiver = receiver.substring(1);
         return receiver;
     }
+
+
+
+
+
+
+
+
 
     public static DirectSendResponseDto sendEmailDirect(String title, String contents, String email) throws Exception {
 
