@@ -237,5 +237,29 @@ public class MemberService {
     }
 
 
+    @Transactional
+    public void gradeScheduler() {
+        List<Member> members = memberRepository.findAll();
 
+        for (Member member : members) {
+            Grade beforeGrade = member.getGrade();
+            int subscribeCount = member.getAccumulatedSubscribe();
+            int amount = member.getAccumulatedAmount();
+
+            if (subscribeCount >= 1 || amount >= 90000) member.changeGrade(Grade.실버);
+            if (subscribeCount >= 5 || amount >= 450000) member.changeGrade(Grade.골드);
+            if (subscribeCount >= 10 || amount >= 900000) member.changeGrade(Grade.플래티넘);
+            if (subscribeCount >= 15 || amount >= 1350000) member.changeGrade(Grade.다이아몬드);
+            if (subscribeCount >= 25 || amount >= 2250000) member.changeGrade(Grade.더바프);
+
+            Grade newGrade = member.getGrade();
+            if (beforeGrade != newGrade) {
+                try {
+                    DirectSendUtils.sendGradeAlim(member, beforeGrade, newGrade);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 }

@@ -187,5 +187,9 @@ public class Member extends BaseTimeEntity {
     public void subscribeOrderFail(SubscribeOrder order) {
         reward += order.getDiscountReward();
     }
+
+    public void changeGrade(Grade grade) {
+        this.grade = grade;
+    }
 }
 

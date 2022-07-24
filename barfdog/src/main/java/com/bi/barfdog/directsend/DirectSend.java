@@ -15,4 +15,6 @@ public interface DirectSend {
     String ORDER_DELIVERY_READY_TEMPLATE = "31";
     String DELIVERY_START_TEMPLATE = "28";
 
+    String GRADE_TEMPLATE = "43";
+
 }

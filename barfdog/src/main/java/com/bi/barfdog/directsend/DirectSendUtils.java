@@ -5,6 +5,7 @@ import com.bi.barfdog.domain.coupon.CouponType;
 import com.bi.barfdog.domain.coupon.DiscountType;
 import com.bi.barfdog.domain.delivery.Recipient;
 import com.bi.barfdog.domain.dog.Dog;
+import com.bi.barfdog.domain.member.Grade;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.domain.order.Order;
@@ -299,6 +300,32 @@ public class DirectSendUtils {
         sendAlimTalk(DirectSend.ORDER_CANCEL_TEMPLATE, receiver);
     }
 
+
+    public static void sendGradeAlim(Member member, Grade beforeGrade, Grade newGrade) throws IOException {
+
+        String receiver = "";
+
+        receiver += ",{\"name\": \"" + member.getName() + "\", " +
+                "\"mobile\":\"" + member.getPhoneNumber() + "\", " +
+                "\"note1\":\"" + beforeGrade.toString() + "\"," +
+                "\"note2\":\"" + newGrade.toString() + "\"}";
+
+        receiver = receiver.substring(1);
+
+        sendAlimTalk(DirectSend.GRADE_TEMPLATE, receiver);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
     private static boolean isGeneralPublished(List<MemberCoupon> memberCouponList) {
         return memberCouponList.get(0).getCoupon().getCouponType() == CouponType.GENERAL_PUBLISHED;
     }
@@ -476,5 +503,6 @@ public class DirectSendUtils {
         responseDto.setResponseCode(responseCode);
         return responseDto;
     }
+
 
 }
