@@ -16,5 +16,8 @@ public interface DirectSend {
     String DELIVERY_START_TEMPLATE = "28";
 
     String GRADE_TEMPLATE = "43";
+    String TOMORROW_PAYMENT_TEMPLATE = "13";
+
+    String SUBSCRIBE_PAYMENT_SCHEDULE_FAIL = "52";
 
 }

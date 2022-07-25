@@ -1228,7 +1228,7 @@ public class OrderApiControllerTest extends BaseTest {
                                 fieldWithPath("deliveryDto.street").optional().description("도로명주소"),
                                 fieldWithPath("deliveryDto.detailAddress").optional().description("상세주소"),
                                 fieldWithPath("deliveryDto.request").description("배송 요청사항"),
-                                fieldWithPath("orderPrice").optional().description("주문 상품 총 가격"),
+                                fieldWithPath("orderPrice").optional().description("주문 상품 총 가격(등급 할인 적용 전)"),
                                 fieldWithPath("deliveryPrice").optional().description("배송비"),
                                 fieldWithPath("discountTotal").optional().description("총 할인 합계"),
                                 fieldWithPath("discountReward").optional().description("사용할 적립금"),
@@ -1638,7 +1638,7 @@ public class OrderApiControllerTest extends BaseTest {
         assertThat(findReward.getTradeReward()).isEqualTo(discountReward);
 
         // 다음 회차 예약 주문 생성 확인
-        Optional<SubscribeOrder> optionalSubscribeOrder = orderRepository.findByMerchantUid(findSubscribe.getNextOrderMerchant_uid());
+        Optional<SubscribeOrder> optionalSubscribeOrder = orderRepository.findByMerchantUid(findSubscribe.getNextOrderMerchantUid());
         assertThat(optionalSubscribeOrder.isPresent()).isTrue();
         if (optionalSubscribeOrder.isPresent()) {
             SubscribeOrder nextOrder = optionalSubscribeOrder.get();

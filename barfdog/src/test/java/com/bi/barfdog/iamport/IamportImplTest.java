@@ -60,14 +60,11 @@ public class IamportImplTest {
 
             switch (e.getHttpStatusCode()) {
                 case 401:
-                    //TODO
                     break;
                 case 500:
-                    //TODO
                     break;
             }
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
@@ -88,14 +85,11 @@ public class IamportImplTest {
 
             switch (e.getHttpStatusCode()) {
                 case 401:
-                    //TODO
                     break;
                 case 500:
-                    //TODO
                     break;
             }
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
@@ -118,14 +112,11 @@ public class IamportImplTest {
 
             switch (e.getHttpStatusCode()) {
                 case 401:
-                    //TODO
                     break;
                 case 500:
-                    //TODO
                     break;
             }
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
@@ -145,14 +136,11 @@ public class IamportImplTest {
 
             switch (e.getHttpStatusCode()) {
                 case 401:
-                    //TODO
                     break;
                 case 500:
-                    //TODO
                     break;
             }
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 

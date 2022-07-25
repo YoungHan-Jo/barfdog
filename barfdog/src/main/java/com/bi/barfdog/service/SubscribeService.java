@@ -4,6 +4,7 @@ import com.bi.barfdog.api.orderDto.StopSubscribeDto;
 import com.bi.barfdog.api.subscribeDto.UpdateGramDto;
 import com.bi.barfdog.api.subscribeDto.UpdatePlanDto;
 import com.bi.barfdog.api.subscribeDto.UseCouponDto;
+import com.bi.barfdog.directsend.DirectSendUtils;
 import com.bi.barfdog.domain.delivery.Delivery;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.domain.order.SubscribeOrder;
@@ -98,7 +99,7 @@ public class SubscribeService {
 
         unscheduleAndNewSchedule(subscribe);
 
-        String nextOrderMerchant_uid = subscribe.getNextOrderMerchant_uid();
+        String nextOrderMerchant_uid = subscribe.getNextOrderMerchantUid();
         Optional<SubscribeOrder> optionalSubscriberOrder = orderRepository.findByMerchantUid(nextOrderMerchant_uid);
         if (optionalSubscriberOrder.isPresent()) {
             SubscribeOrder order = optionalSubscriberOrder.get();
@@ -111,7 +112,7 @@ public class SubscribeService {
     public void stopSubscribe(Long id, StopSubscribeDto requestDto) {
         Subscribe subscribe = subscribeRepository.findById(id).get();
         unschedule(subscribe);
-        Optional<SubscribeOrder> optionalSubscribeOrder = orderRepository.findByMerchantUid(subscribe.getNextOrderMerchant_uid());
+        Optional<SubscribeOrder> optionalSubscribeOrder = orderRepository.findByMerchantUid(subscribe.getNextOrderMerchantUid());
         if (optionalSubscribeOrder.isPresent()) {
             SubscribeOrder order = optionalSubscribeOrder.get();
             Delivery delivery = order.getDelivery();
@@ -124,7 +125,7 @@ public class SubscribeService {
 
     private void unschedule(Subscribe subscribe) {
         String customerUid = subscribe.getCard().getCustomerUid();
-        String merchant_uid = subscribe.getNextOrderMerchant_uid();
+        String merchant_uid = subscribe.getNextOrderMerchantUid();
 
         UnscheduleData unscheduleData = new UnscheduleData(customerUid);
         unscheduleData.addMerchantUid(merchant_uid);
@@ -141,7 +142,7 @@ public class SubscribeService {
 
     private void unscheduleAndNewSchedule(Subscribe subscribe) {
         String customerUid = subscribe.getCard().getCustomerUid();
-        String merchant_uid = subscribe.getNextOrderMerchant_uid();
+        String merchant_uid = subscribe.getNextOrderMerchantUid();
 
         UnscheduleData unscheduleData = new UnscheduleData(customerUid);
         unscheduleData.addMerchantUid(merchant_uid);
@@ -210,6 +211,38 @@ public class SubscribeService {
         }
         return recipeName;
     }
+
+
+    public void paymentAlimScheduler() {
+
+        List<Subscribe> subscribeList = subscribeRepository.findTomorrowPayment();
+
+        for (Subscribe subscribe : subscribeList) {
+            try {
+                SubscribeOrder order = orderRepository.findByMerchantUid(subscribe.getNextOrderMerchantUid()).get();
+                DirectSendUtils.sendTomorrowPaymentAlim(subscribe, order);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -11,6 +11,7 @@ import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.domain.order.Order;
 import com.bi.barfdog.domain.order.SubscribeOrder;
 import com.bi.barfdog.domain.orderItem.OrderItem;
+import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -99,6 +100,60 @@ public class DirectSendUtils {
             sendAlimTalk(DirectSend.GENERAL_PUBLISH_TEMPLATE, getReceiverOfCoupon(memberCouponList));
         }
     }
+
+
+
+
+
+
+    public static void sendTomorrowPaymentAlim(Subscribe subscribe,SubscribeOrder order) throws IOException {
+
+        Dog dog = subscribe.getDog();
+        Member member = dog.getMember();
+        String dogName = dog.getName();
+        String itemName = "정기 구독 상품";
+
+        String paymentMethod = getPaymentMethod(order);
+
+
+        String paymentPrice = order.getPaymentPrice() + "원";
+
+        String nextPaymentDate = order.getPaymentDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        String delivery = getDeliveryInfo(order);
+
+
+        String receiver = "";
+
+        receiver += ",{\"name\": \"" + dogName + "\", " +
+                "\"mobile\":\"" + member.getPhoneNumber() + "\", " +
+                "\"note1\":\"" + itemName + "\"," +
+                "\"note2\":\"" + paymentMethod + "\"," +
+                "\"note3\":\"" + paymentPrice + "\"," +
+                "\"note4\":\"" + nextPaymentDate + "\"," +
+                "\"note5\":\"" + delivery + "\"}";
+
+        receiver = receiver.substring(1);
+
+        sendAlimTalk(DirectSend.TOMORROW_PAYMENT_TEMPLATE, receiver);
+    }
+
+    private static String getPaymentMethod(SubscribeOrder order) {
+        String paymentMethod = "";
+
+        switch (order.getPaymentMethod()) {
+            case CREDIT_CARD:
+                paymentMethod = "신용카드";
+            case KAKAO_PAY:
+                paymentMethod = "카카오페이";
+            case NAVER_PAY:
+                paymentMethod = "네이버페이";
+            default:
+                paymentMethod = "기타 결제";
+        }
+        return paymentMethod;
+    }
+
 
     public static void sendGeneralOrderSuccessAlim(Order order, String dogName, List<OrderItem> orderItemList) throws IOException {
 
@@ -228,6 +283,22 @@ public class DirectSendUtils {
         receiver = receiver.substring(1);
 
         sendAlimTalk(DirectSend.DELIVERY_START_TEMPLATE, receiver);
+    }
+
+    public static void sendSubscribePaymentScheduleFailAlim(Order order) throws IOException {
+
+        Member member = order.getMember();
+
+        SubscribeOrder subscribeOrder = (SubscribeOrder) order;
+        String dogName = subscribeOrder.getSubscribe().getDog().getName();
+
+        String receiver = "";
+        receiver += ",{\"name\": \"" + dogName + "\", " +
+                "\"mobile\":\"" + member.getPhoneNumber() + "\"}";
+
+        receiver = receiver.substring(1);
+
+        sendAlimTalk(DirectSend.SUBSCRIBE_PAYMENT_SCHEDULE_FAIL, receiver);
     }
 
     private static String getOrderDate(Order order) {

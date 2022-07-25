@@ -55,7 +55,7 @@ public class CardService {
 
     private void unscheduleAndNewSchedule(Subscribe subscribe) {
         String customerUid = subscribe.getCard().getCustomerUid();
-        String merchant_uid = subscribe.getNextOrderMerchant_uid();
+        String merchant_uid = subscribe.getNextOrderMerchantUid();
 
         UnscheduleData unscheduleData = new UnscheduleData(customerUid);
         unscheduleData.addMerchantUid(merchant_uid);

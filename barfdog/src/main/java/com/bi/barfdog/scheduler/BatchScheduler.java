@@ -1,19 +1,17 @@
 package com.bi.barfdog.scheduler;
 
-import com.bi.barfdog.domain.member.Member;
-import com.bi.barfdog.repository.member.MemberRepository;
 import com.bi.barfdog.service.MemberService;
+import com.bi.barfdog.service.SubscribeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @RequiredArgsConstructor
 @Component
 public class BatchScheduler {
 
     private final MemberService memberService;
+    private final SubscribeService subscribeService;
 
     @Scheduled(cron = "0/10 * * * * *")
     public void testSchedule() {
@@ -24,6 +22,11 @@ public class BatchScheduler {
     public void gradeCheck() {
         memberService.gradeScheduler();
 
+    }
+
+    @Scheduled(cron = "0 0 9 * * *")
+    public void subscribePaymentAlim() {
+        subscribeService.paymentAlimScheduler();
     }
 
 

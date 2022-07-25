@@ -304,7 +304,7 @@ public class OrderService {
     }
 
     private SubscribeOrder saveSubscribeOrder(Member member, SubscribeOrderRequestDto requestDto, Delivery delivery, Subscribe subscribe, MemberCoupon memberCoupon) {
-        String merchantUid = getMerchantUid();
+        String merchantUid = generateMerchantUid();
         SubscribeOrder subscribeOrder = SubscribeOrder.builder()
                 .merchantUid(merchantUid)
                 .orderStatus(OrderStatus.BEFORE_PAYMENT)
@@ -326,7 +326,7 @@ public class OrderService {
         return orderRepository.save(subscribeOrder);
     }
 
-    private String getMerchantUid() {
+    private String generateMerchantUid() {
         RandomString rs = new RandomString(15);
         String randomString = rs.nextString();
         LocalDate orderDate = LocalDate.now();
@@ -570,7 +570,8 @@ public class OrderService {
         String customerUid = card.getCustomerUid();
         ScheduleData scheduleData = new ScheduleData(customerUid);
         Date nextPaymentDate = java.sql.Timestamp.valueOf(subscribe.getNextPaymentDate());
-        scheduleData.addSchedule(new ScheduleEntry(nextOrder.getMerchantUid(),nextPaymentDate, BigDecimal.valueOf(subscribe.getNextPaymentPrice())));
+        int nextPaymentPrice = calculateNextPaymentPriceAfterGradeDiscount(member, subscribe);
+        scheduleData.addSchedule(new ScheduleEntry(nextOrder.getMerchantUid(),nextPaymentDate, BigDecimal.valueOf(nextPaymentPrice)));
 
         try {
             client.subscribeSchedule(scheduleData);
@@ -609,14 +610,24 @@ public class OrderService {
 
     private SubscribeOrder saveNextOrderAndDelivery(Member member, SubscribeOrder order, Subscribe subscribe) {
         Delivery nextDelivery = saveNextDelivery(order, subscribe);
+        String merchantUid = generateMerchantUid();
 
-        String merchantUid = getMerchantUid();
+        int nextPaymentPrice = calculateNextPaymentPriceAfterGradeDiscount(member, subscribe);
+
+        SubscribeOrder nextSubscribeOrder = saveNextSubscribeOrder(merchantUid, member, subscribe, nextPaymentPrice, order, nextDelivery);
+
+        subscribe.setNextOrderMerchantUid(merchantUid);
+
+        return nextSubscribeOrder;
+    }
+
+    private SubscribeOrder saveNextSubscribeOrder(String merchantUid, Member member, Subscribe subscribe, int nextPaymentPrice, SubscribeOrder order, Delivery nextDelivery) {
         SubscribeOrder nextSubscribeOrder = SubscribeOrder.builder()
                 .merchantUid(merchantUid)
                 .orderStatus(OrderStatus.BEFORE_PAYMENT)
                 .member(member)
                 .orderPrice(subscribe.getNextPaymentPrice())
-                .paymentPrice(subscribe.getNextPaymentPrice())
+                .paymentPrice(nextPaymentPrice)
                 .paymentMethod(order.getPaymentMethod())
                 .isAgreePrivacy(true)
                 .delivery(nextDelivery)
@@ -624,17 +635,24 @@ public class OrderService {
                 .subscribeCount(subscribe.getSubscribeCount() + 1)
                 .build();
         orderRepository.save(nextSubscribeOrder);
-
-        subscribe.setNextOrderMerchantUid(merchantUid);
-
         return nextSubscribeOrder;
+    }
+
+    private int calculateNextPaymentPriceAfterGradeDiscount(Member member, Subscribe subscribe) {
+        int gradeDiscountPercent = getGradeDiscountPercent(member.getGrade());
+
+        int nextPaymentPrice = subscribe.getNextPaymentPrice();
+        if (gradeDiscountPercent > 0) {
+            nextPaymentPrice = (int) Math.round(nextPaymentPrice / 100.0 * (100 - gradeDiscountPercent));
+        }
+        return nextPaymentPrice;
     }
 
     private Delivery saveNextDelivery(SubscribeOrder order, Subscribe subscribe) {
         Delivery delivery = order.getDelivery();
 
         SubscribePlan plan = subscribe.getPlan();
-        LocalDate nextDeliveryDate = delivery.getNextDeliveryDate().plusDays(plan == SubscribePlan.FULL ? 14 : 28);
+        LocalDate nextDeliveryDate = calculateNextDeliveryDate(delivery, plan);
 
         Delivery nextDelivery = Delivery.builder()
                 .recipient(delivery.getRecipient())
@@ -1024,14 +1042,76 @@ public class OrderService {
     }
 
 
+    @Transactional
+    public void successPaymentSchedule(String merchantUid, String impUid) {
+        SubscribeOrder order = orderRepository.findByMerchantUid(merchantUid).get();
+        // TODO: 2022-07-25 Beforesubscribe작업 ?
+        Member member = order.getMember();
+        Subscribe subscribe = order.getSubscribe();
 
+        order.successPaymentSchedule(impUid);
 
+        String newMerchantUid = generateMerchantUid();
+        subscribe.successPaymentSchedule(order, newMerchantUid);
 
+        SubscribeOrder nextOrder = saveNextOrderAndNextDelivery(order, member, subscribe, newMerchantUid);
 
+        scheduleNextOrder(member, subscribe, nextOrder);
+    }
 
+    private void scheduleNextOrder(Member member, Subscribe subscribe, SubscribeOrder nextOrder) {
+        Card card = subscribe.getCard();
+        String customerUid = card.getCustomerUid();
+        ScheduleData scheduleData = new ScheduleData(customerUid);
+        Date nextPaymentDate = java.sql.Timestamp.valueOf(subscribe.getNextPaymentDate());
+        int nextPaymentPrice = calculateNextPaymentPriceAfterGradeDiscount(member, subscribe);
+        scheduleData.addSchedule(new ScheduleEntry(nextOrder.getMerchantUid(),nextPaymentDate, BigDecimal.valueOf(nextPaymentPrice)));
 
+        try {
+            client.subscribeSchedule(scheduleData);
+        } catch (IamportResponseException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
+    private SubscribeOrder saveNextOrderAndNextDelivery(SubscribeOrder order, Member member, Subscribe subscribe,String newMerchantUid) {
 
+        Delivery newDelivery = saveNewDelivery(order, subscribe);
+        int nextPaymentPrice = calculateNextPaymentPriceAfterGradeDiscount(member, subscribe);
 
+        SubscribeOrder nextOrder = saveNextSubscribeOrder(newMerchantUid, member, subscribe, nextPaymentPrice, order, newDelivery);
+        return nextOrder;
+    }
 
+    private Delivery saveNewDelivery(SubscribeOrder order, Subscribe subscribe) {
+        Delivery delivery = order.getDelivery();
+        SubscribePlan plan = subscribe.getPlan();
+        LocalDate nextDeliveryDate = calculateNextDeliveryDate(delivery, plan);
+        Delivery newDelivery = Delivery.builder()
+                .recipient(delivery.getRecipient())
+                .status(DeliveryStatus.BEFORE_PAYMENT)
+                .request(delivery.getRequest())
+                .nextDeliveryDate(nextDeliveryDate)
+                .build();
+        deliveryRepository.save(newDelivery);
+        return newDelivery;
+    }
+
+    private LocalDate calculateNextDeliveryDate(Delivery delivery, SubscribePlan plan) {
+        return delivery.getNextDeliveryDate().plusDays(plan == SubscribePlan.FULL ? 14 : 28);
+    }
+
+    @Transactional
+    public void failPaymentSchedule(String merchantUid) {
+        SubscribeOrder order = orderRepository.findByMerchantUid(merchantUid).get();
+        order.failPaymentSchedule();
+        try {
+            DirectSendUtils.sendSubscribePaymentScheduleFailAlim(order);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // TODO: 2022-07-25 결제 실패 시 재결제 어떻게 할 것인가?
+    }
 }

@@ -39,7 +39,6 @@ public class DeliveryService {
     private final OrderItemRepository orderItemRepository;
     private final DogRepository dogRepository;
 
-
     @Transactional
     public List<QueryOrderInfoForDelivery> queryInfoForGoodsFlow(OrderIdListDto requestDto) {
         List<Long> idList = requestDto.getOrderIdList();

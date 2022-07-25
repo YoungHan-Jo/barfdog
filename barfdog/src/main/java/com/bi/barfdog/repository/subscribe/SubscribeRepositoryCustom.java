@@ -25,4 +25,6 @@ public interface SubscribeRepositoryCustom {
     Page<QuerySubscribesDto> findSubscribesDto(Member member, Pageable pageable);
 
     QuerySubscribeDto findSubscribeDto(Member member, Long id);
+
+    List<Subscribe> findTomorrowPayment();
 }

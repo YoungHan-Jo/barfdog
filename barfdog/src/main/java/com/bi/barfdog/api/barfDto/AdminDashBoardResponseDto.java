@@ -24,7 +24,10 @@ public class AdminDashBoardResponseDto {
     private List<OrderStatusCountDto> orderStatusCountDtoList = new ArrayList<>();
 
     @Builder.Default
-    private List<OrderCountByMonth> orderCountByMonthList = new ArrayList<>();
+    private List<GeneralOrderCountByMonth> generalOrderCountByMonthList = new ArrayList<>();
+
+    @Builder.Default
+    private List<SubscribeOrderCountByMonth> subscribeOrderCountByMonthList = new ArrayList<>();
 
     @Data
     @AllArgsConstructor
@@ -37,10 +40,19 @@ public class AdminDashBoardResponseDto {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class OrderCountByMonth {
+    public static class GeneralOrderCountByMonth {
 
         private String month;
         private Long generalCount;
+
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class SubscribeOrderCountByMonth {
+
+        private String month;
         private Long subscribeCount;
 
     }

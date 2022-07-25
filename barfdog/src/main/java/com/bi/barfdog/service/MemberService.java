@@ -3,6 +3,10 @@ package com.bi.barfdog.service;
 import com.bi.barfdog.api.barfDto.SendInviteSmsDto;
 import com.bi.barfdog.api.memberDto.*;
 import com.bi.barfdog.common.BarfUtils;
+import com.bi.barfdog.config.finalVariable.AutoCoupon;
+import com.bi.barfdog.domain.coupon.Coupon;
+import com.bi.barfdog.domain.coupon.CouponStatus;
+import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.domain.reward.*;
 import com.bi.barfdog.directsend.DirectSendResponseDto;
 import com.bi.barfdog.directsend.DirectSendUtils;
@@ -10,8 +14,10 @@ import com.bi.barfdog.directsend.AuthResponseDto;
 import com.bi.barfdog.domain.member.FirstReward;
 import com.bi.barfdog.domain.member.Grade;
 import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.repository.coupon.CouponRepository;
 import com.bi.barfdog.repository.dog.DogRepository;
 import com.bi.barfdog.repository.member.MemberRepository;
+import com.bi.barfdog.repository.memberCoupon.MemberCouponRepository;
 import com.bi.barfdog.repository.reward.RewardRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
 import com.bi.barfdog.repository.subscribeRecipe.SubscribeRecipeRepository;
@@ -22,6 +28,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,6 +43,8 @@ public class MemberService {
     private final DogRepository dogRepository;
     private final SubscribeRepository subscribeRepository;
     private final SubscribeRecipeRepository subscribeRecipeRepository;
+    private final CouponRepository couponRepository;
+    private final MemberCouponRepository memberCouponRepository;
 
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
@@ -260,6 +270,59 @@ public class MemberService {
                     e.printStackTrace();
                 }
             }
+            // TODO: 2022-07-25 등급별 쿠폰 발급
+
+            LocalDateTime expiredDate = getExpiredDate();
+
+            if (newGrade == Grade.실버) {
+                publishCoupon(member, expiredDate, AutoCoupon.SILVER_COUPON);
+            }
+            if (newGrade == Grade.골드) {
+                publishCoupon(member, expiredDate, AutoCoupon.SILVER_COUPON);
+                publishCoupon(member, expiredDate, AutoCoupon.GOLD_COUPON);
+            }
+            if (newGrade == Grade.플래티넘) {
+                publishCoupon(member, expiredDate, AutoCoupon.SILVER_COUPON);
+                publishCoupon(member, expiredDate, AutoCoupon.GOLD_COUPON);
+                publishCoupon(member, expiredDate, AutoCoupon.PLATINUM_COUPON);
+            }
+            if (newGrade == Grade.다이아몬드) {
+                publishCoupon(member, expiredDate, AutoCoupon.SILVER_COUPON);
+                publishCoupon(member, expiredDate, AutoCoupon.GOLD_COUPON);
+                publishCoupon(member, expiredDate, AutoCoupon.PLATINUM_COUPON);
+                publishCoupon(member, expiredDate, AutoCoupon.DIAMOND_COUPON);
+            }
+            if (newGrade == Grade.더바프) {
+                publishCoupon(member, expiredDate, AutoCoupon.SILVER_COUPON);
+                publishCoupon(member, expiredDate, AutoCoupon.GOLD_COUPON);
+                publishCoupon(member, expiredDate, AutoCoupon.PLATINUM_COUPON);
+                publishCoupon(member, expiredDate, AutoCoupon.DIAMOND_COUPON);
+                publishCoupon(member, expiredDate, AutoCoupon.BARF_COUPON);
+            }
+
         }
+    }
+
+    private void publishCoupon(Member member, LocalDateTime expiredDate, String couponName) {
+        Coupon coupon = couponRepository.findByName(couponName).get();
+        saveMemberCoupon(member, expiredDate, coupon);
+    }
+
+    private void saveMemberCoupon(Member member, LocalDateTime expiredDate, Coupon coupon) {
+        MemberCoupon memberCoupon = MemberCoupon.builder()
+                .member(member)
+                .coupon(coupon)
+                .expiredDate(expiredDate)
+                .remaining(1)
+                .memberCouponStatus(CouponStatus.ACTIVE)
+                .build();
+        memberCouponRepository.save(memberCoupon);
+    }
+
+    private LocalDateTime getExpiredDate() {
+        LocalDate today = LocalDate.now();
+        LocalDate lastDayOfMonth = today.withDayOfMonth(today.lengthOfMonth());
+        LocalDateTime expiredDate = lastDayOfMonth.atTime(23, 59, 59);
+        return expiredDate;
     }
 }

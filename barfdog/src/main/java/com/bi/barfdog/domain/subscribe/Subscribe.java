@@ -10,6 +10,7 @@ import com.bi.barfdog.domain.dog.Dog;
 import com.bi.barfdog.domain.member.Card;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.domain.order.Order;
+import com.bi.barfdog.domain.order.SubscribeOrder;
 import com.bi.barfdog.domain.subscribeRecipe.SubscribeRecipe;
 import lombok.*;
 
@@ -56,10 +57,10 @@ public class Subscribe extends BaseTimeEntity {
 
     private int discount;
 
-    private String nextOrderMerchant_uid;
+    private String nextOrderMerchantUid;
 
     private LocalDateTime nextPaymentDate;
-    private int nextPaymentPrice; // 다음 회차 결제 금액(쿠폰적용 전) -> 실제로는 nextpaymentprice - discount 금액이 결제 됨
+    private int nextPaymentPrice; // 다음 회차 결제 금액(쿠폰적용/등급할인 전) -> 실제로는 nextpaymentprice->등급할인 적용 후 - discount 금액이 결제 됨
     private LocalDate nextDeliveryDate;
 
     private int skipCount;
@@ -103,12 +104,14 @@ public class Subscribe extends BaseTimeEntity {
     }
 
 
-    private void setNextPaymentDate(LocalDateTime paymentDateNow) {
+    private LocalDateTime calculateNextPaymentDate(LocalDateTime paymentDateNow) {
+        LocalDateTime nextPaymentDate = null;
         if (plan == SubscribePlan.FULL) {
             nextPaymentDate = paymentDateNow.plusDays(14);
         } else if (plan == SubscribePlan.HALF || plan == SubscribePlan.TOPPING) {
             nextPaymentDate = paymentDateNow.plusDays(28);
         }
+        return nextPaymentDate;
     }
 
     public void successPayment(Card card, Order order) {
@@ -117,7 +120,7 @@ public class Subscribe extends BaseTimeEntity {
         this.card = card;
         this.nextDeliveryDate = calculateNextDeliveryDate();
         this.nextPaymentPrice = order.getOrderPrice();
-        setNextPaymentDate(order.getPaymentDate());
+        this.nextPaymentDate = calculateNextPaymentDate(order.getPaymentDate());
     }
 
     private LocalDate calculateNextDeliveryDate() {
@@ -190,7 +193,7 @@ public class Subscribe extends BaseTimeEntity {
     }
 
     public void setNextOrderMerchantUid(String merchantUid) {
-        this.nextOrderMerchant_uid = merchantUid;
+        this.nextOrderMerchantUid = merchantUid;
     }
 
     public LocalDate skipAndGetNextDeliveryDate(int count) {
@@ -204,7 +207,7 @@ public class Subscribe extends BaseTimeEntity {
         String reasons = getReasons(reasonList);
         this.cancelReason = reasons;
         this.discount = 0;
-        this.nextOrderMerchant_uid = null;
+        this.nextOrderMerchantUid = null;
         this.nextPaymentDate = null;
         this.nextDeliveryDate = null;
         this.nextPaymentPrice = 0;
@@ -231,5 +234,16 @@ public class Subscribe extends BaseTimeEntity {
 
     public void changeCard(Card card) {
         this.card = card;
+    }
+
+    public void successPaymentSchedule(SubscribeOrder order, String newMerchantUid) {
+        subscribeCount++;
+        memberCoupon = null;
+        discount = 0;
+        nextOrderMerchantUid = newMerchantUid;
+        this.nextPaymentDate = calculateNextPaymentDate(order.getPaymentDate());
+        nextPaymentPrice = order.getOrderPrice();
+        nextDeliveryDate = calculateNextDeliveryDate();
+        skipCount = 0;
     }
 }

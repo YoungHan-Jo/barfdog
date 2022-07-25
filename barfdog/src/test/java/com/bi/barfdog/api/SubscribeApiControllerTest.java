@@ -55,7 +55,6 @@ import com.bi.barfdog.repository.subscribe.BeforeSubscribeRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
 import com.bi.barfdog.repository.subscribeRecipe.SubscribeRecipeRepository;
 import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
-import org.hibernate.boot.model.relational.QualifiedSequenceName;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -977,7 +976,7 @@ public class SubscribeApiControllerTest extends BaseTest {
         assertThat(findSubscribe.getNextPaymentDate()).isEqualTo(nextPaymentDate.plusDays(count * 7));
         assertThat(findSubscribe.getSkipCount()).isEqualTo(skipCount + 1);
 
-        String nextOrderMerchant_uid = findSubscribe.getNextOrderMerchant_uid();
+        String nextOrderMerchant_uid = findSubscribe.getNextOrderMerchantUid();
         SubscribeOrder findOrder = orderRepository.findByMerchantUid(nextOrderMerchant_uid).get();
         assertThat(findOrder.getDelivery().getNextDeliveryDate()).isEqualTo(nextDeliveryDate.plusDays(count * 7));
     }
@@ -1013,7 +1012,7 @@ public class SubscribeApiControllerTest extends BaseTest {
         assertThat(findSubscribe.getNextPaymentDate()).isEqualTo(nextPaymentDate.plusDays(count * 7));
         assertThat(findSubscribe.getSkipCount()).isEqualTo(skipCount + 1);
 
-        String nextOrderMerchant_uid = findSubscribe.getNextOrderMerchant_uid();
+        String nextOrderMerchant_uid = findSubscribe.getNextOrderMerchantUid();
         SubscribeOrder findOrder = orderRepository.findByMerchantUid(nextOrderMerchant_uid).get();
         assertThat(findOrder.getDelivery().getNextDeliveryDate()).isEqualTo(nextDeliveryDate.plusDays(count * 7));
     }
@@ -1087,7 +1086,7 @@ public class SubscribeApiControllerTest extends BaseTest {
         assertThat(findSubscribe.getNextPaymentPrice()).isEqualTo(0);
         assertThat(findSubscribe.getNextPaymentDate()).isNull();
         assertThat(findSubscribe.getStatus()).isEqualTo(SubscribeStatus.SUBSCRIBE_PENDING);
-        assertThat(findSubscribe.getNextOrderMerchant_uid()).isNull();
+        assertThat(findSubscribe.getNextOrderMerchantUid()).isNull();
         assertThat(findSubscribe.getSkipCount()).isEqualTo(0);
         assertThat(findSubscribe.getNextDeliveryDate()).isNull();
 

@@ -9,11 +9,9 @@ import com.bi.barfdog.domain.order.OrderStatus;
 import com.bi.barfdog.domain.orderItem.OrderItem;
 import com.bi.barfdog.domain.subscribe.QSubscribe;
 import com.bi.barfdog.domain.subscribe.SubscribeStatus;
-import com.querydsl.core.types.ConstantImpl;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.StringTemplate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,10 +19,12 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
+import javax.persistence.EntityManager;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.bi.barfdog.api.orderDto.QueryAdminGeneralOrderDto.*;
 import static com.bi.barfdog.api.orderDto.QueryAdminSubscribeOrderDto.*;
@@ -52,6 +52,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 public class OrderRepositoryImpl implements OrderRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
+    private final EntityManager em;
 
 
     @Override
@@ -275,41 +276,54 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
 
         List<AdminDashBoardResponseDto.OrderStatusCountDto> orderStatusCountDtoList = getOrderStatusCountDtoList();
 
+        List<AdminDashBoardResponseDto.GeneralOrderCountByMonth> generalOrderCountByMonthList = getGeneralOrderCountByMonthList();
 
-//        StringTemplate formattedDate = Expressions.stringTemplate(
-//                "DATE_FORMAT({0}, {1})"
-//                , order.createdDate
-//                , ConstantImpl.create("%Y-%m"));
-//
-//        int year = LocalDate.now().getYear();
-//        int month = LocalDate.now().getMonthValue();
-//        LocalDateTime oneYearAgo = LocalDate.of(year, month, 1).atStartOfDay().minusYears(1);
-//
-//
-//        List<AdminDashBoardResponseDto.OrderCountByMonth> orderCountByMonthList = queryFactory
-//                .select(Projections.constructor(AdminDashBoardResponseDto.OrderCountByMonth.class,
-//                        formattedDate.as("month"),
-//                        generalOrder.count(),
-//                        subscribeOrder.count()
-//                ))
-//                .from(order)
-//                .leftJoin(generalOrder).on(generalOrder.eq(order))
-//                .leftJoin(subscribeOrder).on(subscribeOrder.eq(order))
-//                .where(order.createdDate.after(oneYearAgo))
-//                .groupBy(formattedDate)
-//                .orderBy(formattedDate.asc())
-//                .fetch();
-
+        List<AdminDashBoardResponseDto.SubscribeOrderCountByMonth> subscribeOrderCountByMonthList = getSubscribeOrderCountByMonthList();
 
         AdminDashBoardResponseDto result = AdminDashBoardResponseDto.builder()
                 .newOrderCount(newOrderCount)
                 .newMemberCount(newMemberCount)
                 .subscribePendingCount(subscribePendingCount)
                 .orderStatusCountDtoList(orderStatusCountDtoList)
-                .orderCountByMonthList(null)
+                .generalOrderCountByMonthList(generalOrderCountByMonthList)
+                .subscribeOrderCountByMonthList(subscribeOrderCountByMonthList)
                 .build();
 
         return result;
+    }
+
+    private List<AdminDashBoardResponseDto.SubscribeOrderCountByMonth> getSubscribeOrderCountByMonthList() {
+        String subscribeCountSql = "" +
+                "SELECT DATE_FORMAT(o.created_date, '%Y-%m') AS 'months', COUNT(*)\n" +
+                "FROM orders o\n" +
+                "WHERE o.dtype='subscribe'\n" +
+                "AND o.created_date >= DATE_ADD(NOW(), INTERVAL -12 MONTH) + INTERVAL 1 DAY\n" +
+                "GROUP BY months\n" +
+                "ORDER BY months ASC";
+        List<Object[]> resultList = em.createNativeQuery(subscribeCountSql).getResultList();
+
+        List<AdminDashBoardResponseDto.SubscribeOrderCountByMonth> subscribeOrderCountByMonthList = resultList.stream().map(product -> new AdminDashBoardResponseDto.SubscribeOrderCountByMonth(
+                product[0].toString(),
+                ((BigInteger) product[1]).longValue()
+        )).collect(Collectors.toList());
+        return subscribeOrderCountByMonthList;
+    }
+
+    private List<AdminDashBoardResponseDto.GeneralOrderCountByMonth> getGeneralOrderCountByMonthList() {
+        String generalCountSql = "" +
+                "SELECT DATE_FORMAT(o.created_date, '%Y-%m') AS 'months', COUNT(*)\n" +
+                "FROM orders o\n" +
+                "WHERE o.dtype='general'\n" +
+                "AND o.created_date >= DATE_ADD(NOW(), INTERVAL -12 MONTH) + INTERVAL 1 DAY\n" +
+                "GROUP BY months\n" +
+                "ORDER BY months ASC";
+        List<Object[]> resultList = em.createNativeQuery(generalCountSql).getResultList();
+
+        List<AdminDashBoardResponseDto.GeneralOrderCountByMonth> generalOrderCountByMonthList = resultList.stream().map(product -> new AdminDashBoardResponseDto.GeneralOrderCountByMonth(
+                product[0].toString(),
+                ((BigInteger) product[1]).longValue()
+        )).collect(Collectors.toList());
+        return generalOrderCountByMonthList;
     }
 
     private Long getSubscribePendingCount() {

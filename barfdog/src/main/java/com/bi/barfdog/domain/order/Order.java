@@ -38,13 +38,13 @@ public abstract class Order extends BaseTimeEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    private int orderPrice;
+    private int orderPrice; // 주문 가격
     private int deliveryPrice;
     private int discountTotal;
     private int discountReward;
     private int discountCoupon;
 
-    private int paymentPrice;
+    private int paymentPrice; // 최종 결제 가격
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod; // [CREDIT_CARD, NAVER_PAY, KAKAO_PAY]
     private LocalDateTime paymentDate; // 결제 시간
@@ -110,5 +110,16 @@ public abstract class Order extends BaseTimeEntity {
 
     public void startDelivery() {
         orderStatus = OrderStatus.DELIVERY_START;
+    }
+
+    public void failPaymentSchedule() {
+        orderStatus = OrderStatus.FAILED;
+    }
+
+    public void successPaymentSchedule(String impUid) {
+        this.impUid = impUid;
+        orderStatus = OrderStatus.PAYMENT_DONE;
+        delivery.paymentDone();
+        paymentDate = LocalDateTime.now();
     }
 }

@@ -24,6 +24,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -205,6 +206,18 @@ public class SubscribeRepositoryImpl implements SubscribeRepositoryCustom{
                 .build();
 
         return responseEntity;
+    }
+
+    @Override
+    public List<Subscribe> findTomorrowPayment() {
+        LocalDate tomorrow = LocalDate.now().plusDays(1);
+        LocalDateTime from = tomorrow.atStartOfDay();
+        LocalDateTime to = tomorrow.atTime(23, 59, 59);
+        return queryFactory
+                .selectFrom(subscribe)
+                .where(subscribe.nextPaymentDate.between(from,to))
+                .fetch()
+                ;
     }
 
     private QuerySubscribeDto.SubscribeDto getSubscribeDto(Long id) {

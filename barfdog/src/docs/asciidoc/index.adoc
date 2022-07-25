@@ -858,7 +858,7 @@ operation::query_dog[snippets='curl-request,path-parameters,request-headers,requ
 
 `PUT` 요청을 사용해서 해당 강아지의 설문조사를 수정할 수 있다.
 
-operation::update_dog[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+operation::update_dog[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
 [[resources-query-dog-surveyReport]]
