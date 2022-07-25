@@ -177,7 +177,37 @@ public class IndexApiControllerTest extends BaseTest {
     @DisplayName("관리자 대시보드 조회")
     public void queryAdminDashBoard() throws Exception {
        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
+        IntStream.range(1, 2).forEach(i -> {
+            generateGeneralOrder(member, i, OrderStatus.FAILED);
+
+            generateGeneralOrder(member, i, OrderStatus.PAYMENT_DONE);
+            generateSubscribeOrder(member, i, OrderStatus.PAYMENT_DONE);
+
+            generateGeneralOrder(member, i, OrderStatus.DELIVERY_START);
+            generateGeneralOrder(member, i, OrderStatus.DELIVERY_START);
+            generateSubscribeOrder(member, i, OrderStatus.DELIVERY_START);
+
+            generateGeneralOrder(member, i, OrderStatus.CANCEL_REQUEST);
+            generateGeneralOrder(member, i, OrderStatus.CANCEL_REQUEST);
+            generateSubscribeOrder(member, i, OrderStatus.CANCEL_REQUEST);
+            generateSubscribeOrder(member, i, OrderStatus.CANCEL_REQUEST);
+
+            generateGeneralOrder(member, i, OrderStatus.RETURN_REQUEST);
+            generateGeneralOrder(member, i, OrderStatus.RETURN_REQUEST);
+            generateGeneralOrder(member, i, OrderStatus.RETURN_REQUEST);
+            generateSubscribeOrder(member, i, OrderStatus.RETURN_REQUEST);
+            generateSubscribeOrder(member, i, OrderStatus.RETURN_REQUEST);
+
+            generateGeneralOrder(member, i, OrderStatus.EXCHANGE_REQUEST);
+            generateGeneralOrder(member, i, OrderStatus.EXCHANGE_REQUEST);
+            generateGeneralOrder(member, i, OrderStatus.EXCHANGE_REQUEST);
+            generateSubscribeOrder(member, i, OrderStatus.EXCHANGE_REQUEST);
+            generateSubscribeOrder(member, i, OrderStatus.EXCHANGE_REQUEST);
+            generateSubscribeOrder(member, i, OrderStatus.EXCHANGE_REQUEST);
+
+        });
 
         LocalDate now = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -189,12 +219,42 @@ public class IndexApiControllerTest extends BaseTest {
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
-                        .param("from",from)
-                        .param("to",to))
+                        .param("from", from)
+                        .param("to", to))
                 .andDo(print())
                 .andExpect(status().isOk())
-        ;
-
+                .andDo(document("admin_dashBoard",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt token")
+                        ),
+                        requestParameters(
+                                parameterWithName("from").description("검색 날짜 from 'yyyy-MM-dd'"),
+                                parameterWithName("to").description("검색 날짜 to 'yyyy-MM-dd'")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("newOrderCount").description("신규 주문 수"),
+                                fieldWithPath("newMemberCount").description("신규 가입 수"),
+                                fieldWithPath("subscribePendingCount").description("구독 보류 수"),
+                                fieldWithPath("orderStatusCountDtoList[0].orderstatus").description("주문 상태 [CANCEL_REQUEST, DELIVERY_START, EXCHANGE_REQUEST" +
+                                        ", FAILED, PAYMENT_DONE, RETURN_REQUEST"),
+                                fieldWithPath("orderStatusCountDtoList[0].count").description("주문 상태에 해당하는 수"),
+                                fieldWithPath("generalOrderCountByMonthList[0].month").description("년월"),
+                                fieldWithPath("generalOrderCountByMonthList[0].generalCount").description("년월에 해당하는 일반 주문"),
+                                fieldWithPath("subscribeOrderCountByMonthList[0].month").description("년월"),
+                                fieldWithPath("subscribeOrderCountByMonthList[0].subscribeCount").description("년월에 해당하는 구독 주문"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
     }
 
 
@@ -2155,7 +2215,7 @@ public class IndexApiControllerTest extends BaseTest {
                 .nextPaymentDate(LocalDateTime.now().plusDays(6))
                 .nextDeliveryDate(LocalDate.now().plusDays(8))
                 .nextPaymentPrice(120000)
-                .status(SubscribeStatus.SUBSCRIBING)
+                .status(SubscribeStatus.SUBSCRIBE_PENDING)
                 .build();
         subscribeRepository.save(subscribe);
 

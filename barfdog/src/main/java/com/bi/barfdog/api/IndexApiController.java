@@ -112,7 +112,10 @@ public class IndexApiController {
 
         AdminDashBoardResponseDto responseDto = orderRepository.findAdminDashBoard(requestDto);
 
-        EntityModel<AdminDashBoardResponseDto> entityModel = EntityModel.of(responseDto);
+        EntityModel<AdminDashBoardResponseDto> entityModel = EntityModel.of(responseDto,
+                linkTo(IndexApiController.class).slash("api/admin/dashBoard").withSelfRel(),
+                profileRootUrlBuilder.slash("index.html#resources-admin-dashBoard").withRel("profile")
+                );
 
         return ResponseEntity.ok(entityModel);
     }
