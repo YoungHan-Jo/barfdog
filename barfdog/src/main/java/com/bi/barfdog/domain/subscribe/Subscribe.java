@@ -186,10 +186,11 @@ public class Subscribe extends BaseTimeEntity {
 
     public void updatePlan(UpdatePlanDto requestDto) {
         this.plan = requestDto.getPlan();
+
         int totalPrice = requestDto.getNextPaymentPrice();
+
         this.nextPaymentPrice = totalPrice;
-        int newDiscount = calculateNewDiscount(totalPrice, memberCoupon);
-        this.discount = newDiscount;
+        this.discount = calculateNewDiscount(totalPrice, memberCoupon);
     }
 
     public void setNextOrderMerchantUid(String merchantUid) {

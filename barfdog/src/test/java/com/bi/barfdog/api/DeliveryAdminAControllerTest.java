@@ -49,6 +49,7 @@ import com.bi.barfdog.repository.subscribeRecipe.SubscribeRecipeRepository;
 import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -270,10 +271,11 @@ public class DeliveryAdminAControllerTest extends BaseTest {
         }
     }
 
+    @Ignore
     @Test
     @DisplayName("운송장 번호 발급")
     public void setDeliveryNumber() throws Exception {
-       //given
+        //given
 
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 

@@ -117,11 +117,9 @@ public class OrderApiController {
 
         OrderSheetSubscribeResponseDto responseDto = orderService.getOrderSheetSubsDto(member,id);
 
-        WebMvcLinkBuilder selfLinkBuilder = linkTo(OrderApiController.class).slash("sheet").slash("subscribe");
-
         EntityModel<OrderSheetSubscribeResponseDto> entityModel = EntityModel.of(responseDto,
-                selfLinkBuilder.withSelfRel(),
-                linkTo(OrderApiController.class).slash("subscribe").withRel("order_subscribe"),
+                linkTo(OrderApiController.class).slash("sheet/subscribe").slash(id).withSelfRel(),
+                linkTo(OrderApiController.class).slash("subscribe").slash(id).withRel("order_subscribe"),
                 profileRootUrlBuilder.slash("index.html#resources-query-orderSheet-subscribe").withRel("profile")
         );
 

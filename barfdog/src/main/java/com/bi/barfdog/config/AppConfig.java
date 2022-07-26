@@ -66,6 +66,7 @@ import org.apache.commons.fileupload.disk.DiskFileItem;
 import org.apache.commons.io.IOUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
@@ -92,6 +93,9 @@ import static com.bi.barfdog.config.finalVariable.StandardVar.LACTATING;
 
 @Configuration
 public class AppConfig {
+
+    @Value("${spring.servlet.multipart.location}") // yml에 있는거 읽어 옴
+    private String uploadRootPath;
 
     @Bean
     public ModelMapper modelMapper() {
@@ -183,8 +187,6 @@ public class AppConfig {
                 Member member = generateMember(appProperties.getUserEmail(), "김회원", appProperties.getUserPassword(), "01099038544", Gender.MALE, Grade.브론즈, 50000, false, "USER");
                 generateMember("abc@gmail.com", "박회원", appProperties.getUserPassword(), "01012341111", Gender.MALE, Grade.브론즈, 0, false, "USER");
 
-
-
                 generateSetting();
 
                 Recipe recipe = generateRecipe("스타트", "닭,칠면조", "안정적인 첫 생식 적응", "스타트1.jpg", "스타트2.jpg");
@@ -229,8 +231,6 @@ public class AppConfig {
                 generateMemberCoupon(member, subsCoupon);
                 generateMemberCoupon(member, dogBirthCoupon);
                 generateMemberCoupon(member, memberBirthCoupon);
-
-
 
                 // ============= 작성 가능한 리뷰 시작 ============== //
                 Item item1 = generateItem(1);
@@ -1078,7 +1078,10 @@ public class AppConfig {
 
             private void generateBannerMain(int i) throws IOException, URISyntaxException {
 
-                MultipartFile mFilePc = getMultipartFile("C:/upload/default/mainBanner" + i + ".jpg");
+//                MultipartFile mFilePc = getMultipartFile(uploadRootPath+"/default/mainBanner" + i + ".jpg");
+
+                //======================= 서버 업로드 버전 ====================
+                MultipartFile mFilePc = getMultipartFile(uploadRootPath+"/default/mainBanner" + i + ".jpg");
 
                 MainBannerSaveRequestDto requestDto = MainBannerSaveRequestDto.builder()
                         .name("메인배너" + i)
@@ -1093,9 +1096,12 @@ public class AppConfig {
 
             private void generateBannerMyPage() throws IOException, URISyntaxException {
 
-                MultipartFile mFilePc = getMultipartFile("C:/upload/default/mypageBanner_pc.png");
+//                MultipartFile mFilePc = getMultipartFile("C:/upload/default/mypageBanner_pc.png");
+//                MultipartFile mFileMobile = getMultipartFile("C:/upload/default/mypageBanner_mobile.png");
 
-                MultipartFile mFileMobile = getMultipartFile("C:/upload/default/mypageBanner_mobile.png");
+                //======================= 서버 업로드 버전 =======================
+                MultipartFile mFilePc = getMultipartFile(uploadRootPath + "/default/mypageBanner_pc.png");
+                MultipartFile mFileMobile = getMultipartFile(uploadRootPath + "/default/mypageBanner_mobile.png");
 
                 MyPageBannerSaveRequestDto requestDto = MyPageBannerSaveRequestDto.builder()
                         .name("마이페이지 배너")

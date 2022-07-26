@@ -154,12 +154,19 @@ operation::send_inviteSms[snippets='curl-request,request-headers,request-body,re
 
 
 
-
-
 [[resources-admin]]
 == 관리자 페이지 관련
 
 관리자 관련 api
+
+[[resources-admin-dashBoard]]
+=== 관리자 대쉬보드 조회
+
+`GET` 요청을 사용해서 관리자 대쉬보드를 조회할 수 있다.
+
+operation::admin_dashBoard[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
+
+
 
 [[resources-query-setting]]
 === 관리자 설정 조회
@@ -858,7 +865,7 @@ operation::query_dog[snippets='curl-request,path-parameters,request-headers,requ
 
 `PUT` 요청을 사용해서 해당 강아지의 설문조사를 수정할 수 있다.
 
-operation::update_dog[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+operation::update_dog[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
 [[resources-query-dog-surveyReport]]
@@ -1430,8 +1437,6 @@ operation::query_admin_general_order[snippets='curl-request,path-parameters,requ
 
 operation::query_admin_order_orderItem[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
-
-
 [[resources-query-admin-order-subscribe]]
 === 구독 주문 하나 조회
 
@@ -1452,6 +1457,28 @@ operation::admin_orderConfirm_general[snippets='curl-request,request-headers,req
 `POST` 요청을 사용하여 구독 주문을 주문확인 처리할 수 있다.
 
 operation::admin_orderConfirm_subscribe[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+[[resources-admin-query-deliveries-info]]
+=== 주문 발송 api에 필요한 배송 정보 조회
+
+`POST` 요청을 사용하여 주문 발송 api에 필요한 배송 정보를 조회할 수 있다.
+
+operation::query_admin_deliveries_info[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-admin-update-deliveryNumber]]
+=== 운송장 번호 등록
+
+`POST` 요청을 사용하여 운송장 번호를 등록할 수 있다.
+
+operation::update_deliveryNumber[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+
+
+
+
+
 
 [[resources-admin-cancelConfirm-general]]
 === 일반 주문 주문취소요청을 컨펌 처리
@@ -1480,6 +1507,17 @@ operation::admin_orderCancel_general[snippets='curl-request,request-headers,requ
 `POST` 요청을 사용하여 구독 주문 관리자 판매취소 처리할 수 있다.
 
 operation::admin_orderCancel_subscribe[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+
+
+
+[[resources-admin-confirmReturn-seller-seller]]
+=== 일반 주문 반품요청을 판매자 귀책으로 컨펌 처리
+
+`POST` 요청을 사용하여 일반 주문 반품요청을 판매자 귀책으로 컨펌 처리할 수 있다.
+
+operation::admin_confirmReturn_seller[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 [[resources-admin-denyReturn]]
 === 일반 주문 반품요청 거절 처리
@@ -1512,6 +1550,7 @@ operation::admin_confirmExchange_seller[snippets='curl-request,request-headers,r
 `POST` 요청을 사용하여 일반 주문 교환요청 거절 처리할 수 있다.
 
 operation::admin_denyExchange_general[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
 
 
 
@@ -1660,6 +1699,13 @@ operation::request_exchangeOrders[snippets='curl-request,request-headers,request
 
 operation::query_subscribeCards[snippets='curl-request,request-headers,request-body,response-headers,response-body,response-fields,links']
 
+[[resources-change-card]]
+=== 구독 카드 변경
+
+`POST` 요청을 사용하여 구독 카드를 변경할 수 있다.
+
+operation::change_subscribeCard[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
 
 
 
@@ -1739,3 +1785,11 @@ operation::skip_subscribe[snippets='curl-request,path-parameters,request-headers
 `POST` 요청을 사용하여 구독을 취소 할 수 있다.
 
 operation::stop_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+[[resources-select-subscribe-planRecipes]]
+=== 설문조사 후 구독 플랜, 레시피 선택
+
+`POST` 요청을 사용하여 구독 플랜, 레시피 선택을 적용할 수 있다.
+
+operation::select_subscribe_planRecipes[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']

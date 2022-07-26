@@ -230,20 +230,17 @@ public class SubscribeService {
     }
 
 
+    @Transactional
+    public void selectPlan(Long id, UpdatePlanDto requestDto) {
 
+        Subscribe subscribe = subscribeRepository.findById(id).get();
 
+        subscribe.updatePlan(requestDto);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+        subscribeRecipeRepository.deleteAllBySubscribe(subscribe);
+        List<Long> recipeIdList = requestDto.getRecipeIdList();
+        for (Long recipeId : recipeIdList) {
+            saveSubscribeRecipe(subscribe, recipeId);
+        }
+    }
 }

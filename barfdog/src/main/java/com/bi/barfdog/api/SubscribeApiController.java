@@ -38,6 +38,25 @@ public class SubscribeApiController {
 
     WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
 
+    @PostMapping("/{id}/planRecipes")
+    public ResponseEntity selectPlan(@PathVariable Long id,
+                                     @RequestBody @Valid UpdatePlanDto requestDto,
+                                     Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+        Optional<Subscribe> optionalSubscribe = subscribeRepository.findById(id);
+        if (!optionalSubscribe.isPresent()) return notFound();
+
+        subscribeService.selectPlan(id, requestDto);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(SubscribeApiController.class).slash(id).slash("planRecipes").withSelfRel());
+        representationModel.add(linkTo(OrderApiController.class).slash("sheet/subscribe").slash(id).withRel("query_orderSheet_subscribe"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-select-subscribe-planRecipes").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+
     // 플랜 변경 적용하기
     @PutMapping("/{id}")
     public ResponseEntity updateSubscribe(@CurrentUser Member member,

@@ -11,7 +11,8 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: create # 테스트 서버 설정
+#      ddl-auto: validate # 실제 운영 서버
     properties:
       hibernate:
         format_sql: true
@@ -65,13 +66,21 @@ spring:
             user_name_attribute: id
 
 # 파일 업로드 설정
+#  테스트 서버 폴더 경로
   servlet:
     multipart:
       max-file-size: 20MB
       max-request-size: 20MB
       location: C:/upload
 
+#  카페24 운영 서버폴더 경로
+#  servlet:
+#    multipart:
+#      max-file-size: 20MB
+#      max-request-size: 20MB
+#      location: /home/hosting_users/britishjsp/upload
 
+#테스트 서버 계정
 my-app:
   admin-email: admin@gmail.com
   admin-password: admin

@@ -158,7 +158,95 @@ public class SubscribeApiControllerTest extends BaseTest {
         memberCouponRepository.deleteAll();
         couponRepository.deleteAll();
 
+        subscribeRecipeRepository.deleteAll();
+        subscribeRepository.deleteAll();
+
     }
+
+
+
+    @Test
+    @DisplayName("플랜 레시피 선택")
+    public void selectPlanRecipes() throws Exception {
+       //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        Subscribe subscribe = Subscribe.builder()
+
+                .build();
+        subscribeRepository.save(subscribe);
+
+        List<Long> recipeIdList = getRecipeIdList();
+
+        int nextPaymentPrice = 100000;
+        SubscribePlan plan = SubscribePlan.FULL;
+        UpdateSubscribeDto requestDto = UpdateSubscribeDto.builder()
+                .plan(plan)
+                .recipeIdList(recipeIdList)
+                .nextPaymentPrice(nextPaymentPrice)
+                .build();
+
+
+       //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/subscribes/{id}/planRecipes", subscribe.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("select_subscribe_planRecipes",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_orderSheet_subscribe").description("구독 주문서 작성에 필요값 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("구독 id")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt 토큰")
+                        ),
+                        requestFields(
+                                fieldWithPath("plan").description("선택한 플랜 [FULL,HALF,TOPPING]"),
+                                fieldWithPath("recipeIdList").description("선택한 레시피 id 리스트"),
+                                fieldWithPath("nextPaymentPrice").description("구독 상품 금액")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_orderSheet_subscribe.href").description("구독 주문서 작성에 필요값 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
+        assertThat(findSubscribe.getPlan()).isEqualTo(plan);
+        assertThat(findSubscribe.getNextPaymentPrice()).isEqualTo(nextPaymentPrice);
+
+        List<SubscribeRecipe> subscribeRecipeList = subscribeRecipeRepository.findAll();
+        assertThat(subscribeRecipeList.size()).isEqualTo(2);
+
+        for (int i = 0; i < subscribeRecipeList.size(); i++) {
+            assertThat(subscribeRecipeList.get(i).getRecipe().getId()).isEqualTo(recipeIdList.get(i));
+        }
+
+
+
+    }
+
+
+
+
+
 
     @Test
     @DisplayName("정상적으로 구독 업데이트하는 테스트")

@@ -206,7 +206,6 @@ public class IndexApiControllerTest extends BaseTest {
             generateSubscribeOrder(member, i, OrderStatus.EXCHANGE_REQUEST);
             generateSubscribeOrder(member, i, OrderStatus.EXCHANGE_REQUEST);
             generateSubscribeOrder(member, i, OrderStatus.EXCHANGE_REQUEST);
-
         });
 
         LocalDate now = LocalDate.now();

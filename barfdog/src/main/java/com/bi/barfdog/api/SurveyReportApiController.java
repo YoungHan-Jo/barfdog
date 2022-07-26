@@ -40,10 +40,9 @@ public class SurveyReportApiController {
 
         SurveyReportResponseDto responseDto = surveyReportService.getSurveyReportResponseDto(id);
 
-        WebMvcLinkBuilder selfLinkBuilder = linkTo(SurveyReportApiController.class).slash(id);
         EntityModel<SurveyReportResponseDto> entityModel = EntityModel.of(responseDto,
-                selfLinkBuilder.withSelfRel(),
-                selfLinkBuilder.slash("result").withRel("surveyReport_result"),
+                linkTo(SurveyReportApiController.class).slash(id).withSelfRel(),
+                linkTo(SurveyReportApiController.class).slash(id).slash("result").withRel("surveyReport_result"),
                 profileRootUrlBuilder.slash("index.html#resources-query-surveyReport").withRel("profile")
         );
 

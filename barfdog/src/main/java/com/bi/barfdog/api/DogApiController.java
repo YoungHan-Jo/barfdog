@@ -236,7 +236,7 @@ public class DogApiController {
 
         EntityModel<SurveyReportResponseDto> entityModel = EntityModel.of(responseDto,
                 linkTo(DogApiController.class).slash(id).slash("surveyReport").withSelfRel(),
-                linkTo(DogApiController.class).slash(id).slash("surveyResult").withRel("query_surveyResult"),
+                linkTo(DogApiController.class).slash(id).slash("surveyReportResult").withRel("query_surveyReportResult"),
                 profileRootUrlBuilder.slash("index.html#resources-query-dog-surveyReport").withRel("profile")
         );
 
