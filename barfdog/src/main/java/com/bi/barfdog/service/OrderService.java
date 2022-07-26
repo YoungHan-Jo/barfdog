@@ -778,6 +778,17 @@ public class OrderService {
         for (Long orderItemId : orderItemIdList) {
             OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
             orderItem.orderConfirm();
+
+            GeneralOrder order = orderItem.getGeneralOrder();
+            Member member = order.getMember();
+            String dogName = getRepresentativeDogName(member);
+
+            try {
+                DirectSendUtils.sendGeneralOrderDeliveryReadyAlim(order, dogName, orderItem.getItem().getName());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
         }
     }
 
@@ -787,6 +798,12 @@ public class OrderService {
         for (Long orderId : orderIdList) {
             Order order = orderRepository.findById(orderId).get();
             order.orderConfirmSubscribe();
+
+            try {
+                DirectSendUtils.sendSubscribeOrderProducingAlim(order);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -1007,37 +1024,59 @@ public class OrderService {
             if (!optionalOrderItem.isPresent()) continue;
             OrderItem orderItem = optionalOrderItem.get();
             orderItem.exchangeConfirm(status);
+            GeneralOrder order = orderItem.getGeneralOrder();
+            Member member = order.getMember();
+
+            String dogName = getRepresentativeDogName(member);
+
+            try {
+                DirectSendUtils.sendExchangeAlim(member, dogName, orderItem.getItem().getName());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
         }
     }
 
     @Transactional
-    public void confirmReturnSeller(OrderItemIdListDto requestDto) {
+    public void confirmReturn(OrderItemIdListDto requestDto, OrderStatus orderStatus) {
         List<Long> orderItemIdList = requestDto.getOrderItemIdList();
 
         for (Long orderItemId : orderItemIdList) {
             Optional<OrderItem> optionalOrderItem = orderItemRepository.findById(orderItemId);
             if (!optionalOrderItem.isPresent()) continue;
             OrderItem orderItem = optionalOrderItem.get();
+            revivalCoupon(orderItem);
+            orderItem.returnConfirm(orderStatus);
 
             GeneralOrder order = orderItem.getGeneralOrder();
+            Member member = order.getMember();
 
-            int finalPrice = orderItem.getFinalPrice();
-            int cancelReward = getCancelReward(order, finalPrice);
-            int cancelPrice = finalPrice - cancelReward;
-
-            String impUid = order.getImpUid();
-            CancelData cancelData = new CancelData(impUid, true, BigDecimal.valueOf(cancelPrice));
+            String dogName = getRepresentativeDogName(member);
 
             try {
-                client.cancelPaymentByImpUid(cancelData);
-                orderItem.returnConfirm(cancelReward, cancelPrice, OrderStatus.RETURN_DONE_SELLER);
-                saveCancelReward(orderItem, order, RewardName.RETURN_ORDER);
-                revivalCoupon(orderItem);
-            } catch (IamportResponseException e) {
-                e.printStackTrace();
+                DirectSendUtils.sendReturnAlim(member, dogName, orderItem.getItem().getName());
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+//            int finalPrice = orderItem.getFinalPrice();
+//            int cancelReward = getCancelReward(order, finalPrice);
+//            int cancelPrice = finalPrice - cancelReward;
+//
+//
+//            String impUid = order.getImpUid();
+//            CancelData cancelData = new CancelData(impUid, true, BigDecimal.valueOf(cancelPrice));
+//
+//            try {
+//                client.cancelPaymentByImpUid(cancelData);
+//                saveCancelReward(orderItem, order, RewardName.RETURN_ORDER);
+//                orderItem.returnConfirm(cancelReward, cancelPrice, OrderStatus.RETURN_DONE_SELLER);
+//            } catch (IamportResponseException e) {
+//                e.printStackTrace();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
         }
     }
 

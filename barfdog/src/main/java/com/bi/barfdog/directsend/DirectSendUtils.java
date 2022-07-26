@@ -248,6 +248,34 @@ public class DirectSendUtils {
         sendAlimTalk(DirectSend.ORDER_DELIVERY_READY_TEMPLATE, receiver);
     }
 
+    public static void sendReturnAlim(Member member, String dogName, String itemName) throws IOException {
+
+        String receiver = "";
+        receiver += ",{\"name\": \"" + member.getName() + "\", " +
+                "\"mobile\":\"" + member.getPhoneNumber() + "\", " +
+                "\"note1\":\"" + dogName + "\"," +
+                "\"note2\":\"" + itemName + "\"}";
+
+        receiver = receiver.substring(1);
+
+        sendAlimTalk(DirectSend.RETURN_TEMPLATE, receiver);
+    }
+
+    public static void sendExchangeAlim(Member member, String dogName, String itemName) throws IOException {
+
+        String receiver = "";
+        receiver += ",{\"name\": \"" + member.getName() + "\", " +
+                "\"mobile\":\"" + member.getPhoneNumber() + "\", " +
+                "\"note1\":\"" + dogName + "\"," +
+                "\"note2\":\"" + itemName + "\"}";
+
+        receiver = receiver.substring(1);
+
+        sendAlimTalk(DirectSend.EXCHANGE_TEMPLATE, receiver);
+    }
+
+
+
     public static void sendGeneralOrderDeliveryStartAlim(Order order, String dogName, List<OrderItem> orderItemList) throws IOException {
 
         Member member = order.getMember();
@@ -264,6 +292,7 @@ public class DirectSendUtils {
 
         sendAlimTalk(DirectSend.DELIVERY_START_TEMPLATE, receiver);
     }
+
 
     public static void sendSubscribeOrderDeliveryStartAlim(Order order) throws IOException {
 

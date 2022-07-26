@@ -2,7 +2,9 @@ package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.orderDto.*;
 import com.bi.barfdog.api.resource.AdminOrdersDtoResource;
+import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
+import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.order.Order;
 import com.bi.barfdog.domain.order.OrderStatus;
 import com.bi.barfdog.domain.orderItem.OrderItem;
@@ -237,12 +239,25 @@ public class OrderAdminController {
     @PostMapping("/general/confirmReturn/seller")
     public ResponseEntity confirmReturnSeller(@RequestBody OrderItemIdListDto requestDto) {
 
-        orderService.confirmReturnSeller(requestDto);
+        orderService.confirmReturn(requestDto, OrderStatus.RETURN_DONE_SELLER);
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(OrderAdminController.class).slash("general/confirmReturn/seller").withSelfRel());
         representationModel.add(linkTo(OrderAdminController.class).slash("search").withRel("query_orders"));
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-confirmReturn-seller").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @PostMapping("/general/confirmReturn/buyer")
+    public ResponseEntity confirmReturnBuyer(@RequestBody OrderItemIdListDto requestDto) {
+
+        orderService.confirmReturn(requestDto, OrderStatus.RETURN_DONE_BUYER);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderAdminController.class).slash("general/confirmReturn/buyer").withSelfRel());
+        representationModel.add(linkTo(OrderAdminController.class).slash("search").withRel("query_orders"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-confirmReturn-buyer").withRel("profile"));
 
         return ResponseEntity.ok(representationModel);
     }

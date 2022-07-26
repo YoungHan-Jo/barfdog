@@ -1510,6 +1510,12 @@ operation::admin_orderCancel_subscribe[snippets='curl-request,request-headers,re
 
 
 
+[[resources-admin-confirmReturn-seller-buyer]]
+=== 일반 주문 반품요청을 구매자 귀책으로 컨펌 처리
+
+`POST` 요청을 사용하여 일반 주문 반품요청을 구매자 귀책으로 컨펌 처리할 수 있다.
+
+operation::admin_confirmReturn_buyer[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
 [[resources-admin-confirmReturn-seller-seller]]

@@ -156,6 +156,16 @@ public class OrderItem extends BaseTimeEntity {
                 .build();
     }
 
+    public void returnConfirm(OrderStatus status) {
+        this.status = status;
+        orderReturn = OrderReturn.builder()
+                .returnReason(orderReturn.getReturnReason())
+                .returnDetailReason(orderReturn.getReturnDetailReason())
+                .returnRequestDate(orderReturn.getReturnRequestDate())
+                .returnConfirmDate(LocalDateTime.now())
+                .build();
+    }
+
     public void startDelivery() {
         if (status == OrderStatus.PRODUCING || status == OrderStatus.DELIVERY_READY) {
             status = OrderStatus.DELIVERY_START;
