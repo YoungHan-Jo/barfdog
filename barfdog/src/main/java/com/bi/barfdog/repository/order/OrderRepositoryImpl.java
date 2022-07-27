@@ -72,6 +72,21 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
     }
 
     @Override
+    public Page<QueryAdminCancelRequestDto> findAdminCancelRequestDto(Pageable pageable, OrderAdminCond cond) {
+
+        PageImpl<QueryAdminCancelRequestDto> queryAdminCancelRequestDtos = null;
+
+        OrderType orderType = cond.getOrderType();
+        if (orderType == OrderType.SUBSCRIBE) {
+            queryAdminCancelRequestDtos = getSubscribeCancelRequestDto(pageable, cond);
+        } else if(orderType == OrderType.GENERAL){
+            queryAdminCancelRequestDtos = getGeneralCancelRequestDto(pageable, cond);
+        }
+
+        return queryAdminCancelRequestDtos;
+    }
+
+    @Override
     public QueryAdminGeneralOrderDto findAdminGeneralOrderDto(Long id) {
 
         OrderInfoDto orderInfoDto = getOrderInfoDto(id);
@@ -291,6 +306,8 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
 
         return result;
     }
+
+
 
     private List<AdminDashBoardResponseDto.SubscribeOrderCountByMonth> getSubscribeOrderCountByMonthList() {
         String subscribeCountSql = "" +
@@ -822,6 +839,57 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
         return new PageImpl<>(result, pageable, totalCount);
     }
 
+    private PageImpl<QueryAdminCancelRequestDto> getSubscribeCancelRequestDto(Pageable pageable, OrderAdminCond cond) {
+        LocalDateTime from = cond.getFrom().atStartOfDay();
+        LocalDateTime to = cond.getTo().atTime(23, 59, 59);
+
+        List<QueryAdminCancelRequestDto> result = queryFactory
+                .select(Projections.constructor(QueryAdminCancelRequestDto.class,
+                        order.id,
+                        Expressions.constant("subscribe"),
+                        order.merchantUid,
+                        order.orderStatus,
+                        order.createdDate,
+                        delivery.deliveryNumber,
+                        order.member.email,
+                        order.member.name,
+                        order.member.phoneNumber,
+                        order.delivery.recipient.name,
+                        order.delivery.recipient.phone,
+                        order.isPackage
+                ))
+                .from(order)
+                .join(subscribeOrder).on(subscribeOrder.eq(order))
+                .join(order.delivery, delivery)
+                .where(
+                        order.createdDate.between(from, to),
+                        merchantUidEq(cond.getMerchantUid()),
+                        memberNameEq(cond.getMemberName()),
+                        memberEmailEq(cond.getMemberEmail()),
+                        recipientNameEq(cond.getRecipientName()),
+                        orderStatusIn(cond.getStatusList())
+                )
+                .orderBy(order.createdDate.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long totalCount = queryFactory
+                .select(order.count())
+                .from(order)
+                .join(subscribeOrder).on(subscribeOrder.eq(order))
+                .where(
+                        order.createdDate.between(from, to),
+                        merchantUidEq(cond.getMerchantUid()),
+                        memberNameEq(cond.getMemberName()),
+                        memberEmailEq(cond.getMemberEmail()),
+                        recipientNameEq(cond.getRecipientName()),
+                        orderStatusIn(cond.getStatusList())
+                )
+                .fetchOne();
+        return new PageImpl<>(result, pageable, totalCount);
+    }
+
 
 
     private PageImpl<QueryAdminOrdersDto> getGeneralOrdersDtos(Pageable pageable, OrderAdminCond cond) {
@@ -852,7 +920,7 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         orderItemMerchantUidEq(cond.getMerchantUid()),
                         orderItemMemberNameEq(cond.getMemberName()),
                         orderItemMemberEmail(cond.getMemberEmail()),
-                        orderItemRecipientNameEq(cond.getRecipientName()),
+                        orderRecipientNameEq(cond.getRecipientName()),
                         orderItemStatusIn(cond.getStatusList())
                 )
                 .orderBy(generalOrder.createdDate.desc())
@@ -869,8 +937,58 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         orderItemMerchantUidEq(cond.getMerchantUid()),
                         orderItemMemberNameEq(cond.getMemberName()),
                         orderItemMemberEmail(cond.getMemberEmail()),
-                        orderItemRecipientNameEq(cond.getRecipientName()),
+                        orderRecipientNameEq(cond.getRecipientName()),
                         orderItemStatusIn(cond.getStatusList())
+                )
+                .fetchOne();
+
+        return new PageImpl<>(result, pageable, totalCount);
+    }
+
+    private PageImpl<QueryAdminCancelRequestDto> getGeneralCancelRequestDto(Pageable pageable, OrderAdminCond cond) {
+        LocalDateTime from = cond.getFrom().atStartOfDay();
+        LocalDateTime to = cond.getTo().atTime(23, 59, 59);
+
+        List<QueryAdminCancelRequestDto> result = queryFactory
+                .select(Projections.constructor(QueryAdminCancelRequestDto.class,
+                        generalOrder.id,
+                        Expressions.constant("general"),
+                        generalOrder.merchantUid,
+                        generalOrder.orderStatus,
+                        generalOrder.createdDate,
+                        delivery.deliveryNumber,
+                        generalOrder.member.email,
+                        generalOrder.member.name,
+                        generalOrder.member.phoneNumber,
+                        generalOrder.delivery.recipient.name,
+                        generalOrder.delivery.recipient.phone,
+                        generalOrder.isPackage
+                ))
+                .from(generalOrder)
+                .join(generalOrder.delivery, delivery)
+                .where(
+                        generalOrder.createdDate.between(from, to),
+                        orderMerchantUidEq(cond.getMerchantUid()),
+                        orderMemberNameEq(cond.getMemberName()),
+                        orderMemberEmail(cond.getMemberEmail()),
+                        orderRecipientNameEq(cond.getRecipientName()),
+                        generalOrderStatusIn(cond.getStatusList())
+                )
+                .orderBy(generalOrder.createdDate.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long totalCount = queryFactory
+                .select(generalOrder.count())
+                .from(generalOrder)
+                .where(
+                        generalOrder.createdDate.between(from, to),
+                        orderMerchantUidEq(cond.getMerchantUid()),
+                        orderMemberNameEq(cond.getMemberName()),
+                        orderMemberEmail(cond.getMemberEmail()),
+                        orderRecipientNameEq(cond.getRecipientName()),
+                        generalOrderStatusIn(cond.getStatusList())
                 )
                 .fetchOne();
 
@@ -885,20 +1003,39 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
         }
     }
 
-    private BooleanExpression orderItemRecipientNameEq(String name) {
+    private BooleanExpression generalOrderStatusIn(List<OrderStatus> orderStatusList) {
+        if (orderStatusList == null || orderStatusList.size() == 0) {
+            return null;
+        } else {
+            return generalOrder.orderStatus.in(orderStatusList);
+        }
+    }
+
+    private BooleanExpression orderRecipientNameEq(String name) {
         return isNotEmpty(name) ? generalOrder.delivery.recipient.name.eq(name) : null;
     }
+
 
     private BooleanExpression orderItemMemberEmail(String email) {
         return isNotEmpty(email) ? orderItem.generalOrder.member.email.eq(email) : null;
     }
 
+    private BooleanExpression orderMemberEmail(String email) {
+        return isNotEmpty(email) ? generalOrder.member.email.eq(email) : null;
+    }
+
     private BooleanExpression orderItemMemberNameEq(String name) {
         return isNotEmpty(name) ? orderItem.generalOrder.member.name.eq(name) : null;
+    }
+    private BooleanExpression orderMemberNameEq(String name) {
+        return isNotEmpty(name) ? generalOrder.member.name.eq(name) : null;
     }
 
     private BooleanExpression orderItemMerchantUidEq(String merchantUid) {
         return isNotEmpty(merchantUid) ? orderItem.generalOrder.merchantUid.eq(merchantUid) : null;
+    }
+    private BooleanExpression orderMerchantUidEq(String merchantUid) {
+        return isNotEmpty(merchantUid) ? generalOrder.merchantUid.eq(merchantUid) : null;
     }
 
     private BooleanExpression orderStatusIn(List<OrderStatus> orderStatusList) {

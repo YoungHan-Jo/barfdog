@@ -15,6 +15,6 @@ import java.util.List;
 public class CancelConfirmGeneralDto {
 
     @Builder.Default
-    private List<Long> orderItemIdList = new ArrayList<>();
+    private List<Long> orderIdList = new ArrayList<>();
 
 }

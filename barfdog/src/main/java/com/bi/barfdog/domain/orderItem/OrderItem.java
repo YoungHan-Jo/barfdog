@@ -9,7 +9,6 @@ import lombok.*;
 
 import javax.persistence.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static javax.persistence.FetchType.LAZY;
@@ -45,8 +44,8 @@ public class OrderItem extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
-    private int cancelReward; // 취소 반품으로 돌려받는 적립금
-    private int cancelPrice; // 취소 반품으로 돌려받는 금액
+    private int cancelReward; // 취소 반품으로 돌려받는 적립금 (주문단위 취소 시 알수 없음)
+    private int cancelPrice; // 취소 반품으로 돌려받는 금액 (주문단위 취소 시 알수 없음)
 
     @Embedded
     private OrderCancel orderCancel;
@@ -110,19 +109,39 @@ public class OrderItem extends BaseTimeEntity {
         this.status = status;
     }
 
+    // 상품 단위 취소
     public void cancelConfirm(int cancelReward, int cancelPrice, OrderStatus status) {
         this.cancelConfirm(cancelReward, cancelPrice, status, null, null);
     }
-
     public void cancelConfirm(int cancelReward, int cancelPrice, OrderStatus status, String reason, String detailReason) {
         this.status = status;
-        this.cancelPrice = cancelPrice;
-        this.cancelReward = cancelReward;
+//        this.cancelPrice = cancelPrice;
+//        this.cancelReward = cancelReward;
         orderCancel = OrderCancel.builder()
                 .cancelReason(reason)
                 .cancelDetailReason(detailReason)
                 .cancelRequestDate(orderCancel != null ? orderCancel.getCancelRequestDate() : null)
                 .cancelConfirmDate(LocalDateTime.now())
+                .build();
+    }
+
+
+    // 주문 단위 취소
+    public void cancelOrderConfirmAndRevivalCoupon(OrderStatus status) {
+        cancelOrderConfirmAndRevivalCoupon(status,null,null);
+        if (memberCoupon != null) {
+            memberCoupon.revival();
+        }
+    }
+    public void cancelOrderConfirmAndRevivalCoupon(OrderStatus status, String reason, String detailReason) {
+        this.status = status;
+
+        LocalDateTime now = LocalDateTime.now();
+        orderCancel = OrderCancel.builder()
+                .cancelReason(reason)
+                .cancelDetailReason(detailReason)
+                .cancelRequestDate(orderCancel != null ? orderCancel.getCancelRequestDate() : now)
+                .cancelConfirmDate(now)
                 .build();
     }
 
@@ -171,4 +190,6 @@ public class OrderItem extends BaseTimeEntity {
             status = OrderStatus.DELIVERY_START;
         }
     }
+
+
 }

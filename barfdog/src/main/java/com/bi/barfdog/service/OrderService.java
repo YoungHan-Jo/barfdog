@@ -698,16 +698,56 @@ public class OrderService {
         member.subscribeOrderFail(order);
     }
 
+//    취소 요청 상품단위
+//    @Transactional
+//    public void cancelRequest(Long id) {
+//        GeneralOrder order = (GeneralOrder) orderRepository.findById(id).get();
+//        order.cancelRequest();
+//
+//        List<OrderItem> orderItems = orderItemRepository.findAllByGeneralOrder(order);
+//        for (OrderItem orderItem : orderItems) {
+//            orderItem.cancelRequest();
+//        }
+//
+//    }
+
+//    취소(요청) 주문 단위
     @Transactional
-    public void cancelRequest(Long id) {
+    public void cancelRequestGeneral(Long id) {
         GeneralOrder order = (GeneralOrder) orderRepository.findById(id).get();
-        order.cancelRequest();
 
+        OrderStatus orderStatus = order.getOrderStatus();
         List<OrderItem> orderItems = orderItemRepository.findAllByGeneralOrder(order);
-        for (OrderItem orderItem : orderItems) {
-            orderItem.cancelRequest();
-        }
 
+        if (orderStatus == OrderStatus.PAYMENT_DONE) {
+            // 즉시 카드 취소
+            String impUid = order.getImpUid();
+            CancelData cancelData = new CancelData(impUid, true);
+            try {
+                // TODO: 2022-07-27 카드 전액 취소 예외 처리
+                client.cancelPaymentByImpUid(cancelData);
+                order.cancelOrderAndDelivery(OrderStatus.CANCEL_DONE_BUYER);
+                for (OrderItem orderItem : orderItems) {
+                    orderItem.cancelOrderConfirmAndRevivalCoupon(OrderStatus.CANCEL_DONE_BUYER);
+                }
+                revivalCancelOrderReward(order, RewardName.CANCEL_ORDER);
+                String dogName = getRepresentativeDogName(order.getMember());
+                DirectSendUtils.sendGeneralOrderCancelAlim(order, dogName, orderItems);
+
+            } catch (IamportResponseException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else if (orderStatus == OrderStatus.DELIVERY_READY || orderStatus == OrderStatus.PRODUCING) {
+            // 취소 요청
+            order.cancelRequest();
+
+            for (OrderItem orderItem : orderItems) {
+                orderItem.cancelRequest();
+            }
+
+        }
     }
 
     @Transactional
@@ -811,29 +851,32 @@ public class OrderService {
 
     @Transactional
     public void cancelConfirmGeneral(CancelConfirmGeneralDto requestDto) {
-        List<Long> orderItemIdList = requestDto.getOrderItemIdList();
-        for (Long orderItemId : orderItemIdList) {
-            OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
-            GeneralOrder order = orderItem.getGeneralOrder();
 
-            int finalPrice = orderItem.getFinalPrice();
-            int cancelReward = getCancelReward(order, finalPrice);
-            int cancelPrice = finalPrice - cancelReward;
+        List<Long> orderIdList = requestDto.getOrderIdList();
+        for (Long orderId : orderIdList) {
+            Optional<Order> optionalOrder = orderRepository.findById(orderId);
+            if (optionalOrder.isPresent()) {
+                GeneralOrder order = (GeneralOrder) optionalOrder.get();
+                List<OrderItem> orderItems = orderItemRepository.findAllByGeneralOrder(order);
 
-            String impUid = order.getImpUid();
-            CancelData cancelData = new CancelData(impUid, true, BigDecimal.valueOf(cancelPrice));
+                String impUid = order.getImpUid();
+                CancelData cancelData = new CancelData(impUid, true);
 
-            try {
-                IamportResponse<Payment> paymentIamportResponse = client.cancelPaymentByImpUid(cancelData);
-                orderItem.cancelConfirm(cancelReward, cancelPrice, OrderStatus.CANCEL_DONE_BUYER);
-                saveCancelReward(orderItem, order, RewardName.CANCEL_ORDER);
-                orderStatusCancelDone(order);
-                revivalCoupon(orderItem);
+                try {
+                    client.cancelPaymentByImpUid(cancelData);
+                    order.cancelOrderAndDelivery(OrderStatus.CANCEL_DONE_BUYER);
+                    for (OrderItem orderItem : orderItems) {
+                        orderItem.cancelOrderConfirmAndRevivalCoupon(OrderStatus.CANCEL_DONE_BUYER);
+                    }
+                    revivalCancelOrderReward(order, RewardName.CANCEL_ORDER);
+                    String dogName = getRepresentativeDogName(order.getMember());
+                    DirectSendUtils.sendGeneralOrderCancelAlim(order, dogName, orderItems);
 
-            } catch (IamportResponseException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+                } catch (IamportResponseException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -867,13 +910,22 @@ public class OrderService {
         }
     }
 
-    private void saveCancelReward(OrderItem orderItem, GeneralOrder order, String name) {
+    private void revivalCancelOrderReward(OrderItem orderItem, GeneralOrder order, String name) {
         int cancelReward = orderItem.getCancelReward();
 
         if (cancelReward > 0) {
             Member member = order.getMember();
             member.saveReward(cancelReward);
             saveReward(name, cancelReward, member);
+        }
+    }
+    private void revivalCancelOrderReward(Order order, String rewardName) {
+        int cancelReward = order.getDiscountReward();
+
+        if (cancelReward > 0) {
+            Member member = order.getMember();
+            member.saveReward(cancelReward);
+            saveReward(rewardName, cancelReward, member);
         }
     }
 
@@ -901,7 +953,7 @@ public class OrderService {
 
             try {
                 IamportResponse<Payment> paymentIamportResponse = client.cancelPaymentByImpUid(cancelData);
-                saveCancelReward(order, member);
+                revivalCancelOrderReward(order, member);
                 order.confirmAs(OrderStatus.CANCEL_DONE_BUYER);
                 revivalCoupon(order);
                 order.setCancelConfirmDate();
@@ -922,7 +974,7 @@ public class OrderService {
         }
     }
 
-    private void saveCancelReward(SubscribeOrder order, Member member) {
+    private void revivalCancelOrderReward(SubscribeOrder order, Member member) {
         int discountReward = order.getDiscountReward();
         if (discountReward > 0) {
             member.saveReward(discountReward);
@@ -951,7 +1003,7 @@ public class OrderService {
             try {
                 IamportResponse<Payment> paymentIamportResponse = client.cancelPaymentByImpUid(cancelData);
                 orderItem.cancelConfirm(cancelReward, cancelPrice, OrderStatus.CANCEL_DONE_SELLER, reason, detailReason);
-                saveCancelReward(orderItem, order, RewardName.CANCEL_ORDER);
+                revivalCancelOrderReward(orderItem, order, RewardName.CANCEL_ORDER);
                 orderStatusCancelDone(order);
                 revivalCoupon(orderItem);
 
@@ -978,7 +1030,7 @@ public class OrderService {
 
             try {
                 IamportResponse<Payment> paymentIamportResponse = client.cancelPaymentByImpUid(cancelData);
-                saveCancelReward(order, member);
+                revivalCancelOrderReward(order, member);
                 order.confirmAs(OrderStatus.CANCEL_DONE_SELLER);
                 order.cancelReason(reason, detailReason);
                 revivalCoupon(order);

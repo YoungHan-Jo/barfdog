@@ -87,6 +87,11 @@ public abstract class Order extends BaseTimeEntity {
         orderStatus = OrderStatus.CANCEL_REQUEST;
     }
 
+    public void cancelOrderAndDelivery(OrderStatus status) {
+        this.orderStatus = status;
+        delivery.cancel();
+    }
+
     public void generalConfirm() {
         orderStatus = OrderStatus.CONFIRM;
         orderConfirmDate = LocalDateTime.now();
@@ -122,4 +127,6 @@ public abstract class Order extends BaseTimeEntity {
         delivery.paymentDone();
         paymentDate = LocalDateTime.now();
     }
+
+
 }

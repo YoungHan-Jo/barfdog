@@ -52,6 +52,7 @@ import com.bi.barfdog.repository.subscribe.SubscribeRepository;
 import com.bi.barfdog.repository.subscribeRecipe.SubscribeRecipeRepository;
 import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -2263,15 +2264,28 @@ public class OrderApiControllerTest extends BaseTest {
     }
 
 
+
+    @Ignore
     @Test
-    @DisplayName("일반 주문 주문 취소 요청")
+    @DisplayName("일반 주문 주문 취소 요청 - 상품 준비 전")
     public void cancelRequestGeneralOrder() throws Exception {
        //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int rewardAmount = member.getReward();
 
         GeneralOrder order = generateGeneralOrder(member, 1, OrderStatus.PAYMENT_DONE);
 
-       //when & then
+        List<Integer> remainingList = new ArrayList<>();
+        List<MemberCoupon> memberCouponList = new ArrayList<>();
+
+        List<OrderItem> orderItemList = orderItemRepository.findAllByGeneralOrder(order);
+        for (OrderItem orderItem : orderItemList) {
+            MemberCoupon memberCoupon = orderItem.getMemberCoupon();
+            remainingList.add(memberCoupon.getRemaining());
+            memberCouponList.add(memberCoupon);
+        }
+
+        //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.post("/api/orders/{id}/general/cancelRequest", order.getId())
                         .header(HttpHeaders.AUTHORIZATION, getUserToken())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -2304,11 +2318,50 @@ public class OrderApiControllerTest extends BaseTest {
         em.clear();
 
         GeneralOrder findOrder = (GeneralOrder) orderRepository.findById(order.getId()).get();
+        assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCEL_DONE_BUYER);
+        assertThat(findOrder.getDelivery().getStatus()).isEqualTo(DeliveryStatus.DELIVERY_CANCEL);
+        List<OrderItem> orderItems = orderItemRepository.findAllByGeneralOrder(findOrder);
+        for (OrderItem orderItem : orderItems) {
+            assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.CANCEL_DONE_BUYER);
+            assertThat(orderItem.getOrderCancel().getCancelRequestDate()).isNotNull();
+            assertThat(orderItem.getOrderCancel().getCancelConfirmDate()).isNotNull();
+        }
+
+
+        for (int i = 0; i < memberCouponList.size(); i++) {
+            assertThat(memberCouponList.get(i).getRemaining()).isEqualTo(remainingList.get(i) + 1);
+            assertThat(memberCouponList.get(i).getMemberCouponStatus()).isEqualTo(CouponStatus.ACTIVE);
+        }
+
+    }
+
+    @Test
+    @DisplayName("일반 주문 주문 취소 요청 - 상품 준비 중")
+    public void cancelRequestGeneralOrder_DELIVERYREADY() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        GeneralOrder order = generateGeneralOrder(member, 1, OrderStatus.DELIVERY_READY);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/orders/{id}/general/cancelRequest", order.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        em.flush();
+        em.clear();
+
+        GeneralOrder findOrder = (GeneralOrder) orderRepository.findById(order.getId()).get();
         assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCEL_REQUEST);
+        assertThat(findOrder.getDelivery().getStatus()).isNotEqualTo(DeliveryStatus.DELIVERY_CANCEL);
         List<OrderItem> orderItems = orderItemRepository.findAllByGeneralOrder(findOrder);
         for (OrderItem orderItem : orderItems) {
             assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.CANCEL_REQUEST);
             assertThat(orderItem.getOrderCancel().getCancelRequestDate()).isNotNull();
+            assertThat(orderItem.getOrderCancel().getCancelConfirmDate()).isNull();
         }
 
     }

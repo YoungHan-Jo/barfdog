@@ -23,4 +23,6 @@ public interface OrderRepositoryCustom {
     QueryGeneralOrderDto findGeneralOrderDto(Long id);
 
     AdminDashBoardResponseDto findAdminDashBoard(AdminDashBoardRequestDto requestDto);
+
+    Page<QueryAdminCancelRequestDto> findAdminCancelRequestDto(Pageable pageable, OrderAdminCond cond);
 }

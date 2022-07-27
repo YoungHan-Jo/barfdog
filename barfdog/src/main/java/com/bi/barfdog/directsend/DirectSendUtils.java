@@ -384,16 +384,18 @@ public class DirectSendUtils {
         sendAlimTalk(DirectSend.ORDER_CANCEL_TEMPLATE, receiver);
     }
 
-    public static void sendGeneralOrderCancelAlim(Order order, String dogName, String itemName) throws IOException {
+    public static void sendGeneralOrderCancelAlim(Order order, String dogName, List<OrderItem> orderItems) throws IOException {
 
         Member member = order.getMember();
+
+        String itemNames = getItemNames(orderItems);
 
         String receiver = "";
 
         receiver += ",{\"name\": \"" + member.getName() + "\", " +
                 "\"mobile\":\"" + member.getPhoneNumber() + "\", " +
                 "\"note1\":\"" + dogName + "\"," +
-                "\"note2\":\"" + itemName + "\"}";
+                "\"note2\":\"" + itemNames + "\"}";
 
         receiver = receiver.substring(1);
 

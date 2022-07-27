@@ -6,7 +6,6 @@ import com.bi.barfdog.api.resource.SubscribeOrdersDtoResource;
 import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.member.Member;
-import com.bi.barfdog.domain.order.GeneralOrder;
 import com.bi.barfdog.domain.order.Order;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.repository.member.MemberRepository;
@@ -243,7 +242,7 @@ public class OrderApiController {
         Optional<Order> optionalOrder = orderRepository.findById(id);
         if(!optionalOrder.isPresent()) return notFound();
 
-        orderService.cancelRequest(id);
+        orderService.cancelRequestGeneral(id);
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(OrderApiController.class).slash(id).slash("subscribe/fail").slash(id).withSelfRel());

@@ -27,6 +27,7 @@ public class BarfService {
 
         HomePageDto.TopBannerDto topBannerDto = bannerRepository.findTopBannerDto();
         List<HomePageDto.MainBannerDto> mainBannerDtoList = bannerRepository.findMainBannerDtoListByMember(member);
+
         List<HomePageDto.RecipeDto> recipeDtoList = recipeRepository.findRecipeDto();
         List<QueryBestReviewsDto> queryBestReviewsDtoList = bestReviewRepository.findBestReviewsDto();
 

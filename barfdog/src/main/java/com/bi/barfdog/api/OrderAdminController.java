@@ -1,6 +1,8 @@
 package com.bi.barfdog.api;
 
+import com.bi.barfdog.api.deliveryDto.OrderIdListDto;
 import com.bi.barfdog.api.orderDto.*;
+import com.bi.barfdog.api.resource.AdminCancelRequestDtoResource;
 import com.bi.barfdog.api.resource.AdminOrdersDtoResource;
 import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
@@ -129,6 +131,23 @@ public class OrderAdminController {
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-orderConfirm-subscribe").withRel("profile"));
 
         return ResponseEntity.ok(representationModel);
+    }
+
+    @PostMapping("/cancelRequest")
+    public ResponseEntity queryGeneralOrdersCancelRequest(Pageable pageable,
+                                                          PagedResourcesAssembler<QueryAdminCancelRequestDto> assembler,
+                                                          @RequestBody @Valid OrderAdminCond cond,
+                                                          Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+
+        Page<QueryAdminCancelRequestDto> page = orderRepository.findAdminCancelRequestDto(pageable, cond);
+
+        PagedModel<AdminCancelRequestDtoResource> pagedModel = assembler.toModel(page, e -> new AdminCancelRequestDtoResource(e));
+        pagedModel.add(linkTo(OrderAdminController.class).slash("general/cancelRequest").withRel("confirm_cancel_general"));
+        pagedModel.add(linkTo(OrderAdminController.class).slash("general/cancelRequest").withRel("confirm_cancel_subscribe"));
+        pagedModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-query-cancelRequest").withRel("profile"));
+
+        return ResponseEntity.ok(pagedModel);
     }
 
 
