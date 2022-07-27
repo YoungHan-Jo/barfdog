@@ -48,6 +48,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers(HttpMethod.POST,"/api/login","/login","/join","/iamport-webhook").permitAll()
 //                .antMatchers(HttpMethod.PUT,"/api/banners/main/**").permitAll()
+                .antMatchers("/api/baskets").access("hasRole('ROLE_USER')")
                 .antMatchers("/api/admin/**").access("hasRole('ROLE_ADMIN')")
                 .antMatchers("/api/banners/**").access("hasRole('ROLE_ADMIN')")
 

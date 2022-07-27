@@ -227,6 +227,46 @@ public class BasketApiControllerTest extends BaseTest {
                 ));
 
     }
+
+    @Test
+    @DisplayName("장바구니 토큰 없음")
+    public void queryBaskets_notoken() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        Item item1 = generateItem(1);
+        generateItemImage(item1, 1);
+        generateItemImage(item1, 2);
+        ItemOption option1 = generateOption(item1, 1);
+        ItemOption option2 = generateOption(item1, 2);
+
+        Item item2 = generateItem(2);
+        generateItemImage(item2, 1);
+        generateItemImage(item2, 2);
+        ItemOption option3 = generateOption(item2, 3);
+        ItemOption option4 = generateOption(item2, 4);
+
+        Basket basket1 = generateBasket(member, item1, 1);
+        generateBasketOption(option1, basket1, 1);
+        generateBasketOption(option2, basket1, 2);
+
+        Basket basket2 = generateBasket(member, item2, 2);
+        generateBasketOption(option3, basket2, 3);
+        generateBasketOption(option4, basket2, 4);
+
+        Basket basket3 = generateBasket(admin, item2, 2);
+        generateBasketOption(option3, basket3, 5);
+        generateBasketOption(option4, basket3, 6);
+
+        //when & then
+        mockMvc.perform(get("/api/baskets")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+
+    }
     
     
     @Test
