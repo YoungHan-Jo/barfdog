@@ -1,5 +1,6 @@
 package com.bi.barfdog.api;
 
+import com.bi.barfdog.api.deliveryDto.OrderIdListDto;
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
 import com.bi.barfdog.api.orderDto.*;
 import com.bi.barfdog.common.AppProperties;
@@ -316,6 +317,75 @@ public class OrderAdminControllerTest extends BaseTest {
         ;
 
     }
+
+
+    @Test
+    @DisplayName("취소요청 거절(주문단위)")
+    public void rejectCancelRequest() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        GeneralOrder generalOrder = generateGeneralOrder(member, 1, OrderStatus.CANCEL_REQUEST);
+        SubscribeOrder subscribeOrder = generateSubscribeOrder(member, 2, OrderStatus.CANCEL_REQUEST);
+
+        List<Long> orderIdList = new ArrayList<>();
+        orderIdList.add(generalOrder.getId());
+        orderIdList.add(subscribeOrder.getId());
+
+        OrderIdListDto requestDto = OrderIdListDto.builder()
+                .orderIdList(orderIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/orders/cancelRequest/reject")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("query_admin_reject_cancelRequest",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_cancelRequestOrders").description("취소요청한 주문 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestFields(
+                                fieldWithPath("orderIdList").description("취소요청 거절할 주문 id 리스트")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_cancelRequestOrders.href").description("취소요청한 주문 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        GeneralOrder findGeneralOrder = (GeneralOrder) orderRepository.findById(generalOrder.getId()).get();
+        assertThat(findGeneralOrder.getOrderStatus()).isEqualTo(OrderStatus.DELIVERY_READY);
+
+        List<OrderItem> orderItems = orderItemRepository.findAllByGeneralOrder(findGeneralOrder);
+        for (OrderItem orderItem : orderItems) {
+            assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.DELIVERY_READY);
+        }
+
+        Order findSubscribeOrder = orderRepository.findById(subscribeOrder.getId()).get();
+        assertThat(findSubscribeOrder.getOrderStatus()).isEqualTo(OrderStatus.PRODUCING);
+
+    }
+
 
 
 

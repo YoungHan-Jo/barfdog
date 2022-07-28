@@ -1426,11 +1426,22 @@ operation::query_admin_orders[snippets='curl-request,request-headers,request-par
 [[resources-admin-query-cancelRequest]]
 === 취소 요청 주문 리스트 검색(페이징)
 
-`POST` 요청을 사용하여 페이징으로 조건에 맞는 취소요청 주문 리스트를 조회할 수 있다.
+`POST` 요청을 사용하여 페이징으로 조건에 맞는 취소요청 주문 리스트를 조회할 수 있다. +
 
 요청 파라미터 복잡해서 조회api지만 POST 사용
 
 operation::query_admin_cancel_request[snippets='curl-request,request-headers,request-parameters,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-admin-reject-cancelRequest]]
+=== 주문 취소 요청 반려
+
+`POST` 요청을 사용하여 주문 취소 요청을 반려할 수 있다. +
+
+일반/구독 공용
+
+operation::query_admin_reject_cancelRequest[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
 
 
 

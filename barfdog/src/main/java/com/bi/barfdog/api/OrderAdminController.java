@@ -150,6 +150,20 @@ public class OrderAdminController {
         return ResponseEntity.ok(pagedModel);
     }
 
+    @PostMapping("/cancelRequest/reject")
+    public ResponseEntity rejectCancelRequest(@RequestBody OrderIdListDto requestDto) {
+
+        orderService.rejectCancelRequestOrders(requestDto);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderAdminController.class).slash("cancelRequest/reject").withSelfRel());
+        representationModel.add(linkTo(OrderAdminController.class).slash("cancelRequest").withRel("query_cancelRequestOrders"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-reject-cancelRequest").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+
 
     @PostMapping("/general/cancelConfirm")
     public ResponseEntity cancelConfirmGeneral(@RequestBody CancelConfirmGeneralDto requestDto) {
@@ -280,6 +294,8 @@ public class OrderAdminController {
 
         return ResponseEntity.ok(representationModel);
     }
+
+
 
 
 

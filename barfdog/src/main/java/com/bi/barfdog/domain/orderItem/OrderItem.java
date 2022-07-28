@@ -194,4 +194,7 @@ public class OrderItem extends BaseTimeEntity {
     }
 
 
+    public void rejectCancelRequest() {
+        status = OrderStatus.DELIVERY_READY;
+    }
 }

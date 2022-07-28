@@ -129,4 +129,7 @@ public abstract class Order extends BaseTimeEntity {
     }
 
 
+    public void rejectCancelRequest(OrderStatus status) {
+        orderStatus = status;
+    }
 }

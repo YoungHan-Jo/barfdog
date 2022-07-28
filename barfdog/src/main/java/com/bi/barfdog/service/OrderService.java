@@ -1,5 +1,6 @@
 package com.bi.barfdog.service;
 
+import com.bi.barfdog.api.deliveryDto.OrderIdListDto;
 import com.bi.barfdog.api.orderDto.*;
 import com.bi.barfdog.common.RandomString;
 import com.bi.barfdog.directsend.DirectSendUtils;
@@ -1275,4 +1276,33 @@ public class OrderService {
     }
 
 
+    @Transactional
+    public void rejectCancelRequestOrders(OrderIdListDto requestDto) {
+        List<Long> orderIdList = requestDto.getOrderIdList();
+
+        for (Long orderId : orderIdList) {
+            Optional<Order> optionalOrder = orderRepository.findById(orderId);
+            if (!optionalOrder.isPresent()) continue;
+
+            Order order = optionalOrder.get();
+            if (order instanceof GeneralOrder) {
+                GeneralOrder generalOrder = (GeneralOrder) order;
+
+                generalOrder.rejectCancelRequest(OrderStatus.DELIVERY_READY);
+
+                List<OrderItem> orderItems = orderItemRepository.findAllByGeneralOrder(generalOrder);
+                for (OrderItem orderItem : orderItems) {
+                    orderItem.rejectCancelRequest();
+                }
+
+            }
+
+            if (order instanceof SubscribeOrder) {
+                order.rejectCancelRequest(OrderStatus.PRODUCING);
+            }
+
+        }
+
+
+    }
 }
