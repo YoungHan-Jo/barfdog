@@ -220,6 +220,21 @@ public class Subscribe extends BaseTimeEntity {
 
     }
 
+    public void cancelPayment() {
+        this.discount = 0;
+        if (this.subscribeCount > 0) {
+            this.subscribeCount--;
+        }
+        this.nextPaymentDate = null;
+        this.nextDeliveryDate = null;
+        this.nextPaymentPrice = 0;
+        this.status = SubscribeStatus.SUBSCRIBE_PENDING;
+        this.skipCount = 0;
+        if (this.memberCoupon != null) {
+            memberCoupon.revival();
+        }
+    }
+
     private String getReasons(List<String> reasonList) {
         String reasons = "";
         if (reasonList.size() > 0) {

@@ -14,6 +14,7 @@ import com.bi.barfdog.domain.memberCoupon.QMemberCoupon;
 import com.bi.barfdog.domain.recipe.QRecipe;
 import com.bi.barfdog.domain.recipe.RecipeStatus;
 import com.bi.barfdog.domain.subscribe.Subscribe;
+import com.bi.barfdog.domain.subscribe.SubscribeStatus;
 import com.bi.barfdog.domain.subscribeRecipe.QSubscribeRecipe;
 import com.bi.barfdog.repository.subscribeRecipe.SubscribeRecipeRepository;
 import com.querydsl.core.types.Projections;
@@ -217,6 +218,18 @@ public class SubscribeRepositoryImpl implements SubscribeRepositoryCustom{
                 .selectFrom(subscribe)
                 .where(subscribe.nextPaymentDate.between(from,to))
                 .fetch()
+                ;
+    }
+
+    @Override
+    public Long findSubscribingListByMember(Member user) {
+        return queryFactory
+                .select(subscribe.count())
+                .from(subscribe)
+                .join(subscribe.dog, dog)
+                .join(dog.member, member)
+                .where(member.eq(user).and(subscribe.status.eq(SubscribeStatus.SUBSCRIBING)))
+                .fetchOne()
                 ;
     }
 

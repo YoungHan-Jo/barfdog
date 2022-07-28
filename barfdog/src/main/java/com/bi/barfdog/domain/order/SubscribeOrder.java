@@ -65,4 +65,18 @@ public class SubscribeOrder extends Order{
                 .cancelConfirmDate(LocalDateTime.now())
                 .build();
     }
+
+    public void cancelRequestSubscribeDate() {
+        orderCancel = OrderCancel.builder()
+                .cancelRequestDate(LocalDateTime.now())
+                .build();
+    }
+
+    public void subscribePaymentCancel() {
+        LocalDateTime now = LocalDateTime.now();
+        orderCancel = OrderCancel.builder()
+                .cancelConfirmDate(now)
+                .cancelRequestDate(now)
+                .build();
+    }
 }

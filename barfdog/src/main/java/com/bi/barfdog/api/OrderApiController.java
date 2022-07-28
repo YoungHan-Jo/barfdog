@@ -245,8 +245,22 @@ public class OrderApiController {
         orderService.cancelRequestGeneral(id);
 
         RepresentationModel representationModel = new RepresentationModel();
-        representationModel.add(linkTo(OrderApiController.class).slash(id).slash("subscribe/fail").slash(id).withSelfRel());
+        representationModel.add(linkTo(OrderApiController.class).slash(id).slash("general/cancelRequest").slash(id).withSelfRel());
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-cancelRequest-general").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @PostMapping("/{id}/subscribe/cancelRequest")
+    public ResponseEntity subscribeOrderCancelRequest(@PathVariable Long id) {
+        Optional<Order> optionalOrder = orderRepository.findById(id);
+        if(!optionalOrder.isPresent()) return notFound();
+
+        orderService.cancelRequestSubscribe(id);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderApiController.class).slash(id).slash("subscribe/cancelRequest").slash(id).withSelfRel());
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-cancelRequest-subscribe").withRel("profile"));
 
         return ResponseEntity.ok(representationModel);
     }

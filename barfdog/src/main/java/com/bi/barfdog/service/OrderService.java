@@ -46,6 +46,7 @@ import com.siot.IamportRestClient.exception.IamportResponseException;
 import com.siot.IamportRestClient.request.CancelData;
 import com.siot.IamportRestClient.request.ScheduleData;
 import com.siot.IamportRestClient.request.ScheduleEntry;
+import com.siot.IamportRestClient.request.UnscheduleData;
 import com.siot.IamportRestClient.response.IamportResponse;
 import com.siot.IamportRestClient.response.Payment;
 import lombok.RequiredArgsConstructor;
@@ -711,13 +712,77 @@ public class OrderService {
 //
 //    }
 
-//    취소(요청) 주문 단위
+    @Transactional
+    public void cancelRequestSubscribe(Long id) {
+        SubscribeOrder order = (SubscribeOrder) orderRepository.findById(id).get();
+        OrderStatus status = order.getOrderStatus();
+        if (status == OrderStatus.PAYMENT_DONE) {
+            // 즉시 카드 취소
+            Member member = order.getMember();
+            String impUid = order.getImpUid();
+            CancelData cancelData = new CancelData(impUid, true);
+            try {
+                client.cancelPaymentByImpUid(cancelData);
+                order.cancelOrderAndDelivery(OrderStatus.CANCEL_DONE_BUYER);
+                order.subscribePaymentCancel();
+                member.cancelSubscribePayment(order);
+
+                revivalCancelOrderReward(order, member);
+                revivalCoupon(order);
+                Subscribe subscribe = order.getSubscribe();
+
+                // 예약 취소
+                String nextOrderMerchantUid = subscribe.getNextOrderMerchantUid();
+                Optional<SubscribeOrder> optionalSubscribeOrder = orderRepository.findByMerchantUid(nextOrderMerchantUid);
+                if (optionalSubscribeOrder.isPresent()) {
+                    SubscribeOrder nextOrder = optionalSubscribeOrder.get();
+                    nextOrder.cancelOrderAndDelivery(OrderStatus.CANCEL_DONE_BUYER);
+                    nextOrder.subscribePaymentCancel();
+                    revivalCancelOrderReward(nextOrder, member);
+                    revivalCoupon(nextOrder);
+
+                    String customerUid = subscribe.getCard().getCustomerUid();
+                    UnscheduleData unscheduleData = new UnscheduleData(customerUid);
+                    unscheduleData.addMerchantUid(nextOrder.getMerchantUid());
+                    client.unsubscribeSchedule(unscheduleData);
+
+                }
+
+                subscribe.cancelPayment();
+
+                if (!isSubscriber(member)) {
+                    member.stopSubscriber();
+                }
+
+                // TODO: 2022-07-28 구독주문 결제 취소알림 on/off
+                DirectSendUtils.sendSubscribeOrderCancelAlim(order);
+
+            } catch (IamportResponseException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        } else if (status == OrderStatus.PRODUCING || status == OrderStatus.DELIVERY_READY) {
+            // 취소 요청
+            order.cancelRequest();
+            order.cancelRequestSubscribeDate();
+        }
+    }
+
+    private boolean isSubscriber(Member member) {
+        Long count = subscribeRepository.findSubscribingListByMember(member);
+        return count > 0L;
+    }
+
+    //    취소(요청) 주문 단위
     @Transactional
     public void cancelRequestGeneral(Long id) {
         GeneralOrder order = (GeneralOrder) orderRepository.findById(id).get();
 
         OrderStatus orderStatus = order.getOrderStatus();
         List<OrderItem> orderItems = orderItemRepository.findAllByGeneralOrder(order);
+        Member member = order.getMember();
 
         if (orderStatus == OrderStatus.PAYMENT_DONE) {
             // 즉시 카드 취소
@@ -731,8 +796,9 @@ public class OrderService {
                     orderItem.cancelOrderConfirmAndRevivalCoupon(OrderStatus.CANCEL_DONE_BUYER);
                 }
                 revivalCancelOrderReward(order, RewardName.CANCEL_ORDER);
-                String dogName = getRepresentativeDogName(order.getMember());
+                String dogName = getRepresentativeDogName(member);
                 DirectSendUtils.sendGeneralOrderCancelAlim(order, dogName, orderItems);
+                member.cancelGeneralPayment(order);
 
             } catch (IamportResponseException e) {
                 e.printStackTrace();
@@ -1044,6 +1110,8 @@ public class OrderService {
 
     }
 
+
+
     @Transactional
     public void denyReturn(OrderItemIdListDto requestDto) {
         List<Long> orderItemIdList = requestDto.getOrderItemIdList();
@@ -1205,4 +1273,6 @@ public class OrderService {
         }
         // TODO: 2022-07-25 결제 실패 시 재결제 어떻게 할 것인가?
     }
+
+
 }

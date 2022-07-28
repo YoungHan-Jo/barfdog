@@ -75,7 +75,9 @@ public class OrderItem extends BaseTimeEntity {
         status = OrderStatus.FAILED;
         writeableReview = false;
         item.remainingUp(amount);
-        memberCoupon.revival();
+        if (memberCoupon != null) {
+            memberCoupon.revival();
+        }
     }
 
     public void cancelRequest() {

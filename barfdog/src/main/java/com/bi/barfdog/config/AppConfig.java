@@ -181,11 +181,11 @@ public class AppConfig {
                 generateArticle(1);
                 generateArticle(2);
 
-                Member admin = generateMember(appProperties.getAdminEmail(), "관리자", appProperties.getAdminPassword(), "01056785678", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,USER");
-                Member manager = generateMember("develope07@binter.co.kr", "관리자계정", appProperties.getAdminPassword(), "01056781234", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,USER");
+                Member admin = generateMember(appProperties.getAdminEmail(), "관리자", appProperties.getAdminPassword(), "01056785678", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,SUBSCRIBER,USER", true);
+                Member manager = generateMember("develope07@binter.co.kr", "관리자계정", appProperties.getAdminPassword(), "01056781234", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,SUBSCRIBER,USER", true);
 
-                Member member = generateMember(appProperties.getUserEmail(), "김회원", appProperties.getUserPassword(), "01099038544", Gender.MALE, Grade.브론즈, 50000, false, "USER");
-                generateMember("abc@gmail.com", "박회원", appProperties.getUserPassword(), "01012341111", Gender.MALE, Grade.브론즈, 0, false, "USER");
+                Member member = generateMember(appProperties.getUserEmail(), "김회원", appProperties.getUserPassword(), "01099038544", Gender.MALE, Grade.브론즈, 50000, false, "USER,SUBSCRIBER", true);
+                generateMember("abc@gmail.com", "박회원", appProperties.getUserPassword(), "01012341111", Gender.MALE, Grade.브론즈, 0, false, "USER", false);
 
                 generateSetting();
 
@@ -1130,7 +1130,7 @@ public class AppConfig {
                 return couponRepository.save(coupon);
             }
 
-            private Member generateMember(String email, String name, String password, String phoneNumber, Gender gender, Grade grade, int reward, boolean recommend, String roles) {
+            private Member generateMember(String email, String name, String password, String phoneNumber, Gender gender, Grade grade, int reward, boolean recommend, String roles, boolean isSubscribe) {
                 Member member = Member.builder()
                         .email(email)
                         .name(name)
@@ -1144,6 +1144,8 @@ public class AppConfig {
                         .grade(grade)
                         .reward(reward)
                         .accumulatedAmount(0)
+                        .accumulatedSubscribe(3)
+                        .isSubscribe(isSubscribe)
                         .firstReward(new FirstReward(recommend, recommend))
                         .roles(roles)
                         .build();

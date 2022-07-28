@@ -1643,6 +1643,17 @@ operation::success_subscribeOrder[snippets='curl-request,path-parameters,request
 operation::fail_subscribeOrder[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 
+[[resources-cancelRequest-subscribe]]
+=== 구독 주문 취소 요청
+
+`POST` 요청을 사용하여 일반 주문을 취소 요청할 수 있다. +
+order status가 PAYMENT_DONE 일 경우 즉시 카드/적립금/쿠폰 취소처리, 다음 예약도 취소 처리 +
+order status가 PRODUCING 일 경우 구독주문 취소 요청 처리 (상태만 변경) +
+
+operation::cancelRequest_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+
+
 
 [[resources-query-subscribeOrders]]
 === 구독 주문 리스트 검색(페이징)
@@ -1676,7 +1687,9 @@ operation::query_generalOrder[snippets='curl-request,path-parameters,request-hea
 [[resources-cancelRequest-general]]
 === 일반 주문 취소 요청
 
-`POST` 요청을 사용하여 일반 주문을 취소 요청할 수 있다.
+`POST` 요청을 사용하여 일반 주문을 취소 요청할 수 있다. +
+order status가 PAYMENT_DONE 일 경우 즉시 카드/적립금/쿠폰 환불처리됨, 다음 예약도 취소 처리 +
+order status가 DELIVERY_READY 일 경우 주문전체 취소 요청 처리 (상태만 변경) +
 
 operation::cancelRequest_general[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 

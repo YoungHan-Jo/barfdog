@@ -27,4 +27,6 @@ public interface SubscribeRepositoryCustom {
     QuerySubscribeDto findSubscribeDto(Member member, Long id);
 
     List<Subscribe> findTomorrowPayment();
+
+    Long findSubscribingListByMember(Member member);
 }

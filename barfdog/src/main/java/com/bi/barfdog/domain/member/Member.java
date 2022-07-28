@@ -5,6 +5,7 @@ import com.bi.barfdog.api.orderDto.GeneralOrderRequestDto;
 import com.bi.barfdog.api.orderDto.SubscribeOrderRequestDto;
 import com.bi.barfdog.domain.Address;
 import com.bi.barfdog.domain.BaseTimeEntity;
+import com.bi.barfdog.domain.order.GeneralOrder;
 import com.bi.barfdog.domain.order.Order;
 import com.bi.barfdog.domain.order.SubscribeOrder;
 import com.bi.barfdog.domain.reward.RewardPoint;
@@ -190,6 +191,24 @@ public class Member extends BaseTimeEntity {
 
     public void changeGrade(Grade grade) {
         this.grade = grade;
+    }
+
+    public void cancelSubscribePayment(SubscribeOrder order) {
+        if (accumulatedSubscribe > 0) {
+            accumulatedSubscribe--;
+        }
+        accumulatedAmount -= order.getPaymentPrice();
+    }
+
+    public void cancelGeneralPayment(GeneralOrder order) {
+        accumulatedAmount -= order.getPaymentPrice();
+    }
+
+    public void stopSubscriber() {
+        if (!roles.contains("ADMIN")) {
+            roles = "USER";
+        }
+        isSubscribe = false;
     }
 }
 

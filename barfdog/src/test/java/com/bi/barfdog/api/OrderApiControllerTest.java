@@ -139,13 +139,16 @@ public class OrderApiControllerTest extends BaseTest {
 
     @Before
     public void setUp() {
-
         orderItemRepository.deleteAll();
         orderRepository.deleteAll();
         itemImageRepository.deleteAll();
         itemOptionRepository.deleteAll();
         itemRepository.deleteAll();
         deliveryRepository.deleteAll();
+        subscribeRecipeRepository.deleteAll();
+        subscribeRepository.deleteAll();
+        surveyReportRepository.deleteAll();
+        dogRepository.deleteAll();
 
     }
 
@@ -607,6 +610,7 @@ public class OrderApiControllerTest extends BaseTest {
     }
 
 
+    @Ignore
     @Test
     @DisplayName("정상적으로 일반 주문 결제 성공")
     public void successGeneralOrder() throws Exception {
@@ -1488,6 +1492,8 @@ public class OrderApiControllerTest extends BaseTest {
     }
 
 
+    // TODO: 2022-07-28 구독 결제 성공 알림 테스트 ignore
+    @Ignore
     @Test
     @DisplayName("구독 결제 성공")
     public void successSubscribeOrder() throws Exception {
@@ -2267,13 +2273,114 @@ public class OrderApiControllerTest extends BaseTest {
 
     @Ignore
     @Test
+    @DisplayName("구독 주문 주문 취소 요청 - 상품 생산 전")
+    public void cancelRequestSubscribeOrder() throws Exception {
+       //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int accumulatedSubscribe = member.getAccumulatedSubscribe();
+        int accumulatedAmount = member.getAccumulatedAmount();
+        SubscribeOrder order = generateSubscribeOrderAndEtc_NoBeforeSubscribe_no_deliveryNumber(member, 1, OrderStatus.PAYMENT_DONE);
+        int paymentPrice = order.getPaymentPrice();
+        Subscribe subscribe = order.getSubscribe();
+        int subscribeCount = subscribe.getSubscribeCount();
+        String merchantUid = subscribe.getNextOrderMerchantUid();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/orders/{id}/subscribe/cancelRequest", order.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("cancelRequest_subscribe",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("구독 주문 id")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+
+        em.flush();
+        em.clear();
+
+        Member findMember = memberRepository.findById(member.getId()).get();
+        assertThat(findMember.getAccumulatedSubscribe()).isEqualTo(accumulatedSubscribe - 1);
+        assertThat(findMember.getAccumulatedAmount()).isEqualTo(accumulatedAmount - paymentPrice);
+        assertThat(findMember.isSubscribe()).isFalse();
+        assertThat(findMember.getRoles()).isEqualTo("USER");
+
+        SubscribeOrder findOrder = (SubscribeOrder) orderRepository.findById(order.getId()).get();
+        assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCEL_DONE_BUYER);
+        assertThat(findOrder.getOrderCancel().getCancelConfirmDate()).isNotNull();
+        assertThat(findOrder.getOrderCancel().getCancelRequestDate()).isNotNull();
+
+        Delivery delivery = findOrder.getDelivery();
+        assertThat(delivery.getStatus()).isEqualTo(DeliveryStatus.DELIVERY_CANCEL);
+
+        SubscribeOrder nextOrder = orderRepository.findByMerchantUid(merchantUid).get();
+        assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCEL_DONE_BUYER);
+        assertThat(nextOrder.getDelivery().getStatus()).isEqualTo(DeliveryStatus.DELIVERY_CANCEL);
+        assertThat(nextOrder.getOrderCancel().getCancelRequestDate()).isNotNull();
+        assertThat(nextOrder.getOrderCancel().getCancelConfirmDate()).isNotNull();
+
+        Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
+        assertThat(findSubscribe.getStatus()).isEqualTo(SubscribeStatus.SUBSCRIBE_PENDING);
+
+    }
+
+    @Test
+    @DisplayName("구독 주문 주문 취소 요청 - 주문확인 상태")
+    public void cancelRequestSubscribeOrder_Producing() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        SubscribeOrder order = generateSubscribeOrderAndEtc_NoBeforeSubscribe_no_deliveryNumber(member, 1, OrderStatus.PRODUCING);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/orders/{id}/subscribe/cancelRequest", order.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        em.flush();
+        em.clear();
+
+        SubscribeOrder findOrder = (SubscribeOrder) orderRepository.findById(order.getId()).get();
+        assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCEL_REQUEST);
+        assertThat(findOrder.getOrderCancel().getCancelRequestDate()).isNotNull();
+
+    }
+
+
+
+
+    @Test
     @DisplayName("일반 주문 주문 취소 요청 - 상품 준비 전")
     public void cancelRequestGeneralOrder() throws Exception {
        //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
         int rewardAmount = member.getReward();
+        int accumulatedAmount = member.getAccumulatedAmount();
 
         GeneralOrder order = generateGeneralOrder(member, 1, OrderStatus.PAYMENT_DONE);
+        int discountReward = order.getDiscountReward();
+        int paymentPrice = order.getPaymentPrice();
 
         List<Integer> remainingList = new ArrayList<>();
         List<MemberCoupon> memberCouponList = new ArrayList<>();
@@ -2316,6 +2423,10 @@ public class OrderApiControllerTest extends BaseTest {
 
         em.flush();
         em.clear();
+
+        Member findMember = memberRepository.findById(member.getId()).get();
+        assertThat(findMember.getReward()).isEqualTo(rewardAmount + discountReward);
+        assertThat(findMember.getAccumulatedAmount()).isEqualTo(accumulatedAmount - paymentPrice);
 
         GeneralOrder findOrder = (GeneralOrder) orderRepository.findById(order.getId()).get();
         assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCEL_DONE_BUYER);
@@ -2798,7 +2909,22 @@ public class OrderApiControllerTest extends BaseTest {
 
         Delivery delivery = generateDeliveryNoNumber(member, i);
 
-        Subscribe subscribe = generateSubscribeBeforePayment(i);
+        Subscribe subscribe = generateSubscribeBeforePayment(member, i);
+
+        Delivery nextDelivery = Delivery.builder()
+                .status(DeliveryStatus.BEFORE_PAYMENT)
+                .build();
+        deliveryRepository.save(nextDelivery);
+
+        SubscribeOrder nextOrder = SubscribeOrder.builder()
+                .merchantUid(subscribe.getNextOrderMerchantUid())
+                .orderStatus(OrderStatus.BEFORE_PAYMENT)
+                .member(member)
+                .delivery(nextDelivery)
+                .subscribe(subscribe)
+                .orderPrice(subscribe.getNextPaymentPrice())
+                .build();
+        orderRepository.save(nextOrder);
 
         generateSubscribeRecipe(recipe1, subscribe);
         generateSubscribeRecipe(recipe2, subscribe);
@@ -2882,13 +3008,41 @@ public class OrderApiControllerTest extends BaseTest {
 
 
     private Subscribe generateSubscribeBeforePayment(int i) {
+
+
+
         Subscribe subscribe = Subscribe.builder()
-                .subscribeCount(i+1)
+                .subscribeCount(i + 1)
                 .plan(SubscribePlan.FULL)
+                .nextOrderMerchantUid("merchantUid__" + i)
                 .nextPaymentDate(LocalDateTime.now().plusDays(6))
                 .nextDeliveryDate(LocalDate.now().plusDays(8))
                 .nextPaymentPrice(120000)
                 .status(SubscribeStatus.SUBSCRIBING)
+                .build();
+        subscribeRepository.save(subscribe);
+        return subscribe;
+    }
+
+    private Subscribe generateSubscribeBeforePayment(Member member, int i) {
+
+        Card card = Card.builder()
+                .member(member)
+                .customerUid("customuid" + i)
+                .cardName("cardName")
+                .cardNumber("cardnumber")
+                .build();
+        cardRepository.save(card);
+
+        Subscribe subscribe = Subscribe.builder()
+                .subscribeCount(i + 1)
+                .plan(SubscribePlan.FULL)
+                .nextOrderMerchantUid("merchantUid__" + i)
+                .nextPaymentDate(LocalDateTime.now().plusDays(6))
+                .nextDeliveryDate(LocalDate.now().plusDays(8))
+                .nextPaymentPrice(120000)
+                .status(SubscribeStatus.SUBSCRIBING)
+                .card(card)
                 .build();
         subscribeRepository.save(subscribe);
         return subscribe;
