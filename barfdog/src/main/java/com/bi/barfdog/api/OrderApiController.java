@@ -307,10 +307,6 @@ public class OrderApiController {
     }
 
 
-
-
-
-
     private ResponseEntity<EntityModel<Errors>> badRequest(Errors errors) {
         return ResponseEntity.badRequest().body(new ErrorsResource(errors));
     }

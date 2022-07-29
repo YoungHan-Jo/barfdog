@@ -12,8 +12,10 @@ import com.bi.barfdog.domain.order.Order;
 import com.bi.barfdog.domain.order.SubscribeOrder;
 import com.bi.barfdog.domain.orderItem.OrderItem;
 import com.bi.barfdog.domain.subscribe.Subscribe;
+import com.bi.barfdog.repository.dog.DogRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,7 +27,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+@RequiredArgsConstructor
 public class DirectSendUtils {
+
+    private final DogRepository dogRepository;
 
     public static DirectSendResponseDto sendSmsDirect(String title, String message, String phoneNumber) throws IOException {
         String url = "https://directsend.co.kr/index.php/api_v2/sms_change_word";		// URL
@@ -95,11 +100,31 @@ public class DirectSendUtils {
 
     public static void sendCouponAlim(List<MemberCoupon> memberCouponList) throws IOException {
         if (isCodePublished(memberCouponList)) {
-            sendAlimTalk(DirectSend.CODE_PUBLISH_TEMPLATE, getReceiverOfCoupon(memberCouponList));
+            sendAlimTalk(DirectSend.CODE_PUBLISH_TEMPLATE_TEST, getReceiverOfCoupon(memberCouponList));
         } else if (isGeneralPublished(memberCouponList)) {
-            sendAlimTalk(DirectSend.GENERAL_PUBLISH_TEMPLATE, getReceiverOfCoupon(memberCouponList));
+            sendAlimTalk(DirectSend.GENERAL_PUBLISH_TEMPLATE_TEST, getReceiverOfCoupon(memberCouponList));
         }
     }
+
+    public static void sendCodeCouponPublishAlim(List<CodeCouponAlimDto> codeCouponAlimDtoList) throws IOException {
+
+        String receiver = "";
+
+        for (CodeCouponAlimDto codeCouponAlimDto : codeCouponAlimDtoList) {
+
+            receiver += ",{\"name\": \"" + codeCouponAlimDto.getName() + "\", " +
+                    "\"mobile\":\"" + codeCouponAlimDto.getPhone() + "\", " +
+                    "\"note1\":\"" + codeCouponAlimDto.getDogName() + "\"," +
+                    "\"note2\":\"" + codeCouponAlimDto.getCouponName() + "\"," +
+                    "\"note3\":\"" + codeCouponAlimDto.getCode() + "\"}";
+        }
+
+        receiver = receiver.substring(1);
+
+        sendAlimTalk(DirectSend.CODE_COUPON_TEMPLATE, receiver);
+    }
+
+
 
 
 
@@ -153,6 +178,7 @@ public class DirectSendUtils {
         }
         return paymentMethod;
     }
+
 
 
     public static void sendGeneralOrderSuccessAlim(Order order, String dogName, List<OrderItem> orderItemList) throws IOException {

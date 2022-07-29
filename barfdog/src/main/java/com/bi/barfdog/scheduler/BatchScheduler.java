@@ -13,11 +13,6 @@ public class BatchScheduler {
     private final MemberService memberService;
     private final SubscribeService subscribeService;
 
-    @Scheduled(cron = "0/10 * * * * *")
-    public void testSchedule() {
-        System.out.println("배치 작업");
-    }
-
     @Scheduled(cron = "0 0 3 1 * *")
     public void gradeCheck() {
         memberService.gradeScheduler();

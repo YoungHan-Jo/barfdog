@@ -719,50 +719,7 @@ public class OrderService {
         OrderStatus status = order.getOrderStatus();
         if (status == OrderStatus.PAYMENT_DONE) {
             // 즉시 카드 취소
-            Member member = order.getMember();
-            String impUid = order.getImpUid();
-            CancelData cancelData = new CancelData(impUid, true);
-            try {
-                client.cancelPaymentByImpUid(cancelData);
-                order.cancelOrderAndDelivery(OrderStatus.CANCEL_DONE_BUYER);
-                order.subscribePaymentCancel();
-                member.cancelSubscribePayment(order);
-
-                revivalCancelOrderReward(order, member);
-                revivalCoupon(order);
-                Subscribe subscribe = order.getSubscribe();
-
-                // 예약 취소
-                String nextOrderMerchantUid = subscribe.getNextOrderMerchantUid();
-                Optional<SubscribeOrder> optionalSubscribeOrder = orderRepository.findByMerchantUid(nextOrderMerchantUid);
-                if (optionalSubscribeOrder.isPresent()) {
-                    SubscribeOrder nextOrder = optionalSubscribeOrder.get();
-                    nextOrder.cancelOrderAndDelivery(OrderStatus.CANCEL_DONE_BUYER);
-                    nextOrder.subscribePaymentCancel();
-                    revivalCancelOrderReward(nextOrder, member);
-                    revivalCoupon(nextOrder);
-
-                    String customerUid = subscribe.getCard().getCustomerUid();
-                    UnscheduleData unscheduleData = new UnscheduleData(customerUid);
-                    unscheduleData.addMerchantUid(nextOrder.getMerchantUid());
-                    client.unsubscribeSchedule(unscheduleData);
-
-                }
-
-                subscribe.cancelPayment();
-
-                if (!isSubscriber(member)) {
-                    member.stopSubscriber();
-                }
-
-                // TODO: 2022-07-28 구독주문 결제 취소알림 on/off
-                DirectSendUtils.sendSubscribeOrderCancelAlim(order);
-
-            } catch (IamportResponseException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            paymentCancelSubscribeOrder(order);
 
         } else if (status == OrderStatus.PRODUCING || status == OrderStatus.DELIVERY_READY) {
             // 취소 요청
@@ -1011,27 +968,65 @@ public class OrderService {
     public void cancelConfirmSubscribe(CancelConfirmSubscribeDto requestDto) {
         List<Long> orderIdList = requestDto.getOrderIdList();
         for (Long orderId : orderIdList) {
-            SubscribeOrder order = (SubscribeOrder) orderRepository.findById(orderId).get();
-            Member member = order.getMember();
 
-            String impUid = order.getImpUid();
+            Order findOrder = orderRepository.findById(orderId).get();
 
-            CancelData cancelData = new CancelData(impUid, true);
+            if (findOrder instanceof GeneralOrder) continue;
 
-            try {
-                IamportResponse<Payment> paymentIamportResponse = client.cancelPaymentByImpUid(cancelData);
-                revivalCancelOrderReward(order, member);
-                order.confirmAs(OrderStatus.CANCEL_DONE_BUYER);
-                revivalCoupon(order);
-                order.setCancelConfirmDate();
+            SubscribeOrder order = (SubscribeOrder) findOrder;
 
-            } catch (IamportResponseException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            // 즉시 카드 취소
+            paymentCancelSubscribeOrder(order);
         }
+    }
 
+    private void paymentCancelSubscribeOrder(SubscribeOrder order) {
+        Member member = order.getMember();
+        String merchantUid = order.getMerchantUid();
+        CancelData cancelData = new CancelData(merchantUid, false);
+
+        try {
+            client.cancelPaymentByImpUid(cancelData);
+
+            order.cancelOrderAndDelivery(OrderStatus.CANCEL_DONE_BUYER);
+            order.subscribePaymentCancel();
+            member.cancelSubscribePayment(order);
+
+            revivalCancelOrderReward(order, member);
+            revivalCoupon(order);
+            Subscribe subscribe = order.getSubscribe();
+
+            // 예약 취소
+            String nextOrderMerchantUid = subscribe.getNextOrderMerchantUid();
+            Optional<SubscribeOrder> optionalSubscribeOrder = orderRepository.findByMerchantUid(nextOrderMerchantUid);
+            if (optionalSubscribeOrder.isPresent()) {
+                SubscribeOrder nextOrder = optionalSubscribeOrder.get();
+                nextOrder.cancelOrderAndDelivery(OrderStatus.CANCEL_DONE_BUYER);
+                nextOrder.subscribePaymentCancel();
+                revivalCancelOrderReward(nextOrder, member);
+                revivalCoupon(nextOrder);
+
+                String customerUid = subscribe.getCard().getCustomerUid();
+                UnscheduleData unscheduleData = new UnscheduleData(customerUid);
+                unscheduleData.addMerchantUid(nextOrder.getMerchantUid());
+                client.unsubscribeSchedule(unscheduleData);
+
+            }
+
+            subscribe.cancelPayment();
+
+            if (!isSubscriber(member)) {
+                member.stopSubscriber();
+            }
+
+            // TODO: 2022-07-28 구독주문 결제 취소알림 on/off
+            DirectSendUtils.sendSubscribeOrderCancelAlim(order);
+
+        }catch (IamportResponseException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void revivalCoupon(SubscribeOrder order) {
@@ -1058,24 +1053,21 @@ public class OrderService {
             Optional<OrderItem> optionalOrderItem = orderItemRepository.findById(orderItemId);
             if (!optionalOrderItem.isPresent()) continue;
             OrderItem orderItem = optionalOrderItem.get();
+
             GeneralOrder order = orderItem.getGeneralOrder();
 
-            int finalPrice = orderItem.getFinalPrice();
-            int cancelReward = getCancelReward(order, finalPrice);
-            int cancelPrice = finalPrice - cancelReward;
+            orderItem.cancelConfirm(OrderStatus.CANCEL_DONE_SELLER, reason, detailReason);
 
-            String impUid = order.getImpUid();
-            CancelData cancelData = new CancelData(impUid, true, BigDecimal.valueOf(cancelPrice));
+            orderStatusCancelDone(order);
+            revivalCoupon(orderItem);
+
+            String dogName = getRepresentativeDogName(order.getMember());
+
+            List<OrderItem> orderItems = new ArrayList<>();
+            orderItems.add(orderItem);
 
             try {
-                IamportResponse<Payment> paymentIamportResponse = client.cancelPaymentByImpUid(cancelData);
-                orderItem.cancelConfirm(cancelReward, cancelPrice, OrderStatus.CANCEL_DONE_SELLER, reason, detailReason);
-                revivalCancelOrderReward(orderItem, order, RewardName.CANCEL_ORDER);
-                orderStatusCancelDone(order);
-                revivalCoupon(orderItem);
-
-            } catch (IamportResponseException e) {
-                e.printStackTrace();
+                DirectSendUtils.sendGeneralOrderCancelAlim(order, dogName, orderItems);
             } catch (IOException e) {
                 e.printStackTrace();
             }

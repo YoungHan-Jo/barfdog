@@ -111,14 +111,9 @@ public class OrderItem extends BaseTimeEntity {
         this.status = status;
     }
 
-    // 상품 단위 취소
-    public void cancelConfirm(int cancelReward, int cancelPrice, OrderStatus status) {
-        this.cancelConfirm(cancelReward, cancelPrice, status, null, null);
-    }
-    public void cancelConfirm(int cancelReward, int cancelPrice, OrderStatus status, String reason, String detailReason) {
+
+    public void cancelConfirm(OrderStatus status, String reason, String detailReason) {
         this.status = status;
-//        this.cancelPrice = cancelPrice;
-//        this.cancelReward = cancelReward;
         orderCancel = OrderCancel.builder()
                 .cancelReason(reason)
                 .cancelDetailReason(detailReason)

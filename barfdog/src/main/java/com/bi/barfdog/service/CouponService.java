@@ -2,13 +2,16 @@ package com.bi.barfdog.service;
 
 import com.bi.barfdog.api.couponDto.*;
 import com.bi.barfdog.api.resource.CouponsDtoResource;
+import com.bi.barfdog.directsend.CodeCouponAlimDto;
 import com.bi.barfdog.directsend.DirectSendUtils;
 import com.bi.barfdog.domain.coupon.Coupon;
 import com.bi.barfdog.domain.coupon.CouponStatus;
 import com.bi.barfdog.domain.coupon.CouponType;
+import com.bi.barfdog.domain.dog.Dog;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.repository.coupon.CouponRepository;
+import com.bi.barfdog.repository.dog.DogRepository;
 import com.bi.barfdog.repository.memberCoupon.MemberCouponRepository;
 import com.bi.barfdog.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +39,7 @@ public class CouponService {
     private final CouponRepository couponRepository;
     private final MemberRepository memberRepository;
     private final MemberCouponRepository memberCouponRepository;
+    private final DogRepository dogRepository;
     private final EntityManager em;
 
     @Transactional
@@ -131,9 +135,13 @@ public class CouponService {
 
         coupon.publish(expiredDate);
 
+        List<CodeCouponAlimDto> codeCouponAlimDtoList = new ArrayList<>();
+
         if (couponType == CouponType.CODE_PUBLISHED) { // 코드 발행 쿠폰
             for (Member member : memberList) {
-                addMemberCouponInList(member, coupon, expiredDate, CouponStatus.INACTIVE, memberCouponList);
+                CodeCouponAlimDto codeCouponAlimDto = addMemberCouponInList(member, coupon, expiredDate, CouponStatus.INACTIVE, memberCouponList);
+
+                codeCouponAlimDtoList.add(codeCouponAlimDto);
             }
         } else if (couponType == CouponType.GENERAL_PUBLISHED) { // 일반 발행 쿠폰
             for (Member member : memberList) {
@@ -148,7 +156,7 @@ public class CouponService {
 
         // 알림톡 보내기
         if (requestDto.isAlimTalk()) {
-            DirectSendUtils.sendCouponAlim(memberCouponList);
+            DirectSendUtils.sendCodeCouponPublishAlim(codeCouponAlimDtoList);
         }
 
     }
@@ -210,7 +218,16 @@ public class CouponService {
         return expiredDate;
     }
 
-    private void addMemberCouponInList(Member member, Coupon coupon, LocalDateTime expiredDate, CouponStatus inactive, List<MemberCoupon> memberCouponList) {
+    private String getRepresentativeDogName(Member member) {
+        List<Dog> dogList = dogRepository.findRepresentativeDogByMember(member);
+        String dogName = "";
+        if (dogList.size() > 0) {
+            dogName = dogList.get(0).getName();
+        }
+        return dogName;
+    }
+
+    private CodeCouponAlimDto addMemberCouponInList(Member member, Coupon coupon, LocalDateTime expiredDate, CouponStatus inactive, List<MemberCoupon> memberCouponList) {
         MemberCoupon memberCoupon = MemberCoupon.builder()
                 .member(member)
                 .coupon(coupon)
@@ -218,8 +235,18 @@ public class CouponService {
                 .remaining(coupon.getAmount())
                 .memberCouponStatus(inactive)
                 .build();
-
         memberCouponList.add(memberCoupon);
+
+        String dogName = getRepresentativeDogName(member);
+
+
+        return CodeCouponAlimDto.builder()
+                .name(member.getName())
+                .phone(member.getPhoneNumber())
+                .dogName(dogName)
+                .couponName(coupon.getName())
+                .code(coupon.getCode())
+                .build();
     }
 
 

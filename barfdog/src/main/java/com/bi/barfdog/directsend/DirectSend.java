@@ -6,8 +6,10 @@ public interface DirectSend {
     String API_KEY = "HrgHhRBDF7it2Vq";
     String KAKAO_PLUS_ID = "바프독";
 
-    String CODE_PUBLISH_TEMPLATE = "1";
-    String GENERAL_PUBLISH_TEMPLATE = "4";
+    String CODE_PUBLISH_TEMPLATE_TEST = "1";
+    String GENERAL_PUBLISH_TEMPLATE_TEST = "4";
+
+    String CODE_COUPON_TEMPLATE = "37";
 
     String ORDER_SUCCESS_TEMPLATE = "10";
     String ORDER_CANCEL_TEMPLATE = "16";

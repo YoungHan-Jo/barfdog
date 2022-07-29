@@ -187,7 +187,6 @@ public class DeliveryAdminAControllerTest extends BaseTest {
     @Test
     @DisplayName("운송장 발급에 필요한 값 조회 - 묶음배송")
     public void queryDeliveriesInfo_sameDelivery() throws Exception {
-        //given
 
         //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
@@ -250,11 +249,11 @@ public class DeliveryAdminAControllerTest extends BaseTest {
                                 fieldWithPath("_embedded.queryOrderInfoForDeliveryList[0].rcvAddr2").description("받는사람 주소2"),
                                 fieldWithPath("_embedded.queryOrderInfoForDeliveryList[0].rcvTel1").description("받는사람 전화번호1"),
                                 fieldWithPath("_embedded.queryOrderInfoForDeliveryList[0].mallId").description("mall id"),
-                                fieldWithPath("_embedded.queryOrderInfoForDeliveryList[0].orderItemDtoList[0].uniqueCd").description("보내는 상품 uniqueCd"),
-                                fieldWithPath("_embedded.queryOrderInfoForDeliveryList[0].orderItemDtoList[0].ordNo").description("보내는 상품 id"),
-                                fieldWithPath("_embedded.queryOrderInfoForDeliveryList[0].orderItemDtoList[0].itemName").description("상품 이름"),
-                                fieldWithPath("_embedded.queryOrderInfoForDeliveryList[0].orderItemDtoList[0].itemQty").description("상품 개수"),
-                                fieldWithPath("_embedded.queryOrderInfoForDeliveryList[0].orderItemDtoList[0].ordDate").description("주문 날짜"),
+                                fieldWithPath("_embedded.queryOrderInfoForDeliveryList[0].orderItems[0].uniqueCd").description("보내는 상품 uniqueCd"),
+                                fieldWithPath("_embedded.queryOrderInfoForDeliveryList[0].orderItems[0].ordNo").description("보내는 상품 id"),
+                                fieldWithPath("_embedded.queryOrderInfoForDeliveryList[0].orderItems[0].itemName").description("상품 이름"),
+                                fieldWithPath("_embedded.queryOrderInfoForDeliveryList[0].orderItems[0].itemQty").description("상품 개수"),
+                                fieldWithPath("_embedded.queryOrderInfoForDeliveryList[0].orderItems[0].ordDate").description("주문 날짜"),
                                 fieldWithPath("_links.self.href").description("self 링크"),
                                 fieldWithPath("_links.update_deliveryNumber.href").description("운송장번호 저장 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")

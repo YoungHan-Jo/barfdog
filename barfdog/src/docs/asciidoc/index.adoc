@@ -1503,23 +1503,33 @@ operation::update_deliveryNumber[snippets='curl-request,request-headers,request-
 
 
 [[resources-admin-cancelConfirm-general]]
-=== 일반 주문 주문취소요청을 컨펌 처리
+=== 일반 주문 취소요청 컨펌 처리
 
-`POST` 요청을 사용하여 일반 주문 주문취소요청을 컨펌 처리할 수 있다.
+`POST` 요청을 사용하여 일반 주문 주문취소요청을 컨펌 처리할 수 있다. +
+
+주문 전체 카드결제금액/적립금/사용한 쿠폰 모두 환불처리 +
 
 operation::admin_cancelConfirm_general[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 [[resources-admin-cancelConfirm-subscribe]]
-=== 구독 주문 주문취소요청을 컨펌 처리
+=== 구독 주문 취소요청 컨펌 처리
 
-`POST` 요청을 사용하여 구독 주문 주문취소요청을 컨펌 처리할 수 있다.
+`POST` 요청을 사용하여 구독 주문 주문취소요청을 컨펌 처리할 수 있다. +
+
+주문 전체 카드결제금액/적립금/사용한 쿠폰 모두 환불처리 +
 
 operation::admin_cancelConfirm_subscribe[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
-[[resources-admin-orderCancel-general]]
-=== 일반 주문 관리자 판매취소 처리
 
-`POST` 요청을 사용하여 일반 주문 관리자 판매취소 처리할 수 있다.
+
+
+[[resources-admin-orderCancel-general]]
+=== 일반 주문 관리자 판매취소 처리 (상품 단위 취소)
+
+`POST` 요청을 사용하여 일반 주문 관리자 판매취소 처리할 수 있다. +
+
+쿠폰 복구와 상태만 변경하기 때문에, +
+수동으로 카드취소 + 적립금 환불 계산해서 해줘야함.
 
 operation::admin_orderCancel_general[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 

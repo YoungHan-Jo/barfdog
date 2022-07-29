@@ -901,7 +901,7 @@ public class CouponAdminControllerTest extends BaseTest {
         Member member = Member.builder()
                 .email("jyh@gmail.com")
                 .name("조영한")
-                .phoneNumber("01099038544")
+                .phoneNumber("01099038522")
                 .address(new Address("12345","부산광역시","부산광역시 해운대구 센텀2로 19","106호"))
                 .birthday("19991201")
                 .gender(Gender.MALE)
@@ -976,22 +976,24 @@ public class CouponAdminControllerTest extends BaseTest {
         //given
         Coupon coupon = generateCodeCoupon(1);
 
-        Member member = Member.builder()
-                .email("jyh@gmail.com")
-                .name("조영한")
-                .phoneNumber("01099038544")
-                .address(new Address("12345","부산광역시","부산광역시 해운대구 센텀2로 19","106호"))
-                .birthday("19991201")
-                .gender(Gender.MALE)
-                .agreement(new Agreement(true,true,true,true,true))
-                .myRecommendationCode(BarfUtils.generateRandomCode())
-                .grade(Grade.브론즈)
-                .reward(0)
-                .accumulatedAmount(0)
-                .firstReward(new FirstReward(false, false))
-                .roles("USER")
-                .build();
-        memberRepository.save(member);
+//        Member member = Member.builder()
+//                .email("jyh@gmail.com")
+//                .name("조영한")
+//                .phoneNumber("01099038522")
+//                .address(new Address("12345","부산광역시","부산광역시 해운대구 센텀2로 19","106호"))
+//                .birthday("19991201")
+//                .gender(Gender.MALE)
+//                .agreement(new Agreement(true,true,true,true,true))
+//                .myRecommendationCode(BarfUtils.generateRandomCode())
+//                .grade(Grade.브론즈)
+//                .reward(0)
+//                .accumulatedAmount(0)
+//                .firstReward(new FirstReward(false, false))
+//                .roles("USER")
+//                .build();
+//        memberRepository.save(member);
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
         List<Long> memberIdList = new ArrayList<>();
         memberIdList.add(member.getId());
@@ -1001,7 +1003,7 @@ public class CouponAdminControllerTest extends BaseTest {
                 .expiredDate("2025-05-31")
                 .couponType(CouponType.CODE_PUBLISHED)
                 .couponId(coupon.getId())
-                .alimTalk(false)
+                .alimTalk(true)
                 .build();
 
         //when & then
@@ -1100,7 +1102,7 @@ public class CouponAdminControllerTest extends BaseTest {
         Member member = Member.builder()
                 .email("jyh@gmail.com")
                 .name("조영한")
-                .phoneNumber("01099038544")
+                .phoneNumber("01099038522")
                 .address(new Address("12345","부산광역시","부산광역시 해운대구 센텀2로 19","106호"))
                 .birthday("19991201")
                 .gender(Gender.MALE)
@@ -1214,7 +1216,7 @@ public class CouponAdminControllerTest extends BaseTest {
         gradeList.add(Grade.실버);
 
         GroupPublishRequestDto requestDto = GroupPublishRequestDto.builder()
-                .subscribe(false)
+                .subscribe(true)
                 .longUnconnected(false)
                 .gradeList(gradeList)
                 .area(Area.ALL)
@@ -1223,7 +1225,7 @@ public class CouponAdminControllerTest extends BaseTest {
                 .expiredDate("2025-05-31")
                 .couponType(coupon.getCouponType())
                 .couponId(coupon.getId())
-                .alimTalk(false)
+                .alimTalk(true)
                 .build();
 
         //when & then
@@ -1272,7 +1274,7 @@ public class CouponAdminControllerTest extends BaseTest {
         List<Member> findMembers = memberRepository.findByGrades(gradeList);
 
         List<MemberCoupon> all = memberCouponRepository.findAll();
-        assertThat(all.size()).isEqualTo(findMembers.size());
+        assertThat(all.size()).isEqualTo(1);
 
     }
 

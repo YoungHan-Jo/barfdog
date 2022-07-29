@@ -31,7 +31,7 @@ public class QueryOrderInfoForDelivery {
     private String mallId;
 
     @Builder.Default
-    private List<OrderItemDto> orderItemDtoList = new ArrayList<>();
+    private List<OrderItemDto> orderItems = new ArrayList<>();
 
     @Data
     @AllArgsConstructor

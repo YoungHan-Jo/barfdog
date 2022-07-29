@@ -18,7 +18,7 @@ spring:
 #      fail-on-unknown-properties: true
 #
 #  datasource:
-#    url: jdbc:mariadb://binter.synology.me:3307/barfdog?characterEncoding=UTF-8&serverTimezone=UTC
+#    url: jdbc:mariadb://binter.synology.me:3307/barfdogTestDB?characterEncoding=UTF-8&serverTimezone=UTC
 #    driver-class-name: org.mariadb.jdbc.Driver
 #    username: britishinter
 #    password: Britain001!
