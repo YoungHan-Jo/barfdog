@@ -48,8 +48,6 @@ import com.siot.IamportRestClient.request.CancelData;
 import com.siot.IamportRestClient.request.ScheduleData;
 import com.siot.IamportRestClient.request.ScheduleEntry;
 import com.siot.IamportRestClient.request.UnscheduleData;
-import com.siot.IamportRestClient.response.IamportResponse;
-import com.siot.IamportRestClient.response.Payment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -719,7 +717,7 @@ public class OrderService {
         OrderStatus status = order.getOrderStatus();
         if (status == OrderStatus.PAYMENT_DONE) {
             // 즉시 카드 취소
-            paymentCancelSubscribeOrder(order);
+            paymentCancelSubscribeOrder(order, OrderStatus.CANCEL_DONE_BUYER);
 
         } else if (status == OrderStatus.PRODUCING || status == OrderStatus.DELIVERY_READY) {
             // 취소 요청
@@ -976,11 +974,11 @@ public class OrderService {
             SubscribeOrder order = (SubscribeOrder) findOrder;
 
             // 즉시 카드 취소
-            paymentCancelSubscribeOrder(order);
+            paymentCancelSubscribeOrder(order, OrderStatus.CANCEL_DONE_BUYER);
         }
     }
 
-    private void paymentCancelSubscribeOrder(SubscribeOrder order) {
+    private void paymentCancelSubscribeOrder(SubscribeOrder order, OrderStatus orderStatus) {
         Member member = order.getMember();
         String merchantUid = order.getMerchantUid();
         CancelData cancelData = new CancelData(merchantUid, false);
@@ -988,7 +986,7 @@ public class OrderService {
         try {
             client.cancelPaymentByImpUid(cancelData);
 
-            order.cancelOrderAndDelivery(OrderStatus.CANCEL_DONE_BUYER);
+            order.cancelOrderAndDelivery(orderStatus);
             order.subscribePaymentCancel();
             member.cancelSubscribePayment(order);
 
@@ -1001,7 +999,7 @@ public class OrderService {
             Optional<SubscribeOrder> optionalSubscribeOrder = orderRepository.findByMerchantUid(nextOrderMerchantUid);
             if (optionalSubscribeOrder.isPresent()) {
                 SubscribeOrder nextOrder = optionalSubscribeOrder.get();
-                nextOrder.cancelOrderAndDelivery(OrderStatus.CANCEL_DONE_BUYER);
+                nextOrder.cancelOrderAndDelivery(orderStatus);
                 nextOrder.subscribePaymentCancel();
                 revivalCancelOrderReward(nextOrder, member);
                 revivalCoupon(nextOrder);
@@ -1079,28 +1077,27 @@ public class OrderService {
         String reason = requestDto.getReason();
         String detailReason = requestDto.getDetailReason();
         List<Long> orderIdList = requestDto.getOrderIdList();
+
         for (Long orderId : orderIdList) {
-            SubscribeOrder order = (SubscribeOrder) orderRepository.findById(orderId).get();
-            Member member = order.getMember();
+            Optional<Order> optionalOrder = orderRepository.findById(orderId);
+            if (!optionalOrder.isPresent()) continue;
 
-            String impUid = order.getImpUid();
+            Order order = optionalOrder.get();
+            if (order instanceof GeneralOrder) continue;
 
-            CancelData cancelData = new CancelData(impUid, true);
+            SubscribeOrder subscribeOrder = (SubscribeOrder) order;
 
-            try {
-                IamportResponse<Payment> paymentIamportResponse = client.cancelPaymentByImpUid(cancelData);
-                revivalCancelOrderReward(order, member);
-                order.confirmAs(OrderStatus.CANCEL_DONE_SELLER);
-                order.cancelReason(reason, detailReason);
-                revivalCoupon(order);
+            paymentCancelSubscribeOrder(subscribeOrder, OrderStatus.CANCEL_DONE_SELLER);
 
-            } catch (IamportResponseException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            subscribeOrder.cancelReason(reason, detailReason);
+
+            Subscribe subscribe = subscribeOrder.getSubscribe();
+            String nextOrderMerchantUid = subscribe.getNextOrderMerchantUid();
+            Optional<SubscribeOrder> optionalNextOrder = orderRepository.findByMerchantUid(nextOrderMerchantUid);
+            if (!optionalNextOrder.isPresent()) continue;
+            SubscribeOrder nextOrder = optionalNextOrder.get();
+            nextOrder.cancelReason(reason,detailReason);
         }
-
     }
 
 

@@ -261,3 +261,6 @@
 1658995822178|0|rollback|connection 151|url jdbc:h2:mem:testdb||
 1658997261413|0|rollback|connection 151|url jdbc:h2:mem:testdb||
 1658997564465|0|rollback|connection 151|url jdbc:h2:mem:testdb||
+1659960212623|0|rollback|connection 151|url jdbc:h2:mem:testdb||
+1659960413446|0|rollback|connection 151|url jdbc:h2:mem:testdb||
+1659960807136|0|rollback|connection 151|url jdbc:h2:mem:testdb||

@@ -1,13 +1,18 @@
 package com.bi.barfdog.api;
 
+import com.bi.barfdog.api.barfDto.FriendTalkAllDto;
+import com.bi.barfdog.api.barfDto.FriendTalkGroupDto;
 import com.bi.barfdog.api.settingDto.UpdateSettingDto;
 import com.bi.barfdog.common.ErrorsResource;
+import com.bi.barfdog.directsend.DirectSendResponseDto;
+import com.bi.barfdog.directsend.FriendTalkResponseDto;
 import com.bi.barfdog.domain.setting.Setting;
 import com.bi.barfdog.repository.article.ArticleRepository;
 import com.bi.barfdog.repository.blog.BlogRepository;
 import com.bi.barfdog.repository.member.MemberRepository;
 import com.bi.barfdog.repository.setting.SettingRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
+import com.bi.barfdog.service.BarfService;
 import com.bi.barfdog.service.BlogService;
 import com.bi.barfdog.service.MemberService;
 import com.bi.barfdog.service.SettingService;
@@ -32,8 +37,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 public class AdminApiController {
 
     private final SettingRepository settingRepository;
-
     private final SettingService settingService;
+    private final BarfService barfService;
 
     WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
 
@@ -66,6 +71,34 @@ public class AdminApiController {
     }
 
 
+
+    @PostMapping("/friendTalk/all")
+    public ResponseEntity friendTalkAll(@RequestBody @Valid FriendTalkAllDto requestDto,
+                                        Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+
+        FriendTalkResponseDto responseDto = barfService.sendFriendTalkAll(requestDto);
+
+        EntityModel<FriendTalkResponseDto> entityModel = EntityModel.of(responseDto);
+        entityModel.add(linkTo(AdminApiController.class).slash("friendTalk/all").withSelfRel());
+        entityModel.add(profileRootUrlBuilder.slash("index.html#resources-friendTalk-all").withRel("profile"));
+
+        return ResponseEntity.ok(entityModel);
+    }
+
+    @PostMapping("/friendTalk/group")
+    public ResponseEntity friendTalkGroup(@RequestBody @Valid FriendTalkGroupDto requestDto,
+                                          Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+
+        FriendTalkResponseDto responseDto = barfService.sendFriendTalkGroup(requestDto);
+
+        EntityModel<FriendTalkResponseDto> entityModel = EntityModel.of(responseDto);
+        entityModel.add(linkTo(AdminApiController.class).slash("friendTalk/group").withSelfRel());
+        entityModel.add(profileRootUrlBuilder.slash("index.html#resources-friendTalk-group").withRel("profile"));
+
+        return ResponseEntity.ok(entityModel);
+    }
 
 
 

@@ -232,6 +232,7 @@ public class AppConfig {
                 generateMemberCoupon(member, dogBirthCoupon);
                 generateMemberCoupon(member, memberBirthCoupon);
 
+
                 // ============= 작성 가능한 리뷰 시작 ============== //
                 Item item1 = generateItem(1);
                 Item item2 = generateItem(2);
@@ -906,9 +907,9 @@ public class AppConfig {
                 return month;
             }
 
-            private Dog generateDogRepresentativeBeforePaymentSubscribe(Member admin, long startAgeMonth, DogSize dogSize, String weight, ActivityLevel activitylevel, int walkingCountPerWeek, double walkingTimePerOneTime, SnackCountLevel snackCountLevel) {
+            private Dog generateDogRepresentativeBeforePaymentSubscribe(Member member, long startAgeMonth, DogSize dogSize, String weight, ActivityLevel activitylevel, int walkingCountPerWeek, double walkingTimePerOneTime, SnackCountLevel snackCountLevel) {
                 Dog dog = Dog.builder()
-                        .member(admin)
+                        .member(member)
                         .name("대표견")
                         .birth("202103")
                         .representative(true)
@@ -1143,7 +1144,7 @@ public class AppConfig {
                         .myRecommendationCode(BarfUtils.generateRandomCode())
                         .grade(grade)
                         .reward(reward)
-                        .accumulatedAmount(0)
+                        .accumulatedAmount(1000000)
                         .accumulatedSubscribe(3)
                         .isSubscribe(isSubscribe)
                         .firstReward(new FirstReward(recommend, recommend))

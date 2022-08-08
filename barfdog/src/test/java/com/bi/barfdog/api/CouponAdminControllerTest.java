@@ -6,6 +6,7 @@ import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.Address;
 import com.bi.barfdog.domain.coupon.*;
+import com.bi.barfdog.domain.dog.*;
 import com.bi.barfdog.domain.member.*;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.api.memberDto.jwt.JwtLoginDto;
@@ -29,11 +30,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,6 +77,8 @@ public class CouponAdminControllerTest extends BaseTest {
     @Autowired
     AppProperties appProperties;
 
+    @Autowired
+    BCryptPasswordEncoder bCryptPasswordEncoder;
     @Autowired
     OrderItemRepository orderItemRepository;
     @Autowired
@@ -995,6 +1000,8 @@ public class CouponAdminControllerTest extends BaseTest {
 
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
+        generateDog(member, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL, true, "대표견");
+
         List<Long> memberIdList = new ArrayList<>();
         memberIdList.add(member.getId());
 
@@ -1028,16 +1035,35 @@ public class CouponAdminControllerTest extends BaseTest {
 
     }
 
+    private Dog generateDog(Member member, long startAgeMonth, DogSize dogSize, String weight, ActivityLevel activitylevel, int walkingCountPerWeek, double walkingTimePerOneTime, SnackCountLevel snackCountLevel, boolean representative, String name) {
+        Dog dog = Dog.builder()
+                .member(member)
+                .representative(representative)
+                .name(name)
+                .startAgeMonth(startAgeMonth)
+                .gender(Gender.MALE)
+                .oldDog(false)
+                .dogSize(dogSize)
+                .weight(new BigDecimal(weight))
+                .dogActivity(new DogActivity(activitylevel, walkingCountPerWeek, walkingTimePerOneTime))
+                .dogStatus(DogStatus.HEALTHY)
+                .snackCountLevel(snackCountLevel)
+                .build();
+        return dogRepository.save(dog);
+    }
+
+
+
     @Test
-    @DisplayName("정상적으로 1000명에게 코드 쿠폰 개인 발행하는 테스트")
-    public void publishCoupon_personal_Code_Alim_1000() throws Exception {
+    @DisplayName("정상적으로 100명에게 코드 쿠폰 개인 발행하는 테스트")
+    public void publishCoupon_personal_Code_Alim_100() throws Exception {
         //given
         Coupon coupon = generateCodeCoupon(1);
 
         List<Long> memberIdList = new ArrayList<>();
 
-        IntStream.range(1, 1001).forEach(i ->{
-            Member member = generateMember(i);
+        IntStream.range(1, 101).forEach(i ->{
+            Member member = generateMember(i, "0109903" + i);
             memberIdList.add(member.getId());
         });
 
@@ -1063,7 +1089,7 @@ public class CouponAdminControllerTest extends BaseTest {
         em.flush();
 
         List<MemberCoupon> all = memberCouponRepository.findAll();
-        assertThat(all.size()).isEqualTo(1000);
+        assertThat(all.size()).isEqualTo(100);
 
 
         Coupon findCoupon = couponRepository.findById(coupon.getId()).get();
@@ -1072,11 +1098,34 @@ public class CouponAdminControllerTest extends BaseTest {
 
     }
 
-    private Member generateMember(int i) {
+    private Member generateMember(String email, String name, String password, String phoneNumber, Gender gender, Grade grade, int reward, boolean recommend, String roles, boolean isSubscribe) {
+        Member member = Member.builder()
+                .email(email)
+                .name(name)
+                .password(bCryptPasswordEncoder.encode(password))
+                .phoneNumber(phoneNumber)
+                .address(new Address("12345","부산광역시","부산광역시 해운대구 센텀2로 19","106호"))
+                .birthday("19991201")
+                .gender(gender)
+                .agreement(new Agreement(true,true,true,true,true))
+                .myRecommendationCode(BarfUtils.generateRandomCode())
+                .grade(grade)
+                .reward(reward)
+                .accumulatedAmount(1000000)
+                .accumulatedSubscribe(3)
+                .isSubscribe(isSubscribe)
+                .firstReward(new FirstReward(recommend, recommend))
+                .roles(roles)
+                .build();
+
+        return memberRepository.save(member);
+    }
+
+    private Member generateMember(int i, String phoneNumber) {
         Member member = Member.builder()
                 .email("jyh@gmail.com" + i)
                 .name("회원" + i)
-                .phoneNumber("0109903" + i)
+                .phoneNumber(phoneNumber)
                 .address(new Address("12345","부산광역시","부산광역시 해운대구 센텀2로 19","106호"))
                 .birthday("19991201")
                 .gender(Gender.MALE)
@@ -1203,13 +1252,18 @@ public class CouponAdminControllerTest extends BaseTest {
     }
 
     @Test
-    @DisplayName("정상적으로 해당 그룹에게 일반 발행 쿠폰을 발행하는 테스트")
-    public void publish_coupons_group() throws Exception {
+    @DisplayName("정상적으로 해당 그룹에게 코드 발행 쿠폰을 발행하는 테스트")
+    public void publish_coupons_code_group() throws Exception {
         //given
-        Coupon coupon = generateGeneralCoupon(1);
+        Coupon coupon = generateCodeCoupon(1);
 
         Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
-        Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        Member member2 = generateMember("ntm723@gmail.com", "나회원", appProperties.getUserPassword(), "01056862723", Gender.MALE, Grade.브론즈, 50000, false, "USER,SUBSCRIBER", true);
+
+        generateDog(member, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL, true, "대표견");
+        generateDog(member2, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL, true, "댕댕이");
 
         List<Grade> gradeList = new ArrayList<>();
         gradeList.add(Grade.브론즈);
@@ -1274,9 +1328,54 @@ public class CouponAdminControllerTest extends BaseTest {
         List<Member> findMembers = memberRepository.findByGrades(gradeList);
 
         List<MemberCoupon> all = memberCouponRepository.findAll();
-        assertThat(all.size()).isEqualTo(1);
+        assertThat(all.size()).isEqualTo(2);
 
     }
+
+    @Test
+    @DisplayName("정상적으로 해당 그룹에게 일반 발행 쿠폰을 발행하는 테스트_ 실버에게만")
+    public void publish_coupons_group_실버() throws Exception {
+        //given
+        Coupon coupon = generateCodeCoupon(1);
+
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        generateDog(member, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL, true, "대표견");
+
+        List<Grade> gradeList = new ArrayList<>();
+        gradeList.add(Grade.실버);
+
+        GroupPublishRequestDto requestDto = GroupPublishRequestDto.builder()
+                .subscribe(true)
+                .longUnconnected(false)
+                .gradeList(gradeList)
+                .area(Area.ALL)
+                .birthYearFrom("1990")
+                .birthYearTo("1999")
+                .expiredDate("2025-05-31")
+                .couponType(coupon.getCouponType())
+                .couponId(coupon.getId())
+                .alimTalk(true)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/coupons/group")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isCreated())
+        ;
+
+        List<Member> findMembers = memberRepository.findByGrades(gradeList);
+
+        List<MemberCoupon> all = memberCouponRepository.findAll();
+        assertThat(all.size()).isEqualTo(0);
+
+    }
+
 
     @Test
     @DisplayName("비활성화인 쿠폰을 발행할 경우 bad request")
@@ -1518,7 +1617,18 @@ public class CouponAdminControllerTest extends BaseTest {
     @DisplayName("전체 유저에게 코드형 쿠폰 보내는 테스트")
     public void publish_coupons_all_code_coupon() throws Exception {
         //given
+        memberRepository.deleteAll();
+
+        em.flush();
+        em.clear();
+
         Coupon coupon = generateCodeCoupon(1);
+
+        Member admin = generateMember(appProperties.getAdminEmail(), "관리자", appProperties.getAdminPassword(), "01056862723", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,SUBSCRIBER,USER", true);
+        Member member = generateMember("jyh@gmail.com", "김회원", appProperties.getUserPassword(), "01099038544", Gender.MALE, Grade.브론즈, 50000, false, "USER,SUBSCRIBER", true);
+
+        generateDog(member, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL, true, "대표견");
+        generateDog(admin, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL, true, "댕댕이");
 
         AllPublishRequestDto requestDto = AllPublishRequestDto.builder()
                 .expiredDate("2025-05-28")
@@ -1536,6 +1646,9 @@ public class CouponAdminControllerTest extends BaseTest {
                 .andDo(print())
                 .andExpect(status().isCreated())
         ;
+
+        em.flush();
+        em.clear();
 
         List<Member> allMembers = memberRepository.findAll();
 

@@ -1,5 +1,6 @@
 package com.bi.barfdog.repository.member;
 
+import com.bi.barfdog.api.barfDto.FriendTalkGroupDto;
 import com.bi.barfdog.api.barfDto.MypageDto;
 import com.bi.barfdog.api.couponDto.Area;
 import com.bi.barfdog.api.couponDto.GroupPublishRequestDto;
@@ -116,6 +117,22 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
                 )
                 .fetch();
     }
+
+    @Override
+    public List<Member> findFriendTalkGroupDto(FriendTalkGroupDto requestDto) {
+        return queryFactory
+                .selectFrom(member)
+                .where(
+                        gradeIn(requestDto.getGradeList()),
+                        subscribeEq(requestDto.isSubscribe()),
+                        birthBetween(requestDto.getBirthYearFrom(),requestDto.getBirthYearTo()),
+                        areaEq(requestDto.getArea()),
+                        longUnconnectedEq(requestDto.isLongUnconnected())
+                )
+                .fetch()
+                ;
+    }
+
 
     private BooleanExpression subscribeEq(PublishToGroupDto requestDto) {
         return member.isSubscribe.eq(requestDto.isSubscribe());
@@ -314,6 +331,8 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
 
         return result;
     }
+
+
 
     private MypageDto.MypageMemberDto getMypageMemberDto(Member currentMember) {
         MypageDto.MypageMemberDto mypageMemberDto = queryFactory

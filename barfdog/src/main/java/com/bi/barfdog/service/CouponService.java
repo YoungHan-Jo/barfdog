@@ -100,9 +100,12 @@ public class CouponService {
 
         coupon.publish(expiredDate);
 
+        List<CodeCouponAlimDto> codeCouponAlimDtoList = new ArrayList<>();
+
         if (couponType == CouponType.CODE_PUBLISHED) { // 코드 발행 쿠폰
             for (Member member : memberList) {
-                addMemberCouponInList(member, coupon, expiredDate, CouponStatus.INACTIVE, memberCouponList);
+                CodeCouponAlimDto codeCouponAlimDto = addMemberCouponInList(member, coupon, expiredDate, CouponStatus.INACTIVE, memberCouponList);
+                codeCouponAlimDtoList.add(codeCouponAlimDto);
             }
         } else if (couponType == CouponType.GENERAL_PUBLISHED) { // 일반 발행 쿠폰
             for (Member member : memberList) {
@@ -118,7 +121,11 @@ public class CouponService {
 
         // 알림톡 보내기
         if (requestDto.isAlimTalk()) {
-            DirectSendUtils.sendCouponAlim(memberCouponList);
+            if (couponType == CouponType.CODE_PUBLISHED) {
+                DirectSendUtils.sendCodeCouponPublishAlim(codeCouponAlimDtoList);
+            } else {
+                DirectSendUtils.sendCouponAlim(memberCouponList);
+            }
         }
 
 
@@ -156,8 +163,13 @@ public class CouponService {
 
         // 알림톡 보내기
         if (requestDto.isAlimTalk()) {
-            DirectSendUtils.sendCodeCouponPublishAlim(codeCouponAlimDtoList);
+            if (couponType == CouponType.CODE_PUBLISHED) {
+                DirectSendUtils.sendCodeCouponPublishAlim(codeCouponAlimDtoList);
+            } else {
+                DirectSendUtils.sendCouponAlim(memberCouponList);
+            }
         }
+
 
     }
 
@@ -171,9 +183,13 @@ public class CouponService {
         LocalDateTime expiredDate = getExpiredDate(requestDto.getExpiredDate());
         coupon.publish(expiredDate);
 
+        List<CodeCouponAlimDto> codeCouponAlimDtoList = new ArrayList<>();
+
         if (couponType == CouponType.CODE_PUBLISHED) { // 코드 발행 쿠폰
             for (Member member : memberList) {
-                addMemberCouponInList(member, coupon, expiredDate, CouponStatus.INACTIVE, memberCouponList);
+                CodeCouponAlimDto codeCouponAlimDto = addMemberCouponInList(member, coupon, expiredDate, CouponStatus.INACTIVE, memberCouponList);
+
+                codeCouponAlimDtoList.add(codeCouponAlimDto);
             }
         } else if (couponType == CouponType.GENERAL_PUBLISHED) { // 일반 발행 쿠폰
             for (Member member : memberList) {
@@ -188,7 +204,11 @@ public class CouponService {
 
         // 알림톡 보내기
         if (requestDto.isAlimTalk()) {
-            DirectSendUtils.sendCouponAlim(memberCouponList);
+            if (couponType == CouponType.CODE_PUBLISHED) {
+                DirectSendUtils.sendCodeCouponPublishAlim(codeCouponAlimDtoList);
+            } else {
+                DirectSendUtils.sendCouponAlim(memberCouponList);
+            }
         }
     }
 

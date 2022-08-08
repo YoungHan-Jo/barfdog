@@ -7,12 +7,14 @@ import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.coupon.*;
 import com.bi.barfdog.domain.delivery.Delivery;
+import com.bi.barfdog.domain.delivery.DeliveryStatus;
 import com.bi.barfdog.domain.delivery.Recipient;
 import com.bi.barfdog.domain.dog.*;
 import com.bi.barfdog.domain.item.Item;
 import com.bi.barfdog.domain.item.ItemOption;
 import com.bi.barfdog.domain.item.ItemStatus;
 import com.bi.barfdog.domain.item.ItemType;
+import com.bi.barfdog.domain.member.Card;
 import com.bi.barfdog.domain.member.Gender;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
@@ -32,6 +34,7 @@ import com.bi.barfdog.domain.subscribe.SubscribeStatus;
 import com.bi.barfdog.domain.subscribeRecipe.SubscribeRecipe;
 import com.bi.barfdog.domain.surveyReport.*;
 import com.bi.barfdog.api.memberDto.jwt.JwtLoginDto;
+import com.bi.barfdog.repository.card.CardRepository;
 import com.bi.barfdog.repository.coupon.CouponRepository;
 import com.bi.barfdog.repository.delivery.DeliveryRepository;
 import com.bi.barfdog.repository.dog.DogRepository;
@@ -136,6 +139,8 @@ public class OrderAdminControllerTest extends BaseTest {
     ItemImageRepository itemImageRepository;
     @Autowired
     RewardRepository rewardRepository;
+    @Autowired
+    CardRepository cardRepository;
 
 
     @Before
@@ -1349,25 +1354,48 @@ public class OrderAdminControllerTest extends BaseTest {
         }
     }
 
-
+    @Ignore
     @Test
-    @DisplayName("구독주문 관리자 판매취소")
-    public void orderCancelSubscribe() throws Exception {
-        //given
-
+    @DisplayName("구독 주문 관리자 판매 취소")
+    public void orderCancelSubscribes() throws Exception {
+       //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int memberReward = member.getReward();
+        int accumulatedSubscribeMember = member.getAccumulatedSubscribe();
+        int accumulatedAmountMember = member.getAccumulatedAmount();
+
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+        int adminReward = admin.getReward();
+        int accumulatedSubscribeAdmin = admin.getAccumulatedSubscribe();
+        int accumulatedAmountAdmin = admin.getAccumulatedAmount();
 
         List<Long> orderIdList = new ArrayList<>();
         List<MemberCoupon> memberCouponList = new ArrayList<>();
         List<Integer> remainingList = new ArrayList<>();
 
-        IntStream.range(1,6).forEach(i -> {
-            SubscribeOrder subscribeOrder = generateSubscribeOrder(member, i, OrderStatus.PAYMENT_DONE);
-            orderIdList.add(subscribeOrder.getId());
-            MemberCoupon memberCoupon = subscribeOrder.getMemberCoupon();
-            memberCouponList.add(memberCoupon);
-            remainingList.add(memberCoupon.getRemaining());
-        });
+        SubscribeOrder orderMember = generateSubscribeOrderAndEtc_NoBeforeSubscribe_no_deliveryNumber(member, 1, OrderStatus.PAYMENT_DONE);
+        int paymentPriceMember = orderMember.getPaymentPrice();
+        int memberDiscountReward = orderMember.getDiscountReward();
+        Subscribe subscribeMember = orderMember.getSubscribe();
+        int subscribeCountMember = subscribeMember.getSubscribeCount();
+
+        MemberCoupon memberCouponMember = orderMember.getMemberCoupon();
+        memberCouponList.add(memberCouponMember);
+        remainingList.add(memberCouponMember.getRemaining());
+
+        SubscribeOrder orderAdmin = generateSubscribeOrderAndEtc_NoBeforeSubscribe_no_deliveryNumber(admin, 2, OrderStatus.PAYMENT_DONE);
+        int paymentPriceAdmin = orderMember.getPaymentPrice();
+        int adminDiscountReward = orderAdmin.getDiscountReward();
+        Subscribe subscribeAdmin = orderMember.getSubscribe();
+        int subscribeCountAdmin = subscribeAdmin.getSubscribeCount();
+
+        MemberCoupon memberCouponAdmin = orderAdmin.getMemberCoupon();
+        memberCouponList.add(memberCouponAdmin);
+        remainingList.add(memberCouponAdmin.getRemaining());
+
+
+        orderIdList.add(orderMember.getId());
+        orderIdList.add(orderAdmin.getId());
 
         String reason = "취소 사유";
         String detailReason = "취소 상세 사유";
@@ -1377,7 +1405,7 @@ public class OrderAdminControllerTest extends BaseTest {
                 .detailReason(detailReason)
                 .build();
 
-        //when & then
+       //when & then
         mockMvc.perform(post("/api/admin/orders/subscribe/orderCancel")
                         .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -1410,7 +1438,6 @@ public class OrderAdminControllerTest extends BaseTest {
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
-        ;
 
         em.flush();
         em.clear();
@@ -1421,17 +1448,105 @@ public class OrderAdminControllerTest extends BaseTest {
             assertThat(findOrder.getOrderCancel().getCancelReason()).isEqualTo(reason);
             assertThat(findOrder.getOrderCancel().getCancelDetailReason()).isEqualTo(detailReason);
             assertThat(findOrder.getOrderCancel().getCancelConfirmDate()).isNotNull();
+            assertThat(findOrder.getDelivery().getStatus()).isEqualTo(DeliveryStatus.DELIVERY_CANCEL);
+
+            Subscribe subscribe = findOrder.getSubscribe();
+            assertThat(subscribe.getStatus()).isEqualTo(SubscribeStatus.SUBSCRIBE_PENDING);
+
+            String nextOrderMerchantUid = subscribe.getNextOrderMerchantUid();
+            SubscribeOrder nextOrder = orderRepository.findByMerchantUid(nextOrderMerchantUid).get();
+            assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCEL_DONE_SELLER);
+            assertThat(nextOrder.getDelivery().getStatus()).isEqualTo(DeliveryStatus.DELIVERY_CANCEL);
+            assertThat(nextOrder.getOrderCancel().getCancelReason()).isEqualTo(reason);
+            assertThat(nextOrder.getOrderCancel().getCancelDetailReason()).isEqualTo(detailReason);
+            assertThat(nextOrder.getOrderCancel().getCancelConfirmDate()).isNotNull();
         }
+
+        Subscribe findSubscribeMember = subscribeRepository.findById(subscribeMember.getId()).get();
+        assertThat(findSubscribeMember.getSubscribeCount()).isEqualTo(subscribeCountMember - 1);
+
+        Subscribe findSubscribeAdmin = subscribeRepository.findById(subscribeAdmin.getId()).get();
+        assertThat(findSubscribeAdmin.getSubscribeCount()).isEqualTo(subscribeCountAdmin - 1);
 
         List<Reward> allRewards = rewardRepository.findAll();
         assertThat(allRewards.size()).isNotEqualTo(0);
         assertThat(allRewards.size()).isEqualTo(orderIdList.size());
 
+        Member findMember = memberRepository.findById(member.getId()).get();
+        assertThat(findMember.getReward()).isEqualTo(memberReward + memberDiscountReward);
+        assertThat(findMember.getAccumulatedAmount()).isEqualTo(accumulatedAmountMember - paymentPriceMember);
+        assertThat(findMember.getAccumulatedSubscribe()).isEqualTo(accumulatedSubscribeMember - 1);
+
+
+        Member findAdmin = memberRepository.findById(admin.getId()).get();
+        assertThat(findAdmin.getReward()).isEqualTo(adminReward + adminDiscountReward);
+        assertThat(findAdmin.getAccumulatedAmount()).isEqualTo(accumulatedAmountAdmin - paymentPriceAdmin);
+        assertThat(findAdmin.getAccumulatedSubscribe()).isEqualTo(accumulatedSubscribeAdmin - 1);
+
         assertThat(memberCouponList.size()).isNotEqualTo(0);
+        assertThat(memberCouponList.size()).isEqualTo(orderIdList.size());
         for (int i = 0; i < memberCouponList.size(); i++) {
             assertThat(memberCouponList.get(i).getRemaining()).isEqualTo(remainingList.get(i) + 1);
         }
+    }
 
+    @Ignore
+    @Test
+    @DisplayName("구독 주문 관리자 판매 취소 알림톡 테스트")
+    public void orderCancelSubscribes_alimTalkTest() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int memberReward = member.getReward();
+        int accumulatedSubscribeMember = member.getAccumulatedSubscribe();
+        int accumulatedAmountMember = member.getAccumulatedAmount();
+
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+        int adminReward = admin.getReward();
+        int accumulatedSubscribeAdmin = admin.getAccumulatedSubscribe();
+        int accumulatedAmountAdmin = admin.getAccumulatedAmount();
+
+        List<Long> orderIdList = new ArrayList<>();
+        List<MemberCoupon> memberCouponList = new ArrayList<>();
+        List<Integer> remainingList = new ArrayList<>();
+
+        SubscribeOrder orderMember = generateSubscribeOrderAndEtc_NoBeforeSubscribe_no_deliveryNumber(member, 1, OrderStatus.PAYMENT_DONE);
+        int paymentPriceMember = orderMember.getPaymentPrice();
+        int memberDiscountReward = orderMember.getDiscountReward();
+        Subscribe subscribeMember = orderMember.getSubscribe();
+        int subscribeCountMember = subscribeMember.getSubscribeCount();
+
+        MemberCoupon memberCouponMember = orderMember.getMemberCoupon();
+        memberCouponList.add(memberCouponMember);
+        remainingList.add(memberCouponMember.getRemaining());
+
+        SubscribeOrder orderAdmin = generateSubscribeOrderAndEtc_NoBeforeSubscribe_no_deliveryNumber(admin, 2, OrderStatus.PAYMENT_DONE);
+        int paymentPriceAdmin = orderMember.getPaymentPrice();
+        int adminDiscountReward = orderAdmin.getDiscountReward();
+        Subscribe subscribeAdmin = orderMember.getSubscribe();
+        int subscribeCountAdmin = subscribeAdmin.getSubscribeCount();
+
+        MemberCoupon memberCouponAdmin = orderAdmin.getMemberCoupon();
+        memberCouponList.add(memberCouponAdmin);
+        remainingList.add(memberCouponAdmin.getRemaining());
+
+        orderIdList.add(orderMember.getId());
+
+        String reason = "취소 사유";
+        String detailReason = "취소 상세 사유";
+        OrderCancelSubscribeDto requestDto = OrderCancelSubscribeDto.builder()
+                .orderIdList(orderIdList)
+                .reason(reason)
+                .detailReason(detailReason)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/orders/subscribe/orderCancel")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk());
 
 
     }
@@ -2187,6 +2302,173 @@ public class OrderAdminControllerTest extends BaseTest {
 
 
 
+
+
+
+    private SubscribeOrder generateSubscribeOrderAndEtc_NoBeforeSubscribe_no_deliveryNumber(Member member, int i, OrderStatus orderStatus) {
+
+        Recipe recipe1 = recipeRepository.findAll().get(0);
+        Recipe recipe2 = recipeRepository.findAll().get(1);
+
+        DogSaveRequestDto requestDto = DogSaveRequestDto.builder()
+                .name("김바프")
+                .gender(Gender.MALE)
+                .birth("202102")
+                .oldDog(false)
+                .dogType("포메라니안")
+                .dogSize(DogSize.SMALL)
+                .weight("3.5")
+                .neutralization(true)
+                .activityLevel(ActivityLevel.NORMAL)
+                .walkingCountPerWeek("10")
+                .walkingTimePerOneTime("1.1")
+                .dogStatus(DogStatus.HEALTHY)
+                .snackCountLevel(SnackCountLevel.NORMAL)
+                .inedibleFood("NONE")
+                .inedibleFoodEtc("NONE")
+                .recommendRecipeId(recipe1.getId())
+                .caution("NONE")
+                .build();
+
+        String birth = requestDto.getBirth();
+
+        DogSize dogSize = requestDto.getDogSize();
+        Long startAgeMonth = getTerm(birth + "01");
+        boolean oldDog = requestDto.isOldDog();
+        boolean neutralization = requestDto.isNeutralization();
+        DogStatus dogStatus = requestDto.getDogStatus();
+        SnackCountLevel snackCountLevel = requestDto.getSnackCountLevel();
+        BigDecimal weight = new BigDecimal(requestDto.getWeight());
+
+        Delivery delivery = generateDeliveryNoNumber(member, i);
+
+        Subscribe subscribe = generateSubscribeBeforePayment(member, i);
+
+        Delivery nextDelivery = Delivery.builder()
+                .status(DeliveryStatus.BEFORE_PAYMENT)
+                .build();
+        deliveryRepository.save(nextDelivery);
+
+        SubscribeOrder nextOrder = SubscribeOrder.builder()
+                .merchantUid(subscribe.getNextOrderMerchantUid())
+                .orderStatus(OrderStatus.BEFORE_PAYMENT)
+                .member(member)
+                .delivery(nextDelivery)
+                .subscribe(subscribe)
+                .orderPrice(subscribe.getNextPaymentPrice())
+                .build();
+        orderRepository.save(nextOrder);
+
+        generateSubscribeRecipe(recipe1, subscribe);
+        generateSubscribeRecipe(recipe2, subscribe);
+
+        List<Dog> dogs = dogRepository.findByMember(member);
+        Recipe findRecipe = recipeRepository.findById(requestDto.getRecommendRecipeId()).get();
+
+        Dog dog = Dog.builder()
+                .member(member)
+                .representative(dogs.size() == 0 ? true : false)
+                .name(requestDto.getName())
+                .gender(requestDto.getGender())
+                .birth(birth)
+                .startAgeMonth(startAgeMonth)
+                .oldDog(oldDog)
+                .dogType(requestDto.getDogType())
+                .dogSize(dogSize)
+                .weight(weight)
+                .neutralization(neutralization)
+                .dogActivity(getDogActivity(requestDto))
+                .dogStatus(dogStatus)
+                .snackCountLevel(snackCountLevel)
+                .inedibleFood(requestDto.getInedibleFood())
+                .inedibleFoodEtc(requestDto.getInedibleFoodEtc())
+                .recommendRecipe(findRecipe)
+                .caution(requestDto.getCaution())
+                .subscribe(subscribe)
+                .build();
+        dogRepository.save(dog);
+        subscribe.setDog(dog);
+
+        SurveyReport surveyReport = SurveyReport.builder()
+                .dog(dog)
+                .ageAnalysis(getAgeAnalysis(startAgeMonth))
+                .weightAnalysis(getWeightAnalysis(dogSize, weight))
+                .activityAnalysis(getActivityAnalysis(dogSize, dog))
+                .walkingAnalysis(getWalkingAnalysis(member, dog))
+                .foodAnalysis(getDogAnalysis(requestDto, findRecipe, dogSize, startAgeMonth, oldDog, neutralization, dogStatus, requestDto.getActivityLevel(), snackCountLevel))
+                .snackAnalysis(getSnackAnalysis(dog))
+                .build();
+        surveyReportRepository.save(surveyReport);
+        dog.setSurveyReport(surveyReport);
+
+        Coupon coupon = generateGeneralCoupon(1);
+        MemberCoupon memberCoupon = generateMemberCoupon(member, coupon, 1, CouponStatus.ACTIVE);
+
+        SubscribeOrder subscribeOrder = SubscribeOrder.builder()
+                .impUid("imp_uid"+i)
+                .merchantUid("merchant_uid"+i)
+                .orderStatus(orderStatus)
+                .member(member)
+                .orderPrice(120000)
+                .deliveryPrice(0)
+                .discountTotal(10000)
+                .discountReward(10000)
+                .discountCoupon(0)
+                .paymentPrice(110000)
+                .paymentMethod(PaymentMethod.CREDIT_CARD)
+                .isPackage(false)
+                .delivery(delivery)
+                .subscribe(subscribe)
+                .memberCoupon(memberCoupon)
+                .subscribeCount(subscribe.getSubscribeCount())
+                .orderConfirmDate(LocalDateTime.now().minusHours(3))
+                .build();
+        orderRepository.save(subscribeOrder);
+
+        return subscribeOrder;
+    }
+
+    private Delivery generateDeliveryNoNumber(Member member, int i) {
+        Delivery delivery = Delivery.builder()
+                .recipient(Recipient.builder()
+                        .name(member.getName())
+                        .phone(member.getPhoneNumber())
+                        .zipcode(member.getAddress().getZipcode())
+                        .street(member.getAddress().getStreet())
+                        .detailAddress(member.getAddress().getDetailAddress())
+                        .build())
+                .departureDate(LocalDateTime.now().minusDays(4))
+                .arrivalDate(LocalDateTime.now().minusDays(1))
+                .status(DeliveryStatus.PAYMENT_DONE)
+                .request("안전배송 부탁드립니다.")
+                .build();
+        deliveryRepository.save(delivery);
+        return delivery;
+    }
+
+    private Subscribe generateSubscribeBeforePayment(Member member, int i) {
+
+        Card card = Card.builder()
+                .member(member)
+                .customerUid("customuid" + i)
+                .cardName("cardName")
+                .cardNumber("cardnumber")
+                .build();
+        cardRepository.save(card);
+
+        Subscribe subscribe = Subscribe.builder()
+                .subscribeCount(i + 1)
+                .plan(SubscribePlan.FULL)
+                .nextOrderMerchantUid("merchantUid__" + i)
+                .nextPaymentDate(LocalDateTime.now().plusDays(6))
+                .nextDeliveryDate(LocalDate.now().plusDays(8))
+                .nextPaymentPrice(120000)
+                .status(SubscribeStatus.SUBSCRIBING)
+                .card(card)
+                .build();
+        subscribeRepository.save(subscribe);
+        return subscribe;
+    }
 
 
 

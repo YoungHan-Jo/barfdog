@@ -119,9 +119,31 @@ public class DirectSendUtils {
                     "\"note3\":\"" + codeCouponAlimDto.getCode() + "\"}";
         }
 
-        receiver = receiver.substring(1);
+        if (codeCouponAlimDtoList.size() > 0) {
+            receiver = receiver.substring(1);
+        }
+
+
 
         sendAlimTalk(DirectSend.CODE_COUPON_TEMPLATE, receiver);
+    }
+
+    public static FriendTalkResponseDto sendFriendTalk(String templateNumber, List<Member> memberList) throws IOException {
+
+        String receiver = "";
+
+        for (Member member : memberList) {
+            receiver += ",{\"name\": \"" + member.getName() + "\", " +
+                    "\"mobile\":\"" + member.getPhoneNumber() + "\"}";
+        }
+
+        if (memberList.size() > 0) {
+            receiver = receiver.substring(1);
+        }
+
+        FriendTalkResponseDto responseDto = sendFriendTalk(templateNumber, receiver);
+
+        return responseDto;
     }
 
 
@@ -462,7 +484,7 @@ public class DirectSendUtils {
         return memberCouponList.get(0).getCoupon().getCouponType() == CouponType.CODE_PUBLISHED;
     }
 
-    private static void sendAlimTalk( String templateNumber, String receiver) throws IOException {
+    private static void sendAlimTalk(String templateNumber, String receiver) throws IOException {
         /* 여기서부터 수정해주시기 바랍니다. */
 
         String username = DirectSend.USERNAME;                //필수입력
@@ -516,6 +538,73 @@ public class DirectSendUtils {
 
         in.close();
     }
+
+    private static FriendTalkResponseDto sendFriendTalk(String templateNumber, String receiver) throws IOException{
+
+        String username = DirectSend.USERNAME;                //필수입력
+        String key = DirectSend.API_KEY;         //필수입력
+        String kakao_plus_id = DirectSend.KAKAO_PLUS_ID;            //필수입력
+        String user_template_no = templateNumber;            //템플릿 번호를 사용하지 않을 경우 주석처리 바랍니다. (하단 290 라인 API 이용하여 확인)
+
+        //수신자 정보 추가 - 필수 입력(주소록 미사용시), 치환문자 미사용시 치환문자 데이터를 입력하지 않고 사용할수 있습니다.
+        //치환문자 미사용시 "{"mobile":"01000000001"} 번호만 입력 해주시기 바랍니다.
+        receiver = "["+ receiver +"]";
+
+        String postvars = "";
+        postvars = "\"username\":\""+username+"\"";             //필수입력
+        postvars = postvars+", \"key\":\""+key+"\"";           //필수입력
+        postvars = postvars+", \"type\":\"java\"";           //필수입력
+        postvars = postvars+", \"kakao_plus_id\":\""+kakao_plus_id+"\"";       //필수입력
+        postvars = postvars+", \"user_template_no\":\""+user_template_no+"\"";       //템플릿 번호를 사용하지 않을 경우 주석처리 바랍니다.
+        postvars = postvars+", \"receiver\":"+receiver;            //주소록 사용하지 않는 경우 필수입력, json array 구조
+        postvars = "{"+postvars+"}";      //JSON 데이터
+
+        String url = "https://directsend.co.kr/index.php/api_v2/kakao_friend";         //URL
+
+        java.net.URL obj;
+        obj = new java.net.URL(url);
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+        con.setRequestProperty("Cache-Control", "no-cache");
+        con.setRequestProperty("Content-Type", "application/json;charset=utf-8");
+        con.setRequestProperty("Accept", "application/json");
+
+        System.setProperty("jsse.enableSNIExtension", "false");
+        con.setDoOutput(true);
+        OutputStreamWriter  wr = new OutputStreamWriter (con.getOutputStream());
+        wr.write(postvars);
+        wr.flush();
+        wr.close();
+
+        int responseCode = con.getResponseCode();
+        System.out.println(responseCode);
+
+        /*
+         * responseCode 가 200 이 아니면 내부에서 문제가 발생한 케이스입니다.
+         * directsend 관리자에게 문의해주시기 바랍니다.
+         */
+
+        java.io.BufferedReader in = new java.io.BufferedReader(
+                new java.io.InputStreamReader(con.getInputStream()));
+        String inputLine;
+        StringBuffer response = new StringBuffer();
+
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+        }
+
+        in.close();
+
+        System.out.println("response : " + response.toString());
+
+        FriendTalkResponseDto responseDto = getFriendTalkResponseDto(response, responseCode);
+
+        return responseDto;
+    }
+
+
+
+
+
 
     private static String getReceiverOfCoupon(List<MemberCoupon> memberCouponList) {
         String receiver = "";
@@ -627,6 +716,16 @@ public class DirectSendUtils {
 
         ObjectMapper objectMapper = new ObjectMapper();
         DirectSendResponseDto responseDto = objectMapper.readValue(responseString, DirectSendResponseDto.class);
+
+        responseDto.setResponseCode(responseCode);
+        return responseDto;
+    }
+
+    private static FriendTalkResponseDto getFriendTalkResponseDto(StringBuffer response,int responseCode) throws JsonProcessingException {
+
+        String responseString = response.toString();
+        ObjectMapper objectMapper = new ObjectMapper();
+        FriendTalkResponseDto responseDto = objectMapper.readValue(responseString, FriendTalkResponseDto.class);
 
         responseDto.setResponseCode(responseCode);
         return responseDto;

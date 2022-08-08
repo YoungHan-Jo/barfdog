@@ -68,7 +68,6 @@ public class CouponAdminController {
         Page<CouponListResponseDto> page = couponRepository.findRedirectCouponsByKeyword(keyword, pageable);
 
         PagedModel<AdminCouponsDtoResource> pagedModel = assembler.toModel(page, e -> new AdminCouponsDtoResource(e));
-
         pagedModel.add(linkTo(CouponAdminController.class).slash("auto?keyword= ").withRel("query_auto_coupons"));
         pagedModel.add(profileRootUrlBuilder.slash("index.html#resources-query-direct-coupons").withRel("profile"));
 

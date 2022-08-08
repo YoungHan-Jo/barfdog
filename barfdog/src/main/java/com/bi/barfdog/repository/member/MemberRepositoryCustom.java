@@ -1,5 +1,6 @@
 package com.bi.barfdog.repository.member;
 
+import com.bi.barfdog.api.barfDto.FriendTalkGroupDto;
 import com.bi.barfdog.api.barfDto.MypageDto;
 import com.bi.barfdog.api.couponDto.GroupPublishRequestDto;
 import com.bi.barfdog.api.memberDto.*;
@@ -34,4 +35,6 @@ public interface MemberRepositoryCustom {
     QuerySnsDto findProviderByMember(Member member);
 
     MypageDto findMypageDtoByMember(Member member);
+
+    List<Member> findFriendTalkGroupDto(FriendTalkGroupDto requestDto);
 }

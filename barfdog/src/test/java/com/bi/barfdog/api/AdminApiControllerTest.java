@@ -1,11 +1,29 @@
 package com.bi.barfdog.api;
 
+import com.bi.barfdog.api.barfDto.FriendTalkAllDto;
 import com.bi.barfdog.api.settingDto.UpdateSettingDto;
 import com.bi.barfdog.common.AppProperties;
+import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.common.BaseTest;
+import com.bi.barfdog.domain.Address;
+import com.bi.barfdog.domain.coupon.Coupon;
+import com.bi.barfdog.domain.dog.*;
+import com.bi.barfdog.domain.member.*;
 import com.bi.barfdog.domain.setting.Setting;
 import com.bi.barfdog.api.memberDto.jwt.JwtLoginDto;
+import com.bi.barfdog.repository.coupon.CouponRepository;
+import com.bi.barfdog.repository.delivery.DeliveryRepository;
+import com.bi.barfdog.repository.dog.DogRepository;
+import com.bi.barfdog.repository.item.ItemImageRepository;
+import com.bi.barfdog.repository.item.ItemOptionRepository;
+import com.bi.barfdog.repository.item.ItemRepository;
+import com.bi.barfdog.repository.member.MemberRepository;
+import com.bi.barfdog.repository.memberCoupon.MemberCouponRepository;
+import com.bi.barfdog.repository.order.OrderRepository;
+import com.bi.barfdog.repository.orderItem.OrderItemRepository;
 import com.bi.barfdog.repository.setting.SettingRepository;
+import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +31,7 @@ import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +59,51 @@ public class AdminApiControllerTest extends BaseTest {
     EntityManager em;
     @Autowired
     SettingRepository settingRepository;
+
+    @Autowired
+    CouponRepository couponRepository;
+
+    @Autowired
+    MemberRepository memberRepository;
+
+    @Autowired
+    MemberCouponRepository memberCouponRepository;
+
+    @Autowired
+    BCryptPasswordEncoder bCryptPasswordEncoder;
+    @Autowired
+    OrderItemRepository orderItemRepository;
+    @Autowired
+    OrderRepository orderRepository;
+    @Autowired
+    ItemImageRepository itemImageRepository;
+    @Autowired
+    ItemOptionRepository itemOptionRepository;
+    @Autowired
+    ItemRepository itemRepository;
+    @Autowired
+    DeliveryRepository deliveryRepository;
+    @Autowired
+    SurveyReportRepository surveyReportRepository;
+    @Autowired
+    DogRepository dogRepository;
+
+    @Before
+    public void setUp() {
+
+        orderItemRepository.deleteAll();
+        orderRepository.deleteAll();
+        itemImageRepository.deleteAll();
+        itemOptionRepository.deleteAll();
+        itemRepository.deleteAll();
+        deliveryRepository.deleteAll();
+        surveyReportRepository.deleteAll();
+        dogRepository.deleteAll();
+        memberCouponRepository.deleteAll();
+        couponRepository.deleteAll();
+    }
+
+
 
     @Test
     @DisplayName("정상적으로 사이트 설정 조회")
@@ -176,6 +240,82 @@ public class AdminApiControllerTest extends BaseTest {
         assertThat(setting.getDeliveryConstant().getFreeCondition()).isEqualTo(freeCondition);
 
 
+    }
+
+
+    @Test
+    @DisplayName("유저전체에게 친구톡 보내기")
+    public void friendTalk_All() throws Exception {
+       //given
+        memberRepository.deleteAll();
+
+        em.flush();
+        em.clear();
+
+        Member admin = generateMember(appProperties.getAdminEmail(), "관리자", appProperties.getAdminPassword(), "01099038544", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,SUBSCRIBER,USER", true);
+        generateDog(admin, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL, true, "댕댕이");
+
+//        Member member = generateMember("jyh@gmail.com", "김회원", appProperties.getUserPassword(), "01056862723", Gender.MALE, Grade.브론즈, 50000, false, "USER,SUBSCRIBER", true);
+//        generateDog(member, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL, true, "대표견");
+
+
+        FriendTalkAllDto requestDto = FriendTalkAllDto.builder()
+                .templateNum(55)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/friendTalk/all")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+        ;
+
+    }
+
+
+
+
+    private Member generateMember(String email, String name, String password, String phoneNumber, Gender gender, Grade grade, int reward, boolean recommend, String roles, boolean isSubscribe) {
+        Member member = Member.builder()
+                .email(email)
+                .name(name)
+                .password(bCryptPasswordEncoder.encode(password))
+                .phoneNumber(phoneNumber)
+                .address(new Address("12345","부산광역시","부산광역시 해운대구 센텀2로 19","106호"))
+                .birthday("19991201")
+                .gender(gender)
+                .agreement(new Agreement(true,true,true,true,true))
+                .myRecommendationCode(BarfUtils.generateRandomCode())
+                .grade(grade)
+                .reward(reward)
+                .accumulatedAmount(1000000)
+                .accumulatedSubscribe(3)
+                .isSubscribe(isSubscribe)
+                .firstReward(new FirstReward(recommend, recommend))
+                .roles(roles)
+                .build();
+
+        return memberRepository.save(member);
+    }
+
+    private Dog generateDog(Member member, long startAgeMonth, DogSize dogSize, String weight, ActivityLevel activitylevel, int walkingCountPerWeek, double walkingTimePerOneTime, SnackCountLevel snackCountLevel, boolean representative, String name) {
+        Dog dog = Dog.builder()
+                .member(member)
+                .representative(representative)
+                .name(name)
+                .startAgeMonth(startAgeMonth)
+                .gender(Gender.MALE)
+                .oldDog(false)
+                .dogSize(dogSize)
+                .weight(new BigDecimal(weight))
+                .dogActivity(new DogActivity(activitylevel, walkingCountPerWeek, walkingTimePerOneTime))
+                .dogStatus(DogStatus.HEALTHY)
+                .snackCountLevel(snackCountLevel)
+                .build();
+        return dogRepository.save(dog);
     }
 
 

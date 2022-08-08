@@ -102,7 +102,6 @@ public class OrderAdminController {
                 profileRootUrlBuilder.slash("index.html#resources-query-admin-order-subscribe").withRel("profile")
         );
 
-
         return ResponseEntity.ok(entityModel);
     }
 

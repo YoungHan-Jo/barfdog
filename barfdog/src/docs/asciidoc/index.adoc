@@ -1536,7 +1536,9 @@ operation::admin_orderCancel_general[snippets='curl-request,request-headers,requ
 [[resources-admin-orderCancel-subscribe]]
 === 구독 주문 관리자 판매취소 처리
 
-`POST` 요청을 사용하여 구독 주문 관리자 판매취소 처리할 수 있다.
+`POST` 요청을 사용하여 구독 주문 관리자 판매취소 처리할 수 있다. +
+
+구독 주문 카드결제금액/적립금/사용한 쿠폰 모두 환불처리 +
 
 operation::admin_orderCancel_subscribe[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
