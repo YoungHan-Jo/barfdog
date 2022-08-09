@@ -53,10 +53,13 @@ public class DeliveryService {
             if (order.getOrderStatus() == OrderStatus.DELIVERY_START) continue;
 
             Delivery delivery = order.getDelivery();
-            if (delivery.getTransUniqueCd() != null && !delivery.getTransUniqueCd().isEmpty()) continue;
-            RandomString rs = new RandomString(15);
-            String randomString = rs.nextString();
-            delivery.generateTransUniqueCd(randomString);
+//            if (delivery.getTransUniqueCd() != null && !delivery.getTransUniqueCd().isEmpty()) continue;
+
+            if (delivery.getTransUniqueCd() == null || delivery.getTransUniqueCd().isEmpty()) {
+                RandomString rs = new RandomString(15);
+                String randomString = rs.nextString();
+                delivery.generateTransUniqueCd(randomString);
+            }
 
             List<Order> orderListSameDelivery = orderRepository.findByDelivery(delivery);
             List<QueryOrderInfoForDelivery.OrderItemDto> orderItemDtoList = new ArrayList<>();
@@ -131,14 +134,12 @@ public class DeliveryService {
                     for (OrderItem orderItem : orderItems) {
                         orderItem.startDelivery();
                     }
-
                     try {
                         String dogName = getRepresentativeDogName(order.getMember());
                         DirectSendUtils.sendGeneralOrderDeliveryStartAlim(order, dogName, orderItems);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
                 } else {
                     try {
                         DirectSendUtils.sendSubscribeOrderDeliveryStartAlim(order);

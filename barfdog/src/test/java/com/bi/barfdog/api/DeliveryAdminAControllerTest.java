@@ -181,6 +181,48 @@ public class DeliveryAdminAControllerTest extends BaseTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.queryOrderInfoForDeliveryList",hasSize(4)))
         ;
+    }
+
+    @Test
+    @DisplayName("운송장 발급에 필요한 값 조회_uniqcd 없는거만 조회")
+    public void queryDeliveriesInfo_uniqCD() throws Exception {
+        //given
+
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        List<Long> orderIdList = new ArrayList<>();
+
+        IntStream.range(1,3).forEach(i -> {
+            SubscribeOrder subscribeOrder = generateSubscribeOrder(member, i, OrderStatus.PRODUCING);
+            subscribeOrder.getDelivery().generateTransUniqueCd("transuniquecd"+i);
+            orderIdList.add(subscribeOrder.getId());
+        });
+
+        IntStream.range(3,5).forEach(i -> {
+            GeneralOrder generalOrder = generateGeneralOrder(member, i, OrderStatus.DELIVERY_READY);
+            orderIdList.add(generalOrder.getId());
+        });
+        IntStream.range(5,15).forEach(i -> {
+            GeneralOrder generalOrder = generateGeneralOrder(member, i, OrderStatus.DELIVERY_START);
+            orderIdList.add(generalOrder.getId());
+        });
+
+        OrderIdListDto requestDto = OrderIdListDto.builder()
+                .orderIdList(orderIdList)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/deliveries/info")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("_embedded.queryOrderInfoForDeliveryList",hasSize(4)))
+        ;
 
     }
 

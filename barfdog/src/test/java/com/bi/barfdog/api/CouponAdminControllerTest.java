@@ -584,33 +584,62 @@ public class CouponAdminControllerTest extends BaseTest {
     }
 
     @Test
-    @DisplayName("키워드 null 일 경우 bad request 나오는 테스트")
+    @DisplayName("키워드 null 일 경우 모든 직접발행 쿠폰 조회하는테스트")
     public void queryCoupons_direct_keyword_null() throws Exception {
+        //given
+        int count = 3;
+        IntStream.range(1,1+count).forEach(i ->{
+            generateGeneralCoupon(i);
+
+        });
+
+        IntStream.range(10,20).forEach(i -> {
+            generateAutoCoupon(i);
+        });
+
+        //when & then
+        mockMvc.perform(get("/api/admin/coupons/direct")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("page.totalElements").value(count))
+        ;
+    }
+
+    @Test
+    @DisplayName("키워드에 해당하는 직접발행 쿠폰 조회하는테스트")
+    public void queryCoupons_direct_keyword_1() throws Exception {
         //given
         int count = 3;
         IntStream.range(1,1+count).forEach(i ->{
             generateGeneralCoupon(i);
         });
 
-        String keyword = null;
+        IntStream.range(10,20).forEach(i -> {
+            generateAutoCoupon(i);
+        });
 
         //when & then
         mockMvc.perform(get("/api/admin/coupons/direct")
-                                .header(HttpHeaders.AUTHORIZATION, getAdminToken())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .accept(MediaTypes.HAL_JSON)
-//                        .param("keyword",keyword)
-                )
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("keyword","1"))
                 .andDo(print())
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("page.totalElements").value(1))
         ;
     }
+
+
 
     @Test
     @DisplayName("키워드가 빈 문자열 일 경우 모든 직접발행 쿠폰 조회하는 테스트")
     public void queryCoupons_direct_keyword_emptyString() throws Exception {
         //given
-        int count = 3;
+        int count = 5;
         IntStream.range(1,1+count).forEach(i ->{
             generateGeneralCoupon(i);
         });
@@ -628,6 +657,7 @@ public class CouponAdminControllerTest extends BaseTest {
                 .andExpect(jsonPath("_embedded.couponListResponseDtoList", hasSize(count)))
         ;
     }
+
 
     @Test
     @DisplayName("정상적으로 키워드로 자동발행 쿠폰 검색하는 테스트")
@@ -698,6 +728,55 @@ public class CouponAdminControllerTest extends BaseTest {
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ))
+        ;
+    }
+
+    @Test
+    @DisplayName("키워드 null 일 경우 모든 자동발행 쿠폰 조회하는테스트")
+    public void queryCoupons_auto_keyword_null() throws Exception {
+        //given
+        int count = 3;
+        IntStream.range(1,1+count).forEach(i ->{
+            generateAutoCoupon(i);
+        });
+
+        IntStream.range(10,20).forEach(i -> {
+            generateGeneralCoupon(i);
+        });
+
+        //when & then
+        mockMvc.perform(get("/api/admin/coupons/auto")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("page.totalElements").value(count))
+        ;
+    }
+
+    @Test
+    @DisplayName("키워드에 해당하는 자동발행 쿠폰 조회하는테스트")
+    public void queryCoupons_auto_keyword_1() throws Exception {
+        //given
+        int count = 3;
+        IntStream.range(1,1+count).forEach(i ->{
+            generateAutoCoupon(i);
+        });
+
+        IntStream.range(10,20).forEach(i -> {
+            generateGeneralCoupon(i);
+        });
+
+        //when & then
+        mockMvc.perform(get("/api/admin/coupons/auto")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("keyword","1"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("page.totalElements").value(1))
         ;
     }
 

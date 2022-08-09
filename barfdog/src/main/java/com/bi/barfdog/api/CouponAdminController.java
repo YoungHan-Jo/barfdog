@@ -63,7 +63,7 @@ public class CouponAdminController {
     @GetMapping("/direct")
     public ResponseEntity queryCouponsDirect(Pageable pageable,
                                              PagedResourcesAssembler<CouponListResponseDto> assembler,
-                                             @RequestParam String keyword) {
+                                             @RequestParam(value = "keyword",required = false,defaultValue = "") String keyword) {
 
         Page<CouponListResponseDto> page = couponRepository.findRedirectCouponsByKeyword(keyword, pageable);
 
@@ -77,7 +77,7 @@ public class CouponAdminController {
     @GetMapping("/auto")
     public ResponseEntity queryCouponsAuto(Pageable pageable,
                                            PagedResourcesAssembler<CouponListResponseDto> assembler,
-                                           @RequestParam String keyword) {
+                                           @RequestParam(value = "keyword",required = false,defaultValue = "") String keyword) {
 
         Page<CouponListResponseDto> page = couponRepository.findAutoCouponsByKeyword(keyword, pageable);
 
