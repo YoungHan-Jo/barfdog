@@ -2271,7 +2271,7 @@ public class OrderApiControllerTest extends BaseTest {
 
 
 
-    @Ignore
+//    @Ignore
     @Test
     @DisplayName("구독 주문 주문 취소 요청 - 상품 생산 전")
     public void cancelRequestSubscribeOrder() throws Exception {

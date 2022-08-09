@@ -168,6 +168,30 @@ operation::admin_dashBoard[snippets='curl-request,request-headers,request-parame
 
 
 
+[[resources-friendTalk-all]]
+=== 관리자 친구톡 발송(모든 유저)
+
+`POST` 요청을 사용해서 관리자 친구톡을 모든유저에게 보낼 수 있다.
+
+operation::admin_friendTalk_all[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+[[resources-friendTalk-group]]
+=== 관리자 친구톡 발송(그룹 유저)
+
+`POST` 요청을 사용해서 관리자 친구톡을 그룹유저에게 보낼 수 있다.
+
+operation::admin_friendTalk_group[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+
+
+
+
+
+
+
+
 [[resources-query-setting]]
 === 관리자 설정 조회
 
@@ -188,7 +212,7 @@ operation::update_setting[snippets='curl-request,request-headers,request-body,re
 
 `GET` 요청을 사용하여 페이징으로 회원을 검색할 수 있다.
 
-operation::admin_query_members[snippets='curl-request,request-headers,request-parameters,request-body,request-fields,response-headers,response-body,response-fields,links']
+operation::admin_query_members[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
 
 
 [[resources-admin-queryMember]]
@@ -401,7 +425,7 @@ operation::admin_publish_rewards_group[snippets='curl-request,request-headers,re
 
 `GET` 요청을 사용하여 페이징으로 적립금 내역 리스트를 조회할 수 있다.
 
-operation::admin_query_rewards[snippets='curl-request,request-headers,request-parameters,request-body,request-fields,response-headers,response-body,response-fields,links']
+operation::admin_query_rewards[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
 
 
 [[resources-upload-imageImage]]
@@ -438,7 +462,7 @@ operation::admin_query_item[snippets='curl-request,path-parameters,request-heade
 
 `GET` 요청을 사용하여 페이징으로 적립금 내역 리스트를 조회할 수 있다.
 
-operation::admin_query_items[snippets='curl-request,request-headers,request-parameters,request-body,request-fields,response-headers,response-body,response-fields,links']
+operation::admin_query_items[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
 
 [[resources-update-item]]
 === 관리자 - 상품 수정
@@ -634,7 +658,8 @@ operation::email_duplication[snippets='curl-request,request-headers,request-para
 [[resources-join-phoneAuth]]
 === 휴대폰 인증 요청
 
-`POST` 요청을 사용해서 휴대폰 본인 인증 요청을 할 수 있다.
+`POST` 요청을 사용해서 휴대폰 본인 인증 요청을 할 수 있다. +
+이미 db에 존재하는 휴대전화일 경우 409 에러 응답
 
 operation::join_phoneAuth[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
@@ -865,7 +890,7 @@ operation::query_dog[snippets='curl-request,path-parameters,request-headers,requ
 
 `PUT` 요청을 사용해서 해당 강아지의 설문조사를 수정할 수 있다.
 
-operation::update_dog[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+operation::update_dog[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
 [[resources-query-dog-surveyReport]]
@@ -1584,7 +1609,7 @@ operation::admin_confirmExchange_buyer[snippets='curl-request,request-headers,re
 operation::admin_confirmExchange_seller[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
-[[resources-admin-denyReturn]]
+[[resources-admin-denyExchange]]
 === 일반 주문 교환요청 거절 처리
 
 `POST` 요청을 사용하여 일반 주문 교환요청 거절 처리할 수 있다.
@@ -1745,7 +1770,7 @@ operation::request_exchangeOrders[snippets='curl-request,request-headers,request
 
 구독 카드 관련 리소스.
 
-[[resources-query-deliveries]]
+[[resources-query-subscribeCards]]
 === 구독 카드 리스트 검색
 
 `GET` 요청을 사용하여 구독 카드 리스트를 조회할 수 있다.

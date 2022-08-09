@@ -1,6 +1,8 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.barfDto.FriendTalkAllDto;
+import com.bi.barfdog.api.barfDto.FriendTalkGroupDto;
+import com.bi.barfdog.api.couponDto.Area;
 import com.bi.barfdog.api.settingDto.UpdateSettingDto;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BarfUtils;
@@ -37,6 +39,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
@@ -255,7 +259,7 @@ public class AdminApiControllerTest extends BaseTest {
         Member admin = generateMember(appProperties.getAdminEmail(), "관리자", appProperties.getAdminPassword(), "01099038544", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,SUBSCRIBER,USER", true);
         generateDog(admin, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL, true, "댕댕이");
 
-//        Member member = generateMember("jyh@gmail.com", "김회원", appProperties.getUserPassword(), "01056862723", Gender.MALE, Grade.브론즈, 50000, false, "USER,SUBSCRIBER", true);
+//        Member member = generateMember("jyh1234@gmail.com", "김회원", appProperties.getUserPassword(), "01056862723", Gender.MALE, Grade.브론즈, 50000, false, "USER,SUBSCRIBER", true);
 //        generateDog(member, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL, true, "대표견");
 
 
@@ -271,6 +275,125 @@ public class AdminApiControllerTest extends BaseTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andDo(document("admin_friendTalk_all",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt 토큰")
+                        ),
+                        requestFields(
+                                fieldWithPath("templateNum").description("친구톡 템플릿 번호")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("status").description("다이렉트센드 status"),
+                                fieldWithPath("message").description("다이렉트센드 message"),
+                                fieldWithPath("responseCode").description("다이렉트 센드 responseCode, 200이 아니면 다이렉트센드 내부 문제"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+    }
+
+    @Test
+    @DisplayName("유저전체에게 친구톡 보내기 - 템플릿 null")
+    public void friendTalk_All_template_Null() throws Exception {
+        //given
+        memberRepository.deleteAll();
+
+        em.flush();
+        em.clear();
+
+        Member admin = generateMember(appProperties.getAdminEmail(), "관리자", appProperties.getAdminPassword(), "01099038544", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,SUBSCRIBER,USER", true);
+        generateDog(admin, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL, true, "댕댕이");
+
+//        Member member = generateMember("jyh1234@gmail.com", "김회원", appProperties.getUserPassword(), "01056862723", Gender.MALE, Grade.브론즈, 50000, false, "USER,SUBSCRIBER", true);
+//        generateDog(member, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL, true, "대표견");
+
+
+        //when & then
+        mockMvc.perform(post("/api/admin/friendTalk/all")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("유저 그룹에게 친구톡 보내기")
+    public void friendTalk_group() throws Exception {
+        //given
+        memberRepository.deleteAll();
+
+        em.flush();
+        em.clear();
+
+        Member admin = generateMember(appProperties.getAdminEmail(), "관리자", appProperties.getAdminPassword(), "01099038544", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,SUBSCRIBER,USER", true);
+        generateDog(admin, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL, true, "댕댕이");
+
+//        Member member = generateMember("jyh1234@gmail.com", "김회원", appProperties.getUserPassword(), "01056862723", Gender.MALE, Grade.브론즈, 50000, false, "USER,SUBSCRIBER", true);
+//        generateDog(member, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL, true, "대표견");
+
+        List<Grade> gradeList = new ArrayList<>();
+
+        gradeList.add(Grade.더바프);
+
+        FriendTalkGroupDto requestDto = FriendTalkGroupDto.builder()
+                .templateNum(55)
+                .gradeList(gradeList)
+                .subscribe(true)
+                .birthYearFrom("1990")
+                .birthYearTo("2000")
+                .area(Area.NON_METRO)
+                .longUnconnected(false)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/friendTalk/group")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("admin_friendTalk_group",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt 토큰")
+                        ),
+                        requestFields(
+                                fieldWithPath("templateNum").description("친구톡 템플릿 번호"),
+                                fieldWithPath("gradeList").description("등급 리스트"),
+                                fieldWithPath("subscribe").description("구독 여부 true/false"),
+                                fieldWithPath("birthYearFrom").description("년생 from"),
+                                fieldWithPath("birthYearTo").description("년생 to"),
+                                fieldWithPath("area").description("수도권 여부 [ALL, METRO, NON_METRO]"),
+                                fieldWithPath("longUnconnected").description("장기 미접속 여부 true/false")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("status").description("다이렉트센드 status"),
+                                fieldWithPath("message").description("다이렉트센드 message"),
+                                fieldWithPath("responseCode").description("다이렉트 센드 responseCode, 200이 아니면 다이렉트센드 내부 문제"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
         ;
 
     }

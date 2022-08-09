@@ -259,7 +259,7 @@ public class IndexApiControllerTest extends BaseTest {
     }
 
 
-    @Ignore
+//    @Ignore
     @Test
     @DisplayName("정상적으로 home 화면에 필요한 값 조회")
     public void homePage() throws Exception {
@@ -676,7 +676,6 @@ public class IndexApiControllerTest extends BaseTest {
 
     }
 
-    @Ignore
     @Test
     @DisplayName("친구 초대 문자 보내기")
     public void sendInviteSms() throws Exception {
@@ -1059,10 +1058,18 @@ public class IndexApiControllerTest extends BaseTest {
                 .andExpect(status().isConflict());
     }
 
-    @Ignore
+//    @Ignore
     @Test
     @DisplayName("정상적으로 휴대폰 인증 번호 보내기")
     public void phoneAuth() throws Exception {
+
+        memberCouponRepository.deleteAll();
+        dogRepository.deleteAll();
+        memberRepository.deleteAll();
+
+        em.flush();
+        em.clear();
+
        //Given
         PhoneAuthRequestDto requestDto = PhoneAuthRequestDto.builder()
                 .phoneNumber("01099038544")
@@ -1193,7 +1200,7 @@ public class IndexApiControllerTest extends BaseTest {
     }
 
 
-    @Ignore
+//    @Ignore
     @Test
     @DisplayName("정상적으로 이메일 인증보내는 테스트")
     public void adminPasswordEmailAuth() throws Exception {
@@ -1583,12 +1590,12 @@ public class IndexApiControllerTest extends BaseTest {
                 .andExpect(status().isNotFound());
     }
 
-    @Ignore
+//    @Ignore
     @Test
     @DisplayName("정상적으로 비밀번호 찾는 테스트")
     public void findPassword() throws Exception {
         //Given
-        Member sampleMember = generateSampleMember();
+        Member sampleMember = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
         FindPasswordRequestDto requestDto = FindPasswordRequestDto.builder()
                 .email(sampleMember.getEmail())

@@ -168,6 +168,30 @@ operation::admin_dashBoard[snippets='curl-request,request-headers,request-parame
 
 
 
+[[resources-friendTalk-all]]
+=== 관리자 친구톡 발송(모든 유저)
+
+`POST` 요청을 사용해서 관리자 친구톡을 모든유저에게 보낼 수 있다.
+
+operation::admin_friendTalk_all[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+[[resources-friendTalk-group]]
+=== 관리자 친구톡 발송(그룹 유저)
+
+`POST` 요청을 사용해서 관리자 친구톡을 그룹유저에게 보낼 수 있다.
+
+operation::admin_friendTalk_group[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
+
+
+
+
+
+
+
+
 [[resources-query-setting]]
 === 관리자 설정 조회
 
@@ -188,7 +212,7 @@ operation::update_setting[snippets='curl-request,request-headers,request-body,re
 
 `GET` 요청을 사용하여 페이징으로 회원을 검색할 수 있다.
 
-operation::admin_query_members[snippets='curl-request,request-headers,request-parameters,request-body,request-fields,response-headers,response-body,response-fields,links']
+operation::admin_query_members[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
 
 
 [[resources-admin-queryMember]]
@@ -401,7 +425,7 @@ operation::admin_publish_rewards_group[snippets='curl-request,request-headers,re
 
 `GET` 요청을 사용하여 페이징으로 적립금 내역 리스트를 조회할 수 있다.
 
-operation::admin_query_rewards[snippets='curl-request,request-headers,request-parameters,request-body,request-fields,response-headers,response-body,response-fields,links']
+operation::admin_query_rewards[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
 
 
 [[resources-upload-imageImage]]
@@ -438,7 +462,7 @@ operation::admin_query_item[snippets='curl-request,path-parameters,request-heade
 
 `GET` 요청을 사용하여 페이징으로 적립금 내역 리스트를 조회할 수 있다.
 
-operation::admin_query_items[snippets='curl-request,request-headers,request-parameters,request-body,request-fields,response-headers,response-body,response-fields,links']
+operation::admin_query_items[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
 
 [[resources-update-item]]
 === 관리자 - 상품 수정
@@ -634,7 +658,8 @@ operation::email_duplication[snippets='curl-request,request-headers,request-para
 [[resources-join-phoneAuth]]
 === 휴대폰 인증 요청
 
-`POST` 요청을 사용해서 휴대폰 본인 인증 요청을 할 수 있다.
+`POST` 요청을 사용해서 휴대폰 본인 인증 요청을 할 수 있다. +
+이미 db에 존재하는 휴대전화일 경우 409 에러 응답
 
 operation::join_phoneAuth[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
@@ -865,7 +890,7 @@ operation::query_dog[snippets='curl-request,path-parameters,request-headers,requ
 
 `PUT` 요청을 사용해서 해당 강아지의 설문조사를 수정할 수 있다.
 
-operation::update_dog[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+operation::update_dog[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
 [[resources-query-dog-surveyReport]]
@@ -1426,11 +1451,22 @@ operation::query_admin_orders[snippets='curl-request,request-headers,request-par
 [[resources-admin-query-cancelRequest]]
 === 취소 요청 주문 리스트 검색(페이징)
 
-`POST` 요청을 사용하여 페이징으로 조건에 맞는 취소요청 주문 리스트를 조회할 수 있다.
+`POST` 요청을 사용하여 페이징으로 조건에 맞는 취소요청 주문 리스트를 조회할 수 있다. +
 
 요청 파라미터 복잡해서 조회api지만 POST 사용
 
 operation::query_admin_cancel_request[snippets='curl-request,request-headers,request-parameters,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-admin-reject-cancelRequest]]
+=== 주문 취소 요청 반려
+
+`POST` 요청을 사용하여 주문 취소 요청을 반려할 수 있다. +
+
+일반/구독 공용
+
+operation::query_admin_reject_cancelRequest[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+
 
 
 
@@ -1492,30 +1528,42 @@ operation::update_deliveryNumber[snippets='curl-request,request-headers,request-
 
 
 [[resources-admin-cancelConfirm-general]]
-=== 일반 주문 주문취소요청을 컨펌 처리
+=== 일반 주문 취소요청 컨펌 처리
 
-`POST` 요청을 사용하여 일반 주문 주문취소요청을 컨펌 처리할 수 있다.
+`POST` 요청을 사용하여 일반 주문 주문취소요청을 컨펌 처리할 수 있다. +
+
+주문 전체 카드결제금액/적립금/사용한 쿠폰 모두 환불처리 +
 
 operation::admin_cancelConfirm_general[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 [[resources-admin-cancelConfirm-subscribe]]
-=== 구독 주문 주문취소요청을 컨펌 처리
+=== 구독 주문 취소요청 컨펌 처리
 
-`POST` 요청을 사용하여 구독 주문 주문취소요청을 컨펌 처리할 수 있다.
+`POST` 요청을 사용하여 구독 주문 주문취소요청을 컨펌 처리할 수 있다. +
+
+주문 전체 카드결제금액/적립금/사용한 쿠폰 모두 환불처리 +
 
 operation::admin_cancelConfirm_subscribe[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
-[[resources-admin-orderCancel-general]]
-=== 일반 주문 관리자 판매취소 처리
 
-`POST` 요청을 사용하여 일반 주문 관리자 판매취소 처리할 수 있다.
+
+
+[[resources-admin-orderCancel-general]]
+=== 일반 주문 관리자 판매취소 처리 (상품 단위 취소)
+
+`POST` 요청을 사용하여 일반 주문 관리자 판매취소 처리할 수 있다. +
+
+쿠폰 복구와 상태만 변경하기 때문에, +
+수동으로 카드취소 + 적립금 환불 계산해서 해줘야함.
 
 operation::admin_orderCancel_general[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 [[resources-admin-orderCancel-subscribe]]
 === 구독 주문 관리자 판매취소 처리
 
-`POST` 요청을 사용하여 구독 주문 관리자 판매취소 처리할 수 있다.
+`POST` 요청을 사용하여 구독 주문 관리자 판매취소 처리할 수 있다. +
+
+구독 주문 카드결제금액/적립금/사용한 쿠폰 모두 환불처리 +
 
 operation::admin_orderCancel_subscribe[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
@@ -1561,7 +1609,7 @@ operation::admin_confirmExchange_buyer[snippets='curl-request,request-headers,re
 operation::admin_confirmExchange_seller[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
-[[resources-admin-denyReturn]]
+[[resources-admin-denyExchange]]
 === 일반 주문 교환요청 거절 처리
 
 `POST` 요청을 사용하여 일반 주문 교환요청 거절 처리할 수 있다.
@@ -1643,6 +1691,17 @@ operation::success_subscribeOrder[snippets='curl-request,path-parameters,request
 operation::fail_subscribeOrder[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 
+[[resources-cancelRequest-subscribe]]
+=== 구독 주문 취소 요청
+
+`POST` 요청을 사용하여 일반 주문을 취소 요청할 수 있다. +
+order status가 PAYMENT_DONE 일 경우 즉시 카드/적립금/쿠폰 취소처리, 다음 예약도 취소 처리 +
+order status가 PRODUCING 일 경우 구독주문 취소 요청 처리 (상태만 변경) +
+
+operation::cancelRequest_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+
+
 
 [[resources-query-subscribeOrders]]
 === 구독 주문 리스트 검색(페이징)
@@ -1676,7 +1735,9 @@ operation::query_generalOrder[snippets='curl-request,path-parameters,request-hea
 [[resources-cancelRequest-general]]
 === 일반 주문 취소 요청
 
-`POST` 요청을 사용하여 일반 주문을 취소 요청할 수 있다.
+`POST` 요청을 사용하여 일반 주문을 취소 요청할 수 있다. +
+order status가 PAYMENT_DONE 일 경우 즉시 카드/적립금/쿠폰 환불처리됨, 다음 예약도 취소 처리 +
+order status가 DELIVERY_READY 일 경우 주문전체 취소 요청 처리 (상태만 변경) +
 
 operation::cancelRequest_general[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
@@ -1709,7 +1770,7 @@ operation::request_exchangeOrders[snippets='curl-request,request-headers,request
 
 구독 카드 관련 리소스.
 
-[[resources-query-deliveries]]
+[[resources-query-subscribeCards]]
 === 구독 카드 리스트 검색
 
 `GET` 요청을 사용하여 구독 카드 리스트를 조회할 수 있다.

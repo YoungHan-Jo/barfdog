@@ -46,6 +46,8 @@ public class DeliveryService {
 
         List<QueryOrderInfoForDelivery> responseDto = new ArrayList<>();
 
+        List<String> transUniqueCdList = new ArrayList<>();
+
         for (Long orderId : orderIdList) {
             Optional<Order> optionalOrder = orderRepository.findById(orderId);
             if (!optionalOrder.isPresent()) continue;
@@ -60,6 +62,11 @@ public class DeliveryService {
                 String randomString = rs.nextString();
                 delivery.generateTransUniqueCd(randomString);
             }
+
+            if (transUniqueCdList.contains(delivery.getTransUniqueCd())) continue;
+
+            transUniqueCdList.add(delivery.getTransUniqueCd());
+
 
             List<Order> orderListSameDelivery = orderRepository.findByDelivery(delivery);
             List<QueryOrderInfoForDelivery.OrderItemDto> orderItemDtoList = new ArrayList<>();

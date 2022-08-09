@@ -1266,7 +1266,7 @@ public class OrderAdminControllerTest extends BaseTest {
     }
 
 
-    @Ignore
+//    @Ignore
     @Test
     @DisplayName("일반 주문 관리자 주문취소하기")
     public void orderCancelGeneral() throws Exception {
@@ -1552,7 +1552,7 @@ public class OrderAdminControllerTest extends BaseTest {
     }
 
 
-    @Ignore
+//    @Ignore
     @Test
     @DisplayName("일반 주문 주문취소 컨펌")
     public void cancelConfirmGeneral() throws Exception {
@@ -1764,7 +1764,7 @@ public class OrderAdminControllerTest extends BaseTest {
 //
 //    }
 
-    @Ignore
+//    @Ignore
     @Test
     @DisplayName("구독주문 주문취소요청 컨펌")
     public void cancelConfirmSubscribe() throws Exception {
