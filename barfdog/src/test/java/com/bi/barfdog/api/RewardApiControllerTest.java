@@ -119,7 +119,7 @@ public class RewardApiControllerTest extends BaseTest {
        //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
         String recommendCode = BarfUtils.generateRandomCode();
-        member.setRecommendCode(recommendCode);
+        member.recommendFriend(recommendCode);
 
         IntStream.range(1,25).forEach(i -> {
             generateMember(i,member.getMyRecommendationCode());
@@ -249,6 +249,49 @@ public class RewardApiControllerTest extends BaseTest {
     }
 
     @Test
+    @DisplayName("정상적으로 친구 추천")
+    public void recommendFriend_userStatus() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int reward = member.getReward();
+
+        assertThat(member.getRecommendCode()).isNull();
+
+        Member targetMember = generateMember(1, null);
+
+        RecommendFriendDto requestDto = RecommendFriendDto.builder()
+                .recommendCode(targetMember.getMyRecommendationCode())
+                .build();
+
+        //when & then
+        mockMvc.perform(put("/api/rewards/recommend")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+        ;
+
+        em.flush();
+        em.clear();
+
+        Member findMember = memberRepository.findById(member.getId()).get();
+
+        assertThat(findMember.getReward()).isEqualTo(reward + RewardPoint.RECOMMEND);
+        assertThat(findMember.getReward()).isEqualTo(reward + 3000);
+        assertThat(findMember.getRecommendCode()).isEqualTo(targetMember.getMyRecommendationCode());
+        assertThat(findMember.getFirstReward().isRecommend()).isTrue();
+
+        List<Reward> rewards = rewardRepository.findByMember(findMember);
+        assertThat(rewards.size()).isEqualTo(1);
+        assertThat(rewards.get(0).getRewardStatus()).isEqualTo(RewardStatus.SAVED);
+        assertThat(rewards.get(0).getTradeReward()).isEqualTo(RewardPoint.RECOMMEND);
+        assertThat(rewards.get(0).getRewardType()).isEqualTo(RewardType.RECOMMEND);
+
+    }
+
+    @Test
     @DisplayName("추천할 친구 코드가 존재하지않는 경우")
     public void recommendFriend_wrong_code_404() throws Exception {
         //given
@@ -276,7 +319,7 @@ public class RewardApiControllerTest extends BaseTest {
         //given
         Member user = memberRepository.findByEmail(appProperties.getUserEmail()).get();
         Member recommendedMember = generateMember(2, null);
-        user.setRecommendCode(recommendedMember.getMyRecommendationCode());
+        user.recommendFriend(recommendedMember.getMyRecommendationCode());
 
         Member targetMember = generateMember(1, null);
 

@@ -60,6 +60,10 @@ public class Member extends BaseTimeEntity {
     private Grade grade; // [BRONZE, SILVER, GOLD, PLATINUM, DIAMOND, BARF]
 
     private int reward;
+
+    private boolean isFirstPayment; // 첫 구매 여부
+
+    private boolean isTemporaryPassword; // 임시 비밀번호 여부
     
     private int accumulatedAmount; // 누적 금액
 
@@ -92,7 +96,7 @@ public class Member extends BaseTimeEntity {
     /*
     * 비지니스 로직
     * */
-    public void setRecommendCode(String recommendCode) {
+    public void recommendFriend(String recommendCode) {
         this.recommendCode = recommendCode;
         firstReward.setRecommend(true);
         reward += RewardPoint.RECOMMEND;
@@ -106,8 +110,14 @@ public class Member extends BaseTimeEntity {
         this.reward -= reward;
     }
 
-    public void changePassword(String temporaryPassword) {
+    public void changePassword(String hashPassword) {
+        password = hashPassword;
+        isTemporaryPassword = false;
+    }
+
+    public void temporaryPassword(String temporaryPassword) {
         password = temporaryPassword;
+        isTemporaryPassword = true;
     }
 
     public void updateMember(MemberUpdateRequestDto requestDto) {

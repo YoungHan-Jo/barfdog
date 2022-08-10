@@ -4,15 +4,34 @@ import com.bi.barfdog.api.couponDto.Area;
 import com.bi.barfdog.api.rewardDto.PublishToGroupDto;
 import com.bi.barfdog.api.rewardDto.PublishToPersonalDto;
 import com.bi.barfdog.common.AppProperties;
+import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.common.BaseTest;
-import com.bi.barfdog.domain.member.Grade;
-import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.domain.Address;
+import com.bi.barfdog.domain.dog.*;
+import com.bi.barfdog.domain.member.*;
 import com.bi.barfdog.domain.reward.Reward;
 import com.bi.barfdog.domain.reward.RewardStatus;
 import com.bi.barfdog.domain.reward.RewardType;
 import com.bi.barfdog.api.memberDto.jwt.JwtLoginDto;
+import com.bi.barfdog.repository.coupon.CouponRepository;
+import com.bi.barfdog.repository.delivery.DeliveryRepository;
+import com.bi.barfdog.repository.dog.DogRepository;
+import com.bi.barfdog.repository.item.ItemImageRepository;
+import com.bi.barfdog.repository.item.ItemOptionRepository;
+import com.bi.barfdog.repository.item.ItemRepository;
 import com.bi.barfdog.repository.member.MemberRepository;
+import com.bi.barfdog.repository.memberCoupon.MemberCouponRepository;
+import com.bi.barfdog.repository.order.OrderRepository;
+import com.bi.barfdog.repository.orderItem.OrderItemRepository;
+import com.bi.barfdog.repository.orderItem.SelectOptionRepository;
+import com.bi.barfdog.repository.recipe.RecipeRepository;
 import com.bi.barfdog.repository.reward.RewardRepository;
+import com.bi.barfdog.repository.setting.SettingRepository;
+import com.bi.barfdog.repository.subscribe.BeforeSubscribeRepository;
+import com.bi.barfdog.repository.subscribe.SubscribeRepository;
+import com.bi.barfdog.repository.subscribeRecipe.SubscribeRecipeRepository;
+import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,10 +39,12 @@ import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,17 +70,62 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class RewardAdminControllerTest extends BaseTest {
 
     @Autowired
-    AppProperties appProperties;
-
-    @Autowired
     EntityManager em;
-
+    @Autowired
+    AppProperties appProperties;
     @Autowired
     MemberRepository memberRepository;
-
+    @Autowired
+    DogRepository dogRepository;
+    @Autowired
+    SubscribeRepository subscribeRepository;
+    @Autowired
+    RecipeRepository recipeRepository;
+    @Autowired
+    SubscribeRecipeRepository subscribeRecipeRepository;
+    @Autowired
+    DeliveryRepository deliveryRepository;
+    @Autowired
+    OrderRepository orderRepository;
+    @Autowired
+    ItemRepository itemRepository;
+    @Autowired
+    OrderItemRepository orderItemRepository;
+    @Autowired
+    ItemOptionRepository itemOptionRepository;
+    @Autowired
+    SelectOptionRepository selectOptionRepository;
+    @Autowired
+    SettingRepository settingRepository;
+    @Autowired
+    SurveyReportRepository surveyReportRepository;
+    @Autowired
+    BeforeSubscribeRepository beforeSubscribeRepository;
+    @Autowired
+    CouponRepository couponRepository;
+    @Autowired
+    MemberCouponRepository memberCouponRepository;
+    @Autowired
+    ItemImageRepository itemImageRepository;
     @Autowired
     RewardRepository rewardRepository;
-            
+    @Autowired
+    BCryptPasswordEncoder bCryptPasswordEncoder;
+
+
+    @Before
+    public void setUp() {
+        orderItemRepository.deleteAll();
+        orderRepository.deleteAll();
+        itemImageRepository.deleteAll();
+        itemOptionRepository.deleteAll();
+        itemRepository.deleteAll();
+        deliveryRepository.deleteAll();
+        surveyReportRepository.deleteAll();
+        dogRepository.deleteAll();
+        memberCouponRepository.deleteAll();
+        couponRepository.deleteAll();
+    }
 
     @Test
     @DisplayName("정상적으로 개인에게 적립금 발행하는 테스트")
@@ -67,10 +133,12 @@ public class RewardAdminControllerTest extends BaseTest {
        //given
 
         List<Long> memberIdList = new ArrayList<>();
+        List<Integer> rewardList = new ArrayList<>();
 
         List<Member> allMembers = memberRepository.findAll();
         for (Member member : allMembers) {
             memberIdList.add(member.getId());
+            rewardList.add(member.getReward());
         }
 
         String name = "적립금 발행 테스트";
@@ -128,7 +196,66 @@ public class RewardAdminControllerTest extends BaseTest {
         assertThat(allRewards.get(0).getRewardStatus()).isEqualTo(RewardStatus.SAVED);
         assertThat(allRewards.get(0).getRewardType()).isEqualTo(RewardType.ADMIN);
 
+        for (int i = 0; i < memberIdList.size(); ++i) {
+            Member member = memberRepository.findById(memberIdList.get(i)).get();
+            assertThat(member.getReward()).isEqualTo(rewardList.get(i) + amount);
+        }
+
     }
+
+    @Test
+    @DisplayName("정상적으로 개인에게 적립금 발행하는 테스트")
+    public void publishRewardsToPersonal_alimTalk() throws Exception {
+        //given
+        memberRepository.deleteAll();
+
+        em.flush();
+        em.clear();
+        List<Long> memberIdList = new ArrayList<>();
+
+        Member admin = generateMember(appProperties.getAdminEmail(), "관리자", appProperties.getAdminPassword(), "01099038544", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,SUBSCRIBER,USER", true);
+//        generateDog(admin, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL, true, "댕댕이");
+        int adminReward = admin.getReward();
+        memberIdList.add(admin.getId());
+
+//        Member member = generateMember("jyh1234@gmail.com", "김회원", appProperties.getUserPassword(), "01056862723", Gender.MALE, Grade.브론즈, 50000, false, "USER,SUBSCRIBER", true);
+//        generateDog(member, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL, true, "대표견");
+//        int memberReward = member.getReward();
+//        memberIdList.add(member.getId());
+
+        String name = "적립금 발행 테스트";
+        int amount = 5000;
+        PublishToPersonalDto requestDto = PublishToPersonalDto.builder()
+                .name(name)
+                .amount(amount)
+                .memberIdList(memberIdList)
+                .alimTalk(true)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/rewards/personal")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isCreated());
+
+        em.flush();
+        em.clear();
+
+        Member findAdmin = memberRepository.findById(admin.getId()).get();
+        assertThat(findAdmin.getReward()).isEqualTo(adminReward + amount);
+
+//        Member findMember = memberRepository.findById(member.getId()).get();
+//        assertThat(findMember.getReward()).isEqualTo(memberReward);
+
+        List<Reward> rewardList = rewardRepository.findAll();
+        assertThat(rewardList.size()).isEqualTo(1);
+
+
+    }
+
 
     @Test
     @DisplayName("적립금 개인 발행 시 파라미터값 부족 400")
@@ -190,17 +317,31 @@ public class RewardAdminControllerTest extends BaseTest {
     @DisplayName("정상적으로 특정 그룹에게 적립금 발급하는 테스트")
     public void publishToGroup() throws Exception {
        //given
+        memberRepository.deleteAll();
+
+        em.flush();
+        em.clear();
+
+        Member admin = generateMember(appProperties.getAdminEmail(), "관리자", appProperties.getAdminPassword(), "01099038544", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,SUBSCRIBER,USER", true);
+        generateDog(admin, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL, true, "댕댕이");
+
+        int adminReward = admin.getReward();
+
+        Member member = generateMember("jyh1234@gmail.com", "김회원", appProperties.getUserPassword(), "01056862723", Gender.MALE, Grade.브론즈, 50000, false, "USER,SUBSCRIBER", true);
+        generateDog(member, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL, true, "대표견");
+
+        int memberReward = member.getReward();
+
 
         List<Grade> gradeList = new ArrayList<>();
-        gradeList.add(Grade.브론즈);
-        gradeList.add(Grade.실버);
+        gradeList.add(Grade.더바프);
 
         String name = "그룹 적립금 발행 테스트";
         int amount = 8000;
         PublishToGroupDto requestDto = PublishToGroupDto.builder()
                 .name(name)
                 .amount(amount)
-                .subscribe(false)
+                .subscribe(true)
                 .longUnconnected(false)
                 .gradeList(gradeList)
                 .area(Area.ALL)
@@ -216,49 +357,61 @@ public class RewardAdminControllerTest extends BaseTest {
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
-                .andExpect(status().isCreated())
-                .andDo(document("admin_publish_rewards_group",
-                        links(
-                                linkWithRel("self").description("self 링크"),
-                                linkWithRel("admin_query_rewards").description("적립금 내역 조회 링크"),
-                                linkWithRel("profile").description("해당 API 관련 문서 링크")
-                        ),
-                        requestHeaders(
-                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
-                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
-                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt 토큰")
-                        ),
-                        requestFields(
-                                fieldWithPath("name").description("적립금 이름"),
-                                fieldWithPath("amount").description("적립금 수량"),
-                                fieldWithPath("subscribe").description("구독 여부 [true/false]"),
-                                fieldWithPath("longUnconnected").description("장기 미접속 여부(1년) [true/false]"),
-                                fieldWithPath("gradeList").description("등급 리스트 String 배열 형식 [BRONZE, SILVER, GOLD, PLATINUM, DIAMOND, BARF]"),
-                                fieldWithPath("area").description("지역 선택 [ALL, METRO, NON_METRO]"),
-                                fieldWithPath("birthYearFrom").description("시작하는 출생년도 'yyyy' String 타입"),
-                                fieldWithPath("birthYearTo").description("끝나는 출생년도 'yyyy' String 타입"),
-                                fieldWithPath("alimTalk").description("알림톡 여부 [true/false]")
-                        ),
-                        responseHeaders(
-                                headerWithName(HttpHeaders.LOCATION).description("location header"),
-                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
-                        ),
-                        responseFields(
-                                fieldWithPath("_links.self.href").description("self 링크"),
-                                fieldWithPath("_links.admin_query_rewards.href").description("적립금 내역 조회 링크"),
-                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
-                        )
-                ));
+                .andExpect(status().isCreated());
+
+        em.flush();
+        em.clear();
+
+        Member findAdmin = memberRepository.findById(admin.getId()).get();
+        assertThat(findAdmin.getReward()).isEqualTo(adminReward + amount);
+
+        Member findMember = memberRepository.findById(member.getId()).get();
+        assertThat(findMember.getReward()).isEqualTo(memberReward);
+
+        List<Reward> rewardList = rewardRepository.findAll();
+        assertThat(rewardList.size()).isEqualTo(1);
+
+
+    }
+
+    @Test
+    @DisplayName("정상적으로 특정 그룹에게 적립금 발급시 적립금 + 되었는지")
+    public void publishToGroup_rewardPlus() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        List<Grade> gradeList = new ArrayList<>();
+        gradeList.add(Grade.브론즈);
+
+        String name = "그룹 적립금 발행 테스트";
+        int amount = 8000;
+        PublishToGroupDto requestDto = PublishToGroupDto.builder()
+                .name(name)
+                .amount(amount)
+                .subscribe(true)
+                .longUnconnected(false)
+                .gradeList(gradeList)
+                .area(Area.ALL)
+                .birthYearFrom("1980")
+                .birthYearTo("2020")
+                .alimTalk(false)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/rewards/group")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isCreated());
 
         em.flush();
         em.clear();
 
         List<Member> findMembers = memberRepository.findByGrades(gradeList);
-
-        List<Reward> all = rewardRepository.findAll();
-//        assertThat(all.size()).isEqualTo(findMembers.size());
-        assertThat(all.get(0).getName()).isEqualTo(name);
-        assertThat(all.get(0).getTradeReward()).isEqualTo(amount);
 
 
     }
@@ -675,11 +828,51 @@ public class RewardAdminControllerTest extends BaseTest {
 
 
 
-    
-    
-    
-    
-    
+
+
+
+
+
+
+    private Member generateMember(String email, String name, String password, String phoneNumber, Gender gender, Grade grade, int reward, boolean recommend, String roles, boolean isSubscribe) {
+        Member member = Member.builder()
+                .email(email)
+                .name(name)
+                .password(bCryptPasswordEncoder.encode(password))
+                .phoneNumber(phoneNumber)
+                .address(new Address("12345","부산광역시","부산광역시 해운대구 센텀2로 19","106호"))
+                .birthday("19991201")
+                .gender(gender)
+                .agreement(new Agreement(true,true,true,true,true))
+                .myRecommendationCode(BarfUtils.generateRandomCode())
+                .grade(grade)
+                .reward(reward)
+                .accumulatedAmount(1000000)
+                .accumulatedSubscribe(3)
+                .isSubscribe(isSubscribe)
+                .firstReward(new FirstReward(recommend, recommend))
+                .roles(roles)
+                .build();
+
+        return memberRepository.save(member);
+    }
+
+    private Dog generateDog(Member member, long startAgeMonth, DogSize dogSize, String weight, ActivityLevel activitylevel, int walkingCountPerWeek, double walkingTimePerOneTime, SnackCountLevel snackCountLevel, boolean representative, String name) {
+        Dog dog = Dog.builder()
+                .member(member)
+                .representative(representative)
+                .name(name)
+                .startAgeMonth(startAgeMonth)
+                .gender(Gender.MALE)
+                .oldDog(false)
+                .dogSize(dogSize)
+                .weight(new BigDecimal(weight))
+                .dogActivity(new DogActivity(activitylevel, walkingCountPerWeek, walkingTimePerOneTime))
+                .dogStatus(DogStatus.HEALTHY)
+                .snackCountLevel(snackCountLevel)
+                .build();
+        return dogRepository.save(dog);
+    }
     
     
     

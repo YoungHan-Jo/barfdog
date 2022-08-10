@@ -20,5 +20,6 @@ public class LoginResponseDto {
     @Builder.Default
     private List<String> roleList = new ArrayList<>();
     private LocalDateTime expiresAt;
+    private boolean isTemporaryPassword;
 
 }

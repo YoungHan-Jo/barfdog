@@ -904,7 +904,7 @@ public class ReviewApiControllerTest extends BaseTest {
             generateItemReview(admin, item, i);
         });
 
-        IntStream.range(1,11).forEach(i -> {
+        IntStream.range(5,15).forEach(i -> {
             generateSubscribeReview(member, i);
             generateSubscribeReview(admin, i);
         });
@@ -944,6 +944,7 @@ public class ReviewApiControllerTest extends BaseTest {
                                 fieldWithPath("_embedded.queryReviewsDtoList[0].id").description("리뷰 id"),
                                 fieldWithPath("_embedded.queryReviewsDtoList[0].thumbnailUrl").description("상품 썸네일 url"),
                                 fieldWithPath("_embedded.queryReviewsDtoList[0].title").description("상품 제목"),
+                                fieldWithPath("_embedded.queryReviewsDtoList[0].reviewType").description("리뷰 타입 [ITEM,SUBSCRIBE]. 각 일반리뷰/구독리뷰"),
                                 fieldWithPath("_embedded.queryReviewsDtoList[0].star").description("평점 1~5 int"),
                                 fieldWithPath("_embedded.queryReviewsDtoList[0].contents").description("리뷰 내용"),
                                 fieldWithPath("_embedded.queryReviewsDtoList[0].createdDate").description("리뷰 작성일"),

@@ -2,7 +2,7 @@ package com.bi.barfdog.domain.reward;
 
 public interface RewardName {
     String RECOMMEND = "[친구추천] 친구 추천 적립금";
-    String INVITE = "[친구초대] 친구 초대 적립금";
+    String INVITE = "[친구초대] 초대한 친구 첫구매 적립금";
     String REVIEW = "[리뷰] 리뷰 작성 적립금";
 
     String USE_ORDER = "[주문] 주문 사용 적립금";

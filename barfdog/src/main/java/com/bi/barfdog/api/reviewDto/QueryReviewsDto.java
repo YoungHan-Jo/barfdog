@@ -18,6 +18,7 @@ public class QueryReviewsDto {
     private Long id;
     private String thumbnailUrl;
     private String title;
+    private ReviewType reviewType;
     private int star;
     private String contents;
     private LocalDate createdDate;

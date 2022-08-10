@@ -243,6 +243,8 @@ public class CouponService {
         String dogName = "";
         if (dogList.size() > 0) {
             dogName = dogList.get(0).getName();
+        } else {
+            dogName = "반려견";
         }
         return dogName;
     }

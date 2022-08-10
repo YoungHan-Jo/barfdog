@@ -817,6 +817,82 @@ public class IndexApiControllerTest extends BaseTest {
         assertThat(findMember.getAgreement().isReceiveEmail()).isTrue();
     }
 
+    @Test
+    @DisplayName("회원가입 시 sms/email 수신 동의")
+    public void join_sms_email_agree() throws Exception {
+        //Given
+        Member sampleMember = generateSampleMember();
+
+        String email = "verin4494@gmail.com";
+        MemberSaveRequestDto requestDto = MemberSaveRequestDto.builder()
+                .name("이름")
+                .email(email)
+                .password("12341234")
+                .confirmPassword("12341234")
+                .phoneNumber("01012348544")
+                .address(new Address("48060","부산시","해운대구 센텀2로 19","브리티시인터내셔널"))
+                .birthday("19930521")
+                .gender(Gender.MALE)
+                .agreement(new Agreement(true,true,true,true,true))
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/join")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isCreated());
+
+        em.flush();
+        em.clear();
+
+        Member findMember = memberRepository.findByEmail(email).get();
+        assertThat(findMember.getAgreement().isReceiveEmail()).isTrue();
+        assertThat(findMember.getAgreement().isReceiveSms()).isTrue();
+
+        assertThat(findMember.getRecommendCode()).isNull();
+
+    }
+
+    @Test
+    @DisplayName("회원가입 시 sms/email 수신 미동의")
+    public void join_sms_email_not_agree() throws Exception {
+        //Given
+        Member sampleMember = generateSampleMember();
+
+        String email = "verin4494@gmail.com";
+        MemberSaveRequestDto requestDto = MemberSaveRequestDto.builder()
+                .name("이름")
+                .email(email)
+                .password("12341234")
+                .confirmPassword("12341234")
+                .phoneNumber("01012348544")
+                .address(new Address("48060","부산시","해운대구 센텀2로 19","브리티시인터내셔널"))
+                .birthday("19930521")
+                .gender(Gender.MALE)
+                .agreement(new Agreement(true,true,false,false,true))
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/join")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isCreated());
+
+        em.flush();
+        em.clear();
+
+        Member findMember = memberRepository.findByEmail(email).get();
+        assertThat(findMember.getAgreement().isReceiveEmail()).isFalse();
+        assertThat(findMember.getAgreement().isReceiveSms()).isFalse();
+
+        assertThat(findMember.getRecommendCode()).isNull();
+
+    }
+
 
     @Test
     @DisplayName("추천인 코드ㅇ 적립금3000원으로 회원 가입이 완료되는 테스트")
@@ -1440,6 +1516,7 @@ public class IndexApiControllerTest extends BaseTest {
     public void login() throws Exception {
        //Given
         Member member = generateSampleMember();
+        member.temporaryPassword(member.getPassword());
 
         Member findMember = memberRepository.findById(member.getId()).get();
 
@@ -1476,7 +1553,8 @@ public class IndexApiControllerTest extends BaseTest {
                                 fieldWithPath("name").description("이름"),
                                 fieldWithPath("email").description("이메일"),
                                 fieldWithPath("roleList").description("역할 리스트 [USER,SUBSCRIBER,ADMIN], 하위 역할을 포함 함"),
-                                fieldWithPath("expiresAt").description("토큰 만료 시간")
+                                fieldWithPath("expiresAt").description("토큰 만료 시간"),
+                                fieldWithPath("temporaryPassword").description("임시비밀번호 로그인 여부 true/false")
                         )
                 ));
     }
@@ -1592,15 +1670,16 @@ public class IndexApiControllerTest extends BaseTest {
 
 //    @Ignore
     @Test
-    @DisplayName("정상적으로 비밀번호 찾는 테스트")
+    @DisplayName("정상적으로 임시비밀번호 발급받는 테스트")
     public void findPassword() throws Exception {
         //Given
-        Member sampleMember = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        assertThat(member.isTemporaryPassword()).isFalse();
 
         FindPasswordRequestDto requestDto = FindPasswordRequestDto.builder()
-                .email(sampleMember.getEmail())
-                .name(sampleMember.getName())
-                .phoneNumber(sampleMember.getPhoneNumber())
+                .email(member.getEmail())
+                .name(member.getName())
+                .phoneNumber(member.getPhoneNumber())
                 .build();
 
         //when & then
@@ -1637,6 +1716,13 @@ public class IndexApiControllerTest extends BaseTest {
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
+
+        em.flush();
+        em.clear();
+
+        Member findMember = memberRepository.findById(member.getId()).get();
+        assertThat(findMember.isTemporaryPassword()).isTrue();
+
     }
 
     @Test

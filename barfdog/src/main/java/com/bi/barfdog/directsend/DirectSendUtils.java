@@ -128,6 +128,27 @@ public class DirectSendUtils {
         sendAlimTalk(DirectSend.CODE_COUPON_TEMPLATE, receiver);
     }
 
+    public static void sendRewardPublishAlim(List<RewardAlimDto> rewardAlimDtoList) throws IOException {
+        String receiver = "";
+
+        for (RewardAlimDto rewardAlimDto : rewardAlimDtoList) {
+
+            receiver += ",{\"name\": \"" + rewardAlimDto.getName() + "\", " +
+                    "\"mobile\":\"" + rewardAlimDto.getPhone() + "\", " +
+                    "\"note1\":\"" + rewardAlimDto.getDogName() + "\"," +
+                    "\"note2\":\"" + rewardAlimDto.getRewardName() + "\"," +
+                    "\"note3\":\"" + rewardAlimDto.getAmount() + "\"}";
+        }
+
+        if (rewardAlimDtoList.size() > 0) {
+            receiver = receiver.substring(1);
+        }
+
+
+        sendAlimTalk(DirectSend.REWARD_TEMPLATE, receiver);
+    }
+
+
     public static FriendTalkResponseDto sendFriendTalk(String templateNumber, List<Member> memberList) throws IOException {
 
         String receiver = "";

@@ -10,6 +10,7 @@ public interface DirectSend {
     String GENERAL_PUBLISH_TEMPLATE_TEST = "4";
 
     String CODE_COUPON_TEMPLATE = "37";
+    String REWARD_TEMPLATE = "58";
 
     String ORDER_SUCCESS_TEMPLATE = "10";
     String ORDER_CANCEL_TEMPLATE = "16";

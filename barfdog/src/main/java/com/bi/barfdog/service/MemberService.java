@@ -83,7 +83,7 @@ public class MemberService {
                 Member findMember = optionalMember.get();
                 findMember.saveReward(RewardPoint.RECOMMEND);
 
-                member.setRecommendCode(recommendCode);
+                member.recommendFriend(recommendCode);
 
                 Reward reward = Reward.builder()
                         .member(member)
@@ -129,7 +129,7 @@ public class MemberService {
 
         DirectSendResponseDto responseDto = DirectSendUtils.sendSmsDirect(title, message, member.getPhoneNumber());
 
-        member.changePassword(hashPassword);
+        member.temporaryPassword(hashPassword);
 
         return responseDto;
     }
@@ -324,5 +324,11 @@ public class MemberService {
         LocalDate lastDayOfMonth = today.withDayOfMonth(today.lengthOfMonth());
         LocalDateTime expiredDate = lastDayOfMonth.atTime(23, 59, 59);
         return expiredDate;
+    }
+
+    @Transactional
+    public void updatePassword(Member member, String newPassword) {
+        String hashPassword = bCryptPasswordEncoder.encode(newPassword);
+        member.changePassword(hashPassword);
     }
 }

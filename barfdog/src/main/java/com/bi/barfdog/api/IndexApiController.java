@@ -310,6 +310,7 @@ public class IndexApiController {
                 .email(member.getEmail())
                 .roleList(roleList)
                 .expiresAt(expiresAt)
+                .isTemporaryPassword(member.isTemporaryPassword())
                 .build();
 
         EntityModel<LoginResponseDto> entityModel = EntityModel.of(responseDto);

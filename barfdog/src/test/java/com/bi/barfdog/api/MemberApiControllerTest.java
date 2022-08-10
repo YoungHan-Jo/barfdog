@@ -327,10 +327,17 @@ public class MemberApiControllerTest extends BaseTest {
     @DisplayName("정상적으로 비밀번호 변경하는 테스트")
     public void updatePassword() throws Exception {
        //Given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        member.temporaryPassword(member.getPassword());
+
+        assertThat(member.isTemporaryPassword()).isTrue();
+
+        String newPassword = "1234";
         UpdatePasswordRequestDto requestDto = UpdatePasswordRequestDto.builder()
                 .password(appProperties.getUserPassword())
-                .newPassword("1234")
-                .newPasswordConfirm("1234")
+                .newPassword(newPassword)
+                .newPasswordConfirm(newPassword)
                 .build();
         //when & then
         mockMvc.perform(put("/api/members/password")
@@ -363,6 +370,41 @@ public class MemberApiControllerTest extends BaseTest {
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
+
+        em.flush();
+        em.clear();
+
+        Member findMember = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        assertThat(bCryptPasswordEncoder.matches(newPassword, findMember.getPassword())).isTrue();
+        assertThat(findMember.isTemporaryPassword()).isFalse();
+
+
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경시 토큰 없음 401")
+    public void updatePassword_no_token() throws Exception {
+        //Given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        member.temporaryPassword(member.getPassword());
+
+        assertThat(member.isTemporaryPassword()).isTrue();
+
+        String newPassword = "1234";
+        UpdatePasswordRequestDto requestDto = UpdatePasswordRequestDto.builder()
+                .password(appProperties.getUserPassword())
+                .newPassword(newPassword)
+                .newPasswordConfirm(newPassword)
+                .build();
+        //when & then
+        mockMvc.perform(put("/api/members/password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+
     }
 
     @Test

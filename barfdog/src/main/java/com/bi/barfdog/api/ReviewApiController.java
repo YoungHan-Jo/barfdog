@@ -102,8 +102,6 @@ public class ReviewApiController {
                                        PagedResourcesAssembler<QueryReviewsDto> assembler) {
         Page<QueryReviewsDto> page = reviewRepository.findReviewsDtoByMember(pageable, member);
 
-        WebMvcLinkBuilder selfLinkBuilder = linkTo(ReviewApiController.class);
-
         PagedModel<EntityModel<QueryReviewsDto>> pagedModel = assembler.toModel(page, e -> new ReviewsDtoResource(e));
         pagedModel.add(profileRootUrlBuilder.slash("index.html#resources-query-reviews").withRel("profile"));
 

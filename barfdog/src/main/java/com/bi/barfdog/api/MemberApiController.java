@@ -125,10 +125,10 @@ public class MemberApiController {
             return badRequest(errors);
         }
 
-        WebMvcLinkBuilder selfLinkBuilder = linkTo(MemberApiController.class).slash("password");
+        memberService.updatePassword(member, requestDto.getNewPassword());
 
         RepresentationModel representationModel = new RepresentationModel();
-        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(MemberApiController.class).slash("password").withSelfRel());
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-password").withRel("profile"));
 
         return ResponseEntity.ok(representationModel);
