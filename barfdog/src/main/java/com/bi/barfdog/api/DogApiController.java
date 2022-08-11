@@ -155,6 +155,8 @@ public class DogApiController {
         if (pictureId != null) {
             Optional<DogPicture> optionalDogPicture = dogPictureRepository.findById(pictureId);
             if (!optionalDogPicture.isPresent()) return notFound();
+            DogPicture dogPicture = optionalDogPicture.get();
+            if (dogPicture.getDog() != null) return new ResponseEntity(HttpStatus.CONFLICT);
         }
         dogValidator.validateMyDog(member, id, errors);
         if (errors.hasErrors()) return badRequest(errors);

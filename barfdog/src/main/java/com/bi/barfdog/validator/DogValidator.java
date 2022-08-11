@@ -15,7 +15,7 @@ public class DogValidator {
 
     public void validateMyDog(Member member, Long id, Errors errors) {
         Dog dog = dogRepository.findById(id).get();
-        if (dog.getMember() != member) {
+        if (dog.getMember().getId() != member.getId()) {
             errors.reject("this dog is not mine","내 강아지가 아닙니다.");
         }
     }

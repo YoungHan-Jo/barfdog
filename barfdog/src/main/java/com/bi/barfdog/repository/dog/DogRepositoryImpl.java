@@ -222,6 +222,8 @@ public class DogRepositoryImpl implements DogRepositoryCustom{
         List<QueryDogsDto> result = queryFactory
                 .select(Projections.constructor(QueryDogsDto.class,
                         dog.id,
+                        dogPicture.id,
+                        dogPicture.filename,
                         dogPicture.filename,
                         dog.name,
                         dog.birth,
@@ -238,6 +240,8 @@ public class DogRepositoryImpl implements DogRepositoryCustom{
         List<QueryDogsDto> addResult = queryFactory
                 .select(Projections.constructor(QueryDogsDto.class,
                         dog.id,
+                        dogPicture.id,
+                        dogPicture.filename,
                         dogPicture.filename,
                         dog.name,
                         dog.birth,

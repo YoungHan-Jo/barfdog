@@ -198,23 +198,24 @@ public class AppConfig {
 //                Dog memberRepresentativeDog = generateDogRepresentative(member, subscribe,18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
                 generateDogRepresentative(admin, null,18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
                 generateDogRepresentative(manager,null, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
-                generateDog(admin, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
-                generateDog(admin, 42L, DogSize.LARGE, "14.5", ActivityLevel.MUCH, 2, 0.5, SnackCountLevel.LITTLE);
-                generateDog(admin, 46L, DogSize.LARGE, "13.4", ActivityLevel.VERY_MUCH, 3, 1, SnackCountLevel.NORMAL);
-                generateDog(admin, 43L, DogSize.LARGE, "15.3", ActivityLevel.LITTLE, 4, 0.5, SnackCountLevel.LITTLE);
-                generateDog(admin, 46L, DogSize.LARGE, "12.3", ActivityLevel.LITTLE, 6, 1, SnackCountLevel.LITTLE);
-                generateDog(admin, 34L, DogSize.LARGE, "16.7", ActivityLevel.VERY_LITTLE, 3, 0.7, SnackCountLevel.LITTLE);
-                generateDog(admin, 64L, DogSize.MIDDLE, "11.3", ActivityLevel.VERY_LITTLE, 4, 0.5, SnackCountLevel.MUCH);
-                generateDog(admin, 67L, DogSize.MIDDLE, "11.3", ActivityLevel.LITTLE, 6, 0.3, SnackCountLevel.NORMAL);
-                generateDog(admin, 78L, DogSize.MIDDLE, "10.2", ActivityLevel.NORMAL, 8, 1.3, SnackCountLevel.MUCH);
-                generateDog(admin, 72L, DogSize.MIDDLE, "10.2", ActivityLevel.VERY_MUCH, 6, 0.7, SnackCountLevel.NORMAL);
-                generateDog(admin, 76L, DogSize.MIDDLE, "10.1", ActivityLevel.VERY_MUCH, 5, 1.3, SnackCountLevel.NORMAL);
-                generateDog(admin, 34L, DogSize.MIDDLE, "13.7", ActivityLevel.VERY_MUCH, 4, 0.7, SnackCountLevel.LITTLE);
-                generateDog(admin, 58L, DogSize.SMALL, "6.5", ActivityLevel.VERY_MUCH, 3, 0.5, SnackCountLevel.NORMAL);
-                generateDog(admin, 73L, DogSize.SMALL, "7.2", ActivityLevel.NORMAL, 2, 0.7, SnackCountLevel.NORMAL);
-                generateDog(admin, 56L, DogSize.SMALL, "5.5", ActivityLevel.VERY_LITTLE, 4, 1.3, SnackCountLevel.MUCH);
-                generateDog(admin, 46L, DogSize.SMALL, "8.2", ActivityLevel.MUCH, 5, 0.5, SnackCountLevel.LITTLE);
-                generateDog(admin, 36L, DogSize.SMALL, "8.2", ActivityLevel.MUCH, 4, 2, SnackCountLevel.NORMAL);
+                generateDogBeforePaymentSubscribe(admin, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+                generateDogBeforePaymentSubscribe(admin, 42L, DogSize.LARGE, "14.5", ActivityLevel.MUCH, 2, 0.5, SnackCountLevel.LITTLE);
+                generateDogBeforePaymentSubscribe(admin, 46L, DogSize.LARGE, "13.4", ActivityLevel.VERY_MUCH, 3, 1, SnackCountLevel.NORMAL);
+                generateDogBeforePaymentSubscribe(admin, 43L, DogSize.LARGE, "15.3", ActivityLevel.LITTLE, 4, 0.5, SnackCountLevel.LITTLE);
+                generateDogBeforePaymentSubscribe(admin, 46L, DogSize.LARGE, "12.3", ActivityLevel.LITTLE, 6, 1, SnackCountLevel.LITTLE);
+                generateDogBeforePaymentSubscribe(admin, 34L, DogSize.LARGE, "16.7", ActivityLevel.VERY_LITTLE, 3, 0.7, SnackCountLevel.LITTLE);
+                generateDogBeforePaymentSubscribe(admin, 64L, DogSize.MIDDLE, "11.3", ActivityLevel.VERY_LITTLE, 4, 0.5, SnackCountLevel.MUCH);
+                generateDogBeforePaymentSubscribe(admin, 67L, DogSize.MIDDLE, "11.3", ActivityLevel.LITTLE, 6, 0.3, SnackCountLevel.NORMAL);
+                generateDogBeforePaymentSubscribe(admin, 78L, DogSize.MIDDLE, "10.2", ActivityLevel.NORMAL, 8, 1.3, SnackCountLevel.MUCH);
+                generateDogBeforePaymentSubscribe(admin, 72L, DogSize.MIDDLE, "10.2", ActivityLevel.VERY_MUCH, 6, 0.7, SnackCountLevel.NORMAL);
+                generateDogBeforePaymentSubscribe(admin, 76L, DogSize.MIDDLE, "10.1", ActivityLevel.VERY_MUCH, 5, 1.3, SnackCountLevel.NORMAL);
+                generateDogBeforePaymentSubscribe(admin, 34L, DogSize.MIDDLE, "13.7", ActivityLevel.VERY_MUCH, 4, 0.7, SnackCountLevel.LITTLE);
+                generateDogBeforePaymentSubscribe(admin, 58L, DogSize.SMALL, "6.5", ActivityLevel.VERY_MUCH, 3, 0.5, SnackCountLevel.NORMAL);
+                generateDogBeforePaymentSubscribe(admin, 73L, DogSize.SMALL, "7.2", ActivityLevel.NORMAL, 2, 0.7, SnackCountLevel.NORMAL);
+                generateDogBeforePaymentSubscribe(admin, 56L, DogSize.SMALL, "5.5", ActivityLevel.VERY_LITTLE, 4, 1.3, SnackCountLevel.MUCH);
+                generateDogBeforePaymentSubscribe(admin, 46L, DogSize.SMALL, "8.2", ActivityLevel.MUCH, 5, 0.5, SnackCountLevel.LITTLE);
+                generateDogBeforePaymentSubscribe(admin, 36L, DogSize.SMALL, "8.2", ActivityLevel.MUCH, 4, 2, SnackCountLevel.NORMAL);
+
 
 
                 Coupon subsCoupon = generateCouponAuto(SUBSCRIBE_COUPON, "정기구독 할인 쿠폰", DiscountType.FIXED_RATE, 50, 0, CouponTarget.SUBSCRIBE);
@@ -260,6 +261,8 @@ public class AppConfig {
                 // ============= 구독 주문서 조회 시작 =============== //
 
                 Dog dogRepresentative = generateDogRepresentativeBeforePaymentSubscribe(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+                generateDogBeforePaymentSubscribe(member, 23L, DogSize.SMALL, "10.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+                generateDogBeforePaymentSubscribe(member, 25L, DogSize.MIDDLE, "13.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
 
                 Subscribe subscribe = generateSubscribeBeforePayment(dogRepresentative, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, 100000);
 
@@ -913,6 +916,24 @@ public class AppConfig {
                         .name("대표견")
                         .birth("202103")
                         .representative(true)
+                        .startAgeMonth(startAgeMonth)
+                        .gender(Gender.MALE)
+                        .oldDog(false)
+                        .dogSize(dogSize)
+                        .weight(new BigDecimal(weight))
+                        .dogActivity(new DogActivity(activitylevel, walkingCountPerWeek, walkingTimePerOneTime))
+                        .dogStatus(DogStatus.HEALTHY)
+                        .snackCountLevel(snackCountLevel)
+                        .build();
+                return dogRepository.save(dog);
+            }
+
+            private Dog generateDogBeforePaymentSubscribe(Member member, long startAgeMonth, DogSize dogSize, String weight, ActivityLevel activitylevel, int walkingCountPerWeek, double walkingTimePerOneTime, SnackCountLevel snackCountLevel) {
+                Dog dog = Dog.builder()
+                        .member(member)
+                        .name("대표견")
+                        .birth("202103")
+                        .representative(false)
                         .startAgeMonth(startAgeMonth)
                         .gender(Gender.MALE)
                         .oldDog(false)

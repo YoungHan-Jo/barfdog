@@ -17,6 +17,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 public class QueryDogsDto {
 
     private Long id;
+    private Long dogPictureId;
+    private String pictureName;
     private String pictureUrl;
     private String name;
     private String birth;

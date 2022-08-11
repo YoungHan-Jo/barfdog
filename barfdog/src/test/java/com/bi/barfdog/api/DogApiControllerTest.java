@@ -281,6 +281,40 @@ public class DogApiControllerTest extends BaseTest {
     }
 
     @Test
+    @DisplayName("수정할 강아지 사진이 이미 사용중인 사진일 경우")
+    public void updateDogPicture_conflict() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        Dog dog = generateDog(member, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+
+        DogPicture dogPicture = generateDogPicture(1);
+        dogPicture.setDog(dog);
+
+        List<DogPicture> dogPictures = dogPictureRepository.findByDog(dog);
+        assertThat(dogPictures.size()).isEqualTo(1);
+        assertThat(dogPictures.get(0).getId()).isEqualTo(dogPicture.getId());
+
+        DogPicture newDogPicture = generateDogPicture(2);
+
+        newDogPicture.setDog(dog);
+
+        UpdateDogPictureDto requestDto = UpdateDogPictureDto.builder()
+                .dogPictureId(newDogPicture.getId())
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.put("/api/dogs/{id}/picture",dog.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isConflict());
+    }
+
+    @Test
     @DisplayName("강아지 사진 수정 시 파일 없으면 강아지 사진 삭제")
     public void updateDogPicture_noFile() throws Exception {
         //given
@@ -904,6 +938,8 @@ public class DogApiControllerTest extends BaseTest {
                         ),
                         responseFields(
                                 fieldWithPath("_embedded.queryDogsDtoList[0].id").description("강아지 id"),
+                                fieldWithPath("_embedded.queryDogsDtoList[0].dogPictureId").description("강아지 프로필사진 id, 사진없으면 null"),
+                                fieldWithPath("_embedded.queryDogsDtoList[0].pictureName").description("강아지 프로필사진 파일이름, 사진없으면 null"),
                                 fieldWithPath("_embedded.queryDogsDtoList[0].pictureUrl").description("강아지 프로필사진 url, 사진없으면 null"),
                                 fieldWithPath("_embedded.queryDogsDtoList[0].name").description("강아지 이름"),
                                 fieldWithPath("_embedded.queryDogsDtoList[0].birth").description("강아지 생일 'yyyyMM'"),

@@ -867,7 +867,10 @@ operation::upload_dogPicture[snippets='curl-request,request-headers,request-body
 [[resources-update-dogPicture]]
 === 강아지 프로필사진 변경
 
-`PUT` 요청을 사용해서 강아지 사진을 변경 할 수 있다.
+`PUT` 요청을 사용해서 강아지 사진을 변경 할 수 있다. +
+
+이미 (다른 강아지 or 본 강아지가)사용중인 dogPictureId 를 요청할 경우 conflict 409 status 응답 (본 강아지가 원래 사용하던 dogPictureId를 입력해도 409)+
+dogPictureId가 null인 경우 기존 사진 삭제 처리
 
 operation::update_dogPicture[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 

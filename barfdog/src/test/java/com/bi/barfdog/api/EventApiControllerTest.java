@@ -65,8 +65,6 @@ public class EventApiControllerTest extends BaseTest {
             generateEventAndThumbnail_Hidden(i);
         });
 
-
-
        //when & then
         mockMvc.perform(get("/api/events")
                         .header(HttpHeaders.AUTHORIZATION, getUserToken())
