@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
@@ -43,7 +44,10 @@ public class MemberApiController {
     @GetMapping
     public ResponseEntity queryMember(@CurrentUser Member member) {
 
-        MemberInfoResponseDto responseDto = modelMapper.map(member, MemberInfoResponseDto.class);
+        Optional<MemberInfoResponseDto> memberInfoResponseDtoOptional = memberRepository.findMemberInfoDto(member);
+        if (!memberInfoResponseDtoOptional.isPresent()) return new ResponseEntity(HttpStatus.NOT_FOUND);
+
+        MemberInfoResponseDto responseDto = memberInfoResponseDtoOptional.get();
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(MemberApiController.class);
 

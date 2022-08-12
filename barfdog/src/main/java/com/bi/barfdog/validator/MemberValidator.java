@@ -94,9 +94,12 @@ public class MemberValidator {
         }
     }
 
-    public void validateHadRecommended(Member member, Errors errors) {
+    public void validateHadRecommended(Member member,String recommendCode, Errors errors) {
         if (member.getFirstReward().isRecommend()) {
             errors.reject("already have recommended","이미 추천한 적이 있습니다.");
+        }
+        if (member.getMyRecommendationCode().equals(recommendCode)) {
+            errors.reject("can not recommend yourself","본인은 추천할 수 없습니다.");
         }
     }
 

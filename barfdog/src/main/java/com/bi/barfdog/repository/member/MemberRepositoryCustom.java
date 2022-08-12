@@ -37,4 +37,6 @@ public interface MemberRepositoryCustom {
     MypageDto findMypageDtoByMember(Member member);
 
     List<Member> findFriendTalkGroupDto(FriendTalkGroupDto requestDto);
+
+    Optional<MemberInfoResponseDto> findMemberInfoDto(Member member);
 }

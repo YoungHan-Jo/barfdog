@@ -292,6 +292,10 @@ public class IndexApiControllerTest extends BaseTest {
                 .build();
         bannerRepository.save(topBanner);
 
+//        IntStream.range(1,4).forEach(i -> {
+//            generateMainBanner(i, BannerTargets.ALL);
+//        });
+
         //when & then
         mockMvc.perform(get("/api/home")
                         .header(HttpHeaders.AUTHORIZATION, getUserToken())

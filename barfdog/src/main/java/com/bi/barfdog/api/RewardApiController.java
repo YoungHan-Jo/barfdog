@@ -82,10 +82,10 @@ public class RewardApiController {
         if (errors.hasErrors()) return badRequest(errors);
         Optional<Member> optionalMember = memberRepository.findByMyRecommendationCode(requestDto.getRecommendCode());
         if(!optionalMember.isPresent()) return notFound();
-        memberValidator.validateHadRecommended(member, errors);
+        memberValidator.validateHadRecommended(member, requestDto.getRecommendCode(), errors);
         if (errors.hasErrors()) return badRequest(errors);
 
-        rewardService.recommendFriend(member, requestDto);
+        rewardService.recommendFriend(member.getId(), requestDto);
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(RewardApiController.class).slash("recommend");
 

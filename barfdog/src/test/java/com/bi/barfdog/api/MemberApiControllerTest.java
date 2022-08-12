@@ -4,10 +4,10 @@ import com.bi.barfdog.api.memberDto.DeleteMemberDto;
 import com.bi.barfdog.api.memberDto.MemberUpdateRequestDto;
 import com.bi.barfdog.api.memberDto.UpdatePasswordRequestDto;
 import com.bi.barfdog.common.AppProperties;
+import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.Address;
-import com.bi.barfdog.domain.member.Gender;
-import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.domain.member.*;
 import com.bi.barfdog.api.memberDto.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.member.MemberRepository;
 import org.junit.Test;
@@ -100,7 +100,57 @@ public class MemberApiControllerTest extends BaseTest {
     }
 
     @Test
-    @DisplayName("토큰이 없을 경우 302 found 나오는 테스트")
+    @DisplayName("정상적으로 회원정보 조회하는 테스트")
+    public void queryMember_true() throws Exception {
+        //Given
+
+        String email = "sample@gmail.com";
+        String password = "1234";
+        boolean receiveSms = true;
+        boolean receiveEmail = true;
+        Member member = generateMember(email, "김회원", password, "01099034545", Gender.MALE, Grade.브론즈, 50000, false, "USER,SUBSCRIBER", true, receiveSms, receiveEmail);
+
+
+        //when & then
+        mockMvc.perform(get("/api/members")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken(email, password))
+                        .accept(MediaTypes.HAL_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("receiveSms").value(receiveSms))
+                .andExpect(jsonPath("receiveEmail").value(receiveEmail))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("정상적으로 회원정보 조회하는 테스트")
+    public void queryMember_true_false() throws Exception {
+        //Given
+
+        String email = "sample@gmail.com";
+        String password = "1234";
+        boolean receiveSms = true;
+        boolean receiveEmail = false;
+        Member member = generateMember(email, "김회원", password, "01099034545", Gender.MALE, Grade.브론즈, 50000, false, "USER,SUBSCRIBER", true, receiveSms, receiveEmail);
+
+
+        //when & then
+        mockMvc.perform(get("/api/members")
+                        .header(HttpHeaders.AUTHORIZATION, getBearerToken(email, password))
+                        .accept(MediaTypes.HAL_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("receiveSms").value(receiveSms))
+                .andExpect(jsonPath("receiveEmail").value(receiveEmail))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("토큰이 없을 경우 402 found 나오는 테스트")
     public void queryMember_not_found() throws Exception {
        //Given
 
@@ -678,6 +728,29 @@ public class MemberApiControllerTest extends BaseTest {
     }
 
 
+    private Member generateMember(String email, String name, String password, String phoneNumber, Gender gender, Grade grade, int reward, boolean recommend, String roles, boolean isSubscribe, boolean receiveSms, boolean receiveEmail) {
+        Member member = Member.builder()
+                .email(email)
+                .name(name)
+                .password(bCryptPasswordEncoder.encode(password))
+                .phoneNumber(phoneNumber)
+                .address(new Address("12345","부산광역시","부산광역시 해운대구 센텀2로 19","106호"))
+                .birthday("19991201")
+                .gender(gender)
+                .agreement(new Agreement(true,true, receiveSms, receiveEmail,true))
+                .myRecommendationCode(BarfUtils.generateRandomCode())
+                .grade(grade)
+                .reward(reward)
+                .accumulatedAmount(1000000)
+                .accumulatedSubscribe(3)
+                .isSubscribe(isSubscribe)
+                .firstReward(new FirstReward(recommend, recommend))
+                .roles(roles)
+                .build();
+
+        return memberRepository.save(member);
+    }
+
 
 
 
@@ -693,10 +766,10 @@ public class MemberApiControllerTest extends BaseTest {
         return getBearerToken(appProperties.getUserEmail(), appProperties.getUserPassword());
     }
 
-    private String getBearerToken(String appProperties, String appProperties1) throws Exception {
+    private String getBearerToken(String email, String password) throws Exception {
         JwtLoginDto requestDto = JwtLoginDto.builder()
-                .email(appProperties)
-                .password(appProperties1)
+                .email(email)
+                .password(password)
                 .build();
 
         //when & then

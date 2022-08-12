@@ -133,6 +133,27 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
                 ;
     }
 
+    @Override
+    public Optional<MemberInfoResponseDto> findMemberInfoDto(Member user) {
+        MemberInfoResponseDto responseDto = queryFactory
+                .select(Projections.constructor(MemberInfoResponseDto.class,
+                        member.name,
+                        member.email,
+                        member.phoneNumber,
+                        member.address,
+                        member.birthday,
+                        member.gender,
+                        member.provider,
+                        member.providerId,
+                        member.agreement.receiveSms,
+                        member.agreement.receiveEmail
+                ))
+                .from(member)
+                .where(member.eq(user))
+                .fetchOne();
+        return Optional.ofNullable(responseDto);
+    }
+
 
     private BooleanExpression subscribeEq(PublishToGroupDto requestDto) {
         return member.isSubscribe.eq(requestDto.isSubscribe());

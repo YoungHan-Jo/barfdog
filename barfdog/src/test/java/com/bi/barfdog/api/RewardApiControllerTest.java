@@ -182,7 +182,6 @@ public class RewardApiControllerTest extends BaseTest {
                         )
                 ))
         ;
-
     }
 
 
@@ -288,6 +287,72 @@ public class RewardApiControllerTest extends BaseTest {
         assertThat(rewards.get(0).getRewardStatus()).isEqualTo(RewardStatus.SAVED);
         assertThat(rewards.get(0).getTradeReward()).isEqualTo(RewardPoint.RECOMMEND);
         assertThat(rewards.get(0).getRewardType()).isEqualTo(RewardType.RECOMMEND);
+
+    }
+
+    @Test
+    @DisplayName("정상적으로 친구 추천")
+    public void recommendFriend_본인적립금_추천코드() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int reward = member.getReward();
+
+        assertThat(member.getRecommendCode()).isNull();
+
+        Member targetMember = generateMember(1, null);
+
+        RecommendFriendDto requestDto = RecommendFriendDto.builder()
+                .recommendCode(targetMember.getMyRecommendationCode())
+                .build();
+
+        //when & then
+        mockMvc.perform(put("/api/rewards/recommend")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+        ;
+
+        em.flush();
+        em.clear();
+
+        Member findMember = memberRepository.findById(member.getId()).get();
+
+        System.out.println("recommend code : " + findMember.getRecommendCode());
+        System.out.println("reward : " + findMember.getReward());
+
+        assertThat(findMember.getRecommendCode()).isEqualTo(targetMember.getMyRecommendationCode());
+        assertThat(findMember.getReward()).isEqualTo(reward + RewardPoint.RECOMMEND);
+
+
+
+    }
+
+    @Test
+    @DisplayName("본인 추천시 400")
+    public void recommendFriend_본인추천_400() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int reward = member.getReward();
+
+        assertThat(member.getRecommendCode()).isNull();
+
+        Member targetMember = generateMember(1, null);
+
+        RecommendFriendDto requestDto = RecommendFriendDto.builder()
+                .recommendCode(member.getRecommendCode())
+                .build();
+
+        //when & then
+        mockMvc.perform(put("/api/rewards/recommend")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
 
     }
 

@@ -43,9 +43,14 @@ public class RewardService {
     }
 
     @Transactional
-    public void recommendFriend(Member member, RecommendFriendDto requestDto) {
+    public void recommendFriend(Long memberId, RecommendFriendDto requestDto) {
+
         Member targetMember = memberRepository.findByMyRecommendationCode(requestDto.getRecommendCode()).get();
+
+        Member member = memberRepository.findById(memberId).get();
+
         member.recommendFriend(requestDto.getRecommendCode());
+
         saveReward(member, targetMember);
 
     }
