@@ -17,15 +17,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.jar.JarOutputStream;
 
 @RequiredArgsConstructor
 public class DirectSendUtils {
@@ -45,8 +43,11 @@ public class DirectSendUtils {
         /* 여기서부터 수정해주시기 바랍니다. */
 
         String sender = DirectSend.SENDER;        //필수입력
+        System.out.println("sender = " + sender);
         String username = DirectSend.USERNAME;    //필수입력
+        System.out.println("username = " + username);
         String key = DirectSend.API_KEY;          //필수입력
+        System.out.println("key = " + key);
 
         //수신자 정보 추가 - 필수 입력(주소록 미사용시), 치환문자 미사용시 치환문자 데이터를 입력하지 않고 사용할수 있습니다.
         //치환문자 미사용시 {\"mobile\":\"01000000001\"} 번호만 입력 해주시기 바랍니다.
@@ -54,6 +55,7 @@ public class DirectSendUtils {
         System.out.println("receiver = " + receiver);
 
         receiver = "["+ receiver +"]";
+        System.out.println("receiver = " + receiver);
 
         String urlParameters = "\"title\":\"" + title + "\" "
                 + ", \"message\":\"" + message + "\" "
@@ -64,6 +66,7 @@ public class DirectSendUtils {
                 + ", \"type\":\"" + "java" + "\" ";
         //+ ", \"attaches\":\"" + attaches + "\" ";	// 첨부파일이 있는 경우 주석해제 바랍니다.
         urlParameters = "{"+ urlParameters  +"}";		//JSON 데이터
+        System.out.println("urlParameters = " + urlParameters);
 
         System.setProperty("jsse.enableSNIExtension", "false");
         con.setDoOutput(true);
@@ -509,11 +512,16 @@ public class DirectSendUtils {
         /* 여기서부터 수정해주시기 바랍니다. */
 
         String username = DirectSend.USERNAME;                //필수입력
+        System.out.println("username = " + username);
         String key = DirectSend.API_KEY;         //필수입력
+        System.out.println("key = " + key);
         String kakao_plus_id = DirectSend.KAKAO_PLUS_ID;            //필수입력 // @검색용 아이디
+        System.out.println("kakao_plus_id = " + kakao_plus_id);
         String user_template_no = templateNumber;            //필수입력 (하단 290 라인 API 이용하여 확인)
+        System.out.println("user_template_no = " + user_template_no);
 
         receiver = "["+ receiver +"]";
+        System.out.println("user_template_no = " + user_template_no);
 
         String postvars = "";
         postvars = "\"username\":\""+username+"\"";             //필수입력
@@ -523,6 +531,7 @@ public class DirectSendUtils {
         postvars = postvars+", \"user_template_no\":\""+user_template_no+"\"";       //필수입력
         postvars = postvars+", \"receiver\":"+ receiver;            //주소록 사용하지 않는 경우 필수입력, json array 구조
         postvars = "{"+postvars+"}";      //JSON 데이터
+        System.out.println("postvars = " + postvars);
 
         String url = "https://directsend.co.kr/index.php/api_v2/kakao_notice";         //URL
 
@@ -536,12 +545,15 @@ public class DirectSendUtils {
         System.setProperty("jsse.enableSNIExtension", "false");
         con.setDoOutput(true);
         OutputStreamWriter  wr = new OutputStreamWriter (con.getOutputStream());
+//        BufferedWriter wr = new BufferedWriter(new OutputStreamWriter(con.getOutputStream()));
+//        JarOutputStream wr = new JarOutputStream(con.getOutputStream());
         wr.write(postvars);
         wr.flush();
         wr.close();
 
+
         int responseCode = con.getResponseCode();
-        System.out.println(responseCode);
+        System.out.println("responseCode = " + responseCode);
 
         /*
          * responseCode 가 200 이 아니면 내부에서 문제가 발생한 케이스입니다.
@@ -557,6 +569,7 @@ public class DirectSendUtils {
             response.append(inputLine);
         }
 
+        System.out.println("결과 : " + response.toString());
         in.close();
     }
 

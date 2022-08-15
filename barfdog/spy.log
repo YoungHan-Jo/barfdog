@@ -555,3 +555,4 @@
 1660126717763|3|statement|connection 490|url jdbc:mariadb://binter.synology.me:3307/barfdogTestDB?characterEncoding=UTF-8&serverTimezone=UTC|select nextval(hibernate_sequence)|select nextval(hibernate_sequence)
 1660126717870|47|commit|connection 490|url jdbc:mariadb://binter.synology.me:3307/barfdogTestDB?characterEncoding=UTF-8&serverTimezone=UTC||
 1660217204589|0|rollback|connection 180|url jdbc:mariadb://binter.synology.me:3307/barfdogTestLocalDB?characterEncoding=UTF-8&serverTimezone=UTC||
+1660567956048|0|rollback|connection 153|url jdbc:h2:mem:testdb||

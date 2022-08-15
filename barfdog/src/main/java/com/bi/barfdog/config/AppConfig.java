@@ -173,120 +173,120 @@ public class AppConfig {
             @Override
             public void run(ApplicationArguments args) throws Exception {
 
-                for (int i = 1; i <= 4; ++i) {
-                    generateBannerMain(i);
-                }
-                generateBannerMyPage();
-
-                generateArticle(1);
-                generateArticle(2);
-
-                Member admin = generateMember(appProperties.getAdminEmail(), "관리자", appProperties.getAdminPassword(), "01056785678", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,SUBSCRIBER,USER", true);
-                Member manager = generateMember("develope07@binter.co.kr", "관리자계정", appProperties.getAdminPassword(), "01056781234", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,SUBSCRIBER,USER", true);
-
-                Member member = generateMember(appProperties.getUserEmail(), "김회원", appProperties.getUserPassword(), "01099038544", Gender.MALE, Grade.브론즈, 50000, false, "USER,SUBSCRIBER", true);
-                generateMember("abc@gmail.com", "박회원", appProperties.getUserPassword(), "01012341111", Gender.MALE, Grade.브론즈, 0, false, "USER", false);
-
-                generateSetting();
-
-                Recipe recipe = generateRecipe("스타트", "닭,칠면조", "안정적인 첫 생식 적응", "스타트1.jpg", "스타트2.jpg");
-                generateRecipe("터키비프", "칠면조,소", "피로회복 면역력 향상", "터키비프1.jpg", "터키비프2.jpg");
-                generateRecipe("덕램", "오리,양", "피부와 모질강화 필요", "덕램1.jpg", "덕램2.jpg");
-                generateRecipe("램비프", "양,소", "건강한 성장과 영양보충", "램비프1.jpg", "램비프2.jpg");
-
-//                Subscribe subscribe = generateSubscribe();
-//                Dog memberRepresentativeDog = generateDogRepresentative(member, subscribe,18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
-                generateDogRepresentative(admin, null,18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
-                generateDogRepresentative(manager,null, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
-                generateDogBeforePaymentSubscribe(admin, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
-                generateDogBeforePaymentSubscribe(admin, 42L, DogSize.LARGE, "14.5", ActivityLevel.MUCH, 2, 0.5, SnackCountLevel.LITTLE);
-                generateDogBeforePaymentSubscribe(admin, 46L, DogSize.LARGE, "13.4", ActivityLevel.VERY_MUCH, 3, 1, SnackCountLevel.NORMAL);
-                generateDogBeforePaymentSubscribe(admin, 43L, DogSize.LARGE, "15.3", ActivityLevel.LITTLE, 4, 0.5, SnackCountLevel.LITTLE);
-                generateDogBeforePaymentSubscribe(admin, 46L, DogSize.LARGE, "12.3", ActivityLevel.LITTLE, 6, 1, SnackCountLevel.LITTLE);
-                generateDogBeforePaymentSubscribe(admin, 34L, DogSize.LARGE, "16.7", ActivityLevel.VERY_LITTLE, 3, 0.7, SnackCountLevel.LITTLE);
-                generateDogBeforePaymentSubscribe(admin, 64L, DogSize.MIDDLE, "11.3", ActivityLevel.VERY_LITTLE, 4, 0.5, SnackCountLevel.MUCH);
-                generateDogBeforePaymentSubscribe(admin, 67L, DogSize.MIDDLE, "11.3", ActivityLevel.LITTLE, 6, 0.3, SnackCountLevel.NORMAL);
-                generateDogBeforePaymentSubscribe(admin, 78L, DogSize.MIDDLE, "10.2", ActivityLevel.NORMAL, 8, 1.3, SnackCountLevel.MUCH);
-                generateDogBeforePaymentSubscribe(admin, 72L, DogSize.MIDDLE, "10.2", ActivityLevel.VERY_MUCH, 6, 0.7, SnackCountLevel.NORMAL);
-                generateDogBeforePaymentSubscribe(admin, 76L, DogSize.MIDDLE, "10.1", ActivityLevel.VERY_MUCH, 5, 1.3, SnackCountLevel.NORMAL);
-                generateDogBeforePaymentSubscribe(admin, 34L, DogSize.MIDDLE, "13.7", ActivityLevel.VERY_MUCH, 4, 0.7, SnackCountLevel.LITTLE);
-                generateDogBeforePaymentSubscribe(admin, 58L, DogSize.SMALL, "6.5", ActivityLevel.VERY_MUCH, 3, 0.5, SnackCountLevel.NORMAL);
-                generateDogBeforePaymentSubscribe(admin, 73L, DogSize.SMALL, "7.2", ActivityLevel.NORMAL, 2, 0.7, SnackCountLevel.NORMAL);
-                generateDogBeforePaymentSubscribe(admin, 56L, DogSize.SMALL, "5.5", ActivityLevel.VERY_LITTLE, 4, 1.3, SnackCountLevel.MUCH);
-                generateDogBeforePaymentSubscribe(admin, 46L, DogSize.SMALL, "8.2", ActivityLevel.MUCH, 5, 0.5, SnackCountLevel.LITTLE);
-                generateDogBeforePaymentSubscribe(admin, 36L, DogSize.SMALL, "8.2", ActivityLevel.MUCH, 4, 2, SnackCountLevel.NORMAL);
-
-
-
-                Coupon subsCoupon = generateCouponAuto(SUBSCRIBE_COUPON, "정기구독 할인 쿠폰", DiscountType.FIXED_RATE, 50, 0, CouponTarget.SUBSCRIBE);
-                Coupon dogBirthCoupon = generateCouponAuto(DOG_BIRTH_COUPON, "반려견 생일 쿠폰", DiscountType.FIXED_RATE, 10, 0, CouponTarget.ALL);
-                Coupon memberBirthCoupon = generateCouponAuto(MEMBER_BIRTH_COUPON, "견주 생일 쿠폰", DiscountType.FIXED_RATE, 15, 0, CouponTarget.ALL);
-
-                generateCouponAuto(SILVER_COUPON,"실버 쿠폰", DiscountType.FLAT_RATE,1000,20000, CouponTarget.ALL);
-                generateCouponAuto(GOLD_COUPON,"골드 쿠폰", DiscountType.FLAT_RATE,2000,30000, CouponTarget.ALL);
-                generateCouponAuto(PLATINUM_COUPON,"플래티넘 쿠폰", DiscountType.FLAT_RATE,2500,30000, CouponTarget.ALL);
-                generateCouponAuto(DIAMOND_COUPON,"다이아 쿠폰", DiscountType.FLAT_RATE,3000,40000, CouponTarget.ALL);
-                generateCouponAuto(BARF_COUPON,"더바프 쿠폰", DiscountType.FLAT_RATE,4000,50000, CouponTarget.ALL);
-
-
-                generateMemberCoupon(member, subsCoupon);
-                generateMemberCoupon(member, dogBirthCoupon);
-                generateMemberCoupon(member, memberBirthCoupon);
-
-
-                // ============= 작성 가능한 리뷰 시작 ============== //
-                Item item1 = generateItem(1);
-                Item item2 = generateItem(2);
-                Item item3 = generateItem(3);
-                Item item4 = generateItem(4);
-
-                IntStream.range(1,4).forEach(i -> {
-                    generateItemImage(item1, i);
-                    generateItemImage(item2, i);
-                    generateItemImage(item3, i);
-                    generateItemImage(item4, i);
-                });
-
-                IntStream.range(1,4).forEach(i -> {
-                    generateOrderItemsAndOrder(member, item3, item4);
-                    generateOrderItemsAndOrder(admin, item1, item2);
-                });
-
-                IntStream.range(1,7).forEach(i -> {
-                    generateWriteableReviewSubscribe(member);
-                });
-                // ============= 작성 가능한 리뷰 끝 ============== //
-
-
-                // ============= 구독 주문서 조회 시작 =============== //
-
-                Dog dogRepresentative = generateDogRepresentativeBeforePaymentSubscribe(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
-                generateDogBeforePaymentSubscribe(member, 23L, DogSize.SMALL, "10.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
-                generateDogBeforePaymentSubscribe(member, 25L, DogSize.MIDDLE, "13.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
-
-                Subscribe subscribe = generateSubscribeBeforePayment(dogRepresentative, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, 100000);
-
-                // ============= 구독 주문서 조회 끝 =============== //
-
-
-                // ============= 일반 주문서 조회 시작 =============== //
-
-                SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtc(member, 1, OrderStatus.PAYMENT_DONE);
-
-                Item generalOrderItem1 = generateItem(1);
-                ItemOption option1 = generateOption(generalOrderItem1, 1);
-                ItemOption option2 = generateOption(generalOrderItem1, 2);
-
-                Item generalOrderItem2 = generateItem(2);
-                ItemOption option3 = generateOption(generalOrderItem2, 3);
-                ItemOption option4 = generateOption(generalOrderItem2, 4);
-
-                List<OrderSheetGeneralRequestDto.OrderItemDto> orderItemDtoList = new ArrayList<>();
-                addOrderItemDto(generalOrderItem1, option1, option2, orderItemDtoList, 1);
-                addOrderItemDto(generalOrderItem2, option3, option4, orderItemDtoList, 2);
-
-
-                // ============= 일반 주문서 조회 끝 =============== //
+//                for (int i = 1; i <= 4; ++i) {
+//                    generateBannerMain(i);
+//                }
+//                generateBannerMyPage();
+//
+//                generateArticle(1);
+//                generateArticle(2);
+//
+//                Member admin = generateMember(appProperties.getAdminEmail(), "관리자", appProperties.getAdminPassword(), "01056785678", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,SUBSCRIBER,USER", true);
+//                Member manager = generateMember("develope07@binter.co.kr", "관리자계정", appProperties.getAdminPassword(), "01056781234", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,SUBSCRIBER,USER", true);
+//
+//                Member member = generateMember(appProperties.getUserEmail(), "김회원", appProperties.getUserPassword(), "01099038544", Gender.MALE, Grade.브론즈, 50000, false, "USER,SUBSCRIBER", true);
+//                generateMember("abc@gmail.com", "박회원", appProperties.getUserPassword(), "01012341111", Gender.MALE, Grade.브론즈, 0, false, "USER", false);
+//
+//                generateSetting();
+//
+//                Recipe recipe = generateRecipe("스타트", "닭,칠면조", "안정적인 첫 생식 적응", "스타트1.jpg", "스타트2.jpg");
+//                generateRecipe("터키비프", "칠면조,소", "피로회복 면역력 향상", "터키비프1.jpg", "터키비프2.jpg");
+//                generateRecipe("덕램", "오리,양", "피부와 모질강화 필요", "덕램1.jpg", "덕램2.jpg");
+//                generateRecipe("램비프", "양,소", "건강한 성장과 영양보충", "램비프1.jpg", "램비프2.jpg");
+//
+////                Subscribe subscribe = generateSubscribe();
+////                Dog memberRepresentativeDog = generateDogRepresentative(member, subscribe,18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+//                generateDogRepresentative(admin, null,18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+//                generateDogRepresentative(manager,null, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+//                generateDogBeforePaymentSubscribe(admin, 18L, DogSize.LARGE, "14.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+//                generateDogBeforePaymentSubscribe(admin, 42L, DogSize.LARGE, "14.5", ActivityLevel.MUCH, 2, 0.5, SnackCountLevel.LITTLE);
+//                generateDogBeforePaymentSubscribe(admin, 46L, DogSize.LARGE, "13.4", ActivityLevel.VERY_MUCH, 3, 1, SnackCountLevel.NORMAL);
+//                generateDogBeforePaymentSubscribe(admin, 43L, DogSize.LARGE, "15.3", ActivityLevel.LITTLE, 4, 0.5, SnackCountLevel.LITTLE);
+//                generateDogBeforePaymentSubscribe(admin, 46L, DogSize.LARGE, "12.3", ActivityLevel.LITTLE, 6, 1, SnackCountLevel.LITTLE);
+//                generateDogBeforePaymentSubscribe(admin, 34L, DogSize.LARGE, "16.7", ActivityLevel.VERY_LITTLE, 3, 0.7, SnackCountLevel.LITTLE);
+//                generateDogBeforePaymentSubscribe(admin, 64L, DogSize.MIDDLE, "11.3", ActivityLevel.VERY_LITTLE, 4, 0.5, SnackCountLevel.MUCH);
+//                generateDogBeforePaymentSubscribe(admin, 67L, DogSize.MIDDLE, "11.3", ActivityLevel.LITTLE, 6, 0.3, SnackCountLevel.NORMAL);
+//                generateDogBeforePaymentSubscribe(admin, 78L, DogSize.MIDDLE, "10.2", ActivityLevel.NORMAL, 8, 1.3, SnackCountLevel.MUCH);
+//                generateDogBeforePaymentSubscribe(admin, 72L, DogSize.MIDDLE, "10.2", ActivityLevel.VERY_MUCH, 6, 0.7, SnackCountLevel.NORMAL);
+//                generateDogBeforePaymentSubscribe(admin, 76L, DogSize.MIDDLE, "10.1", ActivityLevel.VERY_MUCH, 5, 1.3, SnackCountLevel.NORMAL);
+//                generateDogBeforePaymentSubscribe(admin, 34L, DogSize.MIDDLE, "13.7", ActivityLevel.VERY_MUCH, 4, 0.7, SnackCountLevel.LITTLE);
+//                generateDogBeforePaymentSubscribe(admin, 58L, DogSize.SMALL, "6.5", ActivityLevel.VERY_MUCH, 3, 0.5, SnackCountLevel.NORMAL);
+//                generateDogBeforePaymentSubscribe(admin, 73L, DogSize.SMALL, "7.2", ActivityLevel.NORMAL, 2, 0.7, SnackCountLevel.NORMAL);
+//                generateDogBeforePaymentSubscribe(admin, 56L, DogSize.SMALL, "5.5", ActivityLevel.VERY_LITTLE, 4, 1.3, SnackCountLevel.MUCH);
+//                generateDogBeforePaymentSubscribe(admin, 46L, DogSize.SMALL, "8.2", ActivityLevel.MUCH, 5, 0.5, SnackCountLevel.LITTLE);
+//                generateDogBeforePaymentSubscribe(admin, 36L, DogSize.SMALL, "8.2", ActivityLevel.MUCH, 4, 2, SnackCountLevel.NORMAL);
+//
+//
+//
+//                Coupon subsCoupon = generateCouponAuto(SUBSCRIBE_COUPON, "정기구독 할인 쿠폰", DiscountType.FIXED_RATE, 50, 0, CouponTarget.SUBSCRIBE);
+//                Coupon dogBirthCoupon = generateCouponAuto(DOG_BIRTH_COUPON, "반려견 생일 쿠폰", DiscountType.FIXED_RATE, 10, 0, CouponTarget.ALL);
+//                Coupon memberBirthCoupon = generateCouponAuto(MEMBER_BIRTH_COUPON, "견주 생일 쿠폰", DiscountType.FIXED_RATE, 15, 0, CouponTarget.ALL);
+//
+//                generateCouponAuto(SILVER_COUPON,"실버 쿠폰", DiscountType.FLAT_RATE,1000,20000, CouponTarget.ALL);
+//                generateCouponAuto(GOLD_COUPON,"골드 쿠폰", DiscountType.FLAT_RATE,2000,30000, CouponTarget.ALL);
+//                generateCouponAuto(PLATINUM_COUPON,"플래티넘 쿠폰", DiscountType.FLAT_RATE,2500,30000, CouponTarget.ALL);
+//                generateCouponAuto(DIAMOND_COUPON,"다이아 쿠폰", DiscountType.FLAT_RATE,3000,40000, CouponTarget.ALL);
+//                generateCouponAuto(BARF_COUPON,"더바프 쿠폰", DiscountType.FLAT_RATE,4000,50000, CouponTarget.ALL);
+//
+//
+//                generateMemberCoupon(member, subsCoupon);
+//                generateMemberCoupon(member, dogBirthCoupon);
+//                generateMemberCoupon(member, memberBirthCoupon);
+//
+//
+//                // ============= 작성 가능한 리뷰 시작 ============== //
+//                Item item1 = generateItem(1);
+//                Item item2 = generateItem(2);
+//                Item item3 = generateItem(3);
+//                Item item4 = generateItem(4);
+//
+//                IntStream.range(1,4).forEach(i -> {
+//                    generateItemImage(item1, i);
+//                    generateItemImage(item2, i);
+//                    generateItemImage(item3, i);
+//                    generateItemImage(item4, i);
+//                });
+//
+//                IntStream.range(1,4).forEach(i -> {
+//                    generateOrderItemsAndOrder(member, item3, item4);
+//                    generateOrderItemsAndOrder(admin, item1, item2);
+//                });
+//
+//                IntStream.range(1,7).forEach(i -> {
+//                    generateWriteableReviewSubscribe(member);
+//                });
+//                // ============= 작성 가능한 리뷰 끝 ============== //
+//
+//
+//                // ============= 구독 주문서 조회 시작 =============== //
+//
+//                Dog dogRepresentative = generateDogRepresentativeBeforePaymentSubscribe(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+//                generateDogBeforePaymentSubscribe(member, 23L, DogSize.SMALL, "10.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+//                generateDogBeforePaymentSubscribe(member, 25L, DogSize.MIDDLE, "13.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+//
+//                Subscribe subscribe = generateSubscribeBeforePayment(dogRepresentative, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, 100000);
+//
+//                // ============= 구독 주문서 조회 끝 =============== //
+//
+//
+//                // ============= 일반 주문서 조회 시작 =============== //
+//
+//                SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtc(member, 1, OrderStatus.PAYMENT_DONE);
+//
+//                Item generalOrderItem1 = generateItem(1);
+//                ItemOption option1 = generateOption(generalOrderItem1, 1);
+//                ItemOption option2 = generateOption(generalOrderItem1, 2);
+//
+//                Item generalOrderItem2 = generateItem(2);
+//                ItemOption option3 = generateOption(generalOrderItem2, 3);
+//                ItemOption option4 = generateOption(generalOrderItem2, 4);
+//
+//                List<OrderSheetGeneralRequestDto.OrderItemDto> orderItemDtoList = new ArrayList<>();
+//                addOrderItemDto(generalOrderItem1, option1, option2, orderItemDtoList, 1);
+//                addOrderItemDto(generalOrderItem2, option3, option4, orderItemDtoList, 2);
+//
+//
+//                // ============= 일반 주문서 조회 끝 =============== //
 
             }
 
