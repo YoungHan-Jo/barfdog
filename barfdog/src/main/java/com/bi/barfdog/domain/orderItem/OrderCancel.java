@@ -18,4 +18,5 @@ public class OrderCancel {
     private String cancelDetailReason;
     private LocalDateTime cancelRequestDate;
     private LocalDateTime cancelConfirmDate;
+
 }

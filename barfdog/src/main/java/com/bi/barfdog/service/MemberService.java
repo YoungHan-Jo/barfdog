@@ -163,6 +163,9 @@ public class MemberService {
         String hashPassword = bCryptPasswordEncoder.encode(requestDto.getPassword());
         requestDto.setPassword(hashPassword);
 
+        System.out.println("isReceiveEmail : " + requestDto.isReceiveEmail());
+        System.out.println("isReceiveSms : " + requestDto.isReceiveSms());
+
         findMember.updateMember(requestDto);
 
     }
@@ -226,7 +229,9 @@ public class MemberService {
     }
 
     @Transactional
-    public void deleteMember(Member member) {
+    public void deleteMember(Long memberId) {
+
+        Member member = memberRepository.findById(memberId).get();
         member.withdrawal();
     }
 
@@ -327,7 +332,8 @@ public class MemberService {
     }
 
     @Transactional
-    public void updatePassword(Member member, String newPassword) {
+    public void updatePassword(Long memberId, String newPassword) {
+        Member member = memberRepository.findById(memberId).get();
         String hashPassword = bCryptPasswordEncoder.encode(newPassword);
         member.changePassword(hashPassword);
     }

@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 @Data
 @AllArgsConstructor
@@ -27,7 +28,10 @@ public class MemberUpdateRequestDto{
 
     @NotEmpty
     private String birthday;
+    @NotNull
     private Gender gender;
+    @NotNull
     private boolean receiveSms;
+    @NotNull
     private boolean receiveEmail;
 }

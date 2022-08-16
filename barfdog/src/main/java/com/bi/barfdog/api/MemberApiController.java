@@ -104,7 +104,7 @@ public class MemberApiController {
         memberValidator.validatePassword(member, requestDto.getPassword(), errors);
         if (errors.hasErrors()) return badRequest(errors);
 
-        memberService.deleteMember(member);
+        memberService.deleteMember(member.getId());
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(MemberApiController.class).withSelfRel());
@@ -129,7 +129,7 @@ public class MemberApiController {
             return badRequest(errors);
         }
 
-        memberService.updatePassword(member, requestDto.getNewPassword());
+        memberService.updatePassword(member.getId(), requestDto.getNewPassword());
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(MemberApiController.class).slash("password").withSelfRel());

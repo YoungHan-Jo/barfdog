@@ -177,7 +177,7 @@ public class MemberApiControllerTest extends BaseTest {
                 .birthday(birthday)
                 .gender(Gender.NONE)
                 .receiveSms(false)
-                .receiveEmail(false)
+                .receiveEmail(true)
                 .build();
         //when & then
         mockMvc.perform(put("/api/members")
@@ -225,7 +225,7 @@ public class MemberApiControllerTest extends BaseTest {
         assertThat(findMember.getPhoneNumber()).isEqualTo(phoneNumber);
         assertThat(findMember.getBirthday()).isEqualTo(birthday);
         assertThat(findMember.getAgreement().isReceiveSms()).isFalse();
-        assertThat(findMember.getAgreement().isReceiveEmail()).isFalse();
+        assertThat(findMember.getAgreement().isReceiveEmail()).isTrue();
     }
 
     @Test
