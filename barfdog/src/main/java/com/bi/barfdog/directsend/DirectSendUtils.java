@@ -70,8 +70,9 @@ public class DirectSendUtils {
 
         System.setProperty("jsse.enableSNIExtension", "false");
         con.setDoOutput(true);
-        OutputStreamWriter wr = new OutputStreamWriter (con.getOutputStream());
+        OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream(), "UTF-8");
         wr.write(urlParameters);
+        System.out.println("api 전송 시각 : " + LocalDateTime.now());
         wr.flush();
         wr.close();
 
@@ -544,10 +545,11 @@ public class DirectSendUtils {
 
         System.setProperty("jsse.enableSNIExtension", "false");
         con.setDoOutput(true);
-        OutputStreamWriter  wr = new OutputStreamWriter (con.getOutputStream());
+        OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream(), "UTF-8");
 //        BufferedWriter wr = new BufferedWriter(new OutputStreamWriter(con.getOutputStream()));
 //        JarOutputStream wr = new JarOutputStream(con.getOutputStream());
         wr.write(postvars);
+        System.out.println("api 전송 시각 : " + LocalDateTime.now());
         wr.flush();
         wr.close();
 
@@ -604,7 +606,7 @@ public class DirectSendUtils {
 
         System.setProperty("jsse.enableSNIExtension", "false");
         con.setDoOutput(true);
-        OutputStreamWriter  wr = new OutputStreamWriter (con.getOutputStream());
+        OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream(), "UTF-8");
         wr.write(postvars);
         wr.flush();
         wr.close();
@@ -714,7 +716,7 @@ public class DirectSendUtils {
 
         System.setProperty("jsse.enableSNIExtension", "false");
         con.setDoOutput(true);
-        OutputStreamWriter  wr = new OutputStreamWriter (con.getOutputStream());
+        OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream(), "UTF-8");
         wr.write(urlParameters);
         wr.flush();
         wr.close();

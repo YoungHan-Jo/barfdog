@@ -80,6 +80,11 @@ allprojects {
 }
 
 
+// utf-8 설정
+compileJava.options.encoding = 'UTF-8'
+tasks.withType(JavaCompile) {
+	options.encoding = 'UTF-8'
+}
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -162,11 +167,6 @@ configurations {
 //
 //}
 
-// utf-8 설정
-compileJava.options.encoding = 'UTF-8'
-tasks.withType(JavaCompile) {
-	options.encoding = 'UTF-8'
-}
 
 targetCompatibility = "1.8"
 
