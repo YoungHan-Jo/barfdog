@@ -609,7 +609,7 @@ public class DogApiControllerTest extends BaseTest {
        //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-        SurveyReport surveyReport = generateSurveyReport(member);
+        SurveyReport surveyReport = generateSurveyReport(member, "10", "1.1");
         Dog dog = surveyReport.getDog();
 
         List<SurveyReport> reports = surveyReportRepository.findAll();
@@ -697,7 +697,7 @@ public class DogApiControllerTest extends BaseTest {
         //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-        SurveyReport surveyReport = generateSurveyReport(member);
+        SurveyReport surveyReport = generateSurveyReport(member, "10", "1.1");
         Dog dog = surveyReport.getDog();
 
         List<SurveyReport> reports = surveyReportRepository.findAll();
@@ -789,7 +789,7 @@ public class DogApiControllerTest extends BaseTest {
         //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-        SurveyReport surveyReport = generateSurveyReport(member);
+        SurveyReport surveyReport = generateSurveyReport(member, "10", "1.1");
         Dog dog = surveyReport.getDog();
 
         //when & then
@@ -964,7 +964,7 @@ public class DogApiControllerTest extends BaseTest {
 
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-        SurveyReport surveyReport = generateSurveyReport(member);
+        SurveyReport surveyReport = generateSurveyReport(member, "10", "1.1");
 
         Recipe recipe = recipeRepository.findAll().get(0);
         String name = "수정된이름";
@@ -1173,6 +1173,14 @@ public class DogApiControllerTest extends BaseTest {
     @DisplayName("정상적으로 강아지 등록하는 테스트")
     public void create_dog() throws Exception {
         //Given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        IntStream.range(1,10).forEach(i -> {
+            generateSurveyReport(member, String.valueOf(i), "1.2");
+            generateSurveyReport(admin, String.valueOf(i), "1.3");
+        });
+
         Recipe recipe = recipeRepository.findByName("스타트").get();
 
         DogSaveRequestDto requestDto = DogSaveRequestDto.builder()
@@ -1243,6 +1251,13 @@ public class DogApiControllerTest extends BaseTest {
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
+
+        em.flush();
+        em.clear();
+
+        List<Dog> dogs = dogRepository.findAll();
+        assertThat(dogs.size()).isEqualTo(10);
+
     }
 
     @Test
@@ -1626,7 +1641,7 @@ public class DogApiControllerTest extends BaseTest {
     }
 
 
-    private SurveyReport generateSurveyReport(Member member) {
+    private SurveyReport generateSurveyReport(Member member, String walkingCountPerWeek, String walkingTimePerOneTime) {
 
         Recipe recipe = recipeRepository.findAll().get(0);
 
@@ -1640,8 +1655,8 @@ public class DogApiControllerTest extends BaseTest {
                 .weight("3.5")
                 .neutralization(true)
                 .activityLevel(ActivityLevel.NORMAL)
-                .walkingCountPerWeek("10")
-                .walkingTimePerOneTime("1.1")
+                .walkingCountPerWeek(walkingCountPerWeek)
+                .walkingTimePerOneTime(walkingTimePerOneTime)
                 .dogStatus(DogStatus.HEALTHY)
                 .snackCountLevel(SnackCountLevel.NORMAL)
                 .inedibleFood("NONE")

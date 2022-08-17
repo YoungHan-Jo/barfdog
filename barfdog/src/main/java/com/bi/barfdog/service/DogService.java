@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -47,6 +48,7 @@ public class DogService {
     private final SurveyReportRepository surveyReportRepository;
     private final DogPictureRepository dogPictureRepository;
     private final StorageService storageService;
+    private final EntityManager em;
 
     @Transactional
     public UploadedImageDto uploadPicture(MultipartFile file) {
@@ -174,16 +176,17 @@ public class DogService {
     }
 
     private WalkingAnalysis getWalkingAnalysis(Member member, Dog dog) {
-        List<Long> ranks = dogRepository.findRanksById(dog.getId());
-        int rank = 1;
+        Long dogId = dog.getId();
+        List<Long> ranks = dogRepository.findRanksById(dogId);
+        int rank = 0;
         for (Long id : ranks) {
-            if (id == dog.getId()) {
+            rank++;
+            if (id.equals(dogId)) {
                 break;
             }
-            rank++;
         }
 
-        double highRankPercent = Math.round((double) rank / ranks.size() * 1000.0) / 10.0;
+        double highRankPercent = Math.round(((double) rank / ranks.size() * 1000.0)) / 10.0;
 
         double totalWalkingTime = dog.getDogActivity().getWalkingTimePerOneTime() * dog.getDogActivity().getWalkingCountPerWeek();
         double avgWalkingTimeInCity = dogRepository.findAvgTotalWalkingTimeByCity(member.getAddress().getCity());

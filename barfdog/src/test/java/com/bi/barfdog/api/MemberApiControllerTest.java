@@ -372,6 +372,23 @@ public class MemberApiControllerTest extends BaseTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    @DisplayName("회원 탈퇴시 토큰 없을 경우 401")
+    public void deleteMember_no_token() throws Exception {
+        //given
+        DeleteMemberDto requestDto = DeleteMemberDto.builder()
+                .password("wrongPassword")
+                .build();
+
+        //when & then
+        mockMvc.perform(delete("/api/members")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+    }
+
 
     @Test
     @DisplayName("정상적으로 비밀번호 변경하는 테스트")
