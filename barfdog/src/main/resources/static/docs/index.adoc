@@ -762,7 +762,8 @@ operation::update_member[snippets='curl-request,request-headers,request-body,req
 [[resources-withdrawal]]
 === 회원 탈퇴
 
-`DELETE` 요청을 사용해서 회원 탈퇴를 할 수 있다.
+`DELETE` 요청을 사용해서 회원 탈퇴를 할 수 있다. +
+탈퇴 시 실제로 삭제되는게 아니고 member객체의 isWithdrawal 필드가 true 로 변경됨
 
 operation::withdrawal[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 

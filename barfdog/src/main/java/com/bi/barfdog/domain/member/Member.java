@@ -20,11 +20,12 @@ import java.util.Arrays;
 import java.util.List;
 
 @AllArgsConstructor
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @Builder
 @Getter
 @Entity
 public class Member extends BaseTimeEntity {
+
 
     @Id @GeneratedValue
     @Column(name = "member_id")

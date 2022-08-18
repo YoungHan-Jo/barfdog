@@ -1,12 +1,12 @@
-# ====================== 테스트 서버 설정 =============================
-
+## ====================== 테스트 서버 설정 시작 =============================
+#
 spring:
   jackson:
     deserialization:
       fail-on-unknown-properties: true
 # 테스트 DB
   datasource:
-    url: jdbc:mariadb://binter.synology.me:3307/barfdogTestDB?characterEncoding=UTF-8&serverTimezone=UTC
+    url: jdbc:mariadb://binter.synology.me:3307/barfdogTestLocalDB?characterEncoding=UTF-8&serverTimezone=UTC
     driver-class-name: org.mariadb.jdbc.Driver
     username: britishinter
     password: Britain001!
@@ -84,17 +84,18 @@ logging.level:
   org.hibernate.type: trace
 
 server:
-  port: 8081
+  port: 8080
   servlet:
     encoding:
       charset: UTF-8 #한글처리
       force: true    #한글처리
 
+## ====================== 테스트 서버 설정 끝 =============================
 
 
 
 
-# ====================== 실제 서비스 서버 설정 =============================
+# ====================== 실제 서비스 서버 설정 시작 =============================
 
 #spring:
 #  jackson:
@@ -103,14 +104,15 @@ server:
 #
 #  # 서버 DB
 #  datasource:
-#    url: jdbc:mariadb://localhost:3306/barfdogserver?characterEncoding=UTF-8&serverTimezone=UTC
+#    url: jdbc:mariadb://binter.synology.me:3307/barfdogTestLocalDB?characterEncoding=UTF-8&serverTimezone=UTC
 #    driver-class-name: org.mariadb.jdbc.Driver
-#    username: barfdogserver
-#    password: britain002
+#    username: britishinter
+#    password: Britain001!
 #
+#  # JPA 설정
 #  jpa:
 #    hibernate:
-#      ddl-auto: create # 실제 운영 서버 ######## 나중에 validate로 바꿔야함
+#      ddl-auto: create # 실제 운영 서버 ######## 나중에 validate or none 으로 바꿔야함
 #    properties:
 #      hibernate:
 #        format_sql: true
@@ -168,7 +170,7 @@ server:
 #    multipart:
 #      max-file-size: 20MB
 #      max-request-size: 20MB
-#      location: /home/hosting_users/barfdogserver/upload
+#      location: /home/hosting_users/freshour/upload
 #
 ##테스트 서버 계정
 #my-app:
@@ -183,7 +185,11 @@ server:
 #  org.hibernate.type: trace
 #
 #server:
+#  port: 8080
 #  servlet:
 #    encoding:
 #      charset: UTF-8 #한글처리
 #      force: true    #한글처리
+
+
+# ====================== 실제 서비스 서버 설정 끝 =============================

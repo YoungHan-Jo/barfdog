@@ -535,7 +535,6 @@ public class DogService {
         return month;
     }
 
-
     @Transactional
     public void updatePicture(Long id, UpdateDogPictureDto requestDto) {
         Dog dog = dogRepository.findById(id).get();

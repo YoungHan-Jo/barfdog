@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional(readOnly = true) // 조회만 사용하는 서비스에서 좀 더 속도가 효율적으로 나옴
 @Service
 public class MemberService {
 
@@ -49,7 +49,7 @@ public class MemberService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
 
-    @Transactional
+    @Transactional // 조회 서비스가 아닌 수정 서비스라면 @Transactional 붙여 줘야함 readonly = false 가 디폴트
     public JoinResponseDto join(MemberSaveRequestDto requestDto) {
 
         String password = bCryptPasswordEncoder.encode(requestDto.getPassword());
