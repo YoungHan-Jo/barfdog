@@ -1,5 +1,6 @@
 package com.bi.barfdog.repository.basket;
 
+import com.bi.barfdog.domain.basket.Basket;
 import com.bi.barfdog.domain.basket.QBasketOption;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,14 @@ public class BasketOptionRepositoryImpl implements BasketOptionRepositoryCustom{
         queryFactory
                 .delete(basketOption)
                 .where(basketOption.basket.id.in(deleteBasketIdList))
+                .execute();
+    }
+
+    @Override
+    public void deleteByBasketList(List<Basket> deleteBasketList) {
+        queryFactory
+                .delete(basketOption)
+                .where(basketOption.basket.in(deleteBasketList))
                 .execute();
     }
 }

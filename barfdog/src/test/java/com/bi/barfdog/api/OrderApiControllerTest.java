@@ -4,6 +4,8 @@ import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
 import com.bi.barfdog.api.orderDto.*;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BaseTest;
+import com.bi.barfdog.domain.basket.Basket;
+import com.bi.barfdog.domain.basket.BasketOption;
 import com.bi.barfdog.domain.coupon.*;
 import com.bi.barfdog.domain.delivery.Delivery;
 import com.bi.barfdog.domain.delivery.DeliveryStatus;
@@ -32,6 +34,8 @@ import com.bi.barfdog.domain.subscribe.SubscribeStatus;
 import com.bi.barfdog.domain.subscribeRecipe.SubscribeRecipe;
 import com.bi.barfdog.domain.surveyReport.*;
 import com.bi.barfdog.api.memberDto.jwt.JwtLoginDto;
+import com.bi.barfdog.repository.basket.BasketOptionRepository;
+import com.bi.barfdog.repository.basket.BasketRepository;
 import com.bi.barfdog.repository.card.CardRepository;
 import com.bi.barfdog.repository.coupon.CouponRepository;
 import com.bi.barfdog.repository.delivery.DeliveryRepository;
@@ -136,6 +140,10 @@ public class OrderApiControllerTest extends BaseTest {
     CardRepository cardRepository;
     @Autowired
     ItemImageRepository itemImageRepository;
+    @Autowired
+    BasketRepository basketRepository;
+    @Autowired
+    BasketOptionRepository basketOptionRepository;
 
     @Before
     public void setUp() {
@@ -149,7 +157,6 @@ public class OrderApiControllerTest extends BaseTest {
         subscribeRepository.deleteAll();
         surveyReportRepository.deleteAll();
         dogRepository.deleteAll();
-
     }
 
 
@@ -163,12 +170,12 @@ public class OrderApiControllerTest extends BaseTest {
         SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtc(member, 1, OrderStatus.PAYMENT_DONE);
 
         Item item1 = generateItem(1);
-        ItemOption option1 = generateOption(item1, 1);
-        ItemOption option2 = generateOption(item1, 2);
+        ItemOption option1 = generateOption(item1, 1, 999);
+        ItemOption option2 = generateOption(item1, 2, 999);
 
         Item item2 = generateItem(2);
-        ItemOption option3 = generateOption(item1, 3);
-        ItemOption option4 = generateOption(item1, 4);
+        ItemOption option3 = generateOption(item1, 3, 999);
+        ItemOption option4 = generateOption(item1, 4, 999);
 
         List<OrderSheetGeneralRequestDto.OrderItemDto> orderItemDtoList = new ArrayList<>();
         addOrderItemDto(item1, option1, option2, orderItemDtoList, 1);
@@ -257,12 +264,12 @@ public class OrderApiControllerTest extends BaseTest {
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
         Item item1 = generateItem(1);
-        ItemOption option1 = generateOption(item1, 1);
-        ItemOption option2 = generateOption(item1, 2);
+        ItemOption option1 = generateOption(item1, 1, 999);
+        ItemOption option2 = generateOption(item1, 2, 999);
 
         Item item2 = generateItem(2);
-        ItemOption option3 = generateOption(item1, 3);
-        ItemOption option4 = generateOption(item1, 4);
+        ItemOption option3 = generateOption(item1, 3, 999);
+        ItemOption option4 = generateOption(item1, 4, 999);
 
         List<OrderSheetGeneralRequestDto.OrderItemDto> orderItemDtoList = new ArrayList<>();
         addOrderItemDto(item1, option1, option2, orderItemDtoList, 1);
@@ -297,16 +304,16 @@ public class OrderApiControllerTest extends BaseTest {
 
         Item item1 = generateItem(1);
         int itemRemain1 = item1.getRemaining();
-        ItemOption option1 = generateOption(item1, 1);
+        ItemOption option1 = generateOption(item1, 1, 999);
         int optionRemain1 = option1.getRemaining();
-        ItemOption option2 = generateOption(item1, 2);
+        ItemOption option2 = generateOption(item1, 2, 999);
         int optionRemain2 = option2.getRemaining();
 
         Item item2 = generateItem(2);
         int itemRemain2 = item2.getRemaining();
-        ItemOption option3 = generateOption(item1, 3);
+        ItemOption option3 = generateOption(item1, 3, 999);
         int optionRemain3 = option3.getRemaining();
-        ItemOption option4 = generateOption(item1, 4);
+        ItemOption option4 = generateOption(item1, 4, 999);
         int optionRemain4 = option4.getRemaining();
 
         Coupon coupon1 = generateGeneralCoupon(1);
@@ -528,12 +535,12 @@ public class OrderApiControllerTest extends BaseTest {
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
         Item item1 = generateItem(1);
-        ItemOption option1 = generateOption(item1, 1);
-        ItemOption option2 = generateOption(item1, 2);
+        ItemOption option1 = generateOption(item1, 1, 999);
+        ItemOption option2 = generateOption(item1, 2, 999);
 
         Item item2 = generateItem(2);
-        ItemOption option3 = generateOption(item1, 3);
-        ItemOption option4 = generateOption(item1, 4);
+        ItemOption option3 = generateOption(item1, 3, 999);
+        ItemOption option4 = generateOption(item1, 4, 999);
 
         Coupon coupon1 = generateGeneralCoupon(1);
         MemberCoupon memberCoupon1 = generateMemberCoupon(member, coupon1, 1, CouponStatus.ACTIVE);
@@ -610,20 +617,22 @@ public class OrderApiControllerTest extends BaseTest {
     }
 
 
-    @Ignore
+//    @Ignore
     @Test
     @DisplayName("정상적으로 일반 주문 결제 성공")
     public void successGeneralOrder() throws Exception {
        //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
         int accumulatedAmount = member.getAccumulatedAmount();
+        int remainRewards = member.getReward();
         Item item1 = generateItem(1);
-        ItemOption option1 = generateOption(item1, 1);
-        ItemOption option2 = generateOption(item1, 2);
+        int optionRemaining = 999;
+        ItemOption option1 = generateOption(item1, 1, optionRemaining);
+        ItemOption option2 = generateOption(item1, 2, optionRemaining);
 
         Item item2 = generateItem(2);
-        ItemOption option3 = generateOption(item1, 3);
-        ItemOption option4 = generateOption(item1, 4);
+        ItemOption option3 = generateOption(item1, 3, optionRemaining);
+        ItemOption option4 = generateOption(item1, 4, optionRemaining);
 
         Coupon coupon1 = generateGeneralCoupon(1);
         MemberCoupon memberCoupon1 = generateMemberCoupon(member, coupon1, 1, CouponStatus.ACTIVE);
@@ -647,11 +656,15 @@ public class OrderApiControllerTest extends BaseTest {
         orderRepository.save(order);
 
         OrderItem orderItem1 = generateOrderItem(item1, memberCoupon1, order, 1);
-        generateSelectOption(option1, orderItem1, 1);
-        generateSelectOption(option2, orderItem1, 2);
+        int option1Amount = 1;
+        generateSelectOption(option1, orderItem1, option1Amount);
+        int option2Amount = 2;
+        generateSelectOption(option2, orderItem1, option2Amount);
         OrderItem orderItem2 = generateOrderItem(item2, memberCoupon2, order, 2);
-        generateSelectOption(option3, orderItem2, 3);
-        generateSelectOption(option4, orderItem2, 4);
+        int option3Amount = 3;
+        generateSelectOption(option3, orderItem2, option3Amount);
+        int option4Amount = 4;
+        generateSelectOption(option4, orderItem2, option4Amount);
 
 
         String impUid = "impuid_asdlkfjsld";
@@ -715,6 +728,7 @@ public class OrderApiControllerTest extends BaseTest {
         Member findMember = memberRepository.findById(member.getId()).get();
         assertThat(findMember.isBrochure()).isTrue();
         assertThat(findMember.getAccumulatedAmount()).isEqualTo(accumulatedAmount + order.getPaymentPrice());
+        assertThat(findMember.getReward()).isEqualTo(remainRewards - discountReward);
 
         Reward reward = rewardRepository.findAll().get(0);
         assertThat(reward.getMember().getId()).isEqualTo(findMember.getId());
@@ -723,6 +737,207 @@ public class OrderApiControllerTest extends BaseTest {
         assertThat(reward.getRewardStatus()).isEqualTo(RewardStatus.USED);
         assertThat(reward.getTradeReward()).isEqualTo(discountReward);
 
+        ItemOption findOption1 = itemOptionRepository.findById(option1.getId()).get();
+        assertThat(findOption1.getRemaining()).isEqualTo(optionRemaining - option1Amount);
+        ItemOption findOption2 = itemOptionRepository.findById(option2.getId()).get();
+        assertThat(findOption2.getRemaining()).isEqualTo(optionRemaining - option2Amount);
+        ItemOption findOption3 = itemOptionRepository.findById(option3.getId()).get();
+        assertThat(findOption3.getRemaining()).isEqualTo(optionRemaining - option3Amount);
+        ItemOption findOption4 = itemOptionRepository.findById(option4.getId()).get();
+        assertThat(findOption4.getRemaining()).isEqualTo(optionRemaining - option4Amount);
+
+    }
+
+    @Test
+    @DisplayName("일반주문 결제 시 장바구니에 동일한 물품 있을 경우 제거됨")
+    public void successGeneralOrder_remove_basket() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int accumulatedAmount = member.getAccumulatedAmount();
+        int remainRewards = member.getReward();
+        Item item1 = generateItem(1);
+        int optionRemaining = 999;
+        ItemOption option1 = generateOption(item1, 1, optionRemaining);
+        ItemOption option2 = generateOption(item1, 2, optionRemaining);
+
+        Item item2 = generateItem(2);
+        ItemOption option3 = generateOption(item1, 3, optionRemaining);
+        ItemOption option4 = generateOption(item1, 4, optionRemaining);
+
+        Coupon coupon1 = generateGeneralCoupon(1);
+        MemberCoupon memberCoupon1 = generateMemberCoupon(member, coupon1, 1, CouponStatus.ACTIVE);
+
+        Delivery delivery = generateDelivery(DeliveryStatus.BEFORE_PAYMENT);
+
+        int discountReward = 4000;
+        GeneralOrder order = GeneralOrder.builder()
+                .orderStatus(OrderStatus.BEFORE_PAYMENT)
+                .isBrochure(true)
+                .member(member)
+                .paymentPrice(100000)
+                .discountReward(discountReward)
+                .paymentMethod(PaymentMethod.CREDIT_CARD)
+                .delivery(delivery)
+                .build();
+        orderRepository.save(order);
+
+        OrderItem orderItem1 = generateOrderItem(item1, memberCoupon1, order, 1);
+        int option1Amount = 1;
+        generateSelectOption(option1, orderItem1, option1Amount);
+        int option2Amount = 2;
+        generateSelectOption(option2, orderItem1, option2Amount);
+
+        Basket basket1 = generateBasket(member, item1);
+        BasketOption basketOption1 = generateBasketOption(option1, basket1);
+        BasketOption basketOption2 = generateBasketOption(option2, basket1);
+
+        Basket basket2 = generateBasket(member, item2);
+        BasketOption basketOption3 = generateBasketOption(option3, basket2);
+        BasketOption basketOption4 = generateBasketOption(option4, basket2);
+
+
+        String impUid = "impuid_asdlkfjsld";
+        String merchantUid = "merchantUid_sldkfjsldkf";
+        SuccessGeneralRequestDto requestDto = SuccessGeneralRequestDto.builder()
+                .impUid(impUid)
+                .merchantUid(merchantUid)
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/orders/{id}/general/success", order.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        em.flush();
+        em.clear();
+
+        Optional<Basket> optionalBasket1 = basketRepository.findById(basket1.getId());
+        assertThat(optionalBasket1.isPresent()).isFalse();
+
+        Optional<Basket> optionalBasket2 = basketRepository.findById(basket2.getId());
+        assertThat(optionalBasket2.isPresent()).isTrue();
+
+        Optional<BasketOption> optionalBasketOption1 = basketOptionRepository.findById(basketOption1.getId());
+        assertThat(optionalBasketOption1.isPresent()).isFalse();
+        Optional<BasketOption> optionalBasketOption2 = basketOptionRepository.findById(basketOption2.getId());
+        assertThat(optionalBasketOption2.isPresent()).isFalse();
+        Optional<BasketOption> optionalBasketOption3 = basketOptionRepository.findById(basketOption3.getId());
+        assertThat(optionalBasketOption3.isPresent()).isTrue();
+        Optional<BasketOption> optionalBasketOption4 = basketOptionRepository.findById(basketOption4.getId());
+        assertThat(optionalBasketOption4.isPresent()).isTrue();
+
+    }
+
+    @Test
+    @DisplayName("일반주문 결제 시 장바구니에 동일한 물품 있을 경우 제거됨2")
+    public void successGeneralOrder_remove_basket2() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int accumulatedAmount = member.getAccumulatedAmount();
+        int remainRewards = member.getReward();
+        Item item1 = generateItem(1);
+        int optionRemaining = 999;
+        ItemOption option1 = generateOption(item1, 1, optionRemaining);
+        ItemOption option2 = generateOption(item1, 2, optionRemaining);
+
+        Item item2 = generateItem(2);
+        ItemOption option3 = generateOption(item1, 3, optionRemaining);
+        ItemOption option4 = generateOption(item1, 4, optionRemaining);
+
+        Coupon coupon1 = generateGeneralCoupon(1);
+        MemberCoupon memberCoupon1 = generateMemberCoupon(member, coupon1, 1, CouponStatus.ACTIVE);
+        Coupon coupon2 = generateGeneralCoupon(2);
+        MemberCoupon memberCoupon2 = generateMemberCoupon(member, coupon2, 2, CouponStatus.ACTIVE);
+
+        Delivery delivery = generateDelivery(DeliveryStatus.BEFORE_PAYMENT);
+
+        int discountReward = 4000;
+        GeneralOrder order = GeneralOrder.builder()
+                .orderStatus(OrderStatus.BEFORE_PAYMENT)
+                .isBrochure(true)
+                .member(member)
+                .paymentPrice(100000)
+                .discountReward(discountReward)
+                .paymentMethod(PaymentMethod.CREDIT_CARD)
+                .delivery(delivery)
+                .build();
+        orderRepository.save(order);
+
+        OrderItem orderItem1 = generateOrderItem(item1, memberCoupon1, order, 1);
+        int option1Amount = 1;
+        generateSelectOption(option1, orderItem1, option1Amount);
+        int option2Amount = 2;
+        generateSelectOption(option2, orderItem1, option2Amount);
+        OrderItem orderItem2 = generateOrderItem(item2, memberCoupon2, order, 2);
+        int option3Amount = 3;
+        generateSelectOption(option3, orderItem2, option3Amount);
+        int option4Amount = 4;
+        generateSelectOption(option4, orderItem2, option4Amount);
+
+        Basket basket1 = generateBasket(member, item1);
+        BasketOption basketOption1 = generateBasketOption(option1, basket1);
+        BasketOption basketOption2 = generateBasketOption(option2, basket1);
+
+        Basket basket2 = generateBasket(member, item2);
+        BasketOption basketOption3 = generateBasketOption(option3, basket2);
+        BasketOption basketOption4 = generateBasketOption(option4, basket2);
+
+
+        String impUid = "impuid_asdlkfjsld";
+        String merchantUid = "merchantUid_sldkfjsldkf";
+        SuccessGeneralRequestDto requestDto = SuccessGeneralRequestDto.builder()
+                .impUid(impUid)
+                .merchantUid(merchantUid)
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/orders/{id}/general/success", order.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        em.flush();
+        em.clear();
+
+        Optional<Basket> optionalBasket1 = basketRepository.findById(basket1.getId());
+        assertThat(optionalBasket1.isPresent()).isFalse();
+
+        Optional<Basket> optionalBasket2 = basketRepository.findById(basket2.getId());
+        assertThat(optionalBasket2.isPresent()).isFalse();
+
+        Optional<BasketOption> optionalBasketOption1 = basketOptionRepository.findById(basketOption1.getId());
+        assertThat(optionalBasketOption1.isPresent()).isFalse();
+        Optional<BasketOption> optionalBasketOption2 = basketOptionRepository.findById(basketOption2.getId());
+        assertThat(optionalBasketOption2.isPresent()).isFalse();
+        Optional<BasketOption> optionalBasketOption3 = basketOptionRepository.findById(basketOption3.getId());
+        assertThat(optionalBasketOption3.isPresent()).isFalse();
+        Optional<BasketOption> optionalBasketOption4 = basketOptionRepository.findById(basketOption4.getId());
+        assertThat(optionalBasketOption4.isPresent()).isFalse();
+
+    }
+
+    private BasketOption generateBasketOption(ItemOption option, Basket basket) {
+        BasketOption basketOption = BasketOption.builder()
+                .basket(basket)
+                .itemOption(option)
+                .build();
+        return basketOptionRepository.save(basketOption);
+    }
+
+    private Basket generateBasket(Member member, Item item) {
+        Basket basket = Basket.builder()
+                .item(item)
+                .member(member)
+                .amount(2)
+                .build();
+        return basketRepository.save(basket);
     }
 
     @Test
@@ -732,12 +947,12 @@ public class OrderApiControllerTest extends BaseTest {
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
         int accumulatedAmount = member.getAccumulatedAmount();
         Item item1 = generateItem(1);
-        ItemOption option1 = generateOption(item1, 1);
-        ItemOption option2 = generateOption(item1, 2);
+        ItemOption option1 = generateOption(item1, 1, 999);
+        ItemOption option2 = generateOption(item1, 2, 999);
 
         Item item2 = generateItem(2);
-        ItemOption option3 = generateOption(item1, 3);
-        ItemOption option4 = generateOption(item1, 4);
+        ItemOption option3 = generateOption(item1, 3, 999);
+        ItemOption option4 = generateOption(item1, 4, 999);
 
         Coupon coupon1 = generateGeneralCoupon(1);
         MemberCoupon memberCoupon1 = generateMemberCoupon(member, coupon1, 1, CouponStatus.ACTIVE);
@@ -796,16 +1011,16 @@ public class OrderApiControllerTest extends BaseTest {
 
         Item item1 = generateItem(1);
         int itemRemain1 = item1.getRemaining();
-        ItemOption option1 = generateOption(item1, 1);
+        ItemOption option1 = generateOption(item1, 1, 999);
         int optionRemain1 = option1.getRemaining();
-        ItemOption option2 = generateOption(item1, 2);
+        ItemOption option2 = generateOption(item1, 2, 999);
         int optionRemain2 = option2.getRemaining();
 
         Item item2 = generateItem(2);
         int itemRemain2 = item2.getRemaining();
-        ItemOption option3 = generateOption(item1, 3);
+        ItemOption option3 = generateOption(item1, 3, 999);
         int optionRemain3 = option3.getRemaining();
-        ItemOption option4 = generateOption(item1, 4);
+        ItemOption option4 = generateOption(item1, 4, 999);
         int optionRemain4 = option4.getRemaining();
 
         Coupon coupon1 = generateGeneralCoupon(1);
@@ -925,16 +1140,16 @@ public class OrderApiControllerTest extends BaseTest {
 
         Item item1 = generateItem(1);
         int itemRemain1 = item1.getRemaining();
-        ItemOption option1 = generateOption(item1, 1);
+        ItemOption option1 = generateOption(item1, 1, 999);
         int optionRemain1 = option1.getRemaining();
-        ItemOption option2 = generateOption(item1, 2);
+        ItemOption option2 = generateOption(item1, 2, 999);
         int optionRemain2 = option2.getRemaining();
 
         Item item2 = generateItem(2);
         int itemRemain2 = item2.getRemaining();
-        ItemOption option3 = generateOption(item1, 3);
+        ItemOption option3 = generateOption(item1, 3, 999);
         int optionRemain3 = option3.getRemaining();
-        ItemOption option4 = generateOption(item1, 4);
+        ItemOption option4 = generateOption(item1, 4, 999);
         int optionRemain4 = option4.getRemaining();
 
         Coupon coupon1 = generateGeneralCoupon(1);
@@ -3153,7 +3368,7 @@ public class OrderApiControllerTest extends BaseTest {
 
         IntStream.range(1,3).forEach(j -> {
             Item item = generateItem(j);
-            generateOption(item, j);
+            generateOption(item, j, 999);
 
             IntStream.range(1, 4).forEach(k ->{
                 ItemImage itemImage = ItemImage.builder()
@@ -3243,12 +3458,12 @@ public class OrderApiControllerTest extends BaseTest {
         return itemRepository.save(item);
     }
 
-    private ItemOption generateOption(Item item, int i) {
+    private ItemOption generateOption(Item item, int i, int remaining) {
         ItemOption itemOption = ItemOption.builder()
                 .item(item)
                 .name("옵션" + i)
                 .optionPrice(i * 1000)
-                .remaining(999)
+                .remaining(remaining)
                 .build();
         return itemOptionRepository.save(itemOption);
     }

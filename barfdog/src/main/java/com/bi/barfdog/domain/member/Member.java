@@ -186,6 +186,7 @@ public class Member extends BaseTimeEntity {
 
     public void generalOrderSuccess(Order order) {
         accumulatedAmount += order.getPaymentPrice();
+        reward -= order.getDiscountReward();
         boolean brochure = order.isBrochure();
         if (brochure) {
             isBrochure = true;

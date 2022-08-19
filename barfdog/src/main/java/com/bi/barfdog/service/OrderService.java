@@ -4,6 +4,7 @@ import com.bi.barfdog.api.deliveryDto.OrderIdListDto;
 import com.bi.barfdog.api.orderDto.*;
 import com.bi.barfdog.common.RandomString;
 import com.bi.barfdog.directsend.DirectSendUtils;
+import com.bi.barfdog.domain.basket.Basket;
 import com.bi.barfdog.domain.delivery.Delivery;
 import com.bi.barfdog.domain.delivery.DeliveryStatus;
 import com.bi.barfdog.domain.delivery.Recipient;
@@ -30,6 +31,8 @@ import com.bi.barfdog.domain.setting.Setting;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.domain.subscribe.SubscribePlan;
 import com.bi.barfdog.iamport.Iamport_API;
+import com.bi.barfdog.repository.basket.BasketOptionRepository;
+import com.bi.barfdog.repository.basket.BasketRepository;
 import com.bi.barfdog.repository.card.CardRepository;
 import com.bi.barfdog.repository.delivery.DeliveryRepository;
 import com.bi.barfdog.repository.dog.DogRepository;
@@ -80,6 +83,8 @@ public class OrderService {
     private final OrderItemRepository orderItemRepository;
     private final SelectOptionRepository selectOptionRepository;
     private final DogRepository dogRepository;
+    private final BasketOptionRepository basketOptionRepository;
+    private final BasketRepository basketRepository;
 
     private IamportClient client = new IamportClient(Iamport_API.API_KEY, Iamport_API.API_SECRET);
 
@@ -494,11 +499,23 @@ public class OrderService {
             order.getDelivery().paymentDone();
         }
 
+        List<Item> selectItemList = new ArrayList<>();
+
         List<OrderItem> orderItems = orderItemRepository.findAllByGeneralOrder(order);
         for (OrderItem orderItem : orderItems) {
+            selectItemList.add(orderItem.getItem());
+
             orderItem.successPayment();
+            List<SelectOption> allSelectOption = selectOptionRepository.findAllByOrderItem(orderItem);
+            for (SelectOption selectOption : allSelectOption) {
+                ItemOption itemOption = selectOption.getItemOption();
+                itemOption.decreaseRemaining(selectOption.getAmount());
+            }
         }
 
+        List<Basket> deleteBasketList = basketRepository.findByMemberAndItems(member, selectItemList);
+        basketOptionRepository.deleteByBasketList(deleteBasketList);
+        basketRepository.deleteAll(deleteBasketList);
 
         try {
             String dogName = getRepresentativeDogName(member);

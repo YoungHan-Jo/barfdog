@@ -44,4 +44,8 @@ public class ItemOption extends BaseTimeEntity {
     public void remainingUp(int amount) {
         remaining += amount;
     }
+
+    public void decreaseRemaining(int amount) {
+        remaining -= amount;
+    }
 }
