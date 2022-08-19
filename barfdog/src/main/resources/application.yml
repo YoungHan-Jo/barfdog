@@ -6,7 +6,7 @@ spring:
       fail-on-unknown-properties: true
 # 테스트 DB
   datasource:
-    url: jdbc:mariadb://binter.synology.me:3307/barfdogTestLocalDB?characterEncoding=UTF-8&serverTimezone=UTC
+    url: jdbc:mariadb://binter.synology.me:3307/barfdogTestDB?characterEncoding=UTF-8&serverTimezone=UTC
     driver-class-name: org.mariadb.jdbc.Driver
     username: britishinter
     password: Britain001!
@@ -84,7 +84,7 @@ logging.level:
   org.hibernate.type: trace
 
 server:
-  port: 8080
+  port: 8081
   servlet:
     encoding:
       charset: UTF-8 #한글처리
