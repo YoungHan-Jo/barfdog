@@ -49,4 +49,6 @@ public interface BannerRepositoryCustom {
     HomePageDto.TopBannerDto findTopBannerDto();
 
     List<HomePageDto.MainBannerDto> findMainBannerDtoListByMember(Member member);
+
+    List<HomePageDto.PopupBannerDto> findPopupBannerDtoList();
 }

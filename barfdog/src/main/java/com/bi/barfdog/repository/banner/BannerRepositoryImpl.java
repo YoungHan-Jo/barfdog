@@ -254,6 +254,7 @@ public class BannerRepositoryImpl implements BannerRepositoryCustom{
                         mainBanner.id,
                         mainBanner.leakedOrder,
                         mainBanner.name,
+                        mainBanner.targets,
                         mainBanner.imgFile.filenamePc,
                         mainBanner.imgFile.filenamePc,
                         mainBanner.pcLinkUrl,
@@ -270,6 +271,33 @@ public class BannerRepositoryImpl implements BannerRepositoryCustom{
         }
 
         return result;
+    }
+
+    @Override
+    public List<HomePageDto.PopupBannerDto> findPopupBannerDtoList() {
+        List<HomePageDto.PopupBannerDto> dtoList = queryFactory
+                .select(Projections.constructor(HomePageDto.PopupBannerDto.class,
+                        popupBanner.id,
+                        popupBanner.position,
+                        popupBanner.name,
+                        popupBanner.leakedOrder,
+                        popupBanner.imgFile.filenamePc,
+                        popupBanner.imgFile.filenamePc,
+                        popupBanner.pcLinkUrl,
+                        popupBanner.imgFile.filenameMobile,
+                        popupBanner.imgFile.filenameMobile,
+                        popupBanner.mobileLinkUrl
+                ))
+                .from(popupBanner)
+                .where(popupBanner.status.eq(BannerStatus.LEAKED))
+                .orderBy(popupBanner.leakedOrder.asc())
+                .fetch();
+
+        for (HomePageDto.PopupBannerDto dto : dtoList) {
+            dto.changeUrl();
+        }
+
+        return dtoList;
     }
 
     @Override

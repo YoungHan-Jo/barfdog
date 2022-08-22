@@ -30,6 +30,8 @@ public class QueryOrderInfoForDelivery {
 
     private String mallId;
 
+    private String request; // 요청사항
+
     @Builder.Default
     private List<OrderItemDto> orderItems = new ArrayList<>();
 

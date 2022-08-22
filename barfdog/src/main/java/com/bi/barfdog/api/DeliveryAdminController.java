@@ -26,7 +26,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 @RequiredArgsConstructor
 @RequestMapping(value = "/api/admin/deliveries",produces = MediaTypes.HAL_JSON_VALUE)
 @RestController
-public class DeliveryAdminAController {
+public class DeliveryAdminController {
 
     private final DeliveryRepository deliveryRepository;
     private final DeliveryService deliveryService;
@@ -39,8 +39,8 @@ public class DeliveryAdminAController {
         List<QueryOrderInfoForDelivery> responseDto = deliveryService.queryInfoForGoodsFlow(requestDto);
 
         CollectionModel<QueryOrderInfoForDelivery> collectionModel = CollectionModel.of(responseDto,
-                linkTo(DeliveryAdminAController.class).slash("info").withSelfRel(),
-                linkTo(DeliveryAdminAController.class).slash("deliveryNumber").withRel("update_deliveryNumber"),
+                linkTo(DeliveryAdminController.class).slash("info").withSelfRel(),
+                linkTo(DeliveryAdminController.class).slash("deliveryNumber").withRel("update_deliveryNumber"),
                 profileRootUrlBuilder.slash("index.html#resources-admin-query-deliveries-info").withRel("profile")
                 );
 
@@ -55,7 +55,7 @@ public class DeliveryAdminAController {
         deliveryService.setDeliveryNumber(requestDto);
 
         RepresentationModel representationModel = new RepresentationModel();
-        representationModel.add(linkTo(DeliveryAdminAController.class).slash("deliveryNumber").withSelfRel());
+        representationModel.add(linkTo(DeliveryAdminController.class).slash("deliveryNumber").withSelfRel());
         representationModel.add(linkTo(OrderAdminController.class).slash("search").withRel("query_orders"));
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-update-deliveryNumber").withRel("profile"));
 

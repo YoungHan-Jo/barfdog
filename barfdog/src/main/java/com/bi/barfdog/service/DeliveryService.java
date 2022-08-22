@@ -114,6 +114,7 @@ public class DeliveryService {
                     .rcvAddr2(delivery.getRecipient().getDetailAddress())
                     .rcvTel1(delivery.getRecipient().getPhone())
                     .mallId(GoodsFlow.MALL_ID)
+                    .request(delivery.getRequest())
                     .orderItems(orderItemDtoList)
                     .build();
 

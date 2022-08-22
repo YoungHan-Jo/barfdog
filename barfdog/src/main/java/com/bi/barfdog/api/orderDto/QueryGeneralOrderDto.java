@@ -69,6 +69,7 @@ public class QueryGeneralOrderDto {
         private boolean isPackage; // 묶음배송여부
 
         private String deliveryNumber;
+        private LocalDateTime arrivalDate; // 도착일
 
         private int orderPrice;
         private int deliveryPrice;

@@ -2344,20 +2344,10 @@ public class OrderApiControllerTest extends BaseTest {
                         responseFields(
                                 fieldWithPath("_embedded.queryGeneralOrdersDtoList[0].thumbnailUrl").description("썸네일 url"),
                                 fieldWithPath("_embedded.queryGeneralOrdersDtoList[0].orderDto.id").description("주문 id"),
-                                fieldWithPath("_embedded.queryGeneralOrdersDtoList[0].orderDto.merchantUid").description("결제 완료된 주문 번호. 없으면 null"),
+                                fieldWithPath("_embedded.queryGeneralOrdersDtoList[0].orderDto.merchantUid").description("주문 번호. 없으면 null"),
+                                fieldWithPath("_embedded.queryGeneralOrdersDtoList[0].orderDto.orderDate").description("주문 시간"),
                                 fieldWithPath("_embedded.queryGeneralOrdersDtoList[0].orderDto.paymentPrice").description("결제 금액"),
-                                fieldWithPath("_embedded.queryGeneralOrdersDtoList[0].orderDto.orderStatus").description("주문 상태 " +
-                                        "[ALL,\n" +
-                                        "    BEFORE_PAYMENT,\n" +
-                                        "    HOLD, FAILED,\n" +
-                                        "    PAYMENT_DONE,\n" +
-                                        "    PRODUCING, DELIVERY_READY,\n" +
-                                        "    DELIVERY_START,\n" +
-                                        "    SELLING_CANCEL,\n" +
-                                        "    CANCEL_REQUEST, CANCEL_DONE,\n" +
-                                        "    RETURN_REQUEST, RETURN_DONE,\n" +
-                                        "    EXCHANGE_REQUEST, EXCHANGE_DONE,\n" +
-                                        "    CONFIRM]"),
+                                fieldWithPath("_embedded.queryGeneralOrdersDtoList[0].orderDto.orderStatus").description("주문 상태"),
                                 fieldWithPath("_embedded.queryGeneralOrdersDtoList[0].itemNameList").description("주문 상품 이름 리스트"),
                                 fieldWithPath("_embedded.queryGeneralOrdersDtoList[0]._links.query_order.href").description("주문 상세보기 링크"),
                                 fieldWithPath("page.size").description("한 페이지 당 개수"),
@@ -2444,6 +2434,7 @@ public class OrderApiControllerTest extends BaseTest {
                                 fieldWithPath("orderDto.merchantUid").description("주문 번호 . 결제실패 시 null"),
                                 fieldWithPath("orderDto.paymentDate").description("결제 날짜 . 결제 실패 시 null"),
                                 fieldWithPath("orderDto.deliveryNumber").description("운송장 번호. 아직 존재하지 않으면 null"),
+                                fieldWithPath("orderDto.arrivalDate").description("도착날짜, 아직 도착하지않았으면 null"),
                                 fieldWithPath("orderDto.orderPrice").description("할인 전 총 주문 금액"),
                                 fieldWithPath("orderDto.deliveryPrice").description("배송비"),
                                 fieldWithPath("orderDto.discountTotal").description("할인 총합"),

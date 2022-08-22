@@ -282,19 +282,24 @@ public class IndexApiControllerTest extends BaseTest {
             generateBestReview(approvalReview, i);
         });
 
-        TopBanner topBanner = TopBanner.builder()
-                .name("top Banner name")
-                .pcLinkUrl("pc link url")
-                .mobileLinkUrl("mobile link url")
-                .status(BannerStatus.LEAKED)
-                .backgroundColor("red")
-                .fontColor("write")
-                .build();
-        bannerRepository.save(topBanner);
+        generateTopBanner();
 
-//        IntStream.range(1,4).forEach(i -> {
-//            generateMainBanner(i, BannerTargets.ALL);
-//        });
+        IntStream.range(1,3).forEach(i -> {
+            generatePopupBanner(i, BannerStatus.LEAKED, PopupBannerPosition.LEFT);
+        });
+
+        IntStream.range(3,5).forEach(i -> {
+            generatePopupBanner(i, BannerStatus.LEAKED, PopupBannerPosition.MID);
+        });
+
+        IntStream.range(5,7).forEach(i -> {
+            generatePopupBanner(i, BannerStatus.LEAKED, PopupBannerPosition.RIGHT);
+        });
+
+        IntStream.range(7,17).forEach(i -> {
+            generatePopupBanner(i, BannerStatus.HIDDEN, PopupBannerPosition.RIGHT);
+        });
+
 
         //when & then
         mockMvc.perform(get("/api/home")
@@ -303,6 +308,7 @@ public class IndexApiControllerTest extends BaseTest {
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("popupBannerDtoList", hasSize(6)))
                 .andDo(document("home_page",
                         links(
                                 linkWithRel("self").description("self 링크"),
@@ -325,12 +331,23 @@ public class IndexApiControllerTest extends BaseTest {
                                 fieldWithPath("mainBannerDtoList[0].id").description("메인 배너 id"),
                                 fieldWithPath("mainBannerDtoList[0].leakedOrder").description("메인 배너 노출 순서"),
                                 fieldWithPath("mainBannerDtoList[0].name").description("메인 배너 이름"),
+                                fieldWithPath("mainBannerDtoList[0].targets").description("메인 배너 노출 타겟 [ALL, GUEST, USER, SUBSCRIBER, ADMIN]"),
                                 fieldWithPath("mainBannerDtoList[0].pcFilename").description("pc 파일 파일 이름"),
                                 fieldWithPath("mainBannerDtoList[0].pcImageUrl").description("pc 이미지 url"),
                                 fieldWithPath("mainBannerDtoList[0].pcLinkUrl").description("메인배너 클릭 pc 링크 url"),
                                 fieldWithPath("mainBannerDtoList[0].mobileFilename").description("mobile 이미지 파일 이름"),
                                 fieldWithPath("mainBannerDtoList[0].mobileImageUrl").description("mobile 이미지 url"),
                                 fieldWithPath("mainBannerDtoList[0].mobileLinkUrl").description("메인배너 클릭 mobile 링크 url"),
+                                fieldWithPath("popupBannerDtoList[0].id").description("팝업 배너 id"),
+                                fieldWithPath("popupBannerDtoList[0].position").description("팝업배너 위치 [LEFT, MID, RIGHT]"),
+                                fieldWithPath("popupBannerDtoList[0].name").description("팝업배너 이름"),
+                                fieldWithPath("popupBannerDtoList[0].leakedOrder").description("팝업배너 노출 순서"),
+                                fieldWithPath("popupBannerDtoList[0].pcFilename").description("pc파일 파일 이름"),
+                                fieldWithPath("popupBannerDtoList[0].pcImageUrl").description("pc 이미지 url"),
+                                fieldWithPath("popupBannerDtoList[0].pcLinkUrl").description("팝업 배너 클릭 pc 링크 url"),
+                                fieldWithPath("popupBannerDtoList[0].mobileFilename").description("mobile 이미지 파일 이름"),
+                                fieldWithPath("popupBannerDtoList[0].mobileImageUrl").description("mobile 이미지 url"),
+                                fieldWithPath("popupBannerDtoList[0].mobileLinkUrl").description("팝업 배너 클릭 mobile 링크 url"),
                                 fieldWithPath("recipeDtoList[0].id").description("레시피 id"),
                                 fieldWithPath("recipeDtoList[0].name").description("레시피 이름"),
                                 fieldWithPath("recipeDtoList[0].description").description("레시피 설명"),
@@ -348,6 +365,32 @@ public class IndexApiControllerTest extends BaseTest {
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
+    }
+
+    private void generatePopupBanner(int i, BannerStatus status, PopupBannerPosition position) {
+        PopupBanner popupBanner = PopupBanner.builder()
+                .name("팝업배너" + i)
+                .pcLinkUrl("pc Link Url" + i)
+                .mobileLinkUrl("mobile Link Url" + i)
+                .status(status)
+                .leakedOrder(i)
+                .position(position)
+                .imgFile(new ImgFile("folder","pcName" + i,"mobileName"+i))
+                .build();
+        bannerRepository.save(popupBanner);
+    }
+
+
+    private void generateTopBanner() {
+        TopBanner topBanner = TopBanner.builder()
+                .name("top Banner name")
+                .pcLinkUrl("pc link url")
+                .mobileLinkUrl("mobile link url")
+                .status(BannerStatus.LEAKED)
+                .backgroundColor("red")
+                .fontColor("write")
+                .build();
+        bannerRepository.save(topBanner);
     }
 
     @Test
@@ -374,15 +417,7 @@ public class IndexApiControllerTest extends BaseTest {
             generateBestReview(approvalReview, i);
         });
 
-        TopBanner topBanner = TopBanner.builder()
-                .name("top Banner name")
-                .pcLinkUrl("pc link url")
-                .mobileLinkUrl("mobile link url")
-                .status(BannerStatus.LEAKED)
-                .backgroundColor("red")
-                .fontColor("write")
-                .build();
-        bannerRepository.save(topBanner);
+        generateTopBanner();
 
         IntStream.range(1, 5).forEach(i -> {
             generateMainBanner(i, BannerTargets.ALL);
@@ -435,15 +470,7 @@ public class IndexApiControllerTest extends BaseTest {
             generateBestReview(approvalReview, i);
         });
 
-        TopBanner topBanner = TopBanner.builder()
-                .name("top Banner name")
-                .pcLinkUrl("pc link url")
-                .mobileLinkUrl("mobile link url")
-                .status(BannerStatus.LEAKED)
-                .backgroundColor("red")
-                .fontColor("write")
-                .build();
-        bannerRepository.save(topBanner);
+        generateTopBanner();
 
         IntStream.range(1, 5).forEach(i -> {
             generateMainBanner(i, BannerTargets.ALL);
@@ -498,15 +525,7 @@ public class IndexApiControllerTest extends BaseTest {
             generateBestReview(approvalReview, i);
         });
 
-        TopBanner topBanner = TopBanner.builder()
-                .name("top Banner name")
-                .pcLinkUrl("pc link url")
-                .mobileLinkUrl("mobile link url")
-                .status(BannerStatus.LEAKED)
-                .backgroundColor("red")
-                .fontColor("write")
-                .build();
-        bannerRepository.save(topBanner);
+        generateTopBanner();
 
         IntStream.range(1, 5).forEach(i -> {
             generateMainBanner(i, BannerTargets.ALL);

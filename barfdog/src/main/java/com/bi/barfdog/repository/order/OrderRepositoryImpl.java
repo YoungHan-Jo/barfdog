@@ -162,6 +162,7 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                 .select(Projections.constructor(QueryGeneralOrdersDto.OrderDto.class,
                         generalOrder.id,
                         generalOrder.merchantUid,
+                        generalOrder.createdDate,
                         generalOrder.paymentPrice,
                         generalOrder.orderStatus
                 ))
@@ -252,6 +253,7 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         generalOrder.paymentDate,
                         generalOrder.isPackage,
                         delivery.deliveryNumber,
+                        delivery.arrivalDate,
                         generalOrder.orderPrice,
                         generalOrder.deliveryPrice,
                         generalOrder.discountTotal,

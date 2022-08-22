@@ -90,7 +90,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Transactional
-public class DeliveryAdminAControllerTest extends BaseTest {
+public class DeliveryAdminControllerTest extends BaseTest {
 
     @Autowired
     EntityManager em;
@@ -291,6 +291,7 @@ public class DeliveryAdminAControllerTest extends BaseTest {
                                 fieldWithPath("_embedded.queryOrderInfoForDeliveryList[0].rcvAddr2").description("받는사람 주소2"),
                                 fieldWithPath("_embedded.queryOrderInfoForDeliveryList[0].rcvTel1").description("받는사람 전화번호1"),
                                 fieldWithPath("_embedded.queryOrderInfoForDeliveryList[0].mallId").description("mall id"),
+                                fieldWithPath("_embedded.queryOrderInfoForDeliveryList[0].request").description("배송 요청사항"),
                                 fieldWithPath("_embedded.queryOrderInfoForDeliveryList[0].orderItems[0].uniqueCd").description("보내는 상품 uniqueCd"),
                                 fieldWithPath("_embedded.queryOrderInfoForDeliveryList[0].orderItems[0].ordNo").description("보내는 상품 id"),
                                 fieldWithPath("_embedded.queryOrderInfoForDeliveryList[0].orderItems[0].itemName").description("상품 이름"),
@@ -1158,6 +1159,7 @@ public class DeliveryAdminAControllerTest extends BaseTest {
                         .build())
                 .departureDate(LocalDateTime.now().minusDays(4))
                 .arrivalDate(LocalDateTime.now().minusDays(1))
+                .request("안전배송 부탁드립니다" + i)
                 .build();
         deliveryRepository.save(delivery);
         return delivery;
