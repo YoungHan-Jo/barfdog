@@ -1421,7 +1421,6 @@ public class IndexApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(put("/api/admin/password")
-                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -1476,7 +1475,6 @@ public class IndexApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(put("/api/admin/password")
-                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -1500,7 +1498,6 @@ public class IndexApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(put("/api/admin/password")
-                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -1524,7 +1521,6 @@ public class IndexApiControllerTest extends BaseTest {
 
         //when & then
         mockMvc.perform(put("/api/admin/password")
-                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))

@@ -14,7 +14,9 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 public class AdminCouponsDtoResource extends EntityModel<CouponListResponseDto> {
     public AdminCouponsDtoResource(CouponListResponseDto dto, Link... links) {
         super(dto, Arrays.asList(links));
+        if (dto == null) return;
         if (dto.getCouponType() == CouponType.GENERAL_PUBLISHED || dto.getCouponType() == CouponType.CODE_PUBLISHED) {
+            if (dto.getExpiredDate() == null) return;
             if (dto.getExpiredDate().isBefore(LocalDateTime.now())) {
                 add(linkTo(CouponAdminController.class).slash(dto.getId()).slash("inactive").withRel("inactive_coupon"));
             }
