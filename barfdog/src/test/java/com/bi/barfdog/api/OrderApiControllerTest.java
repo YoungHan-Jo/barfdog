@@ -1708,7 +1708,7 @@ public class OrderApiControllerTest extends BaseTest {
 
 
     // TODO: 2022-07-28 구독 결제 성공 알림 테스트 ignore
-    @Ignore
+//    @Ignore
     @Test
     @DisplayName("구독 결제 성공")
     public void successSubscribeOrder() throws Exception {
@@ -1736,7 +1736,7 @@ public class OrderApiControllerTest extends BaseTest {
                 .build();
         deliveryRepository.save(delivery);
 
-        int orderPrice = 100000;
+        int orderPrice = 1000;
         Subscribe subscribe = generateSubscribeBeforePayment(dog, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, orderPrice);
         int subscribeCount = subscribe.getSubscribeCount();
 
@@ -1744,16 +1744,16 @@ public class OrderApiControllerTest extends BaseTest {
 
         MemberCoupon memberCoupon = generateMemberCoupon(member, coupon, 3, CouponStatus.ACTIVE);
 
-        int paymentPrice = 85000;
-        int discountReward = 10000;
+        int paymentPrice = 850;
+        int discountReward = 100;
         SubscribeOrder subscribeOrder = SubscribeOrder.builder()
                 .orderStatus(OrderStatus.BEFORE_PAYMENT)
                 .member(member)
                 .orderPrice(orderPrice)
                 .deliveryPrice(0)
-                .discountTotal(15000)
+                .discountTotal(150)
                 .discountReward(discountReward)
-                .discountCoupon(5000)
+                .discountCoupon(50)
                 .paymentPrice(paymentPrice)
                 .paymentMethod(PaymentMethod.CREDIT_CARD)
                 .isBrochure(true)
@@ -1768,15 +1768,11 @@ public class OrderApiControllerTest extends BaseTest {
 
         String impUid = "imp_uid_askdfj";
         String merchantUid = "merchantUid_sdkfjals";
-        String customerUid = "customer_Uid_sldkfj";
-        String cardName = "신한 카드";
-        String cardNumber = "2134********2344";
+        String customerUid = "customer_Uid_l6d6evqi";
         SuccessSubscribeRequestDto requestDto = SuccessSubscribeRequestDto.builder()
                 .impUid(impUid)
                 .merchantUid(merchantUid)
                 .customerUid(customerUid)
-                .cardName(cardName)
-                .cardNumber(cardNumber)
                 .build();
 
         //when & then
@@ -1803,9 +1799,7 @@ public class OrderApiControllerTest extends BaseTest {
                         requestFields(
                                 fieldWithPath("impUid").description("아임포트 uid"),
                                 fieldWithPath("merchantUid").description("주문 uid"),
-                                fieldWithPath("customerUid").description("카드 결제 uid"),
-                                fieldWithPath("cardName").description("카드 이름"),
-                                fieldWithPath("cardNumber").description("카드 번호")
+                                fieldWithPath("customerUid").description("카드 결제 uid")
                         ),
                         responseHeaders(
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
@@ -1830,8 +1824,6 @@ public class OrderApiControllerTest extends BaseTest {
         Card card = cardRepository.findAll().get(0);
         assertThat(card.getMember().getId()).isEqualTo(findMember.getId());
         assertThat(card.getCustomerUid()).isEqualTo(customerUid);
-        assertThat(card.getCardName()).isEqualTo(cardName);
-        assertThat(card.getCardNumber()).isEqualTo(cardNumber);
 
         SubscribeOrder findOrder = (SubscribeOrder)orderRepository.findById(subscribeOrder.getId()).get();
         assertThat(findOrder.getImpUid()).isEqualTo(impUid);
@@ -1941,8 +1933,6 @@ public class OrderApiControllerTest extends BaseTest {
                 .impUid(impUid)
                 .merchantUid(merchantUid)
                 .customerUid(customerUid)
-                .cardName(cardName)
-                .cardNumber(cardNumber)
                 .build();
 
         //when & then

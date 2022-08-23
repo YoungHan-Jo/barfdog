@@ -51,10 +51,13 @@ import com.siot.IamportRestClient.request.CancelData;
 import com.siot.IamportRestClient.request.ScheduleData;
 import com.siot.IamportRestClient.request.ScheduleEntry;
 import com.siot.IamportRestClient.request.UnscheduleData;
+import com.siot.IamportRestClient.response.BillingCustomer;
+import com.siot.IamportRestClient.response.IamportResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.validation.constraints.NotEmpty;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
@@ -87,6 +90,7 @@ public class OrderService {
     private final BasketRepository basketRepository;
 
     private IamportClient client = new IamportClient(Iamport_API.API_KEY, Iamport_API.API_SECRET);
+
 
     public OrderSheetSubscribeResponseDto getOrderSheetSubsDto(Member member, Long subscribeId) {
 
@@ -566,10 +570,22 @@ public class OrderService {
 
     }
 
+
+
     @Transactional
     public void successSubscribeOrder(Long id, Member member, SuccessSubscribeRequestDto requestDto) {
 
-        Card card = saveCard(member, requestDto);
+        String customerUid = requestDto.getCustomerUid();
+        Card card = null;
+        try {
+            IamportResponse<BillingCustomer> billingCustomer = client.getBillingCustomer(customerUid);
+            BillingCustomer response = billingCustomer.getResponse();
+            card = saveCard(member, response.getCustomerUid(), response.getCardName(), response.getCardNumber());
+        } catch (IamportResponseException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         SubscribeOrder order = (SubscribeOrder) orderRepository.findById(id).get();
         Delivery delivery = order.getDelivery();
@@ -584,7 +600,6 @@ public class OrderService {
 
         SubscribeOrder nextOrder = saveNextOrderAndDelivery(member, order, subscribe);
 
-        String customerUid = card.getCustomerUid();
         ScheduleData scheduleData = new ScheduleData(customerUid);
         Date nextPaymentDate = java.sql.Timestamp.valueOf(subscribe.getNextPaymentDate());
         int nextPaymentPrice = calculateNextPaymentPriceAfterGradeDiscount(member, subscribe);
@@ -691,12 +706,12 @@ public class OrderService {
         rewardRepository.save(reward);
     }
 
-    private Card saveCard(Member member, SuccessSubscribeRequestDto requestDto) {
+    private Card saveCard(Member member, String customerUid, String cardName, String cardNumber) {
         Card card = Card.builder()
                 .member(member)
-                .customerUid(requestDto.getCustomerUid())
-                .cardName(requestDto.getCardName())
-                .cardNumber(requestDto.getCardNumber())
+                .customerUid(customerUid)
+                .cardName(cardName)
+                .cardNumber(cardNumber)
                 .build();
         cardRepository.save(card);
         return card;

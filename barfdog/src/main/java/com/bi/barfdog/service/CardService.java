@@ -12,6 +12,8 @@ import com.siot.IamportRestClient.exception.IamportResponseException;
 import com.siot.IamportRestClient.request.ScheduleData;
 import com.siot.IamportRestClient.request.ScheduleEntry;
 import com.siot.IamportRestClient.request.UnscheduleData;
+import com.siot.IamportRestClient.response.BillingCustomer;
+import com.siot.IamportRestClient.response.IamportResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,31 +35,37 @@ public class CardService {
     @Transactional
     public void changeCard(Member member, Long id, ChangeCardDto requestDto) {
         Subscribe subscribe = subscribeRepository.findById(id).get();
+        String beforeCustomerUid = subscribe.getCard().getCustomerUid();
 
-        String customerUid = requestDto.getCustomerUid();
-        String cardName = requestDto.getCardName();
-        String cardNumber = requestDto.getCardNumber();
+        String newCustomerUid = requestDto.getCustomerUid();
 
-        Card card = Card.builder()
-                .member(member)
-                .customerUid(customerUid)
-                .cardName(cardName)
-                .cardNumber(cardNumber)
-                .build();
-        cardRepository.save(card);
+        try {
+            IamportResponse<BillingCustomer> billingCustomer = client.getBillingCustomer(newCustomerUid);
+            BillingCustomer response = billingCustomer.getResponse();
 
-        subscribe.changeCard(card);
-        unscheduleAndNewSchedule(subscribe);
+            Card card = Card.builder()
+                    .member(member)
+                    .customerUid(newCustomerUid)
+                    .cardName(response.getCardName())
+                    .cardNumber(response.getCardNumber())
+                    .build();
+            cardRepository.save(card);
+            subscribe.changeCard(card);
+            unscheduleAndNewSchedule(subscribe, beforeCustomerUid);
 
+        } catch (IamportResponseException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
 
-    private void unscheduleAndNewSchedule(Subscribe subscribe) {
-        String customerUid = subscribe.getCard().getCustomerUid();
+    private void unscheduleAndNewSchedule(Subscribe subscribe, String beforeCustomerUid) {
         String merchant_uid = subscribe.getNextOrderMerchantUid();
 
-        UnscheduleData unscheduleData = new UnscheduleData(customerUid);
+        UnscheduleData unscheduleData = new UnscheduleData(beforeCustomerUid);
         unscheduleData.addMerchantUid(merchant_uid);
 
         try {
@@ -69,6 +77,7 @@ public class CardService {
         }
         sleepThread(500);
 
+        String customerUid = subscribe.getCard().getCustomerUid();
         Date nextPaymentDate = java.sql.Timestamp.valueOf(subscribe.getNextPaymentDate());
         int nextPaymentPrice = subscribe.getNextPaymentPrice() - subscribe.getDiscount();
         ScheduleData scheduleData = new ScheduleData(customerUid);

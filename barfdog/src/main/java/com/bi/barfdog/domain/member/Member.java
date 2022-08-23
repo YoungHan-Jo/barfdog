@@ -62,7 +62,8 @@ public class Member extends BaseTimeEntity {
 
     private int reward;
 
-    private boolean isFirstPayment; // 첫 구매 여부
+    private boolean isPaid; // 구매한 적 있는지 여부
+    private LocalDateTime firstPaymentDate; // 첫 결제 날짜
 
     private boolean isTemporaryPassword; // 임시 비밀번호 여부
     
@@ -221,6 +222,11 @@ public class Member extends BaseTimeEntity {
             roles = "USER";
         }
         isSubscribe = false;
+    }
+
+    public void firstPayment() {
+        isPaid = true;
+        firstPaymentDate = LocalDateTime.now();
     }
 }
 

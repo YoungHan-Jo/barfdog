@@ -1,19 +1,18 @@
-package com.bi.barfdog.api.cardDto;
+package com.bi.barfdog.api.guestDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotEmpty;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ChangeCardDto {
+public class QueryGuestCond {
 
-    @NotEmpty
-    private String customerUid;
+    private String name;
+    private String email;
+    private String phoneNumber;
 
 }

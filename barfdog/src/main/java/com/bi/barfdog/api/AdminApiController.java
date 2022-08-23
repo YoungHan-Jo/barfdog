@@ -2,6 +2,11 @@ package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.barfDto.FriendTalkAllDto;
 import com.bi.barfdog.api.barfDto.FriendTalkGroupDto;
+import com.bi.barfdog.api.guestDto.QueryAdminGuestDto;
+import com.bi.barfdog.api.guestDto.QueryGuestCond;
+import com.bi.barfdog.api.guestDto.SaveGuestRequest;
+import com.bi.barfdog.api.resource.AdminGuestDtoResource;
+import com.bi.barfdog.api.resource.AdminOrdersDtoResource;
 import com.bi.barfdog.api.settingDto.UpdateSettingDto;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.directsend.DirectSendResponseDto;
@@ -9,18 +14,20 @@ import com.bi.barfdog.directsend.FriendTalkResponseDto;
 import com.bi.barfdog.domain.setting.Setting;
 import com.bi.barfdog.repository.article.ArticleRepository;
 import com.bi.barfdog.repository.blog.BlogRepository;
+import com.bi.barfdog.repository.guest.GuestRepository;
 import com.bi.barfdog.repository.member.MemberRepository;
 import com.bi.barfdog.repository.setting.SettingRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
-import com.bi.barfdog.service.BarfService;
-import com.bi.barfdog.service.BlogService;
-import com.bi.barfdog.service.MemberService;
-import com.bi.barfdog.service.SettingService;
+import com.bi.barfdog.service.*;
 import com.bi.barfdog.validator.BlogValidator;
 import com.bi.barfdog.validator.MemberValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.MediaTypes;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
@@ -39,6 +46,8 @@ public class AdminApiController {
     private final SettingRepository settingRepository;
     private final SettingService settingService;
     private final BarfService barfService;
+    private final GuestService guestService;
+    private final GuestRepository guestRepository;
 
     WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
 
@@ -98,6 +107,36 @@ public class AdminApiController {
         entityModel.add(profileRootUrlBuilder.slash("index.html#resources-friendTalk-group").withRel("profile"));
 
         return ResponseEntity.ok(entityModel);
+    }
+
+
+    @PostMapping("/guests")
+    public ResponseEntity createGuests(@RequestBody @Valid SaveGuestRequest requestDto,
+                                       Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+
+        guestService.createGuest(requestDto);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(AdminApiController.class).slash("guests").withSelfRel());
+        representationModel.add(linkTo(AdminApiController.class).slash("guests").withRel("query_guests"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-create-guest").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @GetMapping("/guests")
+    public ResponseEntity queryGuests(Pageable pageable,
+                                      PagedResourcesAssembler<QueryAdminGuestDto> assembler,
+                                      @ModelAttribute QueryGuestCond cond) {
+
+        Page<QueryAdminGuestDto> page = guestRepository.findAdminGuestDtos(pageable, cond);
+
+        PagedModel<AdminGuestDtoResource> pagedModel = assembler.toModel(page, e -> new AdminGuestDtoResource(e));
+
+        pagedModel.add(profileRootUrlBuilder.slash("index.html#resources-query-admin-guests").withRel("profile"));
+
+        return ResponseEntity.ok(pagedModel);
     }
 
 

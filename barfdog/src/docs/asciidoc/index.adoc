@@ -184,6 +184,21 @@ operation::admin_friendTalk_all[snippets='curl-request,request-headers,request-b
 operation::admin_friendTalk_group[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
+[[resources-create-guest]]
+=== 상담받는 고객 추가
+
+`POST` 요청을 사용해서 상담받는 고객을 추가 할 수 있다.
+
+operation::admin_create_guest[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
+
+[[resources-query-admin-guests]]
+=== 상담받은 고객 리스트 조회(페이징)
+
+`GET` 요청을 사용해서 상담받은 고객 리스트를 조회 할 수 있다. +
+
+검색 키워드를 포함한 모든 결과 조회 +
+
+operation::query_admin_guests[snippets='curl-request,request-headers,request-parameters,request-body,response-headers,response-body,response-fields,links']
 
 
 

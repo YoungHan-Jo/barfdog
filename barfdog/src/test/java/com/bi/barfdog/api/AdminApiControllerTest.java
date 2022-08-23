@@ -3,19 +3,21 @@ package com.bi.barfdog.api;
 import com.bi.barfdog.api.barfDto.FriendTalkAllDto;
 import com.bi.barfdog.api.barfDto.FriendTalkGroupDto;
 import com.bi.barfdog.api.couponDto.Area;
+import com.bi.barfdog.api.guestDto.SaveGuestRequest;
 import com.bi.barfdog.api.settingDto.UpdateSettingDto;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.Address;
-import com.bi.barfdog.domain.coupon.Coupon;
 import com.bi.barfdog.domain.dog.*;
+import com.bi.barfdog.domain.guest.Guest;
 import com.bi.barfdog.domain.member.*;
 import com.bi.barfdog.domain.setting.Setting;
 import com.bi.barfdog.api.memberDto.jwt.JwtLoginDto;
 import com.bi.barfdog.repository.coupon.CouponRepository;
 import com.bi.barfdog.repository.delivery.DeliveryRepository;
 import com.bi.barfdog.repository.dog.DogRepository;
+import com.bi.barfdog.repository.guest.GuestRepository;
 import com.bi.barfdog.repository.item.ItemImageRepository;
 import com.bi.barfdog.repository.item.ItemOptionRepository;
 import com.bi.barfdog.repository.item.ItemRepository;
@@ -41,6 +43,7 @@ import javax.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
@@ -50,6 +53,8 @@ import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.li
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -91,6 +96,8 @@ public class AdminApiControllerTest extends BaseTest {
     SurveyReportRepository surveyReportRepository;
     @Autowired
     DogRepository dogRepository;
+    @Autowired
+    GuestRepository guestRepository;
 
     @Before
     public void setUp() {
@@ -399,6 +406,187 @@ public class AdminApiControllerTest extends BaseTest {
     }
 
 
+    @Test
+    @DisplayName("상담자 추가")
+    public void createGuest() throws Exception {
+       //given
+
+        String name = "이름";
+        SaveGuestRequest requestDto = SaveGuestRequest.builder()
+                .name(name)
+                .phoneNumber("01099038544")
+                .email("user@gmail.com")
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/admin/guests")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("admin_create_guest",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("query_guests").description("상담자 리스트 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        requestFields(
+                                fieldWithPath("name").description("상담자 이름"),
+                                fieldWithPath("phoneNumber").description("상담자 전화번호 '010xxxxXXXX' , 없으면 null"),
+                                fieldWithPath("email").description("상담자 이메일 'xxxx@xxxx.com', 없으면 null")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.query_guests.href").description("상담자 리스트 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        List<Guest> allGuest = guestRepository.findAll();
+        assertThat(allGuest.size()).isEqualTo(1);
+        assertThat(allGuest.get(0).getName()).isEqualTo(name);
+
+    }
+
+
+    @Test
+    @DisplayName("정상적으로 상담고객 리스트 조회")
+    public void queryGuests() throws Exception {
+       //given
+
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+
+        admin.firstPayment();
+        member.firstPayment();
+
+        IntStream.range(1, 5).forEach(i ->{
+            generateGuest("user"+i+"@gmail.com");
+        });
+        generateGuest("user@gmail.com");
+        generateGuest("admin@gmail.com");
+        IntStream.range(5, 7).forEach(i ->{
+            generateGuest("user"+i+"@gmail.com");
+        });
+
+        //when & then
+        mockMvc.perform(get("/api/admin/guests")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("size","2")
+                        .param("page","1")
+                        .param("name","")
+                        .param("email","gmail.com")
+                        .param("phoneNumber","")
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("query_admin_guests",
+                        links(
+                                linkWithRel("first").description("첫 페이지 링크"),
+                                linkWithRel("prev").description("이전 페이지 링크"),
+                                linkWithRel("self").description("현재 페이지 링크"),
+                                linkWithRel("next").description("다음 페이지 링크"),
+                                linkWithRel("last").description("마지막 페이지 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestParameters(
+                                parameterWithName("page").description("페이지 번호 [0번부터 시작 - 0번이 첫 페이지]"),
+                                parameterWithName("size").description("한 페이지 당 조회 개수"),
+                                parameterWithName("name").description("검색할 고객 이름"),
+                                parameterWithName("email").description("검색할 고객 이메일"),
+                                parameterWithName("phoneNumber").description("검색할 고객 휴대전화번호 '010xxxxxxxx'")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_embedded.queryAdminGuestDtoList[0].guestName").description("삼담시 입력한 이름"),
+                                fieldWithPath("_embedded.queryAdminGuestDtoList[0].guestEmail").description("상담시 입력한 email , 없으면 null"),
+                                fieldWithPath("_embedded.queryAdminGuestDtoList[0].guestPhoneNumber").description("상담시 입력한 전화번호, 없으면 null"),
+                                fieldWithPath("_embedded.queryAdminGuestDtoList[0].createdDate").description("채널톡 상담 시작 날짜"),
+                                fieldWithPath("_embedded.queryAdminGuestDtoList[0].memberId").description("가입한 member id , 미가입일 경우 null"),
+                                fieldWithPath("_embedded.queryAdminGuestDtoList[0].memberName").description("가입한 member 이름, 미가입일 경우 null"),
+                                fieldWithPath("_embedded.queryAdminGuestDtoList[0].memberEmail").description("가입한 member email, 미가입일 경우 null"),
+                                fieldWithPath("_embedded.queryAdminGuestDtoList[0].memberPhoneNumber").description("가입한 member 전화번호 , 미가입일 경우 null"),
+                                fieldWithPath("_embedded.queryAdminGuestDtoList[0].joinDate").description("가입 날짜 , 미가입일 경우 null"),
+                                fieldWithPath("_embedded.queryAdminGuestDtoList[0].firstPaymentDate").description("첫 결제 날짜, 미가입or첫구매없을 경우 null"),
+                                fieldWithPath("_embedded.queryAdminGuestDtoList[0].paid").description("결제 여부, 미가입or첫구매없을 경우 false"),
+                                fieldWithPath("_embedded.queryAdminGuestDtoList[0]._links.query_member.href").description("회원 정보 조회 링크, 미가입일 경우 null"),
+                                fieldWithPath("page.size").description("한 페이지 당 개수"),
+                                fieldWithPath("page.totalElements").description("검색 총 결과 수"),
+                                fieldWithPath("page.totalPages").description("총 페이지 수"),
+                                fieldWithPath("page.number").description("페이지 번호 [0페이지 부터 시작]"),
+                                fieldWithPath("_links.first.href").description("첫 페이지 링크"),
+                                fieldWithPath("_links.prev.href").description("이전 페이지 링크"),
+                                fieldWithPath("_links.self.href").description("현재 페이지 링크"),
+                                fieldWithPath("_links.next.href").description("다음 페이지 링크"),
+                                fieldWithPath("_links.last.href").description("마지막 페이지 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+    }
+
+    @Test
+    @DisplayName("정상적으로 상담고객 리스트 조회_member전화번호검색")
+    public void queryGuests_member_phoneNumber() throws Exception {
+        //given
+
+        Member admin = memberRepository.findByEmail(appProperties.getAdminEmail()).get();
+
+        admin.firstPayment();
+
+        IntStream.range(1, 5).forEach(i ->{
+            generateGuest("user"+i+"@gmail.com");
+        });
+        IntStream.range(5, 7).forEach(i ->{
+            generateGuest("user"+i+"@gmail.com");
+        });
+        generateGuest("user@gmail.com");
+        generateGuest("admin@gmail.com");
+
+
+        //when & then
+        mockMvc.perform(get("/api/admin/guests")
+                        .header(HttpHeaders.AUTHORIZATION, getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .param("size","2")
+                        .param("page","0")
+                        .param("name","")
+                        .param("email","")
+                        .param("phoneNumber","9903")
+                )
+                .andDo(print())
+                .andExpect(status().isOk());
+
+    }
+
+    private void generateGuest(String email) {
+        Guest guest = Guest.builder()
+                .name("이름")
+                .email(email)
+                .build();
+        guestRepository.save(guest);
+    }
 
 
     private Member generateMember(String email, String name, String password, String phoneNumber, Gender gender, Grade grade, int reward, boolean recommend, String roles, boolean isSubscribe) {

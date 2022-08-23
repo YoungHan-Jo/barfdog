@@ -20,7 +20,5 @@ public class SuccessSubscribeRequestDto {
 
     @NotEmpty
     private String customerUid; // 카드결제 uid
-    private String cardName;
-    private String cardNumber;
 
 }

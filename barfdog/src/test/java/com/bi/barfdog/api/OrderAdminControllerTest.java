@@ -275,7 +275,7 @@ public class OrderAdminControllerTest extends BaseTest {
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
-        ;
+
 
     }
 

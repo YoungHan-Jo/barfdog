@@ -2,11 +2,13 @@ package com.bi.barfdog.iamport;
 
 import com.siot.IamportRestClient.Iamport;
 import com.siot.IamportRestClient.IamportClient;
+import com.siot.IamportRestClient.constant.CardConstant;
 import com.siot.IamportRestClient.exception.IamportResponseException;
 import com.siot.IamportRestClient.request.CancelData;
 import com.siot.IamportRestClient.request.ScheduleData;
 import com.siot.IamportRestClient.request.ScheduleEntry;
 import com.siot.IamportRestClient.request.UnscheduleData;
+import com.siot.IamportRestClient.response.BillingCustomer;
 import com.siot.IamportRestClient.response.IamportResponse;
 import com.siot.IamportRestClient.response.Payment;
 import com.siot.IamportRestClient.response.Schedule;
@@ -44,6 +46,47 @@ public class IamportImplTest {
 
        //then
 
+    }
+
+    private IamportClient getBillingTestClient() {
+        String test_api_key = Iamport_API.API_KEY;
+        String test_api_secret = Iamport_API.API_SECRET;
+
+        return new IamportClient(test_api_key, test_api_secret);
+    }
+
+    @Test
+    public void testGetBillingCustomer() {
+        IamportClient billingClient = getBillingTestClient();
+        String testCustomerUid = "customer_Uid_l6g30z38";
+
+        try {
+            IamportResponse<BillingCustomer> billingCustomerResponse = billingClient.getBillingCustomer(testCustomerUid);
+
+            BillingCustomer billingCustomer = billingCustomerResponse.getResponse();
+
+            System.out.println("billingCustomer = " + billingCustomer.toString());
+
+            assertEquals(billingCustomer.getCardCode(), CardConstant.CODE_SHINHAN);
+            assertEquals(billingCustomer.getPgProvider(), "kcp_billing");
+            assertNotNull(billingCustomer.getCardNumber());
+            assertNotNull(billingCustomer.getCardName());
+
+        } catch (IamportResponseException e) {
+            System.out.println(e.getMessage());
+
+            switch (e.getHttpStatusCode()) {
+                case 401:
+                    //TODO : API credential 이 잘못된 경우
+                    break;
+                case 404:
+                    //TODO : customer_uid 에 해당되는 빌링등록정보가 존재하지 않는 경우
+                    break;
+            }
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     @Test
@@ -147,6 +190,22 @@ public class IamportImplTest {
     }
 
     @Test
+    public void unschedule() {
+        String customerUid = "customer_Uid_l6d6evqi";
+        String merchantUid = "20220823_Q8n7HQt59ILJzT9";
+        UnscheduleData unschedule_data = new UnscheduleData(customerUid);
+        unschedule_data.addMerchantUid(merchantUid);
+        IamportResponse<List<Schedule>> unschedule_response = null;
+        try {
+            unschedule_response = client.unsubscribeSchedule(unschedule_data);
+        } catch (IamportResponseException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
     public void testSubscribeScheduleAndUnschedule() {
         String test_customer_uid = "customer_123456";
         ScheduleData schedule_data = new ScheduleData(test_customer_uid); // customer_uid 장착
@@ -237,6 +296,7 @@ public class IamportImplTest {
             e.printStackTrace();
         }
     }
+
 
     private String getRandomMerchantUid() {
         DateFormat df = new SimpleDateFormat("$$hhmmssSS");

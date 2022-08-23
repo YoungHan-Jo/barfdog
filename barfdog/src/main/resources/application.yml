@@ -1,12 +1,12 @@
 ## ====================== 테스트 서버 설정 시작 =============================
-#
+
 spring:
   jackson:
     deserialization:
       fail-on-unknown-properties: true
 # 테스트 DB
   datasource:
-    url: jdbc:mariadb://binter.synology.me:3307/barfdogTestHome?characterEncoding=UTF-8&serverTimezone=UTC
+    url: jdbc:mariadb://binter.synology.me:3307/barfdogCafe24?characterEncoding=UTF-8&serverTimezone=UTC
     driver-class-name: org.mariadb.jdbc.Driver
     username: britishinter
     password: Britain001!
@@ -84,7 +84,7 @@ logging.level:
   org.hibernate.type: trace
 
 server:
-  port: 8081
+  port: 8080
   servlet:
     encoding:
       charset: UTF-8 #한글처리
@@ -104,7 +104,7 @@ server:
 #
 #  # 서버 DB
 #  datasource:
-#    url: jdbc:mariadb://binter.synology.me:3307/barfdogTestLocalDB?characterEncoding=UTF-8&serverTimezone=UTC
+#    url: jdbc:mariadb://binter.synology.me:3307/barfdogCafe24?characterEncoding=UTF-8&serverTimezone=UTC
 #    driver-class-name: org.mariadb.jdbc.Driver
 #    username: britishinter
 #    password: Britain001!
@@ -183,9 +183,10 @@ server:
 #logging.level:
 #  org.hibernate.SQL: debug
 #  org.hibernate.type: trace
+#  org.springframework: debug
+#  org.springframework.web: debug
 #
 #server:
-#  port: 8080
 #  servlet:
 #    encoding:
 #      charset: UTF-8 #한글처리

@@ -3,6 +3,7 @@ package com.bi.barfdog.api;
 import com.bi.barfdog.api.cardDto.ChangeCardDto;
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
 import com.bi.barfdog.common.AppProperties;
+import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.common.BaseTest;
 import com.bi.barfdog.domain.coupon.*;
 import com.bi.barfdog.domain.delivery.Delivery;
@@ -30,6 +31,7 @@ import com.bi.barfdog.domain.subscribe.SubscribeStatus;
 import com.bi.barfdog.domain.subscribeRecipe.SubscribeRecipe;
 import com.bi.barfdog.domain.surveyReport.*;
 import com.bi.barfdog.api.memberDto.jwt.JwtLoginDto;
+import com.bi.barfdog.iamport.Iamport_API;
 import com.bi.barfdog.repository.card.CardRepository;
 import com.bi.barfdog.repository.coupon.CouponRepository;
 import com.bi.barfdog.repository.delivery.DeliveryRepository;
@@ -49,7 +51,9 @@ import com.bi.barfdog.repository.subscribe.BeforeSubscribeRepository;
 import com.bi.barfdog.repository.subscribe.SubscribeRepository;
 import com.bi.barfdog.repository.subscribeRecipe.SubscribeRecipeRepository;
 import com.bi.barfdog.repository.surveyReport.SurveyReportRepository;
-import org.assertj.core.api.Assertions;
+import com.siot.IamportRestClient.IamportClient;
+import com.siot.IamportRestClient.exception.IamportResponseException;
+import com.siot.IamportRestClient.request.UnscheduleData;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -64,6 +68,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -207,13 +212,9 @@ public class CardApiControllerTest extends BaseTest {
 
         Subscribe subscribe = order.getSubscribe();
 
-        String customerUid = "customerUid_111";
-        String cardName = "cardName111";
-        String cardNumber = "cardNumber1234";
+        String customerUid = "customer_Uid_l6d6evqi";
         ChangeCardDto requestDto = ChangeCardDto.builder()
                 .customerUid(customerUid)
-                .cardName(cardName)
-                .cardNumber(cardNumber)
                 .build();
 
         //when & then
@@ -239,9 +240,7 @@ public class CardApiControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.AUTHORIZATION).description("bearer jwt 토큰")
                         ),
                         requestFields(
-                                fieldWithPath("customerUid").description("새로 발급 받은 아임포트 customerUid"),
-                                fieldWithPath("cardName").description("신규 카드 이름"),
-                                fieldWithPath("cardNumber").description("신규 카드 번호")
+                                fieldWithPath("customerUid").description("새로 발급 받은 아임포트 customerUid")
                         ),
                         responseHeaders(
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
@@ -261,41 +260,27 @@ public class CardApiControllerTest extends BaseTest {
         Card findCard = findSubscribe.getCard();
         assertThat(findCard.getMember().getId()).isEqualTo(member.getId());
         assertThat(findCard.getCustomerUid()).isEqualTo(customerUid);
-        assertThat(findCard.getCardName()).isEqualTo(cardName);
-        assertThat(findCard.getCardNumber()).isEqualTo(cardNumber);
+
+        Thread.sleep(1000);
+
+        unschedule(customerUid, subscribe.getNextOrderMerchantUid());
+
 
     }
 
+    private void unschedule(String customerUid, String merchantUid) {
+        IamportClient client = new IamportClient(Iamport_API.API_KEY, Iamport_API.API_SECRET);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        UnscheduleData unschedule_data = new UnscheduleData(customerUid);
+        unschedule_data.addMerchantUid(merchantUid);
+        try {
+            client.unsubscribeSchedule(unschedule_data);
+        } catch (IamportResponseException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 
     private SubscribeOrder generateSubscribeOrderAndEtc(Member member, int i, OrderStatus orderStatus) {
@@ -415,7 +400,7 @@ public class CardApiControllerTest extends BaseTest {
     private Card generateCard(Member member, int i) {
         Card card = Card.builder()
                 .member(member)
-                .customerUid("customUid_" + i)
+                .customerUid("customer_Uid_l6d6evqi")
                 .cardName("카드이름" + i)
                 .cardNumber("카드번호" + i)
                 .build();
@@ -548,7 +533,8 @@ public class CardApiControllerTest extends BaseTest {
                 .plan(SubscribePlan.FULL)
                 .nextPaymentDate(LocalDateTime.now().plusDays(6))
                 .nextDeliveryDate(LocalDate.now().plusDays(8))
-                .nextPaymentPrice(120000)
+                .nextOrderMerchantUid("merchant_alisdjklf"+i)
+                .nextPaymentPrice(1200)
                 .status(SubscribeStatus.SUBSCRIBING)
                 .build();
         subscribeRepository.save(subscribe);
@@ -557,12 +543,13 @@ public class CardApiControllerTest extends BaseTest {
 
     private Subscribe generateSubscribeBeforePayment(int i, Card card) {
         Subscribe subscribe = Subscribe.builder()
-                .subscribeCount(i+1)
+                .subscribeCount(i + 1)
                 .plan(SubscribePlan.FULL)
                 .card(card)
                 .nextPaymentDate(LocalDateTime.now().plusDays(6))
                 .nextDeliveryDate(LocalDate.now().plusDays(8))
-                .nextPaymentPrice(120000)
+                .nextOrderMerchantUid("merchant_uid" + BarfUtils.generateRandomCode())
+                .nextPaymentPrice(1200)
                 .status(SubscribeStatus.SUBSCRIBING)
                 .build();
         subscribeRepository.save(subscribe);
