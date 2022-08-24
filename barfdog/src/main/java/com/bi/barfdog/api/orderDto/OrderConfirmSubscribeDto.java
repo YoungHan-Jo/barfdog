@@ -14,6 +14,7 @@ import java.util.List;
 @Builder
 public class OrderConfirmSubscribeDto {
 
+    @Builder.Default
     private List<Long> orderIdList = new ArrayList<>();
 
 }

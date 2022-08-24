@@ -37,6 +37,12 @@ public class Delivery extends BaseTimeEntity {
 
     private LocalDate nextDeliveryDate; // 배송 예정 일시
 
+
+    public void deliveryDone() {
+        status = DeliveryStatus.DELIVERY_DONE;
+        arrivalDate = LocalDateTime.now();
+    }
+
     public void cancel() {
         status = DeliveryStatus.DELIVERY_CANCEL;
         nextDeliveryDate = null;
@@ -64,6 +70,7 @@ public class Delivery extends BaseTimeEntity {
     public void generateTransUniqueCd(String transUniqueCd) {
         this.transUniqueCd = transUniqueCd;
     }
+
 
 
 }

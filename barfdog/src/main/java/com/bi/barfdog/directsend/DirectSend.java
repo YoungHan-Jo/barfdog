@@ -14,9 +14,12 @@ public interface DirectSend {
 
     String ORDER_SUCCESS_TEMPLATE = "10";
     String ORDER_CANCEL_TEMPLATE = "16";
+
     String ORDER_PRODUCING_TEMPLATE = "25";
     String ORDER_DELIVERY_READY_TEMPLATE = "31";
+
     String DELIVERY_START_TEMPLATE = "28";
+    String DELIVERY_DONE_TEMPLATE = "34";
 
     String GRADE_TEMPLATE = "43";
     String TOMORROW_PAYMENT_TEMPLATE = "13";

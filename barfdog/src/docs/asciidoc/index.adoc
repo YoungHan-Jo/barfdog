@@ -1459,18 +1459,18 @@ operation::get_code_coupon[snippets='curl-request,request-headers,request-body,r
 관리자 페이지 주문 배송 관리 관련 리소스.
 
 [[resources-query-admin-orders]]
-=== 주문 리스트 검색(페이징)
+=== 주문 리스트 검색(페이징)(상품단위)
 
-`POST` 요청을 사용하여 페이징으로 조건에 맞는 주문 리스트를 조회할 수 있다.
+`POST` 요청을 사용하여 페이징으로 조건에 맞는 주문 리스트를 상품단위로 조회할 수 있다. +
 
 요청 파라미터 복잡해서 조회api지만 POST 사용
 
 operation::query_admin_orders[snippets='curl-request,request-headers,request-parameters,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 [[resources-admin-query-cancelRequest]]
-=== 취소 요청 주문 리스트 검색(페이징)
+=== 주문 리스트 검색(페이징)(주문단위)
 
-`POST` 요청을 사용하여 페이징으로 조건에 맞는 취소요청 주문 리스트를 조회할 수 있다. +
+`POST` 요청을 사용하여 페이징으로 조건에 맞는 주문 리스트를 주문단위로 조회할 수 있다. +
 
 요청 파라미터 복잡해서 조회api지만 POST 사용
 

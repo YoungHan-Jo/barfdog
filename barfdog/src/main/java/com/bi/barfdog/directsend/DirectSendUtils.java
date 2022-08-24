@@ -387,6 +387,29 @@ public class DirectSendUtils {
         sendAlimTalk(DirectSend.DELIVERY_START_TEMPLATE, receiver);
     }
 
+    public static void sendDeliveryDoneAlim(Order order, String dogName, List<OrderItem> orderItemList) throws IOException {
+
+        Member member = order.getMember();
+
+        String itemName = "구독상품";
+        if (orderItemList != null && orderItemList.size() > 0) {
+            getItemNames(orderItemList);
+        }
+
+
+        String receiver = "";
+        receiver += ",{\"name\": \"" + member.getName() + "\", " +
+                "\"mobile\":\"" + member.getPhoneNumber() + "\", " +
+                "\"note1\":\"" + dogName + "\"," +
+                "\"note2\":\"" + order.getMerchantUid() + "\"," +
+                "\"note3\":\"" + itemName + "\"}";
+
+        receiver = receiver.substring(1);
+
+        sendAlimTalk(DirectSend.DELIVERY_DONE_TEMPLATE, receiver);
+    }
+
+
     public static void sendSubscribePaymentScheduleFailAlim(Order order) throws IOException {
 
         Member member = order.getMember();

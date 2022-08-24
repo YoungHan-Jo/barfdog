@@ -534,7 +534,7 @@ public class OrderService {
 
     private String getRepresentativeDogName(Member member) {
         List<Dog> dogList = dogRepository.findRepresentativeDogByMember(member);
-        String dogName = "";
+        String dogName = "강아지";
         if (dogList.size() > 0) {
             dogName = dogList.get(0).getName();
         }

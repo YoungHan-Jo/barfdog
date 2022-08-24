@@ -7,6 +7,7 @@ import com.bi.barfdog.common.RandomString;
 import com.bi.barfdog.config.finalVariable.GoodsFlow;
 import com.bi.barfdog.directsend.DirectSendUtils;
 import com.bi.barfdog.domain.delivery.Delivery;
+import com.bi.barfdog.domain.delivery.DeliveryStatus;
 import com.bi.barfdog.domain.dog.Dog;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.order.GeneralOrder;
@@ -14,6 +15,9 @@ import com.bi.barfdog.domain.order.Order;
 import com.bi.barfdog.domain.order.OrderStatus;
 import com.bi.barfdog.domain.order.SubscribeOrder;
 import com.bi.barfdog.domain.orderItem.OrderItem;
+import com.bi.barfdog.goodsFlow.CheckTraceResultRequestDto;
+import com.bi.barfdog.goodsFlow.GoodsFlowUtils;
+import com.bi.barfdog.goodsFlow.TraceResultResponseDto;
 import com.bi.barfdog.repository.delivery.DeliveryRepository;
 import com.bi.barfdog.repository.dog.DogRepository;
 import com.bi.barfdog.repository.order.OrderRepository;
@@ -161,7 +165,7 @@ public class DeliveryService {
 
     private String getRepresentativeDogName(Member member) {
         List<Dog> dogList = dogRepository.findRepresentativeDogByMember(member);
-        String dogName = "";
+        String dogName = "강아지";
         if (dogList.size() > 0) {
             dogName = dogList.get(0).getName();
         }
@@ -169,11 +173,101 @@ public class DeliveryService {
     }
 
 
+    @Transactional
+    public void deliveryDoneScheduler() {
 
+        TraceResultResponseDto traceResults = GoodsFlowUtils.getTraceResults();
 
+        TraceResultResponseDto.InnerData data = traceResults.getData();
+        if (data == null) return;
 
+        List<TraceResultResponseDto.InnerData.InnerItem> items = data.getItems();
+        if (items.size() == 0) return;
 
+        List<CheckTraceResultRequestDto> checkTraceResultRequestDtoList = new ArrayList<>();
 
+        for (TraceResultResponseDto.InnerData.InnerItem item : items) {
+            String dlvStatCode = item.getDlvStatCode();
+            if (dlvStatCode.equals("70")) {
+                String transUniqueCd = item.getTransUniqueCd();
+                Optional<Delivery> optionalDelivery = deliveryRepository.findByTransUniqueCd(transUniqueCd);
+                if (!optionalDelivery.isPresent()) continue;
 
+                Delivery delivery = optionalDelivery.get();
+                isDeliveryDone(checkTraceResultRequestDtoList, item, delivery);
+                isDeliveryStart(checkTraceResultRequestDtoList, item, delivery);
+            }
+        }
+
+        // 결과보고 수신확인 api
+        try {
+            GoodsFlowUtils.checkTraceResults(checkTraceResultRequestDtoList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void isDeliveryStart(List<CheckTraceResultRequestDto> checkTraceResultRequestDtoList, TraceResultResponseDto.InnerData.InnerItem item, Delivery delivery) {
+        if (delivery.getStatus() == DeliveryStatus.DELIVERY_START) {
+            addCheckTraceResultRequestDto(checkTraceResultRequestDtoList, item);
+            delivery.deliveryDone();
+            sendDeliveryDoneAlimTalk(delivery);
+        }
+    }
+
+    private void isDeliveryDone(List<CheckTraceResultRequestDto> checkTraceResultRequestDtoList, TraceResultResponseDto.InnerData.InnerItem item, Delivery delivery) {
+        if (delivery.getStatus() == DeliveryStatus.DELIVERY_DONE) {
+            addCheckTraceResultRequestDto(checkTraceResultRequestDtoList, item);
+        }
+    }
+
+    private void sendDeliveryDoneAlimTalk(Delivery delivery) {
+        // 배송완료 알림톡
+        List<Order> orderList = orderRepository.findByDelivery(delivery);
+        for (Order order : orderList) {
+            Member member = order.getMember();
+            isGeneralOrder(order, member);
+            isSubscribeOrder(order);
+        }
+    }
+
+    private void isSubscribeOrder(Order order) {
+        if (order instanceof SubscribeOrder) {
+            SubscribeOrder subscribeOrder = (SubscribeOrder) order;
+
+            String dogName = subscribeOrder.getSubscribe().getDog().getName();
+
+            try {
+                DirectSendUtils.sendDeliveryDoneAlim(subscribeOrder,dogName, null);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void isGeneralOrder(Order order, Member member) {
+        if (order instanceof GeneralOrder) {
+            GeneralOrder generalOrder = (GeneralOrder) order;
+
+            String dogName = getRepresentativeDogName(member);
+
+            List<OrderItem> orderItems = orderItemRepository.findAllByGeneralOrder(generalOrder);
+
+            try {
+                DirectSendUtils.sendDeliveryDoneAlim(generalOrder,dogName,orderItems);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void addCheckTraceResultRequestDto(List<CheckTraceResultRequestDto> requestDtoList, TraceResultResponseDto.InnerData.InnerItem item) {
+        CheckTraceResultRequestDto requestDto = CheckTraceResultRequestDto.builder()
+                .uniqueCd(item.getUniqueCd())
+                .seq(item.getSeq())
+                .build();
+        requestDtoList.add(requestDto);
+    }
 
 }

@@ -1256,7 +1256,7 @@ public class DogApiControllerTest extends BaseTest {
         em.clear();
 
         List<Dog> dogs = dogRepository.findAll();
-        assertThat(dogs.size()).isEqualTo(10);
+        assertThat(dogs.size()).isEqualTo(19);
 
     }
 
