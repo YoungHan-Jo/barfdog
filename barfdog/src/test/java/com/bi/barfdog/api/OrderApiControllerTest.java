@@ -626,11 +626,13 @@ public class OrderApiControllerTest extends BaseTest {
         int accumulatedAmount = member.getAccumulatedAmount();
         int remainRewards = member.getReward();
         Item item1 = generateItem(1);
+        int item1Remaining = item1.getRemaining();
         int optionRemaining = 999;
         ItemOption option1 = generateOption(item1, 1, optionRemaining);
         ItemOption option2 = generateOption(item1, 2, optionRemaining);
 
         Item item2 = generateItem(2);
+        int item2Remaining = item2.getRemaining();
         ItemOption option3 = generateOption(item1, 3, optionRemaining);
         ItemOption option4 = generateOption(item1, 4, optionRemaining);
 
@@ -655,12 +657,14 @@ public class OrderApiControllerTest extends BaseTest {
                 .build();
         orderRepository.save(order);
 
-        OrderItem orderItem1 = generateOrderItem(item1, memberCoupon1, order, 1);
+        int item1Amount = 1;
+        OrderItem orderItem1 = generateOrderItem(item1, memberCoupon1, order, item1Amount);
         int option1Amount = 1;
         generateSelectOption(option1, orderItem1, option1Amount);
         int option2Amount = 2;
         generateSelectOption(option2, orderItem1, option2Amount);
-        OrderItem orderItem2 = generateOrderItem(item2, memberCoupon2, order, 2);
+        int item2Amount = 2;
+        OrderItem orderItem2 = generateOrderItem(item2, memberCoupon2, order, item2Amount);
         int option3Amount = 3;
         generateSelectOption(option3, orderItem2, option3Amount);
         int option4Amount = 4;
@@ -736,6 +740,11 @@ public class OrderApiControllerTest extends BaseTest {
         assertThat(reward.getRewardType()).isEqualTo(RewardType.ORDER);
         assertThat(reward.getRewardStatus()).isEqualTo(RewardStatus.USED);
         assertThat(reward.getTradeReward()).isEqualTo(discountReward);
+
+        Item findItem1 = itemRepository.findById(item1.getId()).get();
+        assertThat(findItem1.getRemaining()).isEqualTo(item1Remaining - item1Amount);
+        Item findItem2 = itemRepository.findById(item2.getId()).get();
+        assertThat(findItem2.getRemaining()).isEqualTo(item2Remaining - item2Amount);
 
         ItemOption findOption1 = itemOptionRepository.findById(option1.getId()).get();
         assertThat(findOption1.getRemaining()).isEqualTo(optionRemaining - option1Amount);
@@ -1721,7 +1730,6 @@ public class OrderApiControllerTest extends BaseTest {
         LocalDate nextDeliveryDate = LocalDate.now().plusDays(2);
 
         Dog dog = generateDog(member, 1, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
-
 
         Delivery delivery = Delivery.builder()
                 .recipient(Recipient.builder()

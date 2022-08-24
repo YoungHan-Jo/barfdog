@@ -7,9 +7,6 @@ import lombok.*;
 
 import javax.persistence.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder @Getter
@@ -74,11 +71,11 @@ public class Item extends BaseTimeEntity {
         isDeleted = true;
     }
 
-    public void remainingDown(int amount) {
-        remaining -= amount;
+    public void increaseRemaining(int amount) {
+        remaining += amount;
     }
 
-    public void remainingUp(int amount) {
-        remaining += amount;
+    public void decreaseRemaining(int amount) {
+        remaining -= amount;
     }
 }

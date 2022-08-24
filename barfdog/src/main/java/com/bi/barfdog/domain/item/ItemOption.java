@@ -37,11 +37,8 @@ public class ItemOption extends BaseTimeEntity {
         remaining = dto.getRemaining();
     }
 
-    public void remainingDown(int amount) {
-        remaining -= amount;
-    }
 
-    public void remainingUp(int amount) {
+    public void increaseRemaining(int amount) {
         remaining += amount;
     }
 

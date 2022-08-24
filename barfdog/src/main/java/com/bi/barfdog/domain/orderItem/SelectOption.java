@@ -33,6 +33,6 @@ public class SelectOption {
     private int amount;
 
     public void failPayment() {
-        itemOption.remainingUp(amount);
+        itemOption.increaseRemaining(amount);
     }
 }

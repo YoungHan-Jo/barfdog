@@ -154,7 +154,7 @@ public class OrderService {
         List<GeneralOrderRequestDto.OrderItemDto> orderItemDtoList = requestDto.getOrderItemDtoList();
         for (GeneralOrderRequestDto.OrderItemDto orderItemDto : orderItemDtoList) {
             Item item = itemRepository.findById(orderItemDto.getItemId()).get();
-            item.remainingDown(orderItemDto.getAmount());
+            item.decreaseRemaining(orderItemDto.getAmount());
             MemberCoupon memberCoupon = null;
             Long memberCouponId = orderItemDto.getMemberCouponId();
             if (memberCouponId != null && memberCouponId != 0L) {
@@ -235,6 +235,7 @@ public class OrderService {
                 .paymentMethod(requestDto.getPaymentMethod())
                 .isPackage(requestDto.getDeliveryId() != null ? true : false)
                 .isAgreePrivacy(requestDto.isAgreePrivacy())
+                .isBrochure(!member.isBrochure() && requestDto.isBrochure() ? true : false)
                 .delivery(delivery)
                 .build();
         return orderRepository.save(generalOrder);
@@ -242,7 +243,7 @@ public class OrderService {
 
     private void saveSelectOption(OrderItem orderItem, GeneralOrderRequestDto.SelectOptionDto selectOptionDto) {
         ItemOption itemOption = itemOptionRepository.findById(selectOptionDto.getItemOptionId()).get();
-        itemOption.remainingDown(selectOptionDto.getAmount());
+        itemOption.decreaseRemaining(selectOptionDto.getAmount());
         SelectOption selectOption = SelectOption.builder()
                 .orderItem(orderItem)
                 .itemOption(itemOption)
@@ -507,13 +508,13 @@ public class OrderService {
 
         List<OrderItem> orderItems = orderItemRepository.findAllByGeneralOrder(order);
         for (OrderItem orderItem : orderItems) {
-            selectItemList.add(orderItem.getItem());
+            Item item = orderItem.getItem();
+            selectItemList.add(item);
 
             orderItem.successPayment();
             List<SelectOption> allSelectOption = selectOptionRepository.findAllByOrderItem(orderItem);
             for (SelectOption selectOption : allSelectOption) {
                 ItemOption itemOption = selectOption.getItemOption();
-                itemOption.decreaseRemaining(selectOption.getAmount());
             }
         }
 
