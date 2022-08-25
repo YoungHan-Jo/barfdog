@@ -6,6 +6,7 @@ import com.bi.barfdog.api.memberDto.*;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BarfUtils;
 import com.bi.barfdog.common.BaseTest;
+import com.bi.barfdog.config.finalVariable.AutoCoupon;
 import com.bi.barfdog.directsend.PhoneAuthRequestDto;
 import com.bi.barfdog.domain.Address;
 import com.bi.barfdog.domain.banner.*;
@@ -875,6 +876,9 @@ public class IndexApiControllerTest extends BaseTest {
         assertThat(findMember.getAgreement().isReceiveSms()).isTrue();
 
         assertThat(findMember.getRecommendCode()).isNull();
+
+        List<MemberCoupon> memberCoupons = memberCouponRepository.findAllByMember(findMember);
+        assertThat(memberCoupons.get(0).getCoupon().getName()).isEqualTo(AutoCoupon.JOIN_SUBSCRIBE_COUPON);
 
     }
 

@@ -145,7 +145,7 @@ public class Subscribe extends BaseTimeEntity {
 
     public void useCoupon(MemberCoupon memberCoupon, int discount) {
         if (this.memberCoupon != null) {
-            this.memberCoupon.revival();
+            this.memberCoupon.revivalCoupon();
         }
         this.memberCoupon = memberCoupon;
         this.discount = discount;
@@ -167,7 +167,7 @@ public class Subscribe extends BaseTimeEntity {
         if (memberCoupon != null) {
             Coupon coupon = memberCoupon.getCoupon();
             if (totalPrice < coupon.getAvailableMinPrice()) {
-                memberCoupon.revival();
+                memberCoupon.revivalCoupon();
                 this.memberCoupon = null;
             }else{
                 if (coupon.getDiscountType() == DiscountType.FIXED_RATE) {
@@ -215,7 +215,7 @@ public class Subscribe extends BaseTimeEntity {
         this.status = SubscribeStatus.SUBSCRIBE_PENDING;
         this.skipCount = 0;
         if (this.memberCoupon != null) {
-            memberCoupon.revival();
+            memberCoupon.revivalCoupon();
         }
 
     }
@@ -231,7 +231,7 @@ public class Subscribe extends BaseTimeEntity {
         this.status = SubscribeStatus.SUBSCRIBE_PENDING;
         this.skipCount = 0;
         if (this.memberCoupon != null) {
-            memberCoupon.revival();
+            memberCoupon.revivalCoupon();
         }
     }
 

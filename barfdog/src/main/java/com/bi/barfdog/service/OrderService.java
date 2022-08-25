@@ -57,7 +57,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.constraints.NotEmpty;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
@@ -726,7 +725,7 @@ public class OrderService {
         subscribe.failPayment();
 
         MemberCoupon memberCoupon = order.getMemberCoupon();
-        memberCoupon.revival();
+        memberCoupon.revivalCoupon();
 
         member.subscribeOrderFail(order);
     }
@@ -939,7 +938,7 @@ public class OrderService {
     private void revivalCoupon(OrderItem orderItem) {
         MemberCoupon memberCoupon = orderItem.getMemberCoupon();
         if (memberCoupon != null) {
-            memberCoupon.revival();
+            memberCoupon.revivalCoupon();
         }
     }
 
@@ -1063,7 +1062,7 @@ public class OrderService {
     private void revivalCoupon(SubscribeOrder order) {
         MemberCoupon memberCoupon = order.getMemberCoupon();
         if (memberCoupon != null) {
-            memberCoupon.revival();
+            memberCoupon.revivalCoupon();
         }
     }
 

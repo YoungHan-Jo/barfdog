@@ -52,7 +52,7 @@ public class MemberCoupon extends BaseTimeEntity {
         if (remaining <= 0) this.inactive();
     }
 
-    public void revival() {
+    public void revivalCoupon() {
         remaining++;
         this.active();
     }

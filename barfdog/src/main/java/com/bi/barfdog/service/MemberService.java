@@ -52,29 +52,34 @@ public class MemberService {
     @Transactional // 조회 서비스가 아닌 수정 서비스라면 @Transactional 붙여 줘야함 readonly = false 가 디폴트
     public JoinResponseDto join(MemberSaveRequestDto requestDto) {
 
-        String password = bCryptPasswordEncoder.encode(requestDto.getPassword());
+        Member member = saveMember(requestDto);
+        recommendFriend(requestDto, member);
+        generateJoinSubscribeCoupon(member);
 
-        Member member = Member.builder()
-                .provider(requestDto.getProvider())
-                .providerId(requestDto.getProviderId())
-                .name(requestDto.getName())
-                .email(requestDto.getEmail())
-                .password(password)
-                .phoneNumber(requestDto.getPhoneNumber())
-                .address(requestDto.getAddress())
-                .birthday(requestDto.getBirthday())
-                .gender(requestDto.getGender())
-                .agreement(requestDto.getAgreement())
-                .myRecommendationCode(BarfUtils.generateRandomCode())
-                .grade(Grade.브론즈)
-                .reward(0)
-                .accumulatedAmount(0)
-                .firstReward(new FirstReward(false,false))
-                .roles("USER")
+        JoinResponseDto responseDto = JoinResponseDto.builder()
+                .name(member.getName())
+                .email(member.getEmail())
                 .build();
+        return responseDto;
+    }
 
-        memberRepository.save(member);
+    private void generateJoinSubscribeCoupon(Member member) {
+        Optional<Coupon> optionalCoupon = couponRepository.findByName(AutoCoupon.JOIN_SUBSCRIBE_COUPON);
+        if (optionalCoupon.isPresent()) {
+            Coupon coupon = optionalCoupon.get();
 
+            MemberCoupon memberCoupon = MemberCoupon.builder()
+                    .member(member)
+                    .coupon(coupon)
+                    .expiredDate(LocalDateTime.now().plusDays(AutoCoupon.JOIN_SUBSCRIBE_COUPON_DAY))
+                    .remaining(1)
+                    .memberCouponStatus(CouponStatus.ACTIVE)
+                    .build();
+            memberCouponRepository.save(memberCoupon);
+        }
+    }
+
+    private void recommendFriend(MemberSaveRequestDto requestDto, Member member) {
         String recommendCode = requestDto.getRecommendCode();
         if (recommendCode != null) {
             Optional<Member> optionalMember = memberRepository.findByMyRecommendationCode(recommendCode);
@@ -95,18 +100,30 @@ public class MemberService {
                 rewardRepository.save(reward);
             }
         }
+    }
 
-//        if (member.getAgreement().isReceiveEmail() &&
-//                member.getAgreement().isReceiveSms()) {
-//            member.chargePoint(RewardPoint.RECEIVE_AGREEMENT);
-//        }
-
-        JoinResponseDto responseDto = JoinResponseDto.builder()
-                .name(member.getName())
-                .email(member.getEmail())
+    private Member saveMember(MemberSaveRequestDto requestDto) {
+        String password = bCryptPasswordEncoder.encode(requestDto.getPassword());
+        Member member = Member.builder()
+                .provider(requestDto.getProvider())
+                .providerId(requestDto.getProviderId())
+                .name(requestDto.getName())
+                .email(requestDto.getEmail())
+                .password(password)
+                .phoneNumber(requestDto.getPhoneNumber())
+                .address(requestDto.getAddress())
+                .birthday(requestDto.getBirthday())
+                .gender(requestDto.getGender())
+                .agreement(requestDto.getAgreement())
+                .myRecommendationCode(BarfUtils.generateRandomCode())
+                .grade(Grade.브론즈)
+                .reward(0)
+                .accumulatedAmount(0)
+                .firstReward(new FirstReward(false,false))
+                .roles("USER")
                 .build();
-
-        return responseDto;
+        memberRepository.save(member);
+        return member;
     }
 
     public DirectSendResponseDto sendPhoneAuth(String phoneNumber) throws IOException {

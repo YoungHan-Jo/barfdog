@@ -1,6 +1,7 @@
 package com.bi.barfdog.api.orderDto;
 
 import com.bi.barfdog.domain.order.OrderStatus;
+import com.bi.barfdog.domain.order.PaymentMethod;
 import com.bi.barfdog.domain.subscribe.SubscribePlan;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -88,6 +89,7 @@ public class QueryAdminSubscribeOrderDto {
         private String couponName;
         private int discountCoupon; // 쿠폰 적용 할인 금액
         private int paymentPrice; // 결제 금액
+        private PaymentMethod paymentMethod;
         private OrderStatus orderStatus;
 
         private LocalDateTime orderConfirmDate;
@@ -108,6 +110,7 @@ public class QueryAdminSubscribeOrderDto {
         private LocalDateTime arrivalDate; // 도착일
 
         private String deliveryNumber;
+        private String request;
 
     }
 }

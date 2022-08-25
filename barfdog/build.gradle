@@ -153,6 +153,8 @@ configurations {
 	}
 	querydsl.extendsFrom compileClasspath
 }
+
+
 //configurations {
 //	querydsl.extendsFrom compileClasspath
 //}
@@ -166,7 +168,6 @@ configurations {
 //	}
 //
 //}
-
 
 targetCompatibility = "1.8"
 

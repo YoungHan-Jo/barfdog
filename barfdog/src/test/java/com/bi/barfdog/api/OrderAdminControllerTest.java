@@ -260,6 +260,8 @@ public class OrderAdminControllerTest extends BaseTest {
                                 fieldWithPath("_embedded.queryAdminCancelRequestDtoList[0].recipientPhoneNumber").description("수령자 휴대전화"),
                                 fieldWithPath("_embedded.queryAdminCancelRequestDtoList[0].orderDate").description("주문 날짜"),
                                 fieldWithPath("_embedded.queryAdminCancelRequestDtoList[0].packageDelivery").description("묶음배송 여부"),
+                                fieldWithPath("_embedded.queryAdminCancelRequestDtoList[0].cancelReason").description("취소 사유"),
+                                fieldWithPath("_embedded.queryAdminCancelRequestDtoList[0].cancelDetailReason").description("취소 상세 사유"),
                                 fieldWithPath("_embedded.queryAdminCancelRequestDtoList[0]._links.query_order.href").description("주문 하나 조회 링크"),
                                 fieldWithPath("page.size").description("한 페이지 당 개수"),
                                 fieldWithPath("page.totalElements").description("검색 총 결과 수"),
@@ -1098,6 +1100,7 @@ public class OrderAdminControllerTest extends BaseTest {
                                 fieldWithPath("subscribePaymentDto.couponName").description("사용한 쿠폰 이름"),
                                 fieldWithPath("subscribePaymentDto.discountCoupon").description("쿠폰 할인 금액"),
                                 fieldWithPath("subscribePaymentDto.paymentPrice").description("결제 금액"),
+                                fieldWithPath("subscribePaymentDto.paymentMethod").description("결제 수단 [CREDIT_CARD, NAVER_PAY, KAKAO_PAY]"),
                                 fieldWithPath("subscribePaymentDto.orderStatus").description("주문 상태"),
                                 fieldWithPath("subscribePaymentDto.orderConfirmDate").description("구매 확정일"),
                                 fieldWithPath("subscribeDeliveryDto.recipientName").description("수령자 이름"),
@@ -1108,6 +1111,7 @@ public class OrderAdminControllerTest extends BaseTest {
                                 fieldWithPath("subscribeDeliveryDto.departureDate").description("배송 출발 시각"),
                                 fieldWithPath("subscribeDeliveryDto.arrivalDate").description("배송 도착 시각"),
                                 fieldWithPath("subscribeDeliveryDto.deliveryNumber").description("운송장 번호"),
+                                fieldWithPath("subscribeDeliveryDto.request").description("배송 요청 사항"),
                                 fieldWithPath("_links.self.href").description("self 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
@@ -2945,6 +2949,15 @@ public class OrderAdminControllerTest extends BaseTest {
     private GeneralOrder generateGeneralOrder(Member member, int i, OrderStatus orderstatus) {
 
         Delivery delivery = generateDelivery(member, i);
+
+        OrderCancel orderCancel = null;
+        if (orderstatus == OrderStatus.CANCEL_REQUEST) {
+            orderCancel = OrderCancel.builder()
+                    .cancelReason("취소 사유")
+                    .cancelDetailReason("취소 상세 사유")
+                    .build();
+        }
+
         GeneralOrder generalOrder = GeneralOrder.builder()
                 .impUid("imp_uid" + i)
                 .merchantUid("merchant_uid" + i)
@@ -2960,6 +2973,7 @@ public class OrderAdminControllerTest extends BaseTest {
                 .isPackage(false)
                 .delivery(delivery)
                 .orderConfirmDate(LocalDateTime.now().minusHours(3))
+                .orderCancel(orderCancel)
                 .build();
 
         IntStream.range(1,3).forEach(j -> {
@@ -3110,6 +3124,7 @@ public class OrderAdminControllerTest extends BaseTest {
                         .build())
                 .departureDate(LocalDateTime.now().minusDays(4))
                 .arrivalDate(LocalDateTime.now().minusDays(1))
+                .request("안전배송 부탁드립니다.")
                 .build();
         deliveryRepository.save(delivery);
         return delivery;

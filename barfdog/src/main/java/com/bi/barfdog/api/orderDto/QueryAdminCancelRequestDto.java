@@ -27,4 +27,7 @@ public class QueryAdminCancelRequestDto {
     private String recipientPhoneNumber;
     private boolean isPackageDelivery;
 
+    private String cancelReason;
+    private String cancelDetailReason;
+
 }

@@ -73,9 +73,16 @@ public class Item extends BaseTimeEntity {
 
     public void increaseRemaining(int amount) {
         remaining += amount;
+        if (remaining > 0) {
+            inStock = true;
+        }
     }
 
     public void decreaseRemaining(int amount) {
         remaining -= amount;
+        if (remaining < 1) {
+            remaining = 0;
+            inStock = false;
+        }
     }
 }

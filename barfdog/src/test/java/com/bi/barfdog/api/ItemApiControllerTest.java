@@ -109,7 +109,14 @@ public class ItemApiControllerTest extends BaseTest {
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
         IntStream.range(1,5).forEach(i -> {
-            Item item = generateItemGoods(i);
+            Item item = generateItemGoods(i, false);
+            IntStream.range(1,4).forEach(j -> {
+                generateItemReview(member, item, i+j+1, ReviewStatus.APPROVAL);
+                generateItemImage(item, j);
+            });
+        });
+        IntStream.range(1,3).forEach(i -> {
+            Item item = generateItemGoods(i, true);
             IntStream.range(1,4).forEach(j -> {
                 generateItemReview(member, item, i+j+1, ReviewStatus.APPROVAL);
                 generateItemImage(item, j);
@@ -125,7 +132,14 @@ public class ItemApiControllerTest extends BaseTest {
         });
 
         IntStream.range(1,6).forEach(i -> {
-            Item item = generateItemRaw(i);
+            Item item = generateItemRaw(i, false);
+            IntStream.range(1,4).forEach(j -> {
+                generateItemReview(member, item, i+j+2, ReviewStatus.APPROVAL);
+                generateItemImage(item, j);
+            });
+        });
+        IntStream.range(1,3).forEach(i -> {
+            Item item = generateItemRaw(i, true);
             IntStream.range(1,4).forEach(j -> {
                 generateItemReview(member, item, i+j+2, ReviewStatus.APPROVAL);
                 generateItemImage(item, j);
@@ -133,7 +147,7 @@ public class ItemApiControllerTest extends BaseTest {
         });
 
         IntStream.range(1,7).forEach(i -> {
-            Item item = generateItemTopping(i);
+            Item item = generateItemTopping(i, false);
             IntStream.range(1,4).forEach(j -> {
                 generateItemReview(member, item, i+j+3, ReviewStatus.APPROVAL);
                 generateItemImage(item, j);
@@ -209,7 +223,7 @@ public class ItemApiControllerTest extends BaseTest {
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
         IntStream.range(1,5).forEach(i -> {
-            Item item = generateItemGoods(i);
+            Item item = generateItemGoods(i, false);
             IntStream.range(1,4).forEach(j -> {
                 generateItemReview(member, item, i+j+1, ReviewStatus.APPROVAL);
                 generateItemImage(item, j);
@@ -217,7 +231,14 @@ public class ItemApiControllerTest extends BaseTest {
         });
 
         IntStream.range(1,6).forEach(i -> {
-            Item item = generateItemRaw(i);
+            Item item = generateItemRaw(i, false);
+            IntStream.range(1,4).forEach(j -> {
+                generateItemReview(member, item, i+j+2, ReviewStatus.APPROVAL);
+                generateItemImage(item, j);
+            });
+        });
+        IntStream.range(1,4).forEach(i -> {
+            Item item = generateItemRaw(i, true);
             IntStream.range(1,4).forEach(j -> {
                 generateItemReview(member, item, i+j+2, ReviewStatus.APPROVAL);
                 generateItemImage(item, j);
@@ -225,7 +246,7 @@ public class ItemApiControllerTest extends BaseTest {
         });
 
         IntStream.range(1,7).forEach(i -> {
-            Item item = generateItemTopping(i);
+            Item item = generateItemTopping(i, false);
             IntStream.range(1,4).forEach(j -> {
                 generateItemReview(member, item, i+j+3, ReviewStatus.APPROVAL);
                 generateItemImage(item, j);
@@ -256,7 +277,7 @@ public class ItemApiControllerTest extends BaseTest {
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
         IntStream.range(1,4).forEach(i -> {
-            Item item = generateItemGoods(i);
+            Item item = generateItemGoods(i, false);
             IntStream.range(1,4).forEach(j -> {
                 generateItemReview(member, item, i+j+1, ReviewStatus.APPROVAL);
                 generateItemImage(item, j);
@@ -272,7 +293,7 @@ public class ItemApiControllerTest extends BaseTest {
         });
 
         IntStream.range(1,6).forEach(i -> {
-            Item item = generateItemRaw(i);
+            Item item = generateItemRaw(i, false);
             IntStream.range(1,4).forEach(j -> {
                 generateItemReview(member, item, i+j+2, ReviewStatus.APPROVAL);
                 generateItemImage(item, j);
@@ -280,7 +301,7 @@ public class ItemApiControllerTest extends BaseTest {
         });
 
         IntStream.range(1,7).forEach(i -> {
-            Item item = generateItemTopping(i);
+            Item item = generateItemTopping(i, false);
             IntStream.range(1,4).forEach(j -> {
                 generateItemReview(member, item, i+j+3, ReviewStatus.APPROVAL);
                 generateItemImage(item, j);
@@ -311,7 +332,7 @@ public class ItemApiControllerTest extends BaseTest {
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
         IntStream.range(1,5).forEach(i -> {
-            Item item = generateItemGoods(i);
+            Item item = generateItemGoods(i, false);
             IntStream.range(1,4).forEach(j -> {
                 generateItemReview(member, item, i+j+1, ReviewStatus.APPROVAL);
                 generateItemImage(item, j);
@@ -319,7 +340,7 @@ public class ItemApiControllerTest extends BaseTest {
         });
 
         IntStream.range(1,6).forEach(i -> {
-            Item item = generateItemRaw(i);
+            Item item = generateItemRaw(i, false);
             IntStream.range(1,4).forEach(j -> {
                 generateItemReview(member, item, i+j+2, ReviewStatus.APPROVAL);
                 generateItemImage(item, j);
@@ -327,7 +348,7 @@ public class ItemApiControllerTest extends BaseTest {
         });
 
         IntStream.range(1,7).forEach(i -> {
-            Item item = generateItemTopping(i);
+            Item item = generateItemTopping(i, false);
             IntStream.range(1,4).forEach(j -> {
                 generateItemReview(member, item, 8, ReviewStatus.APPROVAL);
                 generateItemImage(item, j);
@@ -358,7 +379,7 @@ public class ItemApiControllerTest extends BaseTest {
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
         IntStream.range(1,9).forEach(i -> {
-            Item item = generateItemGoods(i);
+            Item item = generateItemGoods(i, false);
             IntStream.range(1,4).forEach(j -> {
                 generateItemImage(item, j);
             });
@@ -388,7 +409,7 @@ public class ItemApiControllerTest extends BaseTest {
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
         IntStream.range(1,9).forEach(i -> {
-            Item item = generateItemGoods(i);
+            Item item = generateItemGoods(i, false);
             IntStream.range(1,4).forEach(j -> {
                 generateItemImage(item, j);
             });
@@ -418,7 +439,7 @@ public class ItemApiControllerTest extends BaseTest {
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
         IntStream.range(1,9).forEach(i -> {
-            Item item = generateItemGoods(i);
+            Item item = generateItemGoods(i, false);
             IntStream.range(1,4).forEach(j -> {
                 generateItemImage(item, j);
             });
@@ -452,7 +473,7 @@ public class ItemApiControllerTest extends BaseTest {
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
         IntStream.range(1,9).forEach(i -> {
-            Item item = generateItemGoods(i);
+            Item item = generateItemGoods(i, false);
             IntStream.range(1,4).forEach(j -> {
                 generateItemImage(item, j);
             });
@@ -486,7 +507,7 @@ public class ItemApiControllerTest extends BaseTest {
 
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-        Item item = generateItemGoods(1);
+        Item item = generateItemGoods(1, false);
         IntStream.range(1,4).forEach(i -> {
             generateItemImage(item, i);
             generateOption(item, i);
@@ -559,7 +580,7 @@ public class ItemApiControllerTest extends BaseTest {
 
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-        Item item = generateItemGoods(1);
+        Item item = generateItemGoods(1, false);
         IntStream.range(1,4).forEach(i -> {
             generateItemImage(item, i);
             generateOption(item, i);
@@ -583,7 +604,7 @@ public class ItemApiControllerTest extends BaseTest {
        //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-        Item item = generateItemGoods(1);
+        Item item = generateItemGoods(1, false);
         IntStream.range(1,4).forEach(i -> {
             generateItemImage(item, i);
             generateOption(item, i);
@@ -592,7 +613,7 @@ public class ItemApiControllerTest extends BaseTest {
             generateItemReview(member, item, 1+i, ReviewStatus.APPROVAL);
         });
 
-        Item item2 = generateItemGoods(2);
+        Item item2 = generateItemGoods(2, false);
         IntStream.range(1,3).forEach(i -> {
             generateItemImage(item2, i);
             generateOption(item2, i);
@@ -669,7 +690,7 @@ public class ItemApiControllerTest extends BaseTest {
         //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-        Item item = generateItemGoods(1);
+        Item item = generateItemGoods(1, false);
         IntStream.range(1,4).forEach(i -> {
             generateItemImage(item, i);
             generateOption(item, i);
@@ -678,7 +699,7 @@ public class ItemApiControllerTest extends BaseTest {
             generateItemReview(member, item, 1+i, ReviewStatus.APPROVAL);
         });
 
-        Item item2 = generateItemGoods(2);
+        Item item2 = generateItemGoods(2, false);
         IntStream.range(1,3).forEach(i -> {
             generateItemImage(item2, i);
             generateOption(item2, i);
@@ -708,7 +729,7 @@ public class ItemApiControllerTest extends BaseTest {
         //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-        Item item = generateItemGoods(1);
+        Item item = generateItemGoods(1, false);
         IntStream.range(1,4).forEach(i -> {
             generateItemImage(item, i);
             generateOption(item, i);
@@ -729,7 +750,7 @@ public class ItemApiControllerTest extends BaseTest {
             generateItemReview(member, item, 1+i, ReviewStatus.RETURN);
         });
 
-        Item item2 = generateItemGoods(2);
+        Item item2 = generateItemGoods(2, false);
         IntStream.range(1,3).forEach(i -> {
             generateItemImage(item2, i);
             generateOption(item2, i);
@@ -759,7 +780,7 @@ public class ItemApiControllerTest extends BaseTest {
         //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-        Item item = generateItemGoods(1);
+        Item item = generateItemGoods(1, false);
         IntStream.range(1,4).forEach(i -> {
             generateItemImage(item, i);
             generateOption(item, i);
@@ -768,7 +789,7 @@ public class ItemApiControllerTest extends BaseTest {
             generateItemReview(member, item, 1+i, ReviewStatus.APPROVAL);
         });
 
-        Item item2 = generateItemGoods(2);
+        Item item2 = generateItemGoods(2, false);
         IntStream.range(1,3).forEach(i -> {
             generateItemImage(item2, i);
             generateOption(item2, i);
@@ -848,7 +869,7 @@ public class ItemApiControllerTest extends BaseTest {
 
 
 
-    private Item generateItemRaw(int i) {
+    private Item generateItemRaw(int i, boolean isDeleted) {
         Item item = Item.builder()
                 .itemType(ItemType.RAW)
                 .name("생식 상품" + i)
@@ -864,11 +885,12 @@ public class ItemApiControllerTest extends BaseTest {
                 .itemIcons("BEST,NEW")
                 .deliveryFree(true)
                 .status(ItemStatus.LEAKED)
+                .isDeleted(isDeleted)
                 .build();
         return itemRepository.save(item);
     }
 
-    private Item generateItemGoods(int i) {
+    private Item generateItemGoods(int i, boolean isDeleted) {
         Item item = Item.builder()
                 .itemType(ItemType.GOODS)
                 .name("굿즈 상품" + i)
@@ -884,6 +906,7 @@ public class ItemApiControllerTest extends BaseTest {
                 .totalSalesAmount(i)
                 .deliveryFree(true)
                 .status(ItemStatus.LEAKED)
+                .isDeleted(isDeleted)
                 .build();
         return itemRepository.save(item);
     }
@@ -908,7 +931,7 @@ public class ItemApiControllerTest extends BaseTest {
         return itemRepository.save(item);
     }
 
-    private Item generateItemTopping(int i) {
+    private Item generateItemTopping(int i, boolean isDeleted) {
         Item item = Item.builder()
                 .itemType(ItemType.TOPPING)
                 .name("토핑 상품" + i)
@@ -923,6 +946,7 @@ public class ItemApiControllerTest extends BaseTest {
                 .itemIcons("NEW,BEST")
                 .deliveryFree(true)
                 .status(ItemStatus.LEAKED)
+                .isDeleted(isDeleted)
                 .build();
         return itemRepository.save(item);
     }

@@ -6,7 +6,6 @@ import com.bi.barfdog.domain.coupon.DiscountType;
 import com.bi.barfdog.domain.item.ItemStatus;
 import com.bi.barfdog.domain.item.ItemType;
 import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
@@ -110,7 +109,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
     }
 
     private BooleanExpression itemIsDeletedFalse() {
-        return item.isDeleted.eq(false);
+        return itemIsDeleteFalse();
     }
 
     @Override
@@ -237,20 +236,27 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
                 .where(itemTypeEq(itemType))
                 .orderBy(item.createdDate.desc())
                 .fetch();
-
     }
 
     private BooleanExpression itemTypeEq(ItemType itemType) {
         switch (itemType) {
             case GOODS:
-                return item.itemType.eq(ItemType.GOODS).and(item.status.eq(ItemStatus.LEAKED));
+                return item.itemType.eq(ItemType.GOODS).and(leakedItem().and(itemIsDeleteFalse()));
             case RAW:
-                return item.itemType.eq(ItemType.RAW).and(item.status.eq(ItemStatus.LEAKED));
+                return item.itemType.eq(ItemType.RAW).and(leakedItem().and(itemIsDeleteFalse()));
             case TOPPING:
-                return item.itemType.eq(ItemType.TOPPING).and(item.status.eq(ItemStatus.LEAKED));
+                return item.itemType.eq(ItemType.TOPPING).and(leakedItem().and(itemIsDeleteFalse()));
             default:
-                return item.status.eq(ItemStatus.LEAKED);
+                return leakedItem().and(itemIsDeleteFalse());
         }
+    }
+
+    private BooleanExpression leakedItem() {
+        return item.status.eq(ItemStatus.LEAKED);
+    }
+
+    private BooleanExpression itemIsDeleteFalse() {
+        return item.isDeleted.eq(false);
     }
 
 
@@ -268,13 +274,13 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
     private BooleanExpression itemTypeEqForCount(ItemsCond cond) {
         switch (cond.getItemType()) {
             case GOODS:
-                return item.itemType.eq(ItemType.GOODS).and(item.status.eq(ItemStatus.LEAKED));
+                return item.itemType.eq(ItemType.GOODS).and(leakedItem());
             case RAW:
-                return item.itemType.eq(ItemType.RAW).and(item.status.eq(ItemStatus.LEAKED));
+                return item.itemType.eq(ItemType.RAW).and(leakedItem());
             case TOPPING:
-                return item.itemType.eq(ItemType.TOPPING).and(item.status.eq(ItemStatus.LEAKED));
+                return item.itemType.eq(ItemType.TOPPING).and(leakedItem());
             default:
-                return item.status.eq(ItemStatus.LEAKED);
+                return leakedItem();
         }
     }
 
@@ -299,6 +305,6 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
     }
 
     private BooleanExpression leakedAndImageOrderFirst() {
-        return itemImage.leakOrder.eq(1).and(item.status.eq(ItemStatus.LEAKED));
+        return itemImage.leakOrder.eq(1).and(leakedItem());
     }
 }

@@ -173,12 +173,13 @@ public class AppConfig {
             @Override
             public void run(ApplicationArguments args) throws Exception {
 
-                // =================================
-                // ====== 최초 필요한 데이터 시작 =======
-                // =================================
-                // ====== 실제 서버 최초로 빌드할 때만 적용시키기 ======
-                // ====== 운영 중인 서버에서는 &&&&&&&&반드시 주석처리&&&&&&&& ========
-
+                // ===================================================================================================
+                // ====== 최초 필요한 데이터 시작 ========================================================================
+                // ===================================================================================================
+                // ===================================================================================================
+                // ====== 실제 서버 최초로 빌드할 때만 적용시키기 ==========================================================
+                // ====== 운영 중인 서버에서는 &&&&&&&&반드시 주석처리&&&&&&&& =============================================
+                // ===================================================================================================
                 settingRepository.deleteAll();
                 generateSetting();
                 bannerRepository.deleteAll();
@@ -186,10 +187,21 @@ public class AppConfig {
                 generateTopBanner();
 
                 memberRepository.deleteAll();
-
                 Member admin = generateMember(appProperties.getAdminEmail(), "관리자", appProperties.getAdminPassword(), "01056785678", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,SUBSCRIBER,USER", true);
-
                 Member member = generateMember(appProperties.getUserEmail(), "김회원", appProperties.getUserPassword(), "01099038544", Gender.MALE, Grade.브론즈, 50000, false, "USER,SUBSCRIBER", true);
+
+                couponRepository.deleteAll();
+                Coupon subsCoupon = generateCouponAuto(JOIN_SUBSCRIBE_COUPON, "정기구독 할인 쿠폰", DiscountType.FIXED_RATE, 50, 0, CouponTarget.SUBSCRIBE);
+                Coupon dogBirthCoupon = generateCouponAuto(DOG_BIRTH_COUPON, "반려견 생일 쿠폰", DiscountType.FIXED_RATE, 10, 0, CouponTarget.ALL);
+                Coupon memberBirthCoupon = generateCouponAuto(MEMBER_BIRTH_COUPON, "견주 생일 쿠폰", DiscountType.FIXED_RATE, 15, 0, CouponTarget.ALL);
+
+                generateCouponAuto(SILVER_COUPON,"실버 쿠폰", DiscountType.FLAT_RATE,1000,20000, CouponTarget.ALL);
+                generateCouponAuto(GOLD_COUPON,"골드 쿠폰", DiscountType.FLAT_RATE,2000,30000, CouponTarget.ALL);
+                generateCouponAuto(PLATINUM_COUPON,"플래티넘 쿠폰", DiscountType.FLAT_RATE,2500,30000, CouponTarget.ALL);
+                generateCouponAuto(DIAMOND_COUPON,"다이아 쿠폰", DiscountType.FLAT_RATE,3000,40000, CouponTarget.ALL);
+                generateCouponAuto(BARF_COUPON,"더바프 쿠폰", DiscountType.FLAT_RATE,4000,50000, CouponTarget.ALL);
+
+
 
                 // =================================
                 // ====== 최초 필요한 데이터 끝 =======
@@ -206,7 +218,7 @@ public class AppConfig {
                 generateArticle(1);
                 generateArticle(2);
 
-                Member manager = generateMember("develope07@binter.co.kr", "관리자계정", appProperties.getAdminPassword(), "01056781234", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,SUBSCRIBER,USER", true);
+                Member manager = generateMember("dev@biventures.kr", "관리자계정", appProperties.getAdminPassword(), "01056781234", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,SUBSCRIBER,USER", true);
                 generateMember("abc@gmail.com", "박회원", appProperties.getUserPassword(), "01012341111", Gender.MALE, Grade.브론즈, 0, false, "USER", false);
 
                 Recipe recipe = generateRecipe("스타트", "닭,칠면조", "안정적인 첫 생식 적응", "스타트1.jpg", "스타트2.jpg");
@@ -236,15 +248,7 @@ public class AppConfig {
                 generateDogBeforePaymentSubscribe(admin, 46L, DogSize.SMALL, "8.2", ActivityLevel.MUCH, 5, 0.5, SnackCountLevel.LITTLE);
                 generateDogBeforePaymentSubscribe(admin, 36L, DogSize.SMALL, "8.2", ActivityLevel.MUCH, 4, 2, SnackCountLevel.NORMAL);
 
-                Coupon subsCoupon = generateCouponAuto(SUBSCRIBE_COUPON, "정기구독 할인 쿠폰", DiscountType.FIXED_RATE, 50, 0, CouponTarget.SUBSCRIBE);
-                Coupon dogBirthCoupon = generateCouponAuto(DOG_BIRTH_COUPON, "반려견 생일 쿠폰", DiscountType.FIXED_RATE, 10, 0, CouponTarget.ALL);
-                Coupon memberBirthCoupon = generateCouponAuto(MEMBER_BIRTH_COUPON, "견주 생일 쿠폰", DiscountType.FIXED_RATE, 15, 0, CouponTarget.ALL);
 
-                generateCouponAuto(SILVER_COUPON,"실버 쿠폰", DiscountType.FLAT_RATE,1000,20000, CouponTarget.ALL);
-                generateCouponAuto(GOLD_COUPON,"골드 쿠폰", DiscountType.FLAT_RATE,2000,30000, CouponTarget.ALL);
-                generateCouponAuto(PLATINUM_COUPON,"플래티넘 쿠폰", DiscountType.FLAT_RATE,2500,30000, CouponTarget.ALL);
-                generateCouponAuto(DIAMOND_COUPON,"다이아 쿠폰", DiscountType.FLAT_RATE,3000,40000, CouponTarget.ALL);
-                generateCouponAuto(BARF_COUPON,"더바프 쿠폰", DiscountType.FLAT_RATE,4000,50000, CouponTarget.ALL);
 
                 generateMemberCoupon(member, subsCoupon);
                 generateMemberCoupon(member, dogBirthCoupon);

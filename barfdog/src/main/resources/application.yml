@@ -6,7 +6,7 @@ spring:
       fail-on-unknown-properties: true
 # 테스트 DB
   datasource:
-    url: jdbc:mariadb://binter.synology.me:3307/barfdogTestCompany8080?characterEncoding=UTF-8&serverTimezone=UTC
+    url: jdbc:mariadb://binter.synology.me:3307/barfdogTestHome?characterEncoding=UTF-8&serverTimezone=UTC
     driver-class-name: org.mariadb.jdbc.Driver
     username: britishinter
     password: Britain001!

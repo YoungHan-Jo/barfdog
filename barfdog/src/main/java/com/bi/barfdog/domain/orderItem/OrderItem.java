@@ -76,7 +76,7 @@ public class OrderItem extends BaseTimeEntity {
         writeableReview = false;
         item.increaseRemaining(amount);
         if (memberCoupon != null) {
-            memberCoupon.revival();
+            memberCoupon.revivalCoupon();
         }
     }
 
@@ -127,7 +127,7 @@ public class OrderItem extends BaseTimeEntity {
     public void cancelOrderConfirmAndRevivalCoupon(OrderStatus status) {
         cancelOrderConfirmAndRevivalCoupon(status,null,null);
         if (memberCoupon != null) {
-            memberCoupon.revival();
+            memberCoupon.revivalCoupon();
         }
     }
     public void cancelOrderConfirmAndRevivalCoupon(OrderStatus status, String reason, String detailReason) {

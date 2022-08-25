@@ -578,7 +578,8 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         delivery.recipient.detailAddress,
                         delivery.departureDate,
                         delivery.arrivalDate,
-                        delivery.deliveryNumber
+                        delivery.deliveryNumber,
+                        delivery.request
                 ))
                 .from(order)
                 .join(order.delivery, delivery)
@@ -596,6 +597,7 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         coupon.name,
                         subscribeOrder.discountCoupon,
                         subscribeOrder.paymentPrice,
+                        subscribeOrder.paymentMethod,
                         subscribeOrder.orderStatus,
                         subscribeOrder.orderConfirmDate
                 ))
@@ -858,7 +860,9 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         order.member.phoneNumber,
                         order.delivery.recipient.name,
                         order.delivery.recipient.phone,
-                        order.isPackage
+                        order.isPackage,
+                        subscribeOrder.orderCancel.cancelReason,
+                        subscribeOrder.orderCancel.cancelDetailReason
                 ))
                 .from(order)
                 .join(subscribeOrder).on(subscribeOrder.eq(order))
@@ -964,7 +968,9 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         generalOrder.member.phoneNumber,
                         generalOrder.delivery.recipient.name,
                         generalOrder.delivery.recipient.phone,
-                        generalOrder.isPackage
+                        generalOrder.isPackage,
+                        generalOrder.orderCancel.cancelReason,
+                        generalOrder.orderCancel.cancelDetailReason
                 ))
                 .from(generalOrder)
                 .join(generalOrder.delivery, delivery)

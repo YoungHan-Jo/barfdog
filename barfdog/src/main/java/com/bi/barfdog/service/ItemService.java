@@ -219,14 +219,16 @@ public class ItemService {
     }
 
     private Item saveItem(ItemSaveDto requestDto) {
+        int salePrice = requestDto.getSalePrice();
+        int originalPrice = requestDto.getOriginalPrice();
         Item item = Item.builder()
                 .itemType(requestDto.getItemType())
                 .name(requestDto.getName())
                 .description(requestDto.getDescription())
-                .originalPrice(requestDto.getOriginalPrice())
+                .originalPrice(originalPrice)
                 .discountType(requestDto.getDiscountType())
                 .discountDegree(requestDto.getDiscountDegree())
-                .salePrice(requestDto.getSalePrice())
+                .salePrice(salePrice == 0 ? originalPrice : salePrice)
                 .inStock(requestDto.isInStock())
                 .remaining(requestDto.getRemaining())
                 .contents(requestDto.getContents())
