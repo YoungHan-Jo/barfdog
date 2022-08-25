@@ -23,10 +23,7 @@ import com.bi.barfdog.domain.orderItem.OrderExchange;
 import com.bi.barfdog.domain.orderItem.OrderItem;
 import com.bi.barfdog.domain.orderItem.OrderReturn;
 import com.bi.barfdog.domain.orderItem.SelectOption;
-import com.bi.barfdog.domain.reward.Reward;
-import com.bi.barfdog.domain.reward.RewardName;
-import com.bi.barfdog.domain.reward.RewardStatus;
-import com.bi.barfdog.domain.reward.RewardType;
+import com.bi.barfdog.domain.reward.*;
 import com.bi.barfdog.domain.setting.Setting;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.domain.subscribe.SubscribePlan;
@@ -38,6 +35,7 @@ import com.bi.barfdog.repository.delivery.DeliveryRepository;
 import com.bi.barfdog.repository.dog.DogRepository;
 import com.bi.barfdog.repository.item.ItemOptionRepository;
 import com.bi.barfdog.repository.item.ItemRepository;
+import com.bi.barfdog.repository.member.MemberRepository;
 import com.bi.barfdog.repository.memberCoupon.MemberCouponRepository;
 import com.bi.barfdog.repository.order.OrderRepository;
 import com.bi.barfdog.repository.orderItem.OrderItemRepository;
@@ -87,6 +85,7 @@ public class OrderService {
     private final DogRepository dogRepository;
     private final BasketOptionRepository basketOptionRepository;
     private final BasketRepository basketRepository;
+    private final MemberRepository memberRepository;
 
     private IamportClient client = new IamportClient(Iamport_API.API_KEY, Iamport_API.API_SECRET);
 
@@ -143,9 +142,11 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderResponseDto orderGeneralOrder(Member member, GeneralOrderRequestDto requestDto) {
-
+    public OrderResponseDto orderGeneralOrder(Long id, GeneralOrderRequestDto requestDto) {
+        Member member = memberRepository.findById(id).get();
         member.generalOrder(requestDto);
+        saveRewardHistory(member, requestDto.getDiscountReward());
+
         Delivery delivery = getDelivery(requestDto);
 
         GeneralOrder generalOrder = saveGeneralOrder(member, requestDto, delivery);
@@ -154,6 +155,7 @@ public class OrderService {
         for (GeneralOrderRequestDto.OrderItemDto orderItemDto : orderItemDtoList) {
             Item item = itemRepository.findById(orderItemDto.getItemId()).get();
             item.decreaseRemaining(orderItemDto.getAmount());
+
             MemberCoupon memberCoupon = null;
             Long memberCouponId = orderItemDto.getMemberCouponId();
             if (memberCouponId != null && memberCouponId != 0L) {
@@ -161,7 +163,7 @@ public class OrderService {
                 memberCoupon.useCoupon();
             }
 
-            int savedReward = getSavedReward(member, orderItemDto);
+            int expectedSaveReward = getExpectedSaveReward(member, orderItemDto);
 
             OrderItem orderItem = OrderItem.builder()
                     .generalOrder(generalOrder)
@@ -172,7 +174,7 @@ public class OrderService {
                     .discountAmount(orderItemDto.getDiscountAmount())
                     .finalPrice(orderItemDto.getFinalPrice())
                     .status(OrderStatus.BEFORE_PAYMENT)
-                    .saveReward(savedReward)
+                    .saveReward(expectedSaveReward)
                     .isSavedReward(false)
                     .writeableReview(false)
                     .build();
@@ -194,23 +196,29 @@ public class OrderService {
 
     }
 
-    private int getSavedReward(Member member, GeneralOrderRequestDto.OrderItemDto orderItemDto) {
+    private int getExpectedSaveReward(Member member, GeneralOrderRequestDto.OrderItemDto orderItemDto) {
         double rewardPercent = 0.0;
 
         Grade grade = member.getGrade();
         switch (grade) {
             case 실버:
                 rewardPercent = 0.5;
+                break;
             case 골드:
                 rewardPercent = 1.0;
+                break;
             case 플래티넘:
                 rewardPercent = 1.5;
+                break;
             case 다이아몬드:
                 rewardPercent = 2.0;
+                break;
             case 더바프:
                 rewardPercent = 3.0;
+                break;
             default:
                 rewardPercent = 0.0;
+                break;
         }
         int savedReward = (int) Math.round(orderItemDto.getFinalPrice() * rewardPercent / 100.0);
         return savedReward;
@@ -279,21 +287,25 @@ public class OrderService {
 
 
     @Transactional
-    public OrderResponseDto orderSubscribeOrder(Member member, Long subscribeId, SubscribeOrderRequestDto requestDto) {
+    public OrderResponseDto orderSubscribeOrder(Long memberId, Long subscribeId, SubscribeOrderRequestDto requestDto) {
+        Member member = memberRepository.findById(memberId).get();
+        member.subscribeOrder(requestDto);
 
         Delivery delivery = saveDelivery(requestDto);
 
         Subscribe subscribe = subscribeRepository.findById(subscribeId).get();
-        member.subscribeOrder(requestDto);
 
         Long memberCouponId = requestDto.getMemberCouponId();
         MemberCoupon memberCoupon = null;
         if (memberCouponId != null) {
-            memberCoupon = memberCouponRepository.findById(memberCouponId).get();
+            Optional<MemberCoupon> optionalMemberCoupon = memberCouponRepository.findById(memberCouponId);
+            if (optionalMemberCoupon.isPresent()) {
+                memberCoupon = optionalMemberCoupon.get();
+                memberCoupon.useCoupon();
+            }
         }
         SubscribeOrder subscribeOrder = saveSubscribeOrder(member, requestDto, delivery, subscribe, memberCoupon);
 
-        useCoupon(memberCoupon);
 
         OrderResponseDto responseDto = OrderResponseDto.builder()
                 .id(subscribeOrder.getId())
@@ -305,12 +317,6 @@ public class OrderService {
     }
 
 
-
-    private void useCoupon(MemberCoupon memberCoupon) {
-        if (memberCoupon != null) {
-            memberCoupon.useCoupon();
-        }
-    }
 
     private SubscribeOrder saveSubscribeOrder(Member member, SubscribeOrderRequestDto requestDto, Delivery delivery, Subscribe subscribe, MemberCoupon memberCoupon) {
         String merchantUid = generateMerchantUid();
@@ -344,7 +350,7 @@ public class OrderService {
         return merchantUid;
     }
 
-    private void saveReward(Member member, SubscribeOrderRequestDto requestDto) {
+    private void saveRewardHistory(Member member, SubscribeOrderRequestDto requestDto) {
         Reward reward = Reward.builder()
                 .member(member)
                 .name(RewardName.USE_ORDER)
@@ -493,11 +499,13 @@ public class OrderService {
 
 
     @Transactional
-    public void successGeneralOrder(Long orderId, Member member, SuccessGeneralRequestDto requestDto) {
+    public void successGeneralOrder(Long orderId, Long memberId, SuccessGeneralRequestDto requestDto) {
         GeneralOrder order = (GeneralOrder) orderRepository.findById(orderId).get();
         order.successGeneral(requestDto);
+        Member member = memberRepository.findById(memberId).get();
         member.generalOrderSuccess(order);
-        saveReward(member, order);
+
+        isFirstPayment(member);
 
         if (!order.isPackage()) {
             order.getDelivery().paymentDone();
@@ -509,12 +517,7 @@ public class OrderService {
         for (OrderItem orderItem : orderItems) {
             Item item = orderItem.getItem();
             selectItemList.add(item);
-
             orderItem.successPayment();
-            List<SelectOption> allSelectOption = selectOptionRepository.findAllByOrderItem(orderItem);
-            for (SelectOption selectOption : allSelectOption) {
-                ItemOption itemOption = selectOption.getItemOption();
-            }
         }
 
         List<Basket> deleteBasketList = basketRepository.findByMemberAndItems(member, selectItemList);
@@ -529,7 +532,47 @@ public class OrderService {
             System.out.println("알림톡 전송 중 에러");
         }
 
+    }
 
+    private void isFirstPayment(Member member) {
+        if (!member.isPaid()) {
+            member.firstPayment();
+            String recommendCode = member.getRecommendCode();
+            if (recommendCode != null) {
+                Optional<Member> optionalMember = memberRepository.findByMyRecommendationCode(recommendCode);
+                if (optionalMember.isPresent()) {
+                    Member recommendedMember = optionalMember.get();
+                    recommendedMember.saveReward(RewardPoint.RECOMMEND);
+                    saveInviteRewardHistory(member, recommendedMember);
+                }
+            }
+
+            if (!member.getFirstReward().isReceiveAgree()) {
+                if (member.getAgreement().isReceiveEmail() && member.getAgreement().isReceiveSms()) {
+                    member.saveReward(RewardPoint.RECEIVE_AGREEMENT);
+
+                    Reward reward = Reward.builder()
+                            .member(member)
+                            .name(RewardName.RECEIVE_AGREEMENT)
+                            .rewardType(RewardType.RECEIVE)
+                            .rewardStatus(RewardStatus.SAVED)
+                            .tradeReward(RewardPoint.RECEIVE_AGREEMENT)
+                            .build();
+                    rewardRepository.save(reward);
+                }
+            }
+        }
+    }
+
+    private void saveInviteRewardHistory(Member member, Member recommendedMember) {
+        Reward reward = Reward.builder()
+                .member(recommendedMember)
+                .name(RewardName.INVITE + "(" + member.getName() + ")")
+                .rewardType(RewardType.INVITE)
+                .rewardStatus(RewardStatus.SAVED)
+                .tradeReward(RewardPoint.RECOMMEND)
+                .build();
+        rewardRepository.save(reward);
     }
 
     private String getRepresentativeDogName(Member member) {
@@ -541,13 +584,14 @@ public class OrderService {
         return dogName;
     }
 
-    private void saveReward(Member member, Order order) {
+
+    private void saveRewardHistory(Member member, int tradeReward) {
         Reward reward = Reward.builder()
                 .member(member)
                 .name(RewardName.USE_ORDER)
                 .rewardType(RewardType.ORDER)
                 .rewardStatus(RewardStatus.USED)
-                .tradeReward(order.getDiscountReward())
+                .tradeReward(tradeReward)
                 .build();
         rewardRepository.save(reward);
     }
@@ -573,7 +617,8 @@ public class OrderService {
 
 
     @Transactional
-    public void successSubscribeOrder(Long id, Member member, SuccessSubscribeRequestDto requestDto) {
+    public void successSubscribeOrder(Long id, Long memberId, SuccessSubscribeRequestDto requestDto) {
+        Member member = memberRepository.findById(memberId).get();
 
         String customerUid = requestDto.getCustomerUid();
         Card card = null;
@@ -596,7 +641,9 @@ public class OrderService {
         subscribe.successPayment(card, order);
 
         member.subscribeOrderSuccess(order);
-        saveReward(member, order);
+        saveRewardHistory(member, order);
+
+        isFirstPayment(member);
 
         SubscribeOrder nextOrder = saveNextOrderAndDelivery(member, order, subscribe);
 
@@ -695,7 +742,7 @@ public class OrderService {
         return deliveryRepository.save(nextDelivery);
     }
 
-    private void saveReward(Member member, SubscribeOrder order) {
+    private void saveRewardHistory(Member member, SubscribeOrder order) {
         Reward reward = Reward.builder()
                 .member(member)
                 .name(RewardName.USE_ORDER)
@@ -818,7 +865,7 @@ public class OrderService {
             if(alreadyConfirm(orderItem)) continue;
             orderItem.confirm();
             member.saveReward(orderItem.getSaveReward());
-            saveReward(member, orderItem);
+            saveRewardHistory(member, orderItem);
         }
     }
 
@@ -826,7 +873,7 @@ public class OrderService {
         return orderItem.getStatus() == OrderStatus.CONFIRM;
     }
 
-    private void saveReward(Member member, OrderItem orderItem) {
+    private void saveRewardHistory(Member member, OrderItem orderItem) {
         Reward reward = Reward.builder()
                 .member(member)
                 .name(RewardName.CONFIRM_ORDER)
@@ -970,7 +1017,7 @@ public class OrderService {
         if (cancelReward > 0) {
             Member member = order.getMember();
             member.saveReward(cancelReward);
-            saveReward(name, cancelReward, member);
+            saveRewardHistory(name, cancelReward, member);
         }
     }
     private void revivalCancelOrderReward(Order order, String rewardName) {
@@ -979,11 +1026,11 @@ public class OrderService {
         if (cancelReward > 0) {
             Member member = order.getMember();
             member.saveReward(cancelReward);
-            saveReward(rewardName, cancelReward, member);
+            saveRewardHistory(rewardName, cancelReward, member);
         }
     }
 
-    private void saveReward(String name, int cancelReward, Member member) {
+    private void saveRewardHistory(String name, int cancelReward, Member member) {
         Reward reward = Reward.builder()
                 .member(member)
                 .name(name)
@@ -1070,7 +1117,7 @@ public class OrderService {
         int discountReward = order.getDiscountReward();
         if (discountReward > 0) {
             member.saveReward(discountReward);
-            saveReward(RewardName.CANCEL_ORDER, discountReward, member);
+            saveRewardHistory(RewardName.CANCEL_ORDER, discountReward, member);
         }
     }
 

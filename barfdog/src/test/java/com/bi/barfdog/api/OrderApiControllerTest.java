@@ -533,6 +533,7 @@ public class OrderApiControllerTest extends BaseTest {
     public void orderGeneralOrder_no_package() throws Exception {
         //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int reward = member.getReward();
 
         Item item1 = generateItem(1);
         ItemOption option1 = generateOption(item1, 1, 999);
@@ -615,6 +616,8 @@ public class OrderApiControllerTest extends BaseTest {
         assertThat(findDelivery.getStatus()).isEqualTo(DeliveryStatus.BEFORE_PAYMENT);
         assertThat(findDelivery.getRequest()).isEqualTo(request);
     }
+
+
 
 
 //    @Ignore

@@ -66,7 +66,7 @@ public class OrderApiController {
                                             Errors errors) {
         if (errors.hasErrors()) return badRequest(errors);
 
-        OrderResponseDto responseDto = orderService.orderGeneralOrder(member, requestDto);
+        OrderResponseDto responseDto = orderService.orderGeneralOrder(member.getId(), requestDto);
 
         EntityModel<OrderResponseDto> entityModel = EntityModel.of(responseDto);
         entityModel.add(linkTo(OrderApiController.class).slash("general").withSelfRel());
@@ -86,7 +86,7 @@ public class OrderApiController {
         Optional<Order> optionalOrder = orderRepository.findById(id);
         if(!optionalOrder.isPresent()) return notFound();
 
-        orderService.successGeneralOrder(id, member, requestDto);
+        orderService.successGeneralOrder(id, member.getId(), requestDto);
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(OrderApiController.class).slash(id).slash("general/success").withSelfRel());
@@ -134,7 +134,7 @@ public class OrderApiController {
         Optional<Subscribe> optionalSubscribe = subscribeRepository.findById(id);
         if(!optionalSubscribe.isPresent()) return notFound();
 
-        OrderResponseDto responseDto = orderService.orderSubscribeOrder(member, id, requestDto);
+        OrderResponseDto responseDto = orderService.orderSubscribeOrder(member.getId(), id, requestDto);
 
         EntityModel<OrderResponseDto> entityModel = EntityModel.of(responseDto);
         entityModel.add(linkTo(OrderApiController.class).slash("subscribe").slash(id).withSelfRel());
@@ -154,7 +154,7 @@ public class OrderApiController {
         Optional<Order> optionalOrder = orderRepository.findById(id);
         if (!optionalOrder.isPresent()) return notFound();
 
-        orderService.successSubscribeOrder(id, member, requestDto);
+        orderService.successSubscribeOrder(id, member.getId(), requestDto);
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(OrderApiController.class).slash(id).slash("subscribe/success").slash(id).withSelfRel());

@@ -183,15 +183,11 @@ public class Member extends BaseTimeEntity {
 
     public void generalOrder(GeneralOrderRequestDto requestDto) {
         useReward(requestDto.getDiscountReward());
+        isBrochure = requestDto.isBrochure();
     }
 
     public void generalOrderSuccess(Order order) {
         accumulatedAmount += order.getPaymentPrice();
-        reward -= order.getDiscountReward();
-        boolean brochure = order.isBrochure();
-        if (brochure) {
-            isBrochure = true;
-        }
     }
 
     public void generalOrderFail(int discountReward) {
