@@ -74,9 +74,7 @@ public class OrderItem extends BaseTimeEntity {
     public void failPayment() {
         status = OrderStatus.FAILED;
         item.increaseRemaining(amount);
-        if (memberCoupon != null) {
-            memberCoupon.revivalCoupon();
-        }
+        revivalCoupon();
     }
 
     public void cancelRequest() {
@@ -101,9 +99,9 @@ public class OrderItem extends BaseTimeEntity {
         this.status = OrderStatus.EXCHANGE_REQUEST;
     }
 
-    public void orderConfirm() {
+    public void checkGeneralOrder() {
         this.status = OrderStatus.DELIVERY_READY;
-        this.generalOrder.orderConfirmGeneral();
+        this.generalOrder.checkOrder();
     }
 
 
@@ -130,18 +128,9 @@ public class OrderItem extends BaseTimeEntity {
                 .cancelConfirmDate(now)
                 .build();
 
-        if (memberCoupon != null) {
-            memberCoupon.revivalCoupon();
-        }
+        revivalCoupon();
     }
 
-    public void denyReturn() {
-        this.status = OrderStatus.CONFIRM;
-    }
-
-    public void denyExchange() {
-        this.status = OrderStatus.CONFIRM;
-    }
 
     public void exchangeConfirm(OrderStatus status) {
         this.status = status;
@@ -153,17 +142,12 @@ public class OrderItem extends BaseTimeEntity {
                 .build();
     }
 
-    public void returnConfirm(int cancelReward, int cancelPrice, OrderStatus status) {
-        this.status = status;
-        this.cancelPrice = cancelPrice;
-        this.cancelReward = cancelReward;
-        orderReturn = OrderReturn.builder()
-                .returnReason(orderReturn.getReturnReason())
-                .returnDetailReason(orderReturn.getReturnDetailReason())
-                .returnRequestDate(orderReturn.getReturnRequestDate())
-                .returnConfirmDate(LocalDateTime.now())
-                .build();
+    private void revivalCoupon() {
+        if (memberCoupon != null) {
+            memberCoupon.revivalCoupon();
+        }
     }
+
 
     public void returnConfirm(OrderStatus status) {
         this.status = status;
@@ -173,6 +157,8 @@ public class OrderItem extends BaseTimeEntity {
                 .returnRequestDate(orderReturn.getReturnRequestDate())
                 .returnConfirmDate(LocalDateTime.now())
                 .build();
+
+        revivalCoupon();
     }
 
     public void startDelivery() {
@@ -184,5 +170,9 @@ public class OrderItem extends BaseTimeEntity {
 
     public void rejectCancelRequest() {
         status = OrderStatus.DELIVERY_READY;
+    }
+
+    public void denyRequest() {
+        status = this.generalOrder.getOrderStatus();
     }
 }

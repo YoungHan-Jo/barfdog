@@ -1627,49 +1627,71 @@ operation::admin_orderCancel_subscribe[snippets='curl-request,request-headers,re
 
 
 [[resources-admin-confirmReturn-seller-buyer]]
-=== 일반 주문 반품요청을 구매자 귀책으로 컨펌 처리
+=== 일반 주문 반품요청을 구매자 귀책으로 컨펌 처리(상품단위)
 
-`POST` 요청을 사용하여 일반 주문 반품요청을 구매자 귀책으로 컨펌 처리할 수 있다.
+`POST` 요청을 사용하여 일반 주문 반품요청을 구매자 귀책으로 컨펌 처리할 수 있다. +
+
+주문한 상품(orderItem) 상태 : RETURN_DONE_SELLER +
+쿠폰은 환불됨 +
+
+적립금, 환불금액(배송비계산)은 CS처리 해야함 +
 
 operation::admin_confirmReturn_buyer[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
 [[resources-admin-confirmReturn-seller-seller]]
-=== 일반 주문 반품요청을 판매자 귀책으로 컨펌 처리
+=== 일반 주문 반품요청을 판매자 귀책으로 컨펌 처리(상품단위)
 
-`POST` 요청을 사용하여 일반 주문 반품요청을 판매자 귀책으로 컨펌 처리할 수 있다.
+`POST` 요청을 사용하여 일반 주문 반품요청을 판매자 귀책으로 컨펌 처리할 수 있다. +
+
+주문한 상품(orderItem) 상태 : RETURN_DONE_SELLER +
+쿠폰은 환불됨 +
+
+적립금, 환불금액(배송비계산)은 CS처리 해야함 +
 
 operation::admin_confirmReturn_seller[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 [[resources-admin-denyReturn]]
-=== 일반 주문 반품요청 거절 처리
+=== 일반 주문 반품요청 거절 처리(상품단위)
 
-`POST` 요청을 사용하여 일반 주문 반품요청 거절 처리할 수 있다.
+`POST` 요청을 사용하여 일반 주문 반품요청 거절 처리할 수 있다. +
+
+주문한 아이템(orderItem)을 포함한 주문(order)의 상태와 동일한 상태로 변경 +
 
 operation::admin_denyReturn_general[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
 
 [[resources-admin-confirmExchange-buyer]]
-=== 일반 주문 교환요청을 구매자 귀책으로 컨펌 처리
+=== 일반 주문 교환요청을 구매자 귀책으로 컨펌 처리(상품단위)
 
-`POST` 요청을 사용하여 일반 주문 교환요청을 구매자 귀책으로 컨펌 처리할 수 있다.
+`POST` 요청을 사용하여 일반 주문 교환요청을 구매자 귀책으로 컨펌 처리할 수 있다. +
+
+주문한 상품(orderItem) 상태 : EXCHANGE_DONE_BUYER +
+
+배송비는 CS처리해야함 +
 
 operation::admin_confirmExchange_buyer[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
 [[resources-admin-confirmExchange-seller]]
-=== 일반 주문 교환요청을 판매자 귀책으로 컨펌 처리
+=== 일반 주문 교환요청을 판매자 귀책으로 컨펌 처리(상품단위)
 
-`POST` 요청을 사용하여 일반 주문 교환요청을 판매자 귀책으로 컨펌 처리할 수 있다.
+`POST` 요청을 사용하여 일반 주문 교환요청을 판매자 귀책으로 컨펌 처리할 수 있다. +
+
+주문한 상품(orderItem) 상태 : EXCHANGE_DONE_SELLER +
+
+배송비는 CS처리해야함 +
 
 operation::admin_confirmExchange_seller[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
 [[resources-admin-denyExchange]]
-=== 일반 주문 교환요청 거절 처리
+=== 일반 주문 교환요청 거절 처리(상품단위)
 
-`POST` 요청을 사용하여 일반 주문 교환요청 거절 처리할 수 있다.
+`POST` 요청을 사용하여 일반 주문 교환요청 거절 처리할 수 있다. +
+
+주문한 아이템(orderItem)을 포함한 주문(order)의 상태와 동일한 상태로 변경 +
 
 operation::admin_denyExchange_general[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
@@ -1887,16 +1909,22 @@ operation::cancelRequest_general[snippets='curl-request,path-parameters,request-
 operation::confirm_generalOrders[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 [[resources-return-generalOrders]]
-=== 일반 주문 반품 요청
+=== 일반 주문 반품 요청(상품단위)
 
-`POST` 요청을 사용하여 일반주문 주문을 반품 요청 할 수 있다.
+`POST` 요청을 사용하여 일반주문 주문을 반품 요청 할 수 있다. +
+
+반품 사유 입력 +
+주문아이템 상태 : RETURN_REQUEST +
 
 operation::request_returnOrders[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 [[resources-exchange-generalOrders]]
-=== 일반 주문 교환 요청
+=== 일반 주문 교환 요청(상품단위)
 
-`POST` 요청을 사용하여 일반주문 주문을 교환 요청 할 수 있다.
+`POST` 요청을 사용하여 일반주문 주문을 교환 요청 할 수 있다. +
+
+환불 사유 입력 +
+주문아이템 상태 : EXCHANGE_REQUEST +
 
 operation::request_exchangeOrders[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 

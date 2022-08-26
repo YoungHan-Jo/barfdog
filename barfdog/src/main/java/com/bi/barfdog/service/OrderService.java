@@ -972,15 +972,14 @@ public class OrderService {
             OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
             orderItem.exchangeRequest(orderExchange);
         }
-
     }
 
     @Transactional
-    public void orderConfirmGeneral(OrderConfirmGeneralDto requestDto) {
+    public void checkGeneralOrder(OrderConfirmGeneralDto requestDto) {
         List<Long> orderItemIdList = requestDto.getOrderItemIdList();
         for (Long orderItemId : orderItemIdList) {
             OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
-            orderItem.orderConfirm();
+            orderItem.checkGeneralOrder();
 
             GeneralOrder order = orderItem.getGeneralOrder();
             Member member = order.getMember();
@@ -991,16 +990,15 @@ public class OrderService {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
         }
     }
 
     @Transactional
-    public void orderConfirmSubscribe(OrderConfirmSubscribeDto requestDto) {
+    public void checkSubscribeOrder(OrderConfirmSubscribeDto requestDto) {
         List<Long> orderIdList = requestDto.getOrderIdList();
         for (Long orderId : orderIdList) {
             Order order = orderRepository.findById(orderId).get();
-            order.orderConfirmSubscribe();
+            order.checkSubscribeOrder();
 
             try {
                 DirectSendUtils.sendSubscribeOrderProducingAlim(order);
@@ -1216,25 +1214,22 @@ public class OrderService {
 
     @Transactional
     public void denyReturn(OrderItemIdListDto requestDto) {
+        denyRequest(requestDto);
+    }
+
+    private void denyRequest(OrderItemIdListDto requestDto) {
         List<Long> orderItemIdList = requestDto.getOrderItemIdList();
         for (Long orderItemId : orderItemIdList) {
             Optional<OrderItem> optionalOrderItem = orderItemRepository.findById(orderItemId);
             if (!optionalOrderItem.isPresent()) continue;
             OrderItem orderItem = optionalOrderItem.get();
-            orderItem.denyReturn();
+            orderItem.denyRequest();
         }
     }
 
-
     @Transactional
     public void denyExchange(OrderItemIdListDto requestDto) {
-        List<Long> orderItemIdList = requestDto.getOrderItemIdList();
-        for (Long orderItemId : orderItemIdList) {
-            Optional<OrderItem> optionalOrderItem = orderItemRepository.findById(orderItemId);
-            if (!optionalOrderItem.isPresent()) continue;
-            OrderItem orderItem = optionalOrderItem.get();
-            orderItem.denyExchange();
-        }
+        denyRequest(requestDto);
     }
 
 
@@ -1268,7 +1263,6 @@ public class OrderService {
             Optional<OrderItem> optionalOrderItem = orderItemRepository.findById(orderItemId);
             if (!optionalOrderItem.isPresent()) continue;
             OrderItem orderItem = optionalOrderItem.get();
-            revivalCoupon(orderItem);
             orderItem.returnConfirm(orderStatus);
 
             GeneralOrder order = orderItem.getGeneralOrder();
@@ -1281,24 +1275,6 @@ public class OrderService {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-//            int finalPrice = orderItem.getFinalPrice();
-//            int cancelReward = getCancelReward(order, finalPrice);
-//            int cancelPrice = finalPrice - cancelReward;
-//
-//
-//            String impUid = order.getImpUid();
-//            CancelData cancelData = new CancelData(impUid, true, BigDecimal.valueOf(cancelPrice));
-//
-//            try {
-//                client.cancelPaymentByImpUid(cancelData);
-//                saveCancelReward(orderItem, order, RewardName.RETURN_ORDER);
-//                orderItem.returnConfirm(cancelReward, cancelPrice, OrderStatus.RETURN_DONE_SELLER);
-//            } catch (IamportResponseException e) {
-//                e.printStackTrace();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
         }
     }
 

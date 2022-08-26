@@ -4,9 +4,7 @@ import com.bi.barfdog.api.deliveryDto.OrderIdListDto;
 import com.bi.barfdog.api.orderDto.*;
 import com.bi.barfdog.api.resource.AdminCancelRequestDtoResource;
 import com.bi.barfdog.api.resource.AdminOrdersDtoResource;
-import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
-import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.order.Order;
 import com.bi.barfdog.domain.order.OrderStatus;
 import com.bi.barfdog.domain.orderItem.OrderItem;
@@ -109,7 +107,7 @@ public class OrderAdminController {
     @PostMapping("/general/orderConfirm")
     public ResponseEntity orderConfirmGeneral(@RequestBody OrderConfirmGeneralDto requestDto) {
 
-        orderService.orderConfirmGeneral(requestDto);
+        orderService.checkGeneralOrder(requestDto);
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(OrderAdminController.class).slash("general/orderConfirm").withSelfRel());
@@ -122,7 +120,7 @@ public class OrderAdminController {
     @PostMapping("/subscribe/orderConfirm")
     public ResponseEntity orderConfirmSubscribe(@RequestBody OrderConfirmSubscribeDto requestDto) {
 
-        orderService.orderConfirmSubscribe(requestDto);
+        orderService.checkSubscribeOrder(requestDto);
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(OrderAdminController.class).slash("subscribe/orderConfirm").withSelfRel());
@@ -242,31 +240,6 @@ public class OrderAdminController {
         return ResponseEntity.ok(representationModel);
     }
 
-    @PostMapping("/general/confirmExchange/buyer")
-    public ResponseEntity confirmExchangeBuyer(@RequestBody OrderItemIdListDto requestDto) {
-
-        orderService.confirmExchange(requestDto, OrderStatus.EXCHANGE_DONE_BUYER);
-
-        RepresentationModel representationModel = new RepresentationModel();
-        representationModel.add(linkTo(OrderAdminController.class).slash("general/confirmExchange/buyer").withSelfRel());
-        representationModel.add(linkTo(OrderAdminController.class).slash("search").withRel("query_orders"));
-        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-confirmExchange-buyer").withRel("profile"));
-
-        return ResponseEntity.ok(representationModel);
-    }
-
-    @PostMapping("/general/confirmExchange/seller")
-    public ResponseEntity confirmExchangeSeller(@RequestBody OrderItemIdListDto requestDto) {
-
-        orderService.confirmExchange(requestDto, OrderStatus.EXCHANGE_DONE_SELLER);
-
-        RepresentationModel representationModel = new RepresentationModel();
-        representationModel.add(linkTo(OrderAdminController.class).slash("general/confirmExchange/seller").withSelfRel());
-        representationModel.add(linkTo(OrderAdminController.class).slash("search").withRel("query_orders"));
-        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-confirmExchange-seller").withRel("profile"));
-
-        return ResponseEntity.ok(representationModel);
-    }
 
     @PostMapping("/general/confirmReturn/seller")
     public ResponseEntity confirmReturnSeller(@RequestBody OrderItemIdListDto requestDto) {
@@ -293,6 +266,36 @@ public class OrderAdminController {
 
         return ResponseEntity.ok(representationModel);
     }
+
+    @PostMapping("/general/confirmExchange/seller")
+    public ResponseEntity confirmExchangeSeller(@RequestBody OrderItemIdListDto requestDto) {
+
+        orderService.confirmExchange(requestDto, OrderStatus.EXCHANGE_DONE_SELLER);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderAdminController.class).slash("general/confirmExchange/seller").withSelfRel());
+        representationModel.add(linkTo(OrderAdminController.class).slash("search").withRel("query_orders"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-confirmExchange-seller").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @PostMapping("/general/confirmExchange/buyer")
+    public ResponseEntity confirmExchangeBuyer(@RequestBody OrderItemIdListDto requestDto) {
+
+        orderService.confirmExchange(requestDto, OrderStatus.EXCHANGE_DONE_BUYER);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderAdminController.class).slash("general/confirmExchange/buyer").withSelfRel());
+        representationModel.add(linkTo(OrderAdminController.class).slash("search").withRel("query_orders"));
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-confirmExchange-buyer").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+
+
+
 
 
 
