@@ -542,14 +542,14 @@ public class OrderService {
                 Optional<Member> optionalMember = memberRepository.findByMyRecommendationCode(recommendCode);
                 if (optionalMember.isPresent()) {
                     Member recommendedMember = optionalMember.get();
-                    recommendedMember.saveReward(RewardPoint.RECOMMEND);
+                    recommendedMember.chargeReward(RewardPoint.RECOMMEND);
                     saveInviteRewardHistory(member, recommendedMember);
                 }
             }
 
             if (!member.getFirstReward().isReceiveAgree()) {
                 if (member.getAgreement().isReceiveEmail() && member.getAgreement().isReceiveSms()) {
-                    member.saveReward(RewardPoint.RECEIVE_AGREEMENT);
+                    member.saveReceiveAgreeReward();
 
                     Reward reward = Reward.builder()
                             .member(member)
@@ -596,8 +596,14 @@ public class OrderService {
         rewardRepository.save(reward);
     }
 
-    public void failGeneralOrder(Long orderId, Member member) {
+    @Transactional
+    public void failGeneralOrder(Long orderId, Long memberId) {
+        Member member = memberRepository.findById(memberId).get();
         GeneralOrder order = (GeneralOrder) orderRepository.findById(orderId).get();
+
+        member.generalOrderFail(order.getDiscountReward());
+        saveRewardHistory(member, order);
+
         order.failGeneral();
 
         List<OrderItem> orderItemList = orderItemRepository.findAllByGeneralOrder(order);
@@ -609,11 +615,21 @@ public class OrderService {
                 selectOption.failPayment();
             }
         }
-        member.generalOrderFail(order.getDiscountReward());
+
 
 
     }
 
+    private void saveRewardHistory(Member member, GeneralOrder order) {
+        Reward reward = Reward.builder()
+                .member(member)
+                .name(RewardName.FAILED_ORDER)
+                .rewardType(RewardType.ORDER)
+                .rewardStatus(RewardStatus.SAVED)
+                .tradeReward(order.getDiscountReward())
+                .build();
+        rewardRepository.save(reward);
+    }
 
 
     @Transactional
@@ -765,7 +781,8 @@ public class OrderService {
     }
 
     @Transactional
-    public void failSubscribeOrder(Long id, Member member) {
+    public void failSubscribeOrder(Long id, Long memberId) {
+        Member member = memberRepository.findById(memberId).get();
         SubscribeOrder order = (SubscribeOrder) orderRepository.findById(id).get();
         order.failSubscribe();
         Subscribe subscribe = order.getSubscribe();
@@ -816,56 +833,101 @@ public class OrderService {
         GeneralOrder order = (GeneralOrder) orderRepository.findById(id).get();
 
         OrderStatus orderStatus = order.getOrderStatus();
-        List<OrderItem> orderItems = orderItemRepository.findAllByGeneralOrder(order);
-        Member member = order.getMember();
 
         if (orderStatus == OrderStatus.PAYMENT_DONE) {
             // 즉시 카드 취소
-            String impUid = order.getImpUid();
-            CancelData cancelData = new CancelData(impUid, true);
-            try {
-                // TODO: 2022-07-27 카드 전액 취소 예외 처리
-                client.cancelPaymentByImpUid(cancelData);
-                order.cancelOrderAndDelivery(OrderStatus.CANCEL_DONE_BUYER);
-                for (OrderItem orderItem : orderItems) {
-                    orderItem.cancelOrderConfirmAndRevivalCoupon(OrderStatus.CANCEL_DONE_BUYER);
-                }
-                revivalCancelOrderReward(order, RewardName.CANCEL_ORDER);
-                String dogName = getRepresentativeDogName(member);
-                DirectSendUtils.sendGeneralOrderCancelAlim(order, dogName, orderItems);
-                member.cancelGeneralPayment(order);
-
-            } catch (IamportResponseException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            cancelGeneralOrderNow(OrderStatus.CANCEL_DONE_BUYER, null, null, order);
         } else if (orderStatus == OrderStatus.DELIVERY_READY || orderStatus == OrderStatus.PRODUCING) {
             // 취소 요청
+            List<OrderItem> orderItems = orderItemRepository.findAllByGeneralOrder(order);
             order.cancelRequest();
-
             for (OrderItem orderItem : orderItems) {
                 orderItem.cancelRequest();
             }
-
         }
     }
 
-    @Transactional
-    public void confirmOrders(Member member, ConfirmOrderItemsDto requestDto) {
-        List<Long> orderItemIdList = requestDto.getOrderItemIdList();
-        if (orderItemIdList.size() > 0) {
-            Long orderItemId = orderItemIdList.get(0);
-            OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
-            GeneralOrder order = orderItem.getGeneralOrder();
-            order.generalConfirm();
+    private void cancelGeneralOrderNow(OrderStatus newOrderStatus, String reason, String detailReason, GeneralOrder order) {
+        Member member = order.getMember();
+        String impUid = order.getImpUid();
+        CancelData cancelData = new CancelData(impUid, true);
+        try {
+            client.cancelPaymentByImpUid(cancelData);
+
+            member.cancelGeneralPayment(order);
+            saveCancelOrderRewardHistory(order, member);
+
+            order.cancelOrderAndDelivery(newOrderStatus);
+            order.setCancelOrderInfo(reason, detailReason);
+
+            List<OrderItem> orderItems = orderItemRepository.findAllByGeneralOrder(order);
+            for (OrderItem orderItem : orderItems) {
+                orderItem.cancelOrderConfirmAndRevivalCoupon(newOrderStatus, null, null);
+                Item item = orderItem.getItem();
+                item.increaseRemaining(orderItem.getAmount());
+
+                List<SelectOption> selectOptionList = selectOptionRepository.findAllByOrderItem(orderItem);
+                for (SelectOption selectOption : selectOptionList) {
+                    ItemOption itemOption = selectOption.getItemOption();
+                    if (itemOption == null) continue;
+
+                    itemOption.increaseRemaining(selectOption.getAmount());
+                }
+            }
+
+            String dogName = getRepresentativeDogName(member);
+            DirectSendUtils.sendGeneralOrderCancelAlim(order, dogName, orderItems);
+
+        } catch (IamportResponseException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+    }
+
+    private void saveCancelOrderRewardHistory(Order order, Member member) {
+        int discountReward = order.getDiscountReward();
+        if (discountReward <= 0) return;
+
+        Reward reward = Reward.builder()
+                .member(member)
+                .name(RewardName.CANCEL_ORDER)
+                .rewardType(RewardType.ORDER)
+                .rewardStatus(RewardStatus.SAVED)
+                .tradeReward(discountReward)
+                .build();
+        rewardRepository.save(reward);
+    }
+
+    @Transactional
+    public void confirmOrders(Long memberId, ConfirmOrderItemsDto requestDto) {
+        Member member = memberRepository.findById(memberId).get();
+        List<Long> orderItemIdList = requestDto.getOrderItemIdList();
         for (Long orderItemId : orderItemIdList) {
             OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
-            if(alreadyConfirm(orderItem)) continue;
-            orderItem.confirm();
-            member.saveReward(orderItem.getSaveReward());
-            saveRewardHistory(member, orderItem);
+            confirmOrderItemAndOrder(member, orderItem);
+        }
+    }
+
+    private void confirmOrderItemAndOrder(Member member, OrderItem orderItem) {
+        if(alreadyConfirm(orderItem)) return;
+        orderItem.confirm();
+        member.chargeReward(orderItem.getSaveReward());
+        saveExpectedRewardHistory(member, orderItem);
+
+        generalOrderConfirm(orderItem);
+    }
+
+    private void generalOrderConfirm(OrderItem orderItem) {
+        GeneralOrder order = orderItem.getGeneralOrder();
+        List<OrderItem> innerOrderItems = orderItemRepository.findAllByGeneralOrder(order);
+        int orderItemSize = innerOrderItems.size();
+        int count = 0;
+        for (OrderItem innerOrderItem : innerOrderItems) {
+            if (innerOrderItem.getStatus() == OrderStatus.CONFIRM) count++;
+        }
+        if (orderItemSize == count) {
+            order.generalConfirm();
         }
     }
 
@@ -873,7 +935,7 @@ public class OrderService {
         return orderItem.getStatus() == OrderStatus.CONFIRM;
     }
 
-    private void saveRewardHistory(Member member, OrderItem orderItem) {
+    private void saveExpectedRewardHistory(Member member, OrderItem orderItem) {
         Reward reward = Reward.builder()
                 .member(member)
                 .name(RewardName.CONFIRM_ORDER)
@@ -952,33 +1014,12 @@ public class OrderService {
 
     @Transactional
     public void cancelConfirmGeneral(CancelConfirmGeneralDto requestDto) {
-
         List<Long> orderIdList = requestDto.getOrderIdList();
         for (Long orderId : orderIdList) {
             Optional<Order> optionalOrder = orderRepository.findById(orderId);
-            if (optionalOrder.isPresent()) {
-                GeneralOrder order = (GeneralOrder) optionalOrder.get();
-                List<OrderItem> orderItems = orderItemRepository.findAllByGeneralOrder(order);
-
-                String impUid = order.getImpUid();
-                CancelData cancelData = new CancelData(impUid, true);
-
-                try {
-                    client.cancelPaymentByImpUid(cancelData);
-                    order.cancelOrderAndDelivery(OrderStatus.CANCEL_DONE_BUYER);
-                    for (OrderItem orderItem : orderItems) {
-                        orderItem.cancelOrderConfirmAndRevivalCoupon(OrderStatus.CANCEL_DONE_BUYER);
-                    }
-                    revivalCancelOrderReward(order, RewardName.CANCEL_ORDER);
-                    String dogName = getRepresentativeDogName(order.getMember());
-                    DirectSendUtils.sendGeneralOrderCancelAlim(order, dogName, orderItems);
-
-                } catch (IamportResponseException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            if (!optionalOrder.isPresent()) continue;
+            GeneralOrder order = (GeneralOrder) optionalOrder.get();
+            cancelGeneralOrderNow(OrderStatus.CANCEL_DONE_BUYER, null, null, order);
         }
     }
 
@@ -998,25 +1039,14 @@ public class OrderService {
         return cancelReward;
     }
 
-    private void orderStatusCancelDone(GeneralOrder order) {
-        List<OrderItem> allOrderItem = orderItemRepository.findAllByGeneralOrder(order);
-        int count = 0;
-        for (OrderItem oi : allOrderItem) {
-            if (oi.getStatus() == OrderStatus.CANCEL_DONE_BUYER || oi.getStatus() == OrderStatus.CANCEL_DONE_SELLER) {
-                count++;
-            }
-        }
-        if (count == allOrderItem.size()) {
-            order.confirmAs(OrderStatus.CANCEL_DONE_SELLER);
-        }
-    }
+
 
     private void revivalCancelOrderReward(OrderItem orderItem, GeneralOrder order, String name) {
         int cancelReward = orderItem.getCancelReward();
 
         if (cancelReward > 0) {
             Member member = order.getMember();
-            member.saveReward(cancelReward);
+            member.chargeReward(cancelReward);
             saveRewardHistory(name, cancelReward, member);
         }
     }
@@ -1025,7 +1055,7 @@ public class OrderService {
 
         if (cancelReward > 0) {
             Member member = order.getMember();
-            member.saveReward(cancelReward);
+            member.chargeReward(cancelReward);
             saveRewardHistory(rewardName, cancelReward, member);
         }
     }
@@ -1116,7 +1146,7 @@ public class OrderService {
     private void revivalCancelOrderReward(SubscribeOrder order, Member member) {
         int discountReward = order.getDiscountReward();
         if (discountReward > 0) {
-            member.saveReward(discountReward);
+            member.chargeReward(discountReward);
             saveRewardHistory(RewardName.CANCEL_ORDER, discountReward, member);
         }
     }
@@ -1126,27 +1156,30 @@ public class OrderService {
         List<Long> orderItemIdList = requestDto.getOrderItemIdList();
         String reason = requestDto.getReason();
         String detailReason = requestDto.getDetailReason();
+
         for (Long orderItemId : orderItemIdList) {
             Optional<OrderItem> optionalOrderItem = orderItemRepository.findById(orderItemId);
             if (!optionalOrderItem.isPresent()) continue;
-            OrderItem orderItem = optionalOrderItem.get();
 
+            OrderItem orderItem = optionalOrderItem.get();
             GeneralOrder order = orderItem.getGeneralOrder();
 
-            orderItem.cancelConfirm(OrderStatus.CANCEL_DONE_SELLER, reason, detailReason);
+            if (orderItem.getStatus() == OrderStatus.SELLING_CANCEL) continue;
+            cancelGeneralOrderNow(OrderStatus.SELLING_CANCEL, reason, detailReason, order);
+        }
 
-            orderStatusCancelDone(order);
-            revivalCoupon(orderItem);
+        setOrderItemSellingCancel(orderItemIdList, reason, detailReason);
+    }
 
-            String dogName = getRepresentativeDogName(order.getMember());
+    private void setOrderItemSellingCancel(List<Long> orderItemIdList, String reason, String detailReason) {
+        for (Long orderItemId : orderItemIdList) {
+            Optional<OrderItem> optionalOrderItem = orderItemRepository.findById(orderItemId);
+            if (!optionalOrderItem.isPresent()) continue;
 
-            List<OrderItem> orderItems = new ArrayList<>();
-            orderItems.add(orderItem);
-
-            try {
-                DirectSendUtils.sendGeneralOrderCancelAlim(order, dogName, orderItems);
-            } catch (IOException e) {
-                e.printStackTrace();
+            OrderItem orderItem = optionalOrderItem.get();
+            OrderStatus orderStatus = orderItem.getGeneralOrder().getOrderStatus();
+            if (orderStatus == OrderStatus.SELLING_CANCEL) {
+                orderItem.sellingCancel(OrderStatus.SELLING_CANCEL, reason, detailReason);
             }
         }
     }
@@ -1362,7 +1395,6 @@ public class OrderService {
                 for (OrderItem orderItem : orderItems) {
                     orderItem.rejectCancelRequest();
                 }
-
             }
 
             if (order instanceof SubscribeOrder) {

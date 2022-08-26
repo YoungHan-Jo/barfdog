@@ -37,6 +37,7 @@ public class MemberCoupon extends BaseTimeEntity {
 
     private int remaining; // 남은 개수
 
+    @Enumerated(EnumType.STRING)
     private CouponStatus memberCouponStatus; // 쿠폰 상태
 
     public void active() {
@@ -49,7 +50,10 @@ public class MemberCoupon extends BaseTimeEntity {
 
     public void useCoupon() {
         remaining--;
-        if (remaining <= 0) this.inactive();
+        if (remaining < 1) {
+            remaining = 0;
+            this.inactive();
+        }
     }
 
     public void revivalCoupon() {

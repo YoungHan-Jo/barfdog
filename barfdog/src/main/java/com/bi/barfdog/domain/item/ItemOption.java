@@ -44,5 +44,8 @@ public class ItemOption extends BaseTimeEntity {
 
     public void decreaseRemaining(int amount) {
         remaining -= amount;
+        if (remaining < 0) {
+            remaining = 0;
+        }
     }
 }

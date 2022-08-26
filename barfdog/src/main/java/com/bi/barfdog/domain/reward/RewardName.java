@@ -7,6 +7,7 @@ public interface RewardName {
     String RECEIVE_AGREEMENT = "[수신 동의] sms/이메일 수신 동의 적립금";
 
     String USE_ORDER = "[주문] 주문 사용 적립금";
+    String FAILED_ORDER = "[결제실패] 결제 실패 반환 적립금";
     String CANCEL_ORDER = "[주문취소] 주문 취소 적립금";
     String RETURN_ORDER = "[반품] 반품 적립금";
     String CONFIRM_ORDER = "[구매확정] 구매확정 적립금";

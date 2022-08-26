@@ -86,7 +86,7 @@ public class MemberService {
             if (optionalMember.isPresent()) {
 
                 Member findMember = optionalMember.get();
-                findMember.saveReward(RewardPoint.RECOMMEND);
+                findMember.chargeReward(RewardPoint.RECOMMEND);
 
                 member.recommendFriend(recommendCode);
 
@@ -242,7 +242,7 @@ public class MemberService {
     @Transactional
     public void updateGrade(Long id, UpdateGradeRequestDto requestDto) {
         Member member = memberRepository.findById(id).get();
-        member.updateGrade(requestDto.getGrade());
+        member.changeGrade(requestDto.getGrade());
     }
 
     @Transactional

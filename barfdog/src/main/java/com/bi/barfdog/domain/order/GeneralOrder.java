@@ -38,4 +38,15 @@ public class GeneralOrder extends Order{
     public void addOrderItemList(OrderItem orderItem) {
         orderItemList.add(orderItem);
     }
+
+
+    public void setCancelOrderInfo(String reason, String detailReason) {
+        LocalDateTime now = LocalDateTime.now();
+        orderCancel = OrderCancel.builder()
+                .cancelReason(reason)
+                .cancelDetailReason(detailReason)
+                .cancelRequestDate(orderCancel != null ? orderCancel.getCancelRequestDate() : now)
+                .cancelConfirmDate(now)
+                .build();
+    }
 }

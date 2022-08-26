@@ -573,3 +573,7 @@
 1661318298728|0|commit|connection 160|url jdbc:h2:mem:testdb||
 1661320522468|0|commit|connection 160|url jdbc:h2:mem:testdb||
 1661326748540|0|commit|connection 160|url jdbc:h2:mem:testdb||
+1661509373330|0|rollback|connection 160|url jdbc:h2:mem:testdb||
+1661509561959|0|rollback|connection 161|url jdbc:h2:mem:testdb||
+1661509561964|0|commit|connection 162|url jdbc:h2:mem:testdb||
+1661509633947|0|rollback|connection 160|url jdbc:h2:mem:testdb||

@@ -101,10 +101,10 @@ public class Member extends BaseTimeEntity {
     public void recommendFriend(String recommendCode) {
         this.recommendCode = recommendCode;
         firstReward.setRecommend(true);
-        reward += RewardPoint.RECOMMEND;
+        chargeReward(RewardPoint.RECOMMEND);
     }
 
-    public void saveReward(int reward) {
+    public void chargeReward(int reward) {
         this.reward += reward;
     }
 
@@ -142,10 +142,6 @@ public class Member extends BaseTimeEntity {
         this.birthday = birthday.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
     }
 
-    public void updateGrade(Grade grade) {
-        this.grade = grade;
-    }
-
     public void withdrawal() {
         isWithdrawal = true;
         provider = "";
@@ -174,8 +170,7 @@ public class Member extends BaseTimeEntity {
         accumulatedAmount += order.getPaymentPrice();
         isSubscribe = true;
         accumulatedSubscribe++;
-        boolean brochure = order.isBrochure();
-        if (brochure) {
+        if (order.isBrochure()) {
             isBrochure = true;
         }
         roles = "USER,SUBSCRIBER";
@@ -183,15 +178,17 @@ public class Member extends BaseTimeEntity {
 
     public void generalOrder(GeneralOrderRequestDto requestDto) {
         useReward(requestDto.getDiscountReward());
-        isBrochure = requestDto.isBrochure();
     }
 
     public void generalOrderSuccess(Order order) {
         accumulatedAmount += order.getPaymentPrice();
+        if (order.isBrochure()) {
+            isBrochure = true;
+        }
     }
 
     public void generalOrderFail(int discountReward) {
-        reward += discountReward;
+        chargeReward(discountReward);
     }
 
     public void subscribeOrderFail(SubscribeOrder order) {
@@ -206,11 +203,22 @@ public class Member extends BaseTimeEntity {
         if (accumulatedSubscribe > 0) {
             accumulatedSubscribe--;
         }
-        accumulatedAmount -= order.getPaymentPrice();
+        int paymentPrice = order.getPaymentPrice();
+        decreaseAccumulatedAmount(paymentPrice);
     }
 
     public void cancelGeneralPayment(GeneralOrder order) {
-        accumulatedAmount -= order.getPaymentPrice();
+        int paymentPrice = order.getPaymentPrice();
+        decreaseAccumulatedAmount(paymentPrice);
+
+        chargeReward(order.getDiscountReward());
+    }
+
+    private void decreaseAccumulatedAmount(int paymentPrice) {
+        accumulatedAmount -= paymentPrice;
+        if (accumulatedAmount < 0) {
+            accumulatedAmount = 0;
+        }
     }
 
     public void stopSubscriber() {
@@ -223,6 +231,14 @@ public class Member extends BaseTimeEntity {
     public void firstPayment() {
         isPaid = true;
         firstPaymentDate = LocalDateTime.now();
+    }
+
+    public void saveReceiveAgreeReward() {
+        chargeReward(RewardPoint.RECEIVE_AGREEMENT);
+        firstReward = FirstReward.builder()
+                .receiveAgree(true)
+                .recommend(getFirstReward().isRecommend())
+                .build();
     }
 }
 

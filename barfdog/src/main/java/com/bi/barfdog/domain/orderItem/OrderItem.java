@@ -73,7 +73,6 @@ public class OrderItem extends BaseTimeEntity {
 
     public void failPayment() {
         status = OrderStatus.FAILED;
-        writeableReview = false;
         item.increaseRemaining(amount);
         if (memberCoupon != null) {
             memberCoupon.revivalCoupon();
@@ -107,12 +106,8 @@ public class OrderItem extends BaseTimeEntity {
         this.generalOrder.orderConfirmGeneral();
     }
 
-    public void confirmAs(OrderStatus status) {
-        this.status = status;
-    }
 
-
-    public void cancelConfirm(OrderStatus status, String reason, String detailReason) {
+    public void sellingCancel(OrderStatus status, String reason, String detailReason) {
         this.status = status;
         orderCancel = OrderCancel.builder()
                 .cancelReason(reason)
@@ -124,12 +119,6 @@ public class OrderItem extends BaseTimeEntity {
 
 
     // 주문 단위 취소
-    public void cancelOrderConfirmAndRevivalCoupon(OrderStatus status) {
-        cancelOrderConfirmAndRevivalCoupon(status,null,null);
-        if (memberCoupon != null) {
-            memberCoupon.revivalCoupon();
-        }
-    }
     public void cancelOrderConfirmAndRevivalCoupon(OrderStatus status, String reason, String detailReason) {
         this.status = status;
 
@@ -140,6 +129,10 @@ public class OrderItem extends BaseTimeEntity {
                 .cancelRequestDate(orderCancel != null ? orderCancel.getCancelRequestDate() : now)
                 .cancelConfirmDate(now)
                 .build();
+
+        if (memberCoupon != null) {
+            memberCoupon.revivalCoupon();
+        }
     }
 
     public void denyReturn() {

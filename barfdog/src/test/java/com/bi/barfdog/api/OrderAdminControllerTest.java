@@ -1339,7 +1339,7 @@ public class OrderAdminControllerTest extends BaseTest {
 
         for (Long orderItemId : orderItemIdList) {
             OrderItem orderItem = orderItemRepository.findById(orderItemId).get();
-            assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.CANCEL_DONE_SELLER);
+            assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.SELLING_CANCEL);
             assertThat(orderItem.getOrderCancel().getCancelReason()).isEqualTo(reason);
             assertThat(orderItem.getOrderCancel().getCancelDetailReason()).isEqualTo(detailReason);
             assertThat(orderItem.getOrderCancel().getCancelConfirmDate()).isNotNull();
@@ -1347,7 +1347,7 @@ public class OrderAdminControllerTest extends BaseTest {
         }
 
         Order findOrder = orderRepository.findById(generalOrder.getId()).get();
-        assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCEL_DONE_SELLER);
+        assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.SELLING_CANCEL);
 
         Member findMember = memberRepository.findById(member.getId()).get();
 

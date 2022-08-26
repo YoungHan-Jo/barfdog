@@ -3,8 +3,6 @@ package com.bi.barfdog.service;
 import com.bi.barfdog.api.rewardDto.PublishToGroupDto;
 import com.bi.barfdog.api.rewardDto.PublishToPersonalDto;
 import com.bi.barfdog.api.rewardDto.RecommendFriendDto;
-import com.bi.barfdog.directsend.CodeCouponAlimDto;
-import com.bi.barfdog.directsend.DirectSend;
 import com.bi.barfdog.directsend.DirectSendUtils;
 import com.bi.barfdog.directsend.RewardAlimDto;
 import com.bi.barfdog.domain.dog.Dog;
@@ -74,7 +72,7 @@ public class RewardService {
             Member member = memberRepository.findById(id).get();
             generateReward(rewardName, amount, member);
 
-            member.saveReward(amount);
+            member.chargeReward(amount);
 
             String representativeDogName = getRepresentativeDogName(member);
 

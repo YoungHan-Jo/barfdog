@@ -7,6 +7,7 @@ import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.order.Order;
+import com.bi.barfdog.domain.order.SubscribeOrder;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.repository.member.MemberRepository;
 import com.bi.barfdog.repository.order.OrderRepository;
@@ -101,7 +102,7 @@ public class OrderApiController {
         Optional<Order> optionalOrder = orderRepository.findById(id);
         if (!optionalOrder.isPresent()) return notFound();
 
-        orderService.failGeneralOrder(id, member);
+        orderService.failGeneralOrder(id, member.getId());
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(OrderApiController.class).slash(id).slash("general/fail").withSelfRel());
@@ -169,7 +170,7 @@ public class OrderApiController {
         Optional<Order> optionalOrder = orderRepository.findById(id);
         if (!optionalOrder.isPresent()) return notFound();
 
-        orderService.failSubscribeOrder(id, member);
+        orderService.failSubscribeOrder(id, member.getId());
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(OrderApiController.class).slash(id).slash("subscribe/fail").slash(id).withSelfRel());
@@ -241,6 +242,8 @@ public class OrderApiController {
     public ResponseEntity generalOrderCancelRequest(@PathVariable Long id) {
         Optional<Order> optionalOrder = orderRepository.findById(id);
         if(!optionalOrder.isPresent()) return notFound();
+        Order order = optionalOrder.get();
+        if (order instanceof SubscribeOrder) return notFound();
 
         orderService.cancelRequestGeneral(id);
 
@@ -269,7 +272,7 @@ public class OrderApiController {
     public ResponseEntity confirmOrders(@CurrentUser Member member,
                                         @RequestBody ConfirmOrderItemsDto requestDto) {
 
-        orderService.confirmOrders(member, requestDto);
+        orderService.confirmOrders(member.getId(), requestDto);
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(OrderApiController.class).slash("general/confirm").withSelfRel());

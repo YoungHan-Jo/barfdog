@@ -1481,7 +1481,10 @@ operation::query_admin_cancel_request[snippets='curl-request,request-headers,req
 
 `POST` 요청을 사용하여 주문 취소 요청을 반려할 수 있다. +
 
-일반/구독 공용
+일반/구독 공용 +
+
+일반 주문 취소요청 반려 시, 주문상태 : DELIVERY_READY +
+구독 주문 취소요청 반려 시, 주문상태 : PRODUCING +
 
 operation::query_admin_reject_cancelRequest[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
@@ -1551,7 +1554,23 @@ operation::update_deliveryNumber[snippets='curl-request,request-headers,request-
 
 `POST` 요청을 사용하여 일반 주문 주문취소요청을 컨펌 처리할 수 있다. +
 
-주문 전체 카드결제금액/적립금/사용한 쿠폰 모두 환불처리 +
+회원 누적 구매 차감 +
+회원 적립금 복구 +
+적립금 복구 내역 생성 +
+
+묶음배송이 아닐 경우 배송 상태: 주문취소 +
+묶음배송일 경우 배송 null +
+
+주문 상태 : CANCEL_ORDER_BUYER +
+취소요청일/컨펌일 설정 +
+
+아이템 재고 복구 +
+주문한 아이템 상태: 주문취소(구매자) +
+쿠폰 복구 +
+옵션 재고 복구 +
+
+카드 취소 api +
+알림톡 api +
 
 operation::admin_cancelConfirm_general[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
@@ -1568,12 +1587,31 @@ operation::admin_cancelConfirm_subscribe[snippets='curl-request,request-headers,
 
 
 [[resources-admin-orderCancel-general]]
-=== 일반 주문 관리자 판매취소 처리 (상품 단위 취소)
+=== 일반 주문 관리자 판매취소 처리
 
 `POST` 요청을 사용하여 일반 주문 관리자 판매취소 처리할 수 있다. +
+주문한상품(orderItem)을 포함하고 있는 주문을 통째로 취소시킴 +
 
-쿠폰 복구와 상태만 변경하기 때문에, +
-수동으로 카드취소 + 적립금 환불 계산해서 해줘야함.
+회원 누적 구매 차감 +
+회원 적립금 복구 +
+적립금 복구 내역 생성 +
+
+묶음배송이 아닐 경우 배송 상태: 주문취소 +
+묶음배송일 경우 배송 정보 제거 : null +
+
+주문 상태 : SELLING_CANCEL +
+주문 취소요청일/컨펌일 설정 +
+주문 취소 사유 +
+
+아이템 재고 복구 +
+주문한 아이템 상태: SELLING_CANCEL +
+주문 아이템 취소요청일/컨펌일 설정 +
+주문 아이템 취소 사유 +
+쿠폰 복구 +
+옵션 재고 복구 +
+
+카드 취소 api +
+알림톡 api +
 
 operation::admin_orderCancel_general[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
@@ -1657,16 +1695,56 @@ operation::query_orderSheet_general[snippets='curl-request,request-headers,reque
 
 
 [[resources-order-generalOrder]]
-=== 일반 주문 주문하기
+=== 일반 주문 주문하기(결제 전 주문 정보 저장)
 
-`POST` 요청을 사용하여 일반 상품을 주문할할 수 있다.
+`POST` 요청을 사용하여 일반 상품을 주문할 수 있다. +
+
+- 회원 적립금 차감 +
+
+- 적립금 차감 내역 생성 +
+
+- 묶음 배송일 시 : 묶음 배송과 연결 +
+- 묶음 배송이 아닐 시 : 새로운 배송정보 생성 +
+
+- 주문(order) 정보 생성 +
+
+- 아이템 재고 차감 +
+- 쿠폰 사용분 차감 +
+- 적립예상금 계산해서 적용 +
+
+- 주문한 아이템(orderItem) 정보 생성 +
+
+- 선택한 옵션(selectOption) 정보 생성, 옵션 재고 차감 +
 
 operation::order_generalOrder[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 [[resources-success-generalOrder]]
 === 일반 주문 결제 성공
 
-`POST` 요청을 사용하여 일반 주문 결제성공 상태를 반영할 수 있다.
+`POST` 요청을 사용하여 일반 주문 결제성공 상태를 반영할 수 있다. +
+
+- ㅁ주문(order) 결제성공 처리ㅁ +
+- impUid, merchantUid 값 저장 +
+- 주문 상태 : PAYMENT_DONE +
+- 결제일 저장 +
+
+- ㅁ회원ㅁ +
+- 누적구매 금액 증가 +
+- 회원 브로슈어 받은 이력 체크 +
+
+- ㅁ첫결제일 경우ㅁ +
+- 회원 첫결제 여부 true로 변환 +
+- 추천한 친구 적립금, 적립금 내역 추가 +
+- sms,이메일 수신 동의 true 일 경우 적립금 추가, 적립금 내역 추가 +
+
+- ㅁ배송ㅁ +
+- 묶음배송 아닐경우에만 배송상태 PAYMENT_DONE +
+
+- ㅁ주문한 상품(orderItem)ㅁ +
+- 장바구니에서 제거 +
+- 주문한 상품 상태 PAYMENT_DONE으로 변경, writeableReview : true로 변경 +
+
+- ㅁ결제성공 알림톡 전송ㅁ +
 
 operation::success_generalOrder[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
@@ -1674,6 +1752,19 @@ operation::success_generalOrder[snippets='curl-request,path-parameters,request-h
 === 일반 주문 결제 실패
 
 `POST` 요청을 사용하여 일반 주문 결제실패 상태를 반영할 수 있다.
+
+회원 적립금 복구 +
+
+적립금 복구 내역 생성 +
+
+묶음 배송일 경우 묶음 해제 +
+
+주문 상태 : 결제 실패 +
+
+아이템 재고 복구 +
+주문한 아이템 상태: 결제 실패 +
+쿠폰 복구 +
+옵션 재고 복구 +
 
 operation::fail_generalOrder[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
@@ -1755,8 +1846,27 @@ operation::query_generalOrder[snippets='curl-request,path-parameters,request-hea
 === 일반 주문 취소 요청
 
 `POST` 요청을 사용하여 일반 주문을 취소 요청할 수 있다. +
-order status가 PAYMENT_DONE 일 경우 즉시 카드/적립금/쿠폰 환불처리됨, 다음 예약도 취소 처리 +
-order status가 DELIVERY_READY 일 경우 주문전체 취소 요청 처리 (상태만 변경) +
+order status가 DELIVERY_READY or PRODUCING 일 경우 주문전체 취소 요청 처리 (상태만 CANCEL_REQUEST로 변경) +
+order status가 PAYMENT_DONE 일 경우 즉시 카드/적립금/쿠폰 환불처리 됨 +
+일반 주문 취소 +
+회원 누적 구매 차감 +
+회원 적립금 복구 +
+적립금 복구 내역 생성 +
+
+묶음배송이 아닐 경우 배송 상태: 주문취소 +
+묶음배송일 경우 배송 null +
+
+주문(order) 상태 : CANCEL_ORDER_BUYER +
+취소요청일/완료일 : 현재 +
+
+아이템 재고 복구 +
+주문한 아이템(orderItem) 상태: CANCEL_ORDER_BUYER +
+취소요청일/완료일 : 현재 +
+쿠폰 복구 +
+옵션 재고 복구 +
+
+카드 취소 api +
+알림톡 api +
 
 operation::cancelRequest_general[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 

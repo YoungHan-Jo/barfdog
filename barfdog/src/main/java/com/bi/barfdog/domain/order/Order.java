@@ -70,6 +70,11 @@ public abstract class Order extends BaseTimeEntity {
 
     public void failGeneral() {
         orderStatus = OrderStatus.FAILED;
+        if (isPackage) {
+            delivery = null;
+        } else {
+            delivery.cancel();
+        }
     }
 
     public void successSubscribe(SuccessSubscribeRequestDto requestDto) {
@@ -89,7 +94,12 @@ public abstract class Order extends BaseTimeEntity {
 
     public void cancelOrderAndDelivery(OrderStatus status) {
         this.orderStatus = status;
-        delivery.cancel();
+        if (isPackage) {
+            isPackage = false;
+            delivery = null;
+        } else {
+            delivery.cancel();
+        }
     }
 
     public void generalConfirm() {
@@ -132,4 +142,5 @@ public abstract class Order extends BaseTimeEntity {
     public void rejectCancelRequest(OrderStatus status) {
         orderStatus = status;
     }
+
 }

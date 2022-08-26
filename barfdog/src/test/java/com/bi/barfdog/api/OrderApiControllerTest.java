@@ -298,7 +298,7 @@ public class OrderApiControllerTest extends BaseTest {
     public void orderGeneralOrder() throws Exception {
        //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
-        int reward = member.getReward();
+        int remainReward = member.getReward();
         int accumulatedAmount = member.getAccumulatedAmount();
         boolean brochure = member.isBrochure();
 
@@ -366,6 +366,7 @@ public class OrderApiControllerTest extends BaseTest {
                 .paymentMethod(paymentMethod)
                 .isBrochure(true)
                 .isAgreePrivacy(true)
+                .isBrochure(true)
                 .build();
 
         //when & then
@@ -442,19 +443,24 @@ public class OrderApiControllerTest extends BaseTest {
         assertThat(findOrder.getPaymentPrice()).isEqualTo(paymentPrice);
         assertThat(findOrder.getPaymentMethod()).isEqualTo(paymentMethod);
         assertThat(findOrder.isPackage()).isEqualTo(true);
-        assertThat(findOrder.isBrochure()).isEqualTo(false);
+        assertThat(findOrder.isBrochure()).isEqualTo(true);
         assertThat(findOrder.isAgreePrivacy()).isEqualTo(true);
 
         Delivery findDelivery = findOrder.getDelivery();
         assertThat(findDelivery.getId()).isEqualTo(delivery.getId());
 
         Member findMember = memberRepository.findByEmail(appProperties.getUserEmail()).get();
-        assertThat(findMember.getReward()).isEqualTo(reward - discountReward);
+        assertThat(findMember.getReward()).isEqualTo(remainReward - discountReward);
         assertThat(findMember.getAccumulatedAmount()).isEqualTo(accumulatedAmount);
         assertThat(findMember.isBrochure()).isEqualTo(brochure);
 
         List<Reward> rewardList = rewardRepository.findByMember(member);
-        assertThat(rewardList.size()).isEqualTo(0);
+        assertThat(rewardList.size()).isEqualTo(1);
+
+        Reward findRewardHistory = rewardList.get(0);
+        assertThat(findRewardHistory.getTradeReward()).isEqualTo(discountReward);
+        assertThat(findRewardHistory.getRewardType()).isEqualTo(RewardType.ORDER);
+        assertThat(findRewardHistory.getRewardStatus()).isEqualTo(RewardStatus.USED);
 
         double rewardPercent = getRewardPercent(member);
 
@@ -526,6 +532,27 @@ public class OrderApiControllerTest extends BaseTest {
         assertThat(findMemberCoupon2.getRemaining()).isEqualTo(couponRemain2 - 1);
         assertThat(findMemberCoupon2.getMemberCouponStatus()).isEqualTo(CouponStatus.ACTIVE);
 
+        assertThat(findMember.getReward()).isEqualTo(remainReward - discountReward);
+
+        Reward reward = rewardRepository.findAll().get(0);
+        assertThat(reward.getMember().getId()).isEqualTo(findMember.getId());
+        assertThat(reward.getName()).isEqualTo(RewardName.USE_ORDER);
+        assertThat(reward.getRewardType()).isEqualTo(RewardType.ORDER);
+        assertThat(reward.getRewardStatus()).isEqualTo(RewardStatus.USED);
+        assertThat(reward.getTradeReward()).isEqualTo(discountReward);
+
+        assertThat(findItem1.getRemaining()).isEqualTo(itemRemain1 - itemAmount1);
+        assertThat(findItem2.getRemaining()).isEqualTo(itemRemain2 - itemAmount2);
+
+        ItemOption findOption1 = itemOptionRepository.findById(option1.getId()).get();
+        assertThat(findOption1.getRemaining()).isEqualTo(optionRemain1 - optionAmount1);
+        ItemOption findOption2 = itemOptionRepository.findById(option2.getId()).get();
+        assertThat(findOption2.getRemaining()).isEqualTo(optionRemain2 - optionAmount2);
+        ItemOption findOption3 = itemOptionRepository.findById(option3.getId()).get();
+        assertThat(findOption3.getRemaining()).isEqualTo(optionRemain3 - optionAmount3);
+        ItemOption findOption4 = itemOptionRepository.findById(option4.getId()).get();
+        assertThat(findOption4.getRemaining()).isEqualTo(optionRemain4 - optionAmount4);
+
     }
 
     @Test
@@ -533,6 +560,7 @@ public class OrderApiControllerTest extends BaseTest {
     public void orderGeneralOrder_no_package() throws Exception {
         //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        member.changeGrade(Grade.골드);
         int reward = member.getReward();
 
         Item item1 = generateItem(1);
@@ -615,6 +643,8 @@ public class OrderApiControllerTest extends BaseTest {
         assertThat(findDelivery.getRecipient().getDetailAddress()).isEqualTo(detailAddress);
         assertThat(findDelivery.getStatus()).isEqualTo(DeliveryStatus.BEFORE_PAYMENT);
         assertThat(findDelivery.getRequest()).isEqualTo(request);
+
+
     }
 
 
@@ -735,28 +765,7 @@ public class OrderApiControllerTest extends BaseTest {
         Member findMember = memberRepository.findById(member.getId()).get();
         assertThat(findMember.isBrochure()).isTrue();
         assertThat(findMember.getAccumulatedAmount()).isEqualTo(accumulatedAmount + order.getPaymentPrice());
-        assertThat(findMember.getReward()).isEqualTo(remainRewards - discountReward);
 
-        Reward reward = rewardRepository.findAll().get(0);
-        assertThat(reward.getMember().getId()).isEqualTo(findMember.getId());
-        assertThat(reward.getName()).isEqualTo(RewardName.USE_ORDER);
-        assertThat(reward.getRewardType()).isEqualTo(RewardType.ORDER);
-        assertThat(reward.getRewardStatus()).isEqualTo(RewardStatus.USED);
-        assertThat(reward.getTradeReward()).isEqualTo(discountReward);
-
-        Item findItem1 = itemRepository.findById(item1.getId()).get();
-        assertThat(findItem1.getRemaining()).isEqualTo(item1Remaining - item1Amount);
-        Item findItem2 = itemRepository.findById(item2.getId()).get();
-        assertThat(findItem2.getRemaining()).isEqualTo(item2Remaining - item2Amount);
-
-        ItemOption findOption1 = itemOptionRepository.findById(option1.getId()).get();
-        assertThat(findOption1.getRemaining()).isEqualTo(optionRemaining - option1Amount);
-        ItemOption findOption2 = itemOptionRepository.findById(option2.getId()).get();
-        assertThat(findOption2.getRemaining()).isEqualTo(optionRemaining - option2Amount);
-        ItemOption findOption3 = itemOptionRepository.findById(option3.getId()).get();
-        assertThat(findOption3.getRemaining()).isEqualTo(optionRemaining - option3Amount);
-        ItemOption findOption4 = itemOptionRepository.findById(option4.getId()).get();
-        assertThat(findOption4.getRemaining()).isEqualTo(optionRemaining - option4Amount);
 
     }
 
