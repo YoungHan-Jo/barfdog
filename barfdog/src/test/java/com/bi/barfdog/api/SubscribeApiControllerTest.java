@@ -19,6 +19,7 @@ import com.bi.barfdog.domain.item.ItemStatus;
 import com.bi.barfdog.domain.item.ItemType;
 import com.bi.barfdog.domain.member.Card;
 import com.bi.barfdog.domain.member.Gender;
+import com.bi.barfdog.domain.member.Grade;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.domain.order.*;
@@ -171,9 +172,12 @@ public class SubscribeApiControllerTest extends BaseTest {
        //given
 
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        member.changeGrade(Grade.플래티넘);
+
+        Dog dog = generateDog(member);
 
         Subscribe subscribe = Subscribe.builder()
-
+                .dog(dog)
                 .build();
         subscribeRepository.save(subscribe);
 
@@ -186,7 +190,6 @@ public class SubscribeApiControllerTest extends BaseTest {
                 .recipeIdList(recipeIdList)
                 .nextPaymentPrice(nextPaymentPrice)
                 .build();
-
 
        //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.post("/api/subscribes/{id}/planRecipes", subscribe.getId())
@@ -228,9 +231,30 @@ public class SubscribeApiControllerTest extends BaseTest {
         em.flush();
         em.clear();
 
+        int discountGrade = 0;
+        double percent;
+        Grade grade = member.getGrade();
+        switch (grade) {
+            case 골드: percent = 1.0;
+                break;
+            case 플래티넘: percent = 3.0;
+                break;
+            case 다이아몬드: percent = 5.0;
+                break;
+            case 더바프: percent = 7.0;
+                break;
+            default: percent = 0.0;
+                break;
+        }
+
+        if (percent > 0.0) {
+            discountGrade = (int) Math.round(nextPaymentPrice * percent / 100.0);
+        }
+
         Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
         assertThat(findSubscribe.getPlan()).isEqualTo(plan);
         assertThat(findSubscribe.getNextPaymentPrice()).isEqualTo(nextPaymentPrice);
+        assertThat(findSubscribe.getDiscountGrade()).isEqualTo(discountGrade);
 
         List<SubscribeRecipe> subscribeRecipeList = subscribeRecipeRepository.findAll();
         assertThat(subscribeRecipeList.size()).isEqualTo(2);
@@ -243,9 +267,24 @@ public class SubscribeApiControllerTest extends BaseTest {
 
     }
 
-
-
-
+    private Dog generateDog(Member member) {
+        Dog dog = Dog.builder()
+                .member(member)
+                .name("강아지")
+                .birth("202103")
+                .representative(false)
+                .startAgeMonth(12L)
+                .gender(Gender.MALE)
+                .oldDog(false)
+                .dogSize(DogSize.SMALL)
+                .weight(new BigDecimal(2.5))
+                .dogActivity(new DogActivity(ActivityLevel.LITTLE, 2, 1))
+                .dogStatus(DogStatus.HEALTHY)
+                .snackCountLevel(SnackCountLevel.MUCH)
+                .build();
+        dogRepository.save(dog);
+        return dog;
+    }
 
 
     @Test
@@ -602,7 +641,7 @@ public class SubscribeApiControllerTest extends BaseTest {
 
         Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
         assertThat(findSubscribe.getMemberCoupon().getId()).isEqualTo(memberCoupon.getId());
-        assertThat(findSubscribe.getDiscount()).isEqualTo(discount);
+        assertThat(findSubscribe.getDiscountCoupon()).isEqualTo(discount);
 
         MemberCoupon findMemberCoupon = memberCouponRepository.findById(memberCoupon.getId()).get();
         assertThat(findMemberCoupon.getRemaining()).isEqualTo(remaining - 1);
@@ -647,7 +686,7 @@ public class SubscribeApiControllerTest extends BaseTest {
 
         Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
         assertThat(findSubscribe.getMemberCoupon().getId()).isEqualTo(memberCoupon.getId());
-        assertThat(findSubscribe.getDiscount()).isEqualTo(discount);
+        assertThat(findSubscribe.getDiscountCoupon()).isEqualTo(discount);
 
         MemberCoupon findBeforeMemberCoupon = memberCouponRepository.findById(beforeMemberCoupon.getId()).get();
         assertThat(findBeforeMemberCoupon.getRemaining()).isEqualTo(beforeMemberCouponRemaining + 1);
@@ -759,7 +798,7 @@ public class SubscribeApiControllerTest extends BaseTest {
 
         Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
         assertThat(findSubscribe.getNextPaymentPrice()).isEqualTo(totalPrice);
-        assertThat(findSubscribe.getDiscount()).isEqualTo(discount);
+        assertThat(findSubscribe.getDiscountCoupon()).isEqualTo(discount);
 
         SurveyReport surveyReport = findSubscribe.getDog().getSurveyReport();
         assertThat(surveyReport.getFoodAnalysis().getOneMealRecommendGram()).isEqualTo(BigDecimal.valueOf(gram * 1.0).setScale(2));
@@ -818,7 +857,7 @@ public class SubscribeApiControllerTest extends BaseTest {
 
         Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
         assertThat(findSubscribe.getNextPaymentPrice()).isEqualTo(totalPrice);
-        assertThat(findSubscribe.getDiscount()).isEqualTo(0);
+        assertThat(findSubscribe.getDiscountCoupon()).isEqualTo(0);
         assertThat(findSubscribe.getMemberCoupon()).isNull();
 
         MemberCoupon findMemberCoupon = memberCouponRepository.findById(memberCoupon.getId()).get();
@@ -952,7 +991,7 @@ public class SubscribeApiControllerTest extends BaseTest {
         Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
         assertThat(findSubscribe.getPlan()).isEqualTo(plan);
         assertThat(findSubscribe.getNextPaymentPrice()).isEqualTo(nextPaymentPrice);
-        assertThat(findSubscribe.getDiscount()).isEqualTo(discount);
+        assertThat(findSubscribe.getDiscountCoupon()).isEqualTo(discount);
 
         List<SubscribeRecipe> subscribeRecipes = subscribeRecipeRepository.findBySubscribe(findSubscribe);
         assertThat(subscribeRecipes.size()).isEqualTo(1);
@@ -1018,7 +1057,7 @@ public class SubscribeApiControllerTest extends BaseTest {
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
         SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtcUseCoupon(member, 1, OrderStatus.PAYMENT_DONE);
         Subscribe subscribe = subscribeOrder.getSubscribe();
-        int skipCount = subscribe.getSkipCount();
+        int skipCount = subscribe.getCountSkipOneTime();
         LocalDateTime nextPaymentDate = subscribe.getNextPaymentDate();
         LocalDate nextDeliveryDate = subscribe.getNextDeliveryDate();
 
@@ -1062,7 +1101,7 @@ public class SubscribeApiControllerTest extends BaseTest {
         Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
         assertThat(findSubscribe.getNextDeliveryDate()).isEqualTo(nextDeliveryDate.plusDays(count * 7));
         assertThat(findSubscribe.getNextPaymentDate()).isEqualTo(nextPaymentDate.plusDays(count * 7));
-        assertThat(findSubscribe.getSkipCount()).isEqualTo(skipCount + 1);
+        assertThat(findSubscribe.getCountSkipOneTime()).isEqualTo(skipCount + 1);
 
         String nextOrderMerchant_uid = findSubscribe.getNextOrderMerchantUid();
         SubscribeOrder findOrder = orderRepository.findByMerchantUid(nextOrderMerchant_uid).get();
@@ -1077,7 +1116,7 @@ public class SubscribeApiControllerTest extends BaseTest {
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
         SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtcUseCoupon(member, 1, OrderStatus.PAYMENT_DONE);
         Subscribe subscribe = subscribeOrder.getSubscribe();
-        int skipCount = subscribe.getSkipCount();
+        int skipCount = subscribe.getCountSkipOneTime();
         LocalDateTime nextPaymentDate = subscribe.getNextPaymentDate();
         LocalDate nextDeliveryDate = subscribe.getNextDeliveryDate();
 
@@ -1098,7 +1137,7 @@ public class SubscribeApiControllerTest extends BaseTest {
         Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
         assertThat(findSubscribe.getNextDeliveryDate()).isEqualTo(nextDeliveryDate.plusDays(count * 7));
         assertThat(findSubscribe.getNextPaymentDate()).isEqualTo(nextPaymentDate.plusDays(count * 7));
-        assertThat(findSubscribe.getSkipCount()).isEqualTo(skipCount + 1);
+        assertThat(findSubscribe.getCountSkipOneTime()).isEqualTo(skipCount + 1);
 
         String nextOrderMerchant_uid = findSubscribe.getNextOrderMerchantUid();
         SubscribeOrder findOrder = orderRepository.findByMerchantUid(nextOrderMerchant_uid).get();
@@ -1170,12 +1209,12 @@ public class SubscribeApiControllerTest extends BaseTest {
 
         Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
         assertThat(findSubscribe.getCancelReason()).isEqualTo(aaa+","+bbb+","+ccc);
-        assertThat(findSubscribe.getDiscount()).isEqualTo(0);
+        assertThat(findSubscribe.getDiscountCoupon()).isEqualTo(0);
         assertThat(findSubscribe.getNextPaymentPrice()).isEqualTo(0);
         assertThat(findSubscribe.getNextPaymentDate()).isNull();
         assertThat(findSubscribe.getStatus()).isEqualTo(SubscribeStatus.SUBSCRIBE_PENDING);
         assertThat(findSubscribe.getNextOrderMerchantUid()).isNull();
-        assertThat(findSubscribe.getSkipCount()).isEqualTo(0);
+        assertThat(findSubscribe.getCountSkipOneTime()).isEqualTo(0);
         assertThat(findSubscribe.getNextDeliveryDate()).isNull();
 
         Optional<Order> optionalOrder = orderRepository.findById(subscribeOrder.getId());
@@ -1638,8 +1677,8 @@ public class SubscribeApiControllerTest extends BaseTest {
                 .nextPaymentPrice(120000)
                 .status(SubscribeStatus.SUBSCRIBING)
                 .memberCoupon(memberCoupon)
-                .discount(3000)
-                .skipCount(3)
+                .discountCoupon(3000)
+                .countSkipOneTime(3)
                 .card(card)
                 .build();
         subscribeRepository.save(subscribe);

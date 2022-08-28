@@ -8,6 +8,8 @@ import com.bi.barfdog.domain.coupon.Coupon;
 import com.bi.barfdog.domain.coupon.DiscountType;
 import com.bi.barfdog.domain.dog.Dog;
 import com.bi.barfdog.domain.member.Card;
+import com.bi.barfdog.domain.member.Grade;
+import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.domain.order.Order;
 import com.bi.barfdog.domain.order.SubscribeOrder;
@@ -55,23 +57,25 @@ public class Subscribe extends BaseTimeEntity {
     @JoinColumn(name = "member_coupon_id")
     private MemberCoupon memberCoupon;
 
-    private int discount;
+    private int discountCoupon;
+    private int discountGrade;
 
-    private String nextOrderMerchantUid;
+    private String nextOrderMerchantUid; // 다음번 결제 주문uid
 
-    private LocalDateTime nextPaymentDate;
-    private int nextPaymentPrice; // 다음 회차 결제 금액(쿠폰적용/등급할인 전) -> 실제로는 nextpaymentprice->등급할인 적용 후 - discount 금액이 결제 됨
+    private LocalDateTime nextPaymentDate; // 다음 결제일
+    private int nextPaymentPrice; // 다음 회차 결제 금액(구독상품 원가) -> 실제로는 nextpaymentprice - (discountGrade + discountCoupon)금액이 결제 됨
     private LocalDate nextDeliveryDate;
 
-    private int skipCount;
+    private int countSkipOneTime;
+    private int countSkipOneWeek;
 
-    private String cancelReason; // 구독 취소 사유. , 콤마 기준으로 나열
+    private String cancelReason; // 구독 취소 사유/ (,)콤마 기준으로 나열
 
     @Enumerated(EnumType.STRING)
     private SubscribeStatus status; // [BEFORE_PAYMENT, SUBSCRIBING, SUBSCRIBE_PENDING]
 
     @Builder.Default
-    private boolean writeableReview = true; // status 가 SUBSCRIBING 이고 true 일 때 리뷰 가능
+    private boolean writeableReview = true; // status 가 SUBSCRIBING 이고 true 일 때 리뷰 가능, 리뷰 한 번 쓰고나면 false로 전환되어 추가로 쓰기 불가
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "before_subscribe_id")
@@ -85,7 +89,6 @@ public class Subscribe extends BaseTimeEntity {
         subscribeRecipe.setSubscribe(this);
     }
 
-
     public void setDog(Dog dog) {
         this.dog = dog;
     }
@@ -98,6 +101,18 @@ public class Subscribe extends BaseTimeEntity {
         this.plan = requestDto.getPlan();
         this.nextPaymentPrice = requestDto.getNextPaymentPrice();
     }
+
+    public void updatePlan(UpdatePlanDto requestDto) {
+        int originalPrice = requestDto.getNextPaymentPrice();
+        Member member = dog.getMember();
+
+        this.plan = requestDto.getPlan();
+        this.nextPaymentPrice = originalPrice;
+        this.discountCoupon = calculateDiscountCoupon(originalPrice, memberCoupon);
+        this.discountGrade = calculateDiscountGrade(originalPrice, member);
+    }
+
+
 
     public void setBeforeSubscribe(BeforeSubscribe beforeSubscribe) {
         this.beforeSubscribe = beforeSubscribe;
@@ -148,50 +163,69 @@ public class Subscribe extends BaseTimeEntity {
             this.memberCoupon.revivalCoupon();
         }
         this.memberCoupon = memberCoupon;
-        this.discount = discount;
+        this.discountCoupon = discount;
         memberCoupon.useCoupon();
     }
 
 
     public void updateGram(UpdateGramDto requestDto) {
-        int totalPrice = requestDto.getTotalPrice();
-        this.nextPaymentPrice = totalPrice;
-        dog.updateGram(requestDto.getGram());
+        int originalPrice = requestDto.getTotalPrice();
         MemberCoupon memberCoupon = getMemberCoupon();
-        int newDiscount = calculateNewDiscount(totalPrice, memberCoupon);
-        this.discount = newDiscount;
+        Member member = dog.getMember();
+
+        dog.updateGram(requestDto.getGram());
+        this.nextPaymentPrice = originalPrice;
+        this.discountCoupon = calculateDiscountCoupon(originalPrice, memberCoupon);
+        this.discountGrade = calculateDiscountGrade(originalPrice, member);
     }
 
-    private int calculateNewDiscount(int totalPrice, MemberCoupon memberCoupon) {
-        int newDiscount = 0;
+    private int calculateDiscountCoupon(int originalPrice, MemberCoupon memberCoupon) {
+        int discountCoupon = 0;
         if (memberCoupon != null) {
             Coupon coupon = memberCoupon.getCoupon();
-            if (totalPrice < coupon.getAvailableMinPrice()) {
+            if (originalPrice < coupon.getAvailableMinPrice()) {
                 memberCoupon.revivalCoupon();
                 this.memberCoupon = null;
             }else{
                 if (coupon.getDiscountType() == DiscountType.FIXED_RATE) {
-                    newDiscount = (int)Math.round(totalPrice * coupon.getDiscountDegree() / 100.0);
+                    discountCoupon = (int)Math.round(originalPrice * coupon.getDiscountDegree() / 100.0);
                     int availableMaxDiscount = coupon.getAvailableMaxDiscount();
-                    if (newDiscount > availableMaxDiscount) {
-                        newDiscount = availableMaxDiscount;
+                    if (discountCoupon > availableMaxDiscount) {
+                        discountCoupon = availableMaxDiscount;
                     }
                 } else {
-                    newDiscount = coupon.getDiscountDegree();
+                    discountCoupon = coupon.getDiscountDegree();
                 }
             }
         }
-        return newDiscount;
+        return discountCoupon;
     }
 
-    public void updatePlan(UpdatePlanDto requestDto) {
-        this.plan = requestDto.getPlan();
+    private int calculateDiscountGrade(int originalPrice, Member member) {
+        int discountGrade = 0;
+        double percent;
+        Grade grade = member.getGrade();
+        switch (grade) {
+            case 골드: percent = 1.0;
+                break;
+            case 플래티넘: percent = 3.0;
+                break;
+            case 다이아몬드: percent = 5.0;
+                break;
+            case 더바프: percent = 7.0;
+                break;
+            default: percent = 0.0;
+                break;
+        }
 
-        int totalPrice = requestDto.getNextPaymentPrice();
+        if (percent > 0.0) {
+            discountGrade = (int) Math.round(originalPrice * percent / 100.0);
+        }
 
-        this.nextPaymentPrice = totalPrice;
-        this.discount = calculateNewDiscount(totalPrice, memberCoupon);
+        return discountGrade;
     }
+
+
 
     public void setNextOrderMerchantUid(String merchantUid) {
         this.nextOrderMerchantUid = merchantUid;
@@ -200,20 +234,21 @@ public class Subscribe extends BaseTimeEntity {
     public LocalDate skipAndGetNextDeliveryDate(int count) {
         nextPaymentDate = nextPaymentDate.plusDays(count * 7);
         nextDeliveryDate = nextDeliveryDate.plusDays(count * 7);
-        skipCount++;
+        countSkipOneTime++;
         return nextDeliveryDate;
     }
 
     public void stopSubscribe(List<String> reasonList) {
         String reasons = getReasons(reasonList);
         this.cancelReason = reasons;
-        this.discount = 0;
+        this.discountCoupon = 0;
         this.nextOrderMerchantUid = null;
         this.nextPaymentDate = null;
         this.nextDeliveryDate = null;
         this.nextPaymentPrice = 0;
         this.status = SubscribeStatus.SUBSCRIBE_PENDING;
-        this.skipCount = 0;
+        this.countSkipOneTime = 0;
+        this.countSkipOneWeek = 0;
         if (this.memberCoupon != null) {
             memberCoupon.revivalCoupon();
         }
@@ -221,7 +256,7 @@ public class Subscribe extends BaseTimeEntity {
     }
 
     public void cancelPayment() {
-        this.discount = 0;
+        this.discountCoupon = 0;
         if (this.subscribeCount > 0) {
             this.subscribeCount--;
         }
@@ -229,7 +264,8 @@ public class Subscribe extends BaseTimeEntity {
         this.nextDeliveryDate = null;
         this.nextPaymentPrice = 0;
         this.status = SubscribeStatus.SUBSCRIBE_PENDING;
-        this.skipCount = 0;
+        this.countSkipOneTime = 0;
+        this.countSkipOneWeek = 0;
         if (this.memberCoupon != null) {
             memberCoupon.revivalCoupon();
         }
@@ -255,11 +291,12 @@ public class Subscribe extends BaseTimeEntity {
     public void successPaymentSchedule(SubscribeOrder order, String newMerchantUid) {
         subscribeCount++;
         memberCoupon = null;
-        discount = 0;
+        discountCoupon = 0;
         nextOrderMerchantUid = newMerchantUid;
         this.nextPaymentDate = calculateNextPaymentDate(order.getPaymentDate());
         nextPaymentPrice = order.getOrderPrice();
         nextDeliveryDate = calculateNextDeliveryDate();
-        skipCount = 0;
+        this.countSkipOneTime = 0;
+        this.countSkipOneWeek = 0;
     }
 }

@@ -156,12 +156,9 @@ public class OrderService {
             Item item = itemRepository.findById(orderItemDto.getItemId()).get();
             item.decreaseRemaining(orderItemDto.getAmount());
 
-            MemberCoupon memberCoupon = null;
+
             Long memberCouponId = orderItemDto.getMemberCouponId();
-            if (memberCouponId != null && memberCouponId != 0L) {
-                memberCoupon = memberCouponRepository.findById(memberCouponId).get();
-                memberCoupon.useCoupon();
-            }
+            MemberCoupon memberCoupon = useCoupon(memberCouponId);
 
             int expectedSaveReward = getExpectedSaveReward(member, orderItemDto);
 
@@ -194,6 +191,18 @@ public class OrderService {
 
         return responseDto;
 
+    }
+
+    private MemberCoupon useCoupon(Long memberCouponId) {
+        MemberCoupon memberCoupon = null;
+        if (memberCouponId != null && memberCouponId != 0L) {
+            Optional<MemberCoupon> optionalMemberCoupon = memberCouponRepository.findById(memberCouponId);
+            if (optionalMemberCoupon.isPresent()) {
+                memberCoupon = optionalMemberCoupon.get();
+                memberCoupon.useCoupon();
+            }
+        }
+        return memberCoupon;
     }
 
     private int getExpectedSaveReward(Member member, GeneralOrderRequestDto.OrderItemDto orderItemDto) {
@@ -291,21 +300,15 @@ public class OrderService {
         Member member = memberRepository.findById(memberId).get();
         member.subscribeOrder(requestDto);
 
+        saveRewardHistory(member, requestDto.getDiscountReward());
+
+        Long memberCouponId = requestDto.getMemberCouponId();
+        MemberCoupon memberCoupon = useCoupon(memberCouponId);
+
         Delivery delivery = saveDelivery(requestDto);
 
         Subscribe subscribe = subscribeRepository.findById(subscribeId).get();
-
-        Long memberCouponId = requestDto.getMemberCouponId();
-        MemberCoupon memberCoupon = null;
-        if (memberCouponId != null) {
-            Optional<MemberCoupon> optionalMemberCoupon = memberCouponRepository.findById(memberCouponId);
-            if (optionalMemberCoupon.isPresent()) {
-                memberCoupon = optionalMemberCoupon.get();
-                memberCoupon.useCoupon();
-            }
-        }
         SubscribeOrder subscribeOrder = saveSubscribeOrder(member, requestDto, delivery, subscribe, memberCoupon);
-
 
         OrderResponseDto responseDto = OrderResponseDto.builder()
                 .id(subscribeOrder.getId())
@@ -329,6 +332,7 @@ public class OrderService {
                 .discountTotal(requestDto.getDiscountTotal())
                 .discountReward(requestDto.getDiscountReward())
                 .discountCoupon(requestDto.getDiscountCoupon())
+                .discountGrade(requestDto.getDiscountGrade())
                 .paymentPrice(requestDto.getPaymentPrice())
                 .paymentMethod(requestDto.getPaymentMethod())
                 .isPackage(false)

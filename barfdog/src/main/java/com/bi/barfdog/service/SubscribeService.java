@@ -73,20 +73,14 @@ public class SubscribeService {
     }
 
     @Transactional
-    public void updatePlan(Long id, UpdatePlanDto requestDto) {
+    public void changePlan(Long id, UpdatePlanDto requestDto) {
         Subscribe subscribe = subscribeRepository.findById(id).get();
 
 //        String recipeName = getRecipeName(subscribe);
 //        BeforeSubscribe newBeforeSubscribe = saveNewBeforeSubscribe(subscribe, recipeName);
 //        subscribe.setBeforeSubscribe(newBeforeSubscribe);
 
-        subscribe.updatePlan(requestDto);
-
-        subscribeRecipeRepository.deleteAllBySubscribe(subscribe);
-        List<Long> recipeIdList = requestDto.getRecipeIdList();
-        for (Long recipeId : recipeIdList) {
-            saveSubscribeRecipe(subscribe, recipeId);
-        }
+        updatePlanAndChangeSelectRecipes(subscribe, requestDto);
 
         unscheduleAndNewSchedule(subscribe);
 
@@ -157,7 +151,7 @@ public class SubscribeService {
         sleepThread(500);
 
         Date nextPaymentDate = java.sql.Timestamp.valueOf(subscribe.getNextPaymentDate());
-        int nextPaymentPrice = subscribe.getNextPaymentPrice() - subscribe.getDiscount();
+        int nextPaymentPrice = subscribe.getNextPaymentPrice() - subscribe.getDiscountCoupon();
         ScheduleData scheduleData = new ScheduleData(customerUid);
         scheduleData.addSchedule(new ScheduleEntry(merchant_uid, nextPaymentDate, BigDecimal.valueOf(nextPaymentPrice)));
 
@@ -225,16 +219,18 @@ public class SubscribeService {
                 e.printStackTrace();
             }
         }
-
-
     }
 
 
     @Transactional
-    public void selectPlan(Long id, UpdatePlanDto requestDto) {
+    public void selectPlanFirstTime(Long id, UpdatePlanDto requestDto) {
 
         Subscribe subscribe = subscribeRepository.findById(id).get();
 
+        updatePlanAndChangeSelectRecipes(subscribe, requestDto);
+    }
+
+    private void updatePlanAndChangeSelectRecipes(Subscribe subscribe, UpdatePlanDto requestDto) {
         subscribe.updatePlan(requestDto);
 
         subscribeRecipeRepository.deleteAllBySubscribe(subscribe);

@@ -21,7 +21,6 @@ import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
-import retrofit2.http.Path;
 
 import javax.validation.Valid;
 import java.util.Optional;
@@ -46,7 +45,7 @@ public class SubscribeApiController {
         Optional<Subscribe> optionalSubscribe = subscribeRepository.findById(id);
         if (!optionalSubscribe.isPresent()) return notFound();
 
-        subscribeService.selectPlan(id, requestDto);
+        subscribeService.selectPlanFirstTime(id, requestDto);
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(SubscribeApiController.class).slash(id).slash("planRecipes").withSelfRel());
@@ -67,7 +66,7 @@ public class SubscribeApiController {
         Optional<Subscribe> optionalSubscribe = subscribeRepository.findById(id);
         if (!optionalSubscribe.isPresent()) return notFound();
 
-        subscribeService.updatePlan(id, requestDto);
+        subscribeService.changePlan(id, requestDto);
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(SubscribeApiController.class).slash(id).withSelfRel());
@@ -142,6 +141,7 @@ public class SubscribeApiController {
         return ResponseEntity.ok(representationModel);
     }
 
+    // 플랜 변경 적용하기
     @PostMapping("/{id}/plan")
     public ResponseEntity updatePlanSubscribe(@PathVariable Long id,
                                               @RequestBody @Valid UpdatePlanDto requestDto,
@@ -150,8 +150,7 @@ public class SubscribeApiController {
         Optional<Subscribe> optionalSubscribe = subscribeRepository.findById(id);
         if (!optionalSubscribe.isPresent()) return notFound();
 
-        subscribeService.updatePlan(id, requestDto);
-
+        subscribeService.changePlan(id, requestDto);
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(SubscribeApiController.class).slash(id).slash("plan").withSelfRel());

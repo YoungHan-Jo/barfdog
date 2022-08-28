@@ -188,7 +188,7 @@ public class AppConfig {
 
                 memberRepository.deleteAll();
                 Member admin = generateMember(appProperties.getAdminEmail(), "관리자", appProperties.getAdminPassword(), "01056785678", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,SUBSCRIBER,USER", true);
-                Member member = generateMember(appProperties.getUserEmail(), "김회원", appProperties.getUserPassword(), "01099038544", Gender.MALE, Grade.실버, 50000, false, "USER,SUBSCRIBER", true);
+                Member member = generateMember(appProperties.getUserEmail(), "플래티넘회원", appProperties.getUserPassword(), "01099038544", Gender.MALE, Grade.플래티넘, 50000, false, "USER,SUBSCRIBER", true);
 
                 couponRepository.deleteAll();
                 Coupon subsCoupon = generateCouponAuto(JOIN_SUBSCRIBE_COUPON, "정기구독 할인 쿠폰", DiscountType.FIXED_RATE, 50, 0, CouponTarget.SUBSCRIBE);

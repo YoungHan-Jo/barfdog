@@ -24,7 +24,7 @@ public class SubscribeOrderRequestDto {
     private DeliveryDto deliveryDto;
 
     @NotNull
-    private int orderPrice; // 주문 금액(등급할인 적용 후)
+    private int orderPrice; // 주문 금액(구독상품 원가 - 등급할인)
     @NotNull
     private int deliveryPrice; // 배송비
     @NotNull
@@ -33,6 +33,8 @@ public class SubscribeOrderRequestDto {
     private int discountReward; // 적립금 할인
     @NotNull
     private int discountCoupon; // 쿠폰 할인
+    @NotNull
+    private int discountGrade; // 쿠폰 할인
     @NotNull
     private int paymentPrice; // 결제 금액
     @NotNull

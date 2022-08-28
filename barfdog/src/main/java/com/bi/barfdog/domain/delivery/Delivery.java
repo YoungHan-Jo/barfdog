@@ -35,7 +35,7 @@ public class Delivery extends BaseTimeEntity {
     private LocalDateTime departureDate; // 출발일
     private LocalDateTime arrivalDate; // 도착일
 
-    private LocalDate nextDeliveryDate; // 배송 예정 일시
+    private LocalDate nextDeliveryDate; // 배송 예정 일자
 
 
     public void deliveryDone() {

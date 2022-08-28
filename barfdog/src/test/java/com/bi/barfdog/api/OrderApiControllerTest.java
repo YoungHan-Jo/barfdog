@@ -1314,6 +1314,8 @@ public class OrderApiControllerTest extends BaseTest {
     }
 
 
+
+
     @Test
     @DisplayName("구독 주문서 조회하기")
     public void getOrderSheetDto_Subscribe() throws Exception {
@@ -1323,7 +1325,7 @@ public class OrderApiControllerTest extends BaseTest {
 
         Dog dogRepresentative = generateDogRepresentativeBeforePaymentSubscribe(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
 
-        Subscribe subscribe = generateSubscribeBeforePayment(dogRepresentative, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, 100000);
+        Subscribe subscribe = generateSubscribeBeforePayment(member, dogRepresentative, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, 100000);
 
        //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.get("/api/orders/sheet/subscribe/{id}", subscribe.getId())
@@ -1352,7 +1354,8 @@ public class OrderApiControllerTest extends BaseTest {
                         responseFields(
                                 fieldWithPath("subscribeDto.id").description("구독 id"),
                                 fieldWithPath("subscribeDto.plan").description("구독 플랜 [FULL,HALF,TOPPING]"),
-                                fieldWithPath("subscribeDto.nextPaymentPrice").description("구독 상품 금액"),
+                                fieldWithPath("subscribeDto.nextPaymentPrice").description("구독 상품 금액(쿠폰할인/등급할인 적용 전 원가)"),
+                                fieldWithPath("subscribeDto.discountGrade").description("서버에서 계산한 등급할인 할인분"),
                                 fieldWithPath("recipeNameList").description("구독으로 선택한 레시피 이름 리스트"),
                                 fieldWithPath("name").description("회원 이름"),
                                 fieldWithPath("grade").description("회원 등급"),
@@ -1391,7 +1394,7 @@ public class OrderApiControllerTest extends BaseTest {
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
         int reward = member.getReward();
         Dog dogRepresentative = generateDogRepresentativeBeforePaymentSubscribe(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
-        Subscribe subscribe = generateSubscribeBeforePayment(dogRepresentative, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, 100000);
+        Subscribe subscribe = generateSubscribeBeforePayment(member, dogRepresentative, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, 100000);
         int subscribeCount = subscribe.getSubscribeCount();
 
         String request = "안전배송 부탁드립니다.";
@@ -1413,10 +1416,11 @@ public class OrderApiControllerTest extends BaseTest {
 
         int orderPrice = 100000;
         int deliveryPrice = 0;
-        int discountTotal = 20000;
         int discountReward = 10000;
         int discountCoupon = 10000;
-        int paymentPrice = 80000;
+        int discountGrade = 3000;
+        int discountTotal = discountReward + discountCoupon + discountGrade;
+        int paymentPrice = orderPrice - discountTotal + deliveryPrice;
         PaymentMethod paymentMethod = PaymentMethod.CREDIT_CARD;
         SubscribeOrderRequestDto requestDto = SubscribeOrderRequestDto.builder()
                 .memberCouponId(memberCouponId)
@@ -1426,6 +1430,7 @@ public class OrderApiControllerTest extends BaseTest {
                 .discountTotal(discountTotal)
                 .discountReward(discountReward)
                 .discountCoupon(discountCoupon)
+                .discountGrade(discountGrade)
                 .paymentPrice(paymentPrice)
                 .paymentMethod(paymentMethod)
                 .nextDeliveryDate(nextDeliveryDate)
@@ -1457,26 +1462,22 @@ public class OrderApiControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.AUTHORIZATION).description("bearer jwt 토큰")
                         ),
                         requestFields(
-//                                fieldWithPath("impUid").optional().description("아임포트 결제 uid"),
-//                                fieldWithPath("merchantUid").optional().description("바프독에 저장할 주문 고유id yyMMdd + '_' +랜덤문자열  ex) '220707_sdlfiajskd' "),
-//                                fieldWithPath("customerUid").description("카드결제 customerUid"),
-//                                fieldWithPath("cardName").description("카드 이름"),
-//                                fieldWithPath("cardNumber").description("카드 번호"),
-                                fieldWithPath("memberCouponId").description("사용할 보유한 쿠폰 id . 없으면 null"),
+                                fieldWithPath("memberCouponId").description("사용한 유저쿠폰(memberCoupon) id. 없으면 null"),
                                 fieldWithPath("deliveryDto.name").optional().description("수령자 이름"),
                                 fieldWithPath("deliveryDto.phone").optional().description("수령자 전화번호"),
                                 fieldWithPath("deliveryDto.zipcode").optional().description("우편번호"),
                                 fieldWithPath("deliveryDto.street").optional().description("도로명주소"),
                                 fieldWithPath("deliveryDto.detailAddress").optional().description("상세주소"),
                                 fieldWithPath("deliveryDto.request").description("배송 요청사항"),
-                                fieldWithPath("orderPrice").optional().description("주문 상품 총 가격(등급 할인 적용 전)"),
+                                fieldWithPath("orderPrice").optional().description("주문 상품 원가(등급 할인 적용x)"),
                                 fieldWithPath("deliveryPrice").optional().description("배송비"),
                                 fieldWithPath("discountTotal").optional().description("총 할인 합계"),
                                 fieldWithPath("discountReward").optional().description("사용할 적립금"),
-                                fieldWithPath("discountCoupon").optional().description("쿠폰 적용으로 할인된 금액"),
+                                fieldWithPath("discountCoupon").optional().description("쿠폰 적용 할인분"),
+                                fieldWithPath("discountGrade").optional().description("등급 할인분"),
                                 fieldWithPath("paymentPrice").optional().description("최종 결제 금액"),
                                 fieldWithPath("paymentMethod").optional().description("결제 방법 [CREDIT_CARD, NAVER_PAY, KAKAO_PAY]"),
-                                fieldWithPath("nextDeliveryDate").optional().description("배송 예정일 'yyyy-MM-dd'"),
+                                fieldWithPath("nextDeliveryDate").optional().description("배송 예정일 'yyyy-MM-dd', 첫 결제 배송날짜는 프론트에서 넘어온 값으로 저장함"),
                                 fieldWithPath("agreePrivacy").optional().description("개인정보제공 동의 true/false"),
                                 fieldWithPath("brochure").optional().description("브로슈어 받을지 여부 true/false")
                         ),
@@ -1514,22 +1515,17 @@ public class OrderApiControllerTest extends BaseTest {
         assertThat(findDelivery.getRecipient().getStreet()).isEqualTo(member.getAddress().getStreet());
         assertThat(findDelivery.getRecipient().getDetailAddress()).isEqualTo(member.getAddress().getDetailAddress());
         assertThat(findDelivery.getStatus()).isEqualTo(DeliveryStatus.BEFORE_PAYMENT);
+        assertThat(findDelivery.getNextDeliveryDate()).isEqualTo(nextDeliveryDate);
         assertThat(findDelivery.getRequest()).isEqualTo(request);
 
         Member findMember = memberRepository.findById(member.getId()).get();
         assertThat(findMember.getReward()).isEqualTo(reward - discountReward);
-//        assertThat(findMember.getAccumulatedAmount()).isEqualTo(paymentPrice);
-//        assertThat(findMember.isSubscribe()).isTrue();
-//        assertThat(findMember.getAccumulatedSubscribe()).isEqualTo(1);
-//        assertThat(findMember.isBrochure()).isTrue();
-//        assertThat(findMember.getRoles()).isEqualTo("USER,SUBSCRIBER");
 
         List<Reward> rewards = rewardRepository.findByMember(member);
-        assertThat(rewards.size()).isEqualTo(0);
-//        assertThat(findReward.getName()).isEqualTo(RewardName.USE_ORDER);
-//        assertThat(findReward.getRewardType()).isEqualTo(RewardType.ORDER);
-//        assertThat(findReward.getRewardStatus()).isEqualTo(RewardStatus.USED);
-//        assertThat(findReward.getTradeReward()).isEqualTo(discountReward);
+        assertThat(rewards.size()).isEqualTo(1);
+        Reward findReward = rewards.get(0);
+        assertThat(findReward.getName()).isEqualTo(RewardName.USE_ORDER);
+        assertThat(findReward.getTradeReward()).isEqualTo(discountReward);
 
         SubscribeOrder findOrder = (SubscribeOrder) orderRepository.findAll().get(0);
         assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.BEFORE_PAYMENT);
@@ -1559,7 +1555,7 @@ public class OrderApiControllerTest extends BaseTest {
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
         int reward = member.getReward();
         Dog dogRepresentative = generateDogRepresentativeBeforePaymentSubscribe(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
-        Subscribe subscribe = generateSubscribeBeforePayment(dogRepresentative, SubscribePlan.HALF, SubscribeStatus.BEFORE_PAYMENT, 100000);
+        Subscribe subscribe = generateSubscribeBeforePayment(member,dogRepresentative, SubscribePlan.HALF, SubscribeStatus.BEFORE_PAYMENT, 100000);
         int subscribeCount = subscribe.getSubscribeCount();
 
         String request = "안전배송 부탁드립니다.";
@@ -1634,11 +1630,6 @@ public class OrderApiControllerTest extends BaseTest {
 
         Member findMember = memberRepository.findById(member.getId()).get();
         assertThat(findMember.getReward()).isEqualTo(reward - discountReward);
-//        assertThat(findMember.getAccumulatedAmount()).isEqualTo(paymentPrice);
-//        assertThat(findMember.isSubscribe()).isTrue();
-//        assertThat(findMember.getAccumulatedSubscribe()).isEqualTo(1);
-//        assertThat(findMember.isBrochure()).isTrue();
-//        assertThat(findMember.getRoles()).isEqualTo("USER,SUBSCRIBER");
 
         List<Reward> rewards = rewardRepository.findByMember(member);
         assertThat(rewards.size()).isEqualTo(0);
@@ -1667,7 +1658,7 @@ public class OrderApiControllerTest extends BaseTest {
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
         int reward = member.getReward();
         Dog dogRepresentative = generateDogRepresentativeBeforePaymentSubscribe(member, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
-        Subscribe subscribe = generateSubscribeBeforePayment(dogRepresentative, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, 100000);
+        Subscribe subscribe = generateSubscribeBeforePayment(member,dogRepresentative, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, 100000);
 
         String request = "안전배송 부탁드립니다.";
         SubscribeOrderRequestDto.DeliveryDto deliveryDto = SubscribeOrderRequestDto.DeliveryDto.builder()
@@ -1757,7 +1748,7 @@ public class OrderApiControllerTest extends BaseTest {
         deliveryRepository.save(delivery);
 
         int orderPrice = 1000;
-        Subscribe subscribe = generateSubscribeBeforePayment(dog, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, orderPrice);
+        Subscribe subscribe = generateSubscribeBeforePayment(member,dog, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, orderPrice);
         int subscribeCount = subscribe.getSubscribeCount();
 
         Coupon coupon = generateGeneralCoupon(1);
@@ -1915,7 +1906,7 @@ public class OrderApiControllerTest extends BaseTest {
         deliveryRepository.save(delivery);
 
         int orderPrice = 100000;
-        Subscribe subscribe = generateSubscribeBeforePayment(dog, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, orderPrice);
+        Subscribe subscribe = generateSubscribeBeforePayment(member,dog, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, orderPrice);
         int subscribeCount = subscribe.getSubscribeCount();
 
         Coupon coupon = generateGeneralCoupon(1);
@@ -2008,7 +1999,7 @@ public class OrderApiControllerTest extends BaseTest {
         deliveryRepository.save(delivery);
 
         int orderPrice = 100000;
-        Subscribe subscribe = generateSubscribeBeforePayment(dog, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, orderPrice);
+        Subscribe subscribe = generateSubscribeBeforePayment(member,dog, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, orderPrice);
         int subscribeCount = subscribe.getSubscribeCount();
 
         Coupon coupon = generateGeneralCoupon(1);
@@ -4003,14 +3994,17 @@ public class OrderApiControllerTest extends BaseTest {
     }
 
 
-    private Subscribe generateSubscribeBeforePayment(Dog dog, SubscribePlan plan, SubscribeStatus status, int nextPaymentPrice) {
+    private Subscribe generateSubscribeBeforePayment(Member member, Dog dog, SubscribePlan plan, SubscribeStatus status, int nextPaymentPrice) {
         List<Recipe> recipes = recipeRepository.findAll();
+
+        int discountGrade = calculateDiscountGrade(nextPaymentPrice, member);
 
         Subscribe subscribe = Subscribe.builder()
                 .status(status)
                 .plan(plan)
                 .subscribeCount(0)
                 .nextPaymentPrice(nextPaymentPrice)
+                .discountGrade(discountGrade)
                 .build();
 
         SubscribeRecipe subscribeRecipe1 = generateSubscribeRecipe(recipes.get(0), subscribe);
@@ -4022,6 +4016,31 @@ public class OrderApiControllerTest extends BaseTest {
 
         return subscribeRepository.save(subscribe);
     }
+
+    private int calculateDiscountGrade(int originalPrice, Member member) {
+        int discountGrade = 0;
+        double percent;
+        Grade grade = member.getGrade();
+        switch (grade) {
+            case 골드: percent = 1.0;
+                break;
+            case 플래티넘: percent = 3.0;
+                break;
+            case 다이아몬드: percent = 5.0;
+                break;
+            case 더바프: percent = 7.0;
+                break;
+            default: percent = 0.0;
+                break;
+        }
+
+        if (percent > 0.0) {
+            discountGrade = (int) Math.round(originalPrice * percent / 100.0);
+        }
+
+        return discountGrade;
+    }
+
 
     private SubscribeRecipe generateSubscribeRecipe(Recipe recipe, Subscribe subscribe) {
         SubscribeRecipe subscribeRecipe = SubscribeRecipe.builder()

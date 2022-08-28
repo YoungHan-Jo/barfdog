@@ -46,6 +46,7 @@ public class OrderSheetSubscribeResponseDto {
         private Long id;
         private SubscribePlan plan;
         private int nextPaymentPrice;
+        private int discountGrade;
 
     }
 

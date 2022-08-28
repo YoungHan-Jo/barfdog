@@ -951,7 +951,11 @@ operation::delete_dog[snippets='curl-request,path-parameters,request-headers,req
 [[resources-create-dog]]
 === 강아지 등록
 
-`POST` 요청을 사용해서 설문조사 후 새로운 강아지를 등록 할 수 있다.
+`POST` 요청을 사용해서 설문조사 후 새로운 강아지를 등록 할 수 있다. +
+
+구독 정보 생성 : 상태 : BEFORE_PAYMENT +
+강아지 생성 +
+설문 리포트 생성 +
 
 operation::create_dog[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
@@ -1803,9 +1807,30 @@ operation::query_orderSheet_subscribe[snippets='curl-request,path-parameters,req
 
 
 [[resources-order-subscribeOrder]]
-=== 구독 주문하기
+=== 구독 주문하기(결제 전 주문 정보 저장)
 
-`POST` 요청을 사용하여 구독 주문을 할 수 있다.
+`POST` 요청을 사용하여 구독 주문을 할 수 있다. +
+
+회원 적립금 차감 +
+
+적립금 차감 내역 생성 +
+쿠폰 사용분 차감 +
+
+새로운 배송정보 생성 : BEFORE_PAYMENT +
+배송 예정일 저장(첫 결제는 프론트에서 넘어오는 날짜로 저장) +
+
+ㅁ주문(order) 정보 생성ㅁ +
+주문번호 발급 +
+상태 : BEFORE_PAYMENT +
+주문금액 +
+배송비 +
+할인합계 +
+사용 적립금 +
+쿠폰 할인분 +
+등급 할인분 +
+최종결제금액 +
+결제방법 +
+해당주문 구독회차 설정 (현재 구독회차 +1) +
 
 operation::order_subscribeOrder[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
@@ -2034,6 +2059,14 @@ operation::stop_subscribe[snippets='curl-request,path-parameters,request-headers
 [[resources-select-subscribe-planRecipes]]
 === 설문조사 후 구독 플랜, 레시피 선택
 
-`POST` 요청을 사용하여 구독 플랜, 레시피 선택을 적용할 수 있다.
+`POST` 요청을 사용하여 구독 플랜, 레시피 선택을 적용할 수 있다. +
+
+ㅁ구독 정보ㅁ +
+플랜 변경 +
+다음 결제 금액(구독 상품 원가) +
+쿠폰 할인액 등록 +
+등급 할인액 등록 +
+
+기존 선택 레시피 삭제 후 재 등록 +
 
 operation::select_subscribe_planRecipes[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']

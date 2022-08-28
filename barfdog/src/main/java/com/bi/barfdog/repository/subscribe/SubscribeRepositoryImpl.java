@@ -117,7 +117,8 @@ public class SubscribeRepositoryImpl implements SubscribeRepositoryCustom{
                 .select(Projections.constructor(OrderSheetSubscribeResponseDto.SubscribeDto.class,
                         subscribe.id,
                         subscribe.plan,
-                        subscribe.nextPaymentPrice
+                        subscribe.nextPaymentPrice,
+                        subscribe.discountGrade
                 ))
                 .from(subscribe)
                 .where(subscribe.id.eq(subscribeId))
@@ -158,7 +159,7 @@ public class SubscribeRepositoryImpl implements SubscribeRepositoryCustom{
                 .select(Projections.constructor(QuerySubscribesDto.SubscribeDto.class,
                         subscribe.id,
                         dogPicture.filename,
-                        subscribe.skipCount,
+                        subscribe.countSkipOneTime,
                         dog.name,
                         subscribe.plan,
                         subscribe.nextPaymentDate,
@@ -238,7 +239,7 @@ public class SubscribeRepositoryImpl implements SubscribeRepositoryCustom{
                 .select(Projections.constructor(QuerySubscribeDto.SubscribeDto.class,
                         subscribe.id,
                         dog.name,
-                        subscribe.skipCount,
+                        subscribe.countSkipOneTime,
                         subscribe.plan,
                         surveyReport.foodAnalysis.oneMealRecommendGram,
                         subscribe.nextPaymentDate,
@@ -246,7 +247,9 @@ public class SubscribeRepositoryImpl implements SubscribeRepositoryCustom{
                         subscribe.nextDeliveryDate,
                         memberCoupon.id,
                         coupon.name,
-                        subscribe.discount
+                        subscribe.discountCoupon,
+                        subscribe.discountGrade
+
                 ))
                 .from(subscribe)
                 .join(subscribe.dog, dog)

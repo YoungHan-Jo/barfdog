@@ -79,7 +79,7 @@ public class CardService {
 
         String customerUid = subscribe.getCard().getCustomerUid();
         Date nextPaymentDate = java.sql.Timestamp.valueOf(subscribe.getNextPaymentDate());
-        int nextPaymentPrice = subscribe.getNextPaymentPrice() - subscribe.getDiscount();
+        int nextPaymentPrice = subscribe.getNextPaymentPrice() - subscribe.getDiscountCoupon();
         ScheduleData scheduleData = new ScheduleData(customerUid);
         scheduleData.addSchedule(new ScheduleEntry(merchant_uid, nextPaymentDate, BigDecimal.valueOf(nextPaymentPrice)));
 

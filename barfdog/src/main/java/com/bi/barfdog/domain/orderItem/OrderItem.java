@@ -60,7 +60,7 @@ public class OrderItem extends BaseTimeEntity {
     private boolean isSavedReward;
 
     @Builder.Default
-    private boolean writeableReview = true; //  true 일 때 리뷰 작성 가능
+    private boolean writeableReview = true; //  true이고 상태 confirm 일 때 리뷰 작성 가능
 
     public void writeReview() {
         this.writeableReview = false;

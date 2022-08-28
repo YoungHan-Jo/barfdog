@@ -38,11 +38,12 @@ public abstract class Order extends BaseTimeEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    private int orderPrice; // 주문 가격
+    private int orderPrice; // 주문 가격(일반: 주문 총 가격/ 구독: 구독상품 원가);
     private int deliveryPrice;
     private int discountTotal;
     private int discountReward;
     private int discountCoupon;
+    private int discountGrade;
 
     private int paymentPrice; // 최종 결제 가격
     @Enumerated(EnumType.STRING)

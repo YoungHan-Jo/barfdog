@@ -951,7 +951,11 @@ operation::delete_dog[snippets='curl-request,path-parameters,request-headers,req
 [[resources-create-dog]]
 === 강아지 등록
 
-`POST` 요청을 사용해서 설문조사 후 새로운 강아지를 등록 할 수 있다.
+`POST` 요청을 사용해서 설문조사 후 새로운 강아지를 등록 할 수 있다. +
+
+구독 정보 생성 : 상태 : BEFORE_PAYMENT +
+강아지 생성 +
+설문 리포트 생성 +
 
 operation::create_dog[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
@@ -1627,49 +1631,71 @@ operation::admin_orderCancel_subscribe[snippets='curl-request,request-headers,re
 
 
 [[resources-admin-confirmReturn-seller-buyer]]
-=== 일반 주문 반품요청을 구매자 귀책으로 컨펌 처리
+=== 일반 주문 반품요청을 구매자 귀책으로 컨펌 처리(상품단위)
 
-`POST` 요청을 사용하여 일반 주문 반품요청을 구매자 귀책으로 컨펌 처리할 수 있다.
+`POST` 요청을 사용하여 일반 주문 반품요청을 구매자 귀책으로 컨펌 처리할 수 있다. +
+
+주문한 상품(orderItem) 상태 : RETURN_DONE_SELLER +
+쿠폰은 환불됨 +
+
+적립금, 환불금액(배송비계산)은 CS처리 해야함 +
 
 operation::admin_confirmReturn_buyer[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
 [[resources-admin-confirmReturn-seller-seller]]
-=== 일반 주문 반품요청을 판매자 귀책으로 컨펌 처리
+=== 일반 주문 반품요청을 판매자 귀책으로 컨펌 처리(상품단위)
 
-`POST` 요청을 사용하여 일반 주문 반품요청을 판매자 귀책으로 컨펌 처리할 수 있다.
+`POST` 요청을 사용하여 일반 주문 반품요청을 판매자 귀책으로 컨펌 처리할 수 있다. +
+
+주문한 상품(orderItem) 상태 : RETURN_DONE_SELLER +
+쿠폰은 환불됨 +
+
+적립금, 환불금액(배송비계산)은 CS처리 해야함 +
 
 operation::admin_confirmReturn_seller[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 [[resources-admin-denyReturn]]
-=== 일반 주문 반품요청 거절 처리
+=== 일반 주문 반품요청 거절 처리(상품단위)
 
-`POST` 요청을 사용하여 일반 주문 반품요청 거절 처리할 수 있다.
+`POST` 요청을 사용하여 일반 주문 반품요청 거절 처리할 수 있다. +
+
+주문한 아이템(orderItem)을 포함한 주문(order)의 상태와 동일한 상태로 변경 +
 
 operation::admin_denyReturn_general[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
 
 [[resources-admin-confirmExchange-buyer]]
-=== 일반 주문 교환요청을 구매자 귀책으로 컨펌 처리
+=== 일반 주문 교환요청을 구매자 귀책으로 컨펌 처리(상품단위)
 
-`POST` 요청을 사용하여 일반 주문 교환요청을 구매자 귀책으로 컨펌 처리할 수 있다.
+`POST` 요청을 사용하여 일반 주문 교환요청을 구매자 귀책으로 컨펌 처리할 수 있다. +
+
+주문한 상품(orderItem) 상태 : EXCHANGE_DONE_BUYER +
+
+배송비는 CS처리해야함 +
 
 operation::admin_confirmExchange_buyer[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
 [[resources-admin-confirmExchange-seller]]
-=== 일반 주문 교환요청을 판매자 귀책으로 컨펌 처리
+=== 일반 주문 교환요청을 판매자 귀책으로 컨펌 처리(상품단위)
 
-`POST` 요청을 사용하여 일반 주문 교환요청을 판매자 귀책으로 컨펌 처리할 수 있다.
+`POST` 요청을 사용하여 일반 주문 교환요청을 판매자 귀책으로 컨펌 처리할 수 있다. +
+
+주문한 상품(orderItem) 상태 : EXCHANGE_DONE_SELLER +
+
+배송비는 CS처리해야함 +
 
 operation::admin_confirmExchange_seller[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 
 [[resources-admin-denyExchange]]
-=== 일반 주문 교환요청 거절 처리
+=== 일반 주문 교환요청 거절 처리(상품단위)
 
-`POST` 요청을 사용하여 일반 주문 교환요청 거절 처리할 수 있다.
+`POST` 요청을 사용하여 일반 주문 교환요청 거절 처리할 수 있다. +
+
+주문한 아이템(orderItem)을 포함한 주문(order)의 상태와 동일한 상태로 변경 +
 
 operation::admin_denyExchange_general[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
@@ -1758,6 +1784,7 @@ operation::success_generalOrder[snippets='curl-request,path-parameters,request-h
 적립금 복구 내역 생성 +
 
 묶음 배송일 경우 묶음 해제 +
+묶음 배송 아닐경우 배송 상태 : 배송취소 +
 
 주문 상태 : 결제 실패 +
 
@@ -1780,9 +1807,30 @@ operation::query_orderSheet_subscribe[snippets='curl-request,path-parameters,req
 
 
 [[resources-order-subscribeOrder]]
-=== 구독 주문하기
+=== 구독 주문하기(결제 전 주문 정보 저장)
 
-`POST` 요청을 사용하여 구독 주문을 할 수 있다.
+`POST` 요청을 사용하여 구독 주문을 할 수 있다. +
+
+회원 적립금 차감 +
+
+적립금 차감 내역 생성 +
+쿠폰 사용분 차감 +
+
+새로운 배송정보 생성 : BEFORE_PAYMENT +
+배송 예정일 저장(첫 결제는 프론트에서 넘어오는 날짜로 저장) +
+
+ㅁ주문(order) 정보 생성ㅁ +
+주문번호 발급 +
+상태 : BEFORE_PAYMENT +
+주문금액 +
+배송비 +
+할인합계 +
+사용 적립금 +
+쿠폰 할인분 +
+등급 할인분 +
+최종결제금액 +
+결제방법 +
+해당주문 구독회차 설정 (현재 구독회차 +1) +
 
 operation::order_subscribeOrder[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
@@ -1873,21 +1921,35 @@ operation::cancelRequest_general[snippets='curl-request,path-parameters,request-
 [[resources-confirm-generalOrders]]
 === 일반 주문 구매확정
 
-`POST` 요청을 사용하여 일반주문 주문을 구매확정 할 수 있다.
+`POST` 요청을 사용하여 일반주문 주문을 구매확정 할 수 있다. +
+회원 적립금 추가 +
+적립금 내역 추가 +
+
+주문상품(orderItem) 상태 : CONFIRM +
+주문상품(orderItem) 적립예정금 적립 완료 +
+
+주문상품을 포함한 주문의 모든 주문상품(orderItem)이 CONFIRM 이면 주문(order)도 CONFIRM +
+컨펌시간 설정 +
 
 operation::confirm_generalOrders[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 [[resources-return-generalOrders]]
-=== 일반 주문 반품 요청
+=== 일반 주문 반품 요청(상품단위)
 
-`POST` 요청을 사용하여 일반주문 주문을 반품 요청 할 수 있다.
+`POST` 요청을 사용하여 일반주문 주문을 반품 요청 할 수 있다. +
+
+반품 사유 입력 +
+주문아이템 상태 : RETURN_REQUEST +
 
 operation::request_returnOrders[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 [[resources-exchange-generalOrders]]
-=== 일반 주문 교환 요청
+=== 일반 주문 교환 요청(상품단위)
 
-`POST` 요청을 사용하여 일반주문 주문을 교환 요청 할 수 있다.
+`POST` 요청을 사용하여 일반주문 주문을 교환 요청 할 수 있다. +
+
+환불 사유 입력 +
+주문아이템 상태 : EXCHANGE_REQUEST +
 
 operation::request_exchangeOrders[snippets='curl-request,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
@@ -1997,6 +2059,14 @@ operation::stop_subscribe[snippets='curl-request,path-parameters,request-headers
 [[resources-select-subscribe-planRecipes]]
 === 설문조사 후 구독 플랜, 레시피 선택
 
-`POST` 요청을 사용하여 구독 플랜, 레시피 선택을 적용할 수 있다.
+`POST` 요청을 사용하여 구독 플랜, 레시피 선택을 적용할 수 있다. +
+
+ㅁ구독 정보ㅁ +
+플랜 변경 +
+다음 결제 금액(구독 상품 원가) +
+쿠폰 할인액 등록 +
+등급 할인액 등록 +
+
+기존 선택 레시피 삭제 후 재 등록 +
 
 operation::select_subscribe_planRecipes[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']

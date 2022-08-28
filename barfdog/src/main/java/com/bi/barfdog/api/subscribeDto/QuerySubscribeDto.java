@@ -44,7 +44,8 @@ public class QuerySubscribeDto {
         private LocalDate nextDeliveryDate;
         private Long usingMemberCouponId;
         private String couponName;
-        private int discount;
+        private int discountCoupon;
+        private int discountGrade;
     }
 
     @Data
