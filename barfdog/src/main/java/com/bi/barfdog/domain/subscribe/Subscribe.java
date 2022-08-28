@@ -133,9 +133,8 @@ public class Subscribe extends BaseTimeEntity {
         this.subscribeCount++;
         this.status = SubscribeStatus.SUBSCRIBING;
         this.card = card;
-        this.nextDeliveryDate = calculateNextDeliveryDate();
-        this.nextPaymentPrice = order.getOrderPrice();
-        this.nextPaymentDate = calculateNextPaymentDate(order.getPaymentDate());
+        this.nextDeliveryDate = order.getDelivery().getNextDeliveryDate();
+        this.nextPaymentDate = calculateNextPaymentDate(LocalDateTime.now());
     }
 
     private LocalDate calculateNextDeliveryDate() {

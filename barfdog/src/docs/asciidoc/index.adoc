@@ -1837,7 +1837,45 @@ operation::order_subscribeOrder[snippets='curl-request,path-parameters,request-h
 [[resources-success-subscribeOrder]]
 === 구독 주문 결제 성공 처리
 
-`POST` 요청을 사용하여 구독 주문 결제 성공 상태를 반영 할 수 있다.
+`POST` 요청을 사용하여 구독 주문 결제 성공 상태를 반영 할 수 있다. +
+
+ㅁ이번 회차 주문(order) 결제성공 처리 +
+impUid 저장 +
+주문 상태: PAYMENT_DONE +
+결제일 저장 +
+
+ㅁ회원ㅁ +
+누적구매 금액 증가 +
+회원 브로슈어 받은적 있는지 체크 +
+누적 구독 증가 +
+구독자 권한 획득 +
+
+첫결제일 경우 +
+- 회원 첫결제 여부 true로 변환 +
+- 추천한 친구 적립금, 적립금 내역 추가 +
+- sms,이메일 수신 동의 true 일 경우 적립금 추가, 적립금 내역 추가 +
+
+ㅁ배송ㅁ +
+배송상태 : BEFORE_PAYMENT +
+
+ㅁ 카드 정보 저장 +
+카드정보 조회 api 이용 +
+
+ㅁ구독ㅁ +
+구독회차 증가 +
+구독 상태 : SUBSCRIBING +
+카드 추가 +
+다음 배송일 설정 +
+다음결제일 계산해서 설정(FULL : 14일 후/ HALF,TOPPING : 28일 후) +
+
+ㅁ 다음 회차 주문 생성 ㅁ +
+다음회차 배송 : BEFORE_PAYMENT, 다음 배송예정일 계산 +
+주문 상태 : RESERVED_PAYMENT +
+예약주문 merchantUid -> subscribe에 추가 +
+
+다음 결제 예약 api +
+
+결제 성공 알림톡 전송 +
 
 operation::success_subscribeOrder[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 

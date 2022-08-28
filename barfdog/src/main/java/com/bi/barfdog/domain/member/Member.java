@@ -168,11 +168,11 @@ public class Member extends BaseTimeEntity {
 
     public void subscribeOrderSuccess(Order order) {
         accumulatedAmount += order.getPaymentPrice();
-        isSubscribe = true;
-        accumulatedSubscribe++;
         if (order.isBrochure()) {
             isBrochure = true;
         }
+        accumulatedSubscribe++;
+        isSubscribe = true;
         roles = "USER,SUBSCRIBER";
     }
 
