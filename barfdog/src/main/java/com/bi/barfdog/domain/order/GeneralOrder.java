@@ -31,6 +31,12 @@ public class GeneralOrder extends Order{
         this.orderItemList = new ArrayList<>();
     }
 
+    public void setCancelRequestDate() {
+        orderCancel = OrderCancel.builder()
+                .cancelRequestDate(LocalDateTime.now())
+                .build();
+    }
+
     public GeneralOrder(List<OrderItem> orderItemList) {
         this.orderItemList = orderItemList;
     }

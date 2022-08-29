@@ -223,7 +223,7 @@ public class SubscribeRepositoryImpl implements SubscribeRepositoryCustom{
     }
 
     @Override
-    public Long findSubscribingListByMember(Member user) {
+    public Long findSubscribingCountByMember(Member user) {
         return queryFactory
                 .select(subscribe.count())
                 .from(subscribe)

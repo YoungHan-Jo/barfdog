@@ -1358,7 +1358,7 @@ public class OrderAdminControllerTest extends BaseTest {
         }
     }
 
-    @Ignore
+
     @Test
     @DisplayName("구독 주문 관리자 판매 취소")
     public void orderCancelSubscribes() throws Exception {
@@ -1448,22 +1448,19 @@ public class OrderAdminControllerTest extends BaseTest {
 
         for (Long orderId : orderIdList) {
             SubscribeOrder findOrder = (SubscribeOrder) orderRepository.findById(orderId).get();
-            assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCEL_DONE_SELLER);
+            assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.SELLING_CANCEL);
             assertThat(findOrder.getOrderCancel().getCancelReason()).isEqualTo(reason);
             assertThat(findOrder.getOrderCancel().getCancelDetailReason()).isEqualTo(detailReason);
             assertThat(findOrder.getOrderCancel().getCancelConfirmDate()).isNotNull();
             assertThat(findOrder.getDelivery().getStatus()).isEqualTo(DeliveryStatus.DELIVERY_CANCEL);
 
             Subscribe subscribe = findOrder.getSubscribe();
-            assertThat(subscribe.getStatus()).isEqualTo(SubscribeStatus.SUBSCRIBE_PENDING);
+            assertThat(subscribe.getStatus()).isEqualTo(SubscribeStatus.BEFORE_PAYMENT);
 
             String nextOrderMerchantUid = subscribe.getNextOrderMerchantUid();
-            SubscribeOrder nextOrder = orderRepository.findByMerchantUid(nextOrderMerchantUid).get();
-            assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCEL_DONE_SELLER);
-            assertThat(nextOrder.getDelivery().getStatus()).isEqualTo(DeliveryStatus.DELIVERY_CANCEL);
-            assertThat(nextOrder.getOrderCancel().getCancelReason()).isEqualTo(reason);
-            assertThat(nextOrder.getOrderCancel().getCancelDetailReason()).isEqualTo(detailReason);
-            assertThat(nextOrder.getOrderCancel().getCancelConfirmDate()).isNotNull();
+            Optional<SubscribeOrder> optionalSubscribeOrder = orderRepository.findByMerchantUid(nextOrderMerchantUid);
+            assertThat(optionalSubscribeOrder.isPresent()).isFalse();
+
         }
 
         Subscribe findSubscribeMember = subscribeRepository.findById(subscribeMember.getId()).get();

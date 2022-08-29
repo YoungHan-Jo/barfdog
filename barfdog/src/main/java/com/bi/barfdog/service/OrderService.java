@@ -145,7 +145,7 @@ public class OrderService {
     public OrderResponseDto orderGeneralOrder(Long id, GeneralOrderRequestDto requestDto) {
         Member member = memberRepository.findById(id).get();
         member.generalOrder(requestDto);
-        saveRewardHistory(member, requestDto.getDiscountReward());
+        saveUsedRewardHistory(member, requestDto.getDiscountReward());
 
         Delivery delivery = getDelivery(requestDto);
 
@@ -300,7 +300,7 @@ public class OrderService {
         Member member = memberRepository.findById(memberId).get();
         member.subscribeOrder(requestDto);
 
-        saveRewardHistory(member, requestDto.getDiscountReward());
+        saveUsedRewardHistory(member, requestDto.getDiscountReward());
 
         Long memberCouponId = requestDto.getMemberCouponId();
         MemberCoupon memberCoupon = useCoupon(memberCouponId);
@@ -355,16 +355,6 @@ public class OrderService {
         return merchantUid;
     }
 
-    private void saveRewardHistory(Member member, SubscribeOrderRequestDto requestDto) {
-        Reward reward = Reward.builder()
-                .member(member)
-                .name(RewardName.USE_ORDER)
-                .rewardType(RewardType.ORDER)
-                .rewardStatus(RewardStatus.USED)
-                .tradeReward(requestDto.getDiscountReward())
-                .build();
-        rewardRepository.save(reward);
-    }
 
     private Delivery saveDelivery(SubscribeOrderRequestDto requestDto) {
         Recipient recipient = Recipient.builder()
@@ -590,7 +580,7 @@ public class OrderService {
     }
 
 
-    private void saveRewardHistory(Member member, int tradeReward) {
+    private void saveUsedRewardHistory(Member member, int tradeReward) {
         Reward reward = Reward.builder()
                 .member(member)
                 .name(RewardName.USE_ORDER)
@@ -607,9 +597,9 @@ public class OrderService {
         GeneralOrder order = (GeneralOrder) orderRepository.findById(orderId).get();
 
         member.generalOrderFail(order.getDiscountReward());
-        saveRewardHistory(member, order);
+        saveFailedOrderRewardHistory(member, order);
 
-        order.failGeneral();
+        order.failPayment();
 
         List<OrderItem> orderItemList = orderItemRepository.findAllByGeneralOrder(order);
         for (OrderItem orderItem : orderItemList) {
@@ -625,7 +615,7 @@ public class OrderService {
 
     }
 
-    private void saveRewardHistory(Member member, GeneralOrder order) {
+    private void saveFailedOrderRewardHistory(Member member, Order order) {
         Reward reward = Reward.builder()
                 .member(member)
                 .name(RewardName.FAILED_ORDER)
@@ -764,7 +754,7 @@ public class OrderService {
         return deliveryRepository.save(nextDelivery);
     }
 
-    private void saveRewardHistory(Member member, SubscribeOrder order) {
+    private void saveRewardHistory(Member member, Order order) {
         Reward reward = Reward.builder()
                 .member(member)
                 .name(RewardName.USE_ORDER)
@@ -788,30 +778,21 @@ public class OrderService {
 
     @Transactional
     public void failSubscribeOrder(Long id, Long memberId) {
-        Member member = memberRepository.findById(memberId).get();
         SubscribeOrder order = (SubscribeOrder) orderRepository.findById(id).get();
-        order.failSubscribe();
-        Subscribe subscribe = order.getSubscribe();
-        subscribe.failPayment();
-
-        MemberCoupon memberCoupon = order.getMemberCoupon();
-        memberCoupon.revivalCoupon();
+        Member member = memberRepository.findById(memberId).get();
 
         member.subscribeOrderFail(order);
-    }
+        saveFailedOrderRewardHistory(member, order);
 
-//    취소 요청 상품단위
-//    @Transactional
-//    public void cancelRequest(Long id) {
-//        GeneralOrder order = (GeneralOrder) orderRepository.findById(id).get();
-//        order.cancelRequest();
-//
-//        List<OrderItem> orderItems = orderItemRepository.findAllByGeneralOrder(order);
-//        for (OrderItem orderItem : orderItems) {
-//            orderItem.cancelRequest();
-//        }
-//
-//    }
+        order.getMemberCoupon();
+
+        MemberCoupon memberCoupon = order.getMemberCoupon();
+        if (memberCoupon != null) {
+            memberCoupon.revivalCoupon();
+        }
+
+        order.failPayment();
+    }
 
     @Transactional
     public void cancelRequestSubscribe(Long id) {
@@ -819,19 +800,16 @@ public class OrderService {
         OrderStatus status = order.getOrderStatus();
         if (status == OrderStatus.PAYMENT_DONE) {
             // 즉시 카드 취소
-            paymentCancelSubscribeOrder(order, OrderStatus.CANCEL_DONE_BUYER);
+            cancelSubscribeOrderNow(order, null, null,OrderStatus.CANCEL_DONE_BUYER);
 
         } else if (status == OrderStatus.PRODUCING || status == OrderStatus.DELIVERY_READY) {
             // 취소 요청
             order.cancelRequest();
-            order.cancelRequestSubscribeDate();
+            order.setCancelRequestDate();
         }
     }
 
-    private boolean isSubscriber(Member member) {
-        Long count = subscribeRepository.findSubscribingListByMember(member);
-        return count > 0L;
-    }
+
 
     //    취소(요청) 주문 단위
     @Transactional
@@ -847,8 +825,9 @@ public class OrderService {
             // 취소 요청
             List<OrderItem> orderItems = orderItemRepository.findAllByGeneralOrder(order);
             order.cancelRequest();
+            order.setCancelRequestDate();
             for (OrderItem orderItem : orderItems) {
-                orderItem.cancelRequest();
+                orderItem.cancelRequestDate();
             }
         }
     }
@@ -1017,7 +996,7 @@ public class OrderService {
 
 
     @Transactional
-    public void cancelConfirmGeneral(CancelConfirmGeneralDto requestDto) {
+    public void cancelRequestConfirmGeneral(CancelConfirmGeneralDto requestDto) {
         List<Long> orderIdList = requestDto.getOrderIdList();
         for (Long orderId : orderIdList) {
             Optional<Order> optionalOrder = orderRepository.findById(orderId);
@@ -1076,61 +1055,67 @@ public class OrderService {
     }
 
     @Transactional
-    public void cancelConfirmSubscribe(CancelConfirmSubscribeDto requestDto) {
+    public void cancelRequestConfirmSubscribe(CancelConfirmSubscribeDto requestDto) {
         List<Long> orderIdList = requestDto.getOrderIdList();
         for (Long orderId : orderIdList) {
 
-            Order findOrder = orderRepository.findById(orderId).get();
+            Optional<Order> optionalOrder = orderRepository.findById(orderId);
+            if (!optionalOrder.isPresent()) continue;
 
+            Order findOrder = optionalOrder.get();
             if (findOrder instanceof GeneralOrder) continue;
 
             SubscribeOrder order = (SubscribeOrder) findOrder;
-
             // 즉시 카드 취소
-            paymentCancelSubscribeOrder(order, OrderStatus.CANCEL_DONE_BUYER);
+            cancelSubscribeOrderNow(order,null,null, OrderStatus.CANCEL_DONE_BUYER);
         }
     }
 
-    private void paymentCancelSubscribeOrder(SubscribeOrder order, OrderStatus orderStatus) {
+    private void cancelSubscribeOrderNow(SubscribeOrder order,String reason, String detailReason, OrderStatus orderStatus) {
         Member member = order.getMember();
+        Subscribe subscribe = order.getSubscribe();
+
         String merchantUid = order.getMerchantUid();
         CancelData cancelData = new CancelData(merchantUid, false);
+
 
         try {
             client.cancelPaymentByImpUid(cancelData);
 
-            order.cancelOrderAndDelivery(orderStatus);
-            order.subscribePaymentCancel();
             member.cancelSubscribePayment(order);
+            saveCancelOrderRewardHistory(order, member);
 
-            revivalCancelOrderReward(order, member);
+            order.cancelOrderAndDelivery(orderStatus);
+            order.setCancelOrderInfo(reason,detailReason);
+
             revivalCoupon(order);
-            Subscribe subscribe = order.getSubscribe();
 
             // 예약 취소
             String nextOrderMerchantUid = subscribe.getNextOrderMerchantUid();
             Optional<SubscribeOrder> optionalSubscribeOrder = orderRepository.findByMerchantUid(nextOrderMerchantUid);
+            Card card = subscribe.getCard();
             if (optionalSubscribeOrder.isPresent()) {
-                SubscribeOrder nextOrder = optionalSubscribeOrder.get();
-                nextOrder.cancelOrderAndDelivery(orderStatus);
-                nextOrder.subscribePaymentCancel();
-                revivalCancelOrderReward(nextOrder, member);
-                revivalCoupon(nextOrder);
-
-                String customerUid = subscribe.getCard().getCustomerUid();
+                SubscribeOrder reservedOrder = optionalSubscribeOrder.get();
+                String customerUid = card.getCustomerUid();
                 UnscheduleData unscheduleData = new UnscheduleData(customerUid);
-                unscheduleData.addMerchantUid(nextOrder.getMerchantUid());
+                unscheduleData.addMerchantUid(reservedOrder.getMerchantUid());
                 client.unsubscribeSchedule(unscheduleData);
 
+                revivalCoupon(reservedOrder);
+
+                Delivery reservedDelivery = reservedOrder.getDelivery();
+                deliveryRepository.delete(reservedDelivery);
+
+                orderRepository.delete(reservedOrder);
             }
 
             subscribe.cancelPayment();
+            cardRepository.delete(card);
 
-            if (!isSubscriber(member)) {
+            if (isSubscriber(member)) {
                 member.stopSubscriber();
             }
 
-            // TODO: 2022-07-28 구독주문 결제 취소알림 on/off
             DirectSendUtils.sendSubscribeOrderCancelAlim(order);
 
         }catch (IamportResponseException e) {
@@ -1138,6 +1123,11 @@ public class OrderService {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private boolean isSubscriber(Member member) {
+        Long count = subscribeRepository.findSubscribingCountByMember(member);
+        return !count.equals(0L);
     }
 
     private void revivalCoupon(SubscribeOrder order) {
@@ -1156,7 +1146,7 @@ public class OrderService {
     }
 
     @Transactional
-    public void orderCancelGeneral(OrderCancelGeneralDto requestDto) {
+    public void sellingCancelGeneral(OrderCancelGeneralDto requestDto) {
         List<Long> orderItemIdList = requestDto.getOrderItemIdList();
         String reason = requestDto.getReason();
         String detailReason = requestDto.getDetailReason();
@@ -1189,7 +1179,7 @@ public class OrderService {
     }
 
     @Transactional
-    public void orderCancelSubscribe(OrderCancelSubscribeDto requestDto) {
+    public void sellingCancelSubscribe(OrderCancelSubscribeDto requestDto) {
         String reason = requestDto.getReason();
         String detailReason = requestDto.getDetailReason();
         List<Long> orderIdList = requestDto.getOrderIdList();
@@ -1203,16 +1193,7 @@ public class OrderService {
 
             SubscribeOrder subscribeOrder = (SubscribeOrder) order;
 
-            paymentCancelSubscribeOrder(subscribeOrder, OrderStatus.CANCEL_DONE_SELLER);
-
-            subscribeOrder.cancelReason(reason, detailReason);
-
-            Subscribe subscribe = subscribeOrder.getSubscribe();
-            String nextOrderMerchantUid = subscribe.getNextOrderMerchantUid();
-            Optional<SubscribeOrder> optionalNextOrder = orderRepository.findByMerchantUid(nextOrderMerchantUid);
-            if (!optionalNextOrder.isPresent()) continue;
-            SubscribeOrder nextOrder = optionalNextOrder.get();
-            nextOrder.cancelReason(reason,detailReason);
+            cancelSubscribeOrderNow(subscribeOrder, reason,detailReason,OrderStatus.SELLING_CANCEL);
         }
     }
 

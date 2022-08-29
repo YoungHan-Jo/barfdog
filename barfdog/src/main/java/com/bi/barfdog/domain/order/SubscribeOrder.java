@@ -27,7 +27,7 @@ public class SubscribeOrder extends Order{
     @JoinColumn(name = "subscribe_id")
     private Subscribe subscribe;
 
-    @OneToOne(fetch = LAZY)
+    @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "member_coupon_id")
     private MemberCoupon memberCoupon;
 
@@ -48,6 +48,16 @@ public class SubscribeOrder extends Order{
         this.subscribe = subscribe;
     }
 
+    public void setCancelOrderInfo(String reason, String detailReason) {
+        LocalDateTime now = LocalDateTime.now();
+        orderCancel = OrderCancel.builder()
+                .cancelReason(reason)
+                .cancelDetailReason(detailReason)
+                .cancelRequestDate(orderCancel != null ? orderCancel.getCancelRequestDate() : now)
+                .cancelConfirmDate(now)
+                .build();
+    }
+
     public void cancelReason(String reason, String detailReason) {
         orderCancel = OrderCancel.builder()
                 .cancelReason(reason)
@@ -66,7 +76,7 @@ public class SubscribeOrder extends Order{
                 .build();
     }
 
-    public void cancelRequestSubscribeDate() {
+    public void setCancelRequestDate() {
         orderCancel = OrderCancel.builder()
                 .cancelRequestDate(LocalDateTime.now())
                 .build();

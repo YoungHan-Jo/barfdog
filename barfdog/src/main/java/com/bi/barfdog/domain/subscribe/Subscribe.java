@@ -151,11 +151,7 @@ public class Subscribe extends BaseTimeEntity {
         return nextDeliveryDate;
     }
 
-    public void failPayment() {
-        status = SubscribeStatus.BEFORE_PAYMENT;
-        nextDeliveryDate = null;
-        nextPaymentDate = null;
-    }
+
 
     public void useCoupon(MemberCoupon memberCoupon, int discount) {
         if (this.memberCoupon != null) {
@@ -255,19 +251,19 @@ public class Subscribe extends BaseTimeEntity {
     }
 
     public void cancelPayment() {
-        this.discountCoupon = 0;
         if (this.subscribeCount > 0) {
             this.subscribeCount--;
         }
-        this.nextPaymentDate = null;
+        this.status = SubscribeStatus.BEFORE_PAYMENT;
+        this.card = null;
         this.nextDeliveryDate = null;
-        this.nextPaymentPrice = 0;
-        this.status = SubscribeStatus.SUBSCRIBE_PENDING;
+        this.nextPaymentDate = null;
+        this.nextOrderMerchantUid = null;
+
+        this.discountCoupon = 0;
+        memberCoupon = null;
         this.countSkipOneTime = 0;
         this.countSkipOneWeek = 0;
-        if (this.memberCoupon != null) {
-            memberCoupon.revivalCoupon();
-        }
     }
 
     private String getReasons(List<String> reasonList) {

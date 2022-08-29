@@ -165,7 +165,7 @@ public class OrderAdminController {
     @PostMapping("/general/cancelConfirm")
     public ResponseEntity cancelConfirmGeneral(@RequestBody CancelConfirmGeneralDto requestDto) {
 
-        orderService.cancelConfirmGeneral(requestDto);
+        orderService.cancelRequestConfirmGeneral(requestDto);
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(OrderAdminController.class).slash("general/cancelConfirm").withSelfRel());
@@ -178,7 +178,7 @@ public class OrderAdminController {
     @PostMapping("/subscribe/cancelConfirm")
     public ResponseEntity cancelConfirmSubscribe(@RequestBody CancelConfirmSubscribeDto requestDto) {
 
-        orderService.cancelConfirmSubscribe(requestDto);
+        orderService.cancelRequestConfirmSubscribe(requestDto);
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(OrderAdminController.class).slash("subscribe/cancelConfirm").withSelfRel());
@@ -191,7 +191,7 @@ public class OrderAdminController {
     @PostMapping("/general/orderCancel")
     public ResponseEntity orderCancelGeneral(@RequestBody OrderCancelGeneralDto requestDto) {
 
-        orderService.orderCancelGeneral(requestDto);
+        orderService.sellingCancelGeneral(requestDto);
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(OrderAdminController.class).slash("general/orderCancel").withSelfRel());
@@ -204,7 +204,7 @@ public class OrderAdminController {
     @PostMapping("/subscribe/orderCancel")
     public ResponseEntity orderCancelGeneral(@RequestBody OrderCancelSubscribeDto requestDto) {
 
-        orderService.orderCancelSubscribe(requestDto);
+        orderService.sellingCancelSubscribe(requestDto);
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(OrderAdminController.class).slash("subscribe/orderCancel").withSelfRel());

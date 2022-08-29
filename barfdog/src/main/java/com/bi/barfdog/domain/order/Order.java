@@ -69,7 +69,7 @@ public abstract class Order extends BaseTimeEntity {
         this.paymentDate = LocalDateTime.now();
     }
 
-    public void failGeneral() {
+    public void failPayment() {
         orderStatus = OrderStatus.FAILED;
         if (isPackage) {
             delivery = null;
@@ -85,9 +85,6 @@ public abstract class Order extends BaseTimeEntity {
         paymentDate = LocalDateTime.now();
     }
 
-    public void failSubscribe() {
-        orderStatus = OrderStatus.FAILED;
-    }
 
     public void cancelRequest() {
         orderStatus = OrderStatus.CANCEL_REQUEST;
@@ -102,6 +99,7 @@ public abstract class Order extends BaseTimeEntity {
             delivery.cancel();
         }
     }
+
 
     public void generalConfirm() {
         orderStatus = OrderStatus.CONFIRM;

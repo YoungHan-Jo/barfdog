@@ -200,11 +200,18 @@ public class Member extends BaseTimeEntity {
     }
 
     public void cancelSubscribePayment(SubscribeOrder order) {
+        int paymentPrice = order.getPaymentPrice();
+
+        decreaseAccumulatedSubscribe();
+        decreaseAccumulatedAmount(paymentPrice);
+
+        chargeReward(order.getDiscountReward());
+    }
+
+    private void decreaseAccumulatedSubscribe() {
         if (accumulatedSubscribe > 0) {
             accumulatedSubscribe--;
         }
-        int paymentPrice = order.getPaymentPrice();
-        decreaseAccumulatedAmount(paymentPrice);
     }
 
     public void cancelGeneralPayment(GeneralOrder order) {
@@ -224,8 +231,8 @@ public class Member extends BaseTimeEntity {
     public void stopSubscriber() {
         if (!roles.contains("ADMIN")) {
             roles = "USER";
+            isSubscribe = false;
         }
-        isSubscribe = false;
     }
 
     public void firstPayment() {

@@ -33,7 +33,7 @@ public class OrderItem extends BaseTimeEntity {
     private int salePrice; // 판매가격
     private int amount; // 개수
 
-    @OneToOne(fetch = LAZY)
+    @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "member_coupon_id")
     private MemberCoupon memberCoupon; // 사용 쿠폰
 
@@ -77,7 +77,7 @@ public class OrderItem extends BaseTimeEntity {
         revivalCoupon();
     }
 
-    public void cancelRequest() {
+    public void cancelRequestDate() {
         status = OrderStatus.CANCEL_REQUEST;
         orderCancel = OrderCancel.builder()
                 .cancelRequestDate(LocalDateTime.now())

@@ -28,5 +28,6 @@ public interface SubscribeRepositoryCustom {
 
     List<Subscribe> findTomorrowPayment();
 
-    Long findSubscribingListByMember(Member member);
+    Long findSubscribingCountByMember(Member member);
+
 }
