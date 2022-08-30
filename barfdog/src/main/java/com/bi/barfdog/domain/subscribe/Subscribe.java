@@ -6,6 +6,7 @@ import com.bi.barfdog.api.subscribeDto.UpdateSubscribeDto;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.coupon.Coupon;
 import com.bi.barfdog.domain.coupon.DiscountType;
+import com.bi.barfdog.domain.delivery.Delivery;
 import com.bi.barfdog.domain.dog.Dog;
 import com.bi.barfdog.domain.member.Card;
 import com.bi.barfdog.domain.member.Grade;
@@ -133,8 +134,13 @@ public class Subscribe extends BaseTimeEntity {
         this.subscribeCount++;
         this.status = SubscribeStatus.SUBSCRIBING;
         this.card = card;
-        this.nextDeliveryDate = order.getDelivery().getNextDeliveryDate();
-        this.nextPaymentDate = calculateNextPaymentDate(LocalDateTime.now());
+        Delivery delivery = order.getDelivery();
+        this.nextDeliveryDate = calculateNextDeliveryDate(delivery, this.plan);
+        this.nextPaymentDate = calculateNextPaymentDate(order.getPaymentDate());
+    }
+
+    private LocalDate calculateNextDeliveryDate(Delivery delivery, SubscribePlan plan) {
+        return delivery.getNextDeliveryDate().plusDays(plan == SubscribePlan.FULL ? 14 : 28);
     }
 
     private LocalDate calculateNextDeliveryDate() {
@@ -153,12 +159,12 @@ public class Subscribe extends BaseTimeEntity {
 
 
 
-    public void useCoupon(MemberCoupon memberCoupon, int discount) {
+    public void changeCoupon(MemberCoupon memberCoupon, int discountCoupon) {
         if (this.memberCoupon != null) {
             this.memberCoupon.revivalCoupon();
         }
         this.memberCoupon = memberCoupon;
-        this.discountCoupon = discount;
+        this.discountCoupon = discountCoupon;
         memberCoupon.useCoupon();
     }
 

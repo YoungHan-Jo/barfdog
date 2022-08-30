@@ -113,7 +113,7 @@ public class SubscribeApiController {
         Optional<Subscribe> optionalSubscribe = subscribeRepository.findById(id);
         if (!optionalSubscribe.isPresent()) return notFound();
 
-        subscribeService.useCoupon(id,requestDto);
+        subscribeService.changeCoupon(id,requestDto);
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(SubscribeApiController.class).slash(id).slash("coupon").withSelfRel());

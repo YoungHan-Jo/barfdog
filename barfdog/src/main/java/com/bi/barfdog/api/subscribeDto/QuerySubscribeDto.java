@@ -35,17 +35,20 @@ public class QuerySubscribeDto {
     @NoArgsConstructor
     public static class SubscribeDto{
         private Long id;
+        private Long dogId;
         private String dogName;
         private int subscribeCount;
         private SubscribePlan plan; // [FULL, HALF, TOPPING]
         private BigDecimal oneMealRecommendGram;
         private LocalDateTime nextPaymentDate;
+        private int countSkipOneTime;
+        private int countSkipOneWeek;
         private int nextPaymentPrice;
+        private int discountCoupon;
+        private int discountGrade;
         private LocalDate nextDeliveryDate;
         private Long usingMemberCouponId;
         private String couponName;
-        private int discountCoupon;
-        private int discountGrade;
     }
 
     @Data

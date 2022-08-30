@@ -159,11 +159,14 @@ public class SubscribeRepositoryImpl implements SubscribeRepositoryCustom{
                 .select(Projections.constructor(QuerySubscribesDto.SubscribeDto.class,
                         subscribe.id,
                         dogPicture.filename,
-                        subscribe.countSkipOneTime,
-                        dog.name,
                         subscribe.plan,
+                        dog.name,
+                        subscribe.countSkipOneTime,
+                        subscribe.countSkipOneWeek,
                         subscribe.nextPaymentDate,
-                        subscribe.nextPaymentPrice
+                        subscribe.nextPaymentPrice,
+                        subscribe.discountCoupon,
+                        subscribe.discountGrade
                 ))
                 .from(subscribe)
                 .join(subscribe.dog, dog)
@@ -238,18 +241,20 @@ public class SubscribeRepositoryImpl implements SubscribeRepositoryCustom{
         QuerySubscribeDto.SubscribeDto subscribeDto = queryFactory
                 .select(Projections.constructor(QuerySubscribeDto.SubscribeDto.class,
                         subscribe.id,
+                        dog.id,
                         dog.name,
-                        subscribe.countSkipOneTime,
+                        subscribe.subscribeCount,
                         subscribe.plan,
                         surveyReport.foodAnalysis.oneMealRecommendGram,
                         subscribe.nextPaymentDate,
+                        subscribe.countSkipOneTime,
+                        subscribe.countSkipOneWeek,
                         subscribe.nextPaymentPrice,
+                        subscribe.discountCoupon,
+                        subscribe.discountGrade,
                         subscribe.nextDeliveryDate,
                         memberCoupon.id,
-                        coupon.name,
-                        subscribe.discountCoupon,
-                        subscribe.discountGrade
-
+                        coupon.name
                 ))
                 .from(subscribe)
                 .join(subscribe.dog, dog)

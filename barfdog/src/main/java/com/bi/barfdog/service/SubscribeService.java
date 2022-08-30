@@ -53,12 +53,13 @@ public class SubscribeService {
 
 
     @Transactional
-    public void useCoupon(Long id, UseCouponDto requestDto) {
+    public void changeCoupon(Long id, UseCouponDto requestDto) {
         Subscribe subscribe = subscribeRepository.findById(id).get();
+
         Long memberCouponId = requestDto.getMemberCouponId();
         MemberCoupon memberCoupon = memberCouponRepository.findById(memberCouponId).get();
-        int discount = requestDto.getDiscount();
-        subscribe.useCoupon(memberCoupon, discount);
+        int discountCoupon = requestDto.getDiscount();
+        subscribe.changeCoupon(memberCoupon, discountCoupon);
 
         unscheduleAndNewSchedule(subscribe);
 
@@ -151,9 +152,12 @@ public class SubscribeService {
         sleepThread(500);
 
         Date nextPaymentDate = java.sql.Timestamp.valueOf(subscribe.getNextPaymentDate());
-        int nextPaymentPrice = subscribe.getNextPaymentPrice() - subscribe.getDiscountCoupon();
+        int nextPaymentPrice = subscribe.getNextPaymentPrice();
+        int discountCoupon = subscribe.getDiscountCoupon();
+        int discountGrade = subscribe.getDiscountGrade();
+        int finalPrice = nextPaymentPrice - (discountCoupon + discountGrade);
         ScheduleData scheduleData = new ScheduleData(customerUid);
-        scheduleData.addSchedule(new ScheduleEntry(merchant_uid, nextPaymentDate, BigDecimal.valueOf(nextPaymentPrice)));
+        scheduleData.addSchedule(new ScheduleEntry(merchant_uid, nextPaymentDate, BigDecimal.valueOf(finalPrice)));
 
         try {
             client.subscribeSchedule(scheduleData);

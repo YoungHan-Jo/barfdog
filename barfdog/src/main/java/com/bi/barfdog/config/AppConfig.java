@@ -202,7 +202,6 @@ public class AppConfig {
                 generateCouponAuto(BARF_COUPON,"더바프 쿠폰", DiscountType.FLAT_RATE,4000,50000, CouponTarget.ALL);
 
 
-
                 // =================================
                 // ====== 최초 필요한 데이터 끝 =======
                 // =================================

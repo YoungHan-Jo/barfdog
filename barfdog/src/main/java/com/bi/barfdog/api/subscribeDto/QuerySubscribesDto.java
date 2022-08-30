@@ -28,11 +28,14 @@ public class QuerySubscribesDto {
     public static class SubscribeDto{
         private Long subscribeId;
         private String pictureUrl;
-        private int skipCount;
-        private String dogName;
         private SubscribePlan plan;
+        private String dogName;
+        private int countSkipOneTime;
+        private int countSkipOneWeek;
         private LocalDateTime nextPaymentDate;
         private int nextPaymentPrice;
+        private int discountCoupon;
+        private int discountGrade;
 
         public void changeUrl(String filename) {
             if (filename != null) {

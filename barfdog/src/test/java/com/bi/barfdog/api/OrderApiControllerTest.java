@@ -1743,6 +1743,7 @@ public class OrderApiControllerTest extends BaseTest {
                         .detailAddress(member.getAddress().getDetailAddress())
                         .build())
                 .status(DeliveryStatus.BEFORE_PAYMENT)
+                .nextDeliveryDate(nextDeliveryDate)
                 .request("안전배송 부탁드립니다.")
                 .build();
         deliveryRepository.save(delivery);
@@ -1842,32 +1843,25 @@ public class OrderApiControllerTest extends BaseTest {
         assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.PAYMENT_DONE);
 
         Delivery findDelivery = findOrder.getDelivery();
-        assertThat(findDelivery.getNextDeliveryDate()).isEqualTo(calculateFirstDeliveryDate());
+        assertThat(findDelivery.getNextDeliveryDate()).isEqualTo(nextDeliveryDate);
 
         Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
         assertThat(findSubscribe.getCard().getId()).isEqualTo(card.getId());
         assertThat(findSubscribe.getSubscribeCount()).isEqualTo(subscribeCount + 1);
         assertThat(findSubscribe.getStatus()).isEqualTo(SubscribeStatus.SUBSCRIBING);
         if (findSubscribe.getPlan() == SubscribePlan.FULL) {
-            assertThat(findSubscribe.getNextPaymentDate()).isEqualTo(findOrder.getPaymentDate().plusDays(14));
+            assertThat(findSubscribe.getNextPaymentDate()).isEqualTo(subscribeOrder.getPaymentDate().plusDays(14));
         } else {
-            assertThat(findSubscribe.getNextPaymentDate()).isEqualTo(findOrder.getPaymentDate().plusDays(28));
+            assertThat(findSubscribe.getNextPaymentDate()).isEqualTo(subscribeOrder.getPaymentDate().plusDays(28));
         }
-        assertThat(findSubscribe.getNextDeliveryDate()).isEqualTo(calculateFirstDeliveryDate());
-
-        Reward findReward = rewardRepository.findAll().get(0);
-        assertThat(findReward.getMember().getId()).isEqualTo(findMember.getId());
-        assertThat(findReward.getName()).isEqualTo(RewardName.USE_ORDER);
-        assertThat(findReward.getRewardType()).isEqualTo(RewardType.ORDER);
-        assertThat(findReward.getRewardStatus()).isEqualTo(RewardStatus.USED);
-        assertThat(findReward.getTradeReward()).isEqualTo(discountReward);
+        assertThat(findSubscribe.getNextDeliveryDate()).isEqualTo(nextDeliveryDate.plusDays(findSubscribe.getPlan() == SubscribePlan.FULL ? 14 : 28));
 
         // 다음 회차 예약 주문 생성 확인
         Optional<SubscribeOrder> optionalSubscribeOrder = orderRepository.findByMerchantUid(findSubscribe.getNextOrderMerchantUid());
         assertThat(optionalSubscribeOrder.isPresent()).isTrue();
         if (optionalSubscribeOrder.isPresent()) {
             SubscribeOrder nextOrder = optionalSubscribeOrder.get();
-            assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.BEFORE_PAYMENT);
+            assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.RESERVED_PAYMENT);
             Delivery nextDelivery = nextOrder.getDelivery();
             SubscribePlan plan = nextOrder.getSubscribe().getPlan();
             if (plan == SubscribePlan.FULL) {
