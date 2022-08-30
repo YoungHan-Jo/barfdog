@@ -313,6 +313,7 @@ public class DeliveryAdminControllerTest extends BaseTest {
         }
     }
 
+
     @Ignore
     @Test
     @DisplayName("운송장 번호 발급")
@@ -321,10 +322,9 @@ public class DeliveryAdminControllerTest extends BaseTest {
 
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-
         List<UpdateDeliveryNumberDto.DeliveryNumberDto> deliveryNumberDtoList = new ArrayList<>();
 
-        IntStream.range(1,3).forEach(i -> {
+        IntStream.range(1,2).forEach(i -> {
             Delivery delivery = generateDelivery(member, i, "transUniqueCd" + i);
             SubscribeOrder subscribeOrder = generateSubscribeOrder(member, i, OrderStatus.PRODUCING,delivery);
             GeneralOrder generalOrder = generateGeneralOrder(member, i, OrderStatus.DELIVERY_READY, delivery);
@@ -335,7 +335,7 @@ public class DeliveryAdminControllerTest extends BaseTest {
             deliveryNumberDtoList.add(deliveryNumberDto);
         });
 
-        IntStream.range(3,5).forEach(i -> {
+        IntStream.range(2,3).forEach(i -> {
             Delivery delivery = generateDelivery(member, i, "transUniqueCd" + i);
             GeneralOrder generalOrder = generateGeneralOrder(member, i, OrderStatus.DELIVERY_READY, delivery);
             UpdateDeliveryNumberDto.DeliveryNumberDto deliveryNumberDto = UpdateDeliveryNumberDto.DeliveryNumberDto.builder()

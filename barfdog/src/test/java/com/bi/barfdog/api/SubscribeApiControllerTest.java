@@ -160,6 +160,7 @@ public class SubscribeApiControllerTest extends BaseTest {
         couponRepository.deleteAll();
 
         subscribeRecipeRepository.deleteAll();
+        beforeSubscribeRepository.deleteAll();
         subscribeRepository.deleteAll();
 
     }
@@ -1233,12 +1234,12 @@ public class SubscribeApiControllerTest extends BaseTest {
         Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
         assertThat(findSubscribe.getCancelReason()).isEqualTo(aaa+","+bbb+","+ccc);
         assertThat(findSubscribe.getDiscountCoupon()).isEqualTo(0);
-        assertThat(findSubscribe.getNextPaymentPrice()).isEqualTo(0);
         assertThat(findSubscribe.getNextPaymentDate()).isNull();
-        assertThat(findSubscribe.getStatus()).isEqualTo(SubscribeStatus.SUBSCRIBE_PENDING);
+        assertThat(findSubscribe.getNextDeliveryDate()).isNull();
+        assertThat(findSubscribe.getStatus()).isEqualTo(SubscribeStatus.BEFORE_PAYMENT);
         assertThat(findSubscribe.getNextOrderMerchantUid()).isNull();
         assertThat(findSubscribe.getCountSkipOneTime()).isEqualTo(0);
-        assertThat(findSubscribe.getNextDeliveryDate()).isNull();
+        assertThat(findSubscribe.getCountSkipOneWeek()).isEqualTo(0);
 
         Optional<Order> optionalOrder = orderRepository.findById(subscribeOrder.getId());
         assertThat(optionalOrder.isPresent()).isFalse();
@@ -1337,7 +1338,7 @@ public class SubscribeApiControllerTest extends BaseTest {
 
         Subscribe subscribe = generateSubscribe(member, i);
 
-        BeforeSubscribe beforeSubscribe = generateBeforeSubscribe(i);
+        BeforeSubscribe beforeSubscribe = generateBeforeSubscribe(i,subscribe);
         subscribe.setBeforeSubscribe(beforeSubscribe);
 
         generateSubscribeRecipe(recipe1, subscribe);
@@ -1458,8 +1459,7 @@ public class SubscribeApiControllerTest extends BaseTest {
         Subscribe subscribe = generateSubscribeUseCoupon(member, i);
         MemberCoupon memberCoupon = subscribe.getMemberCoupon();
 
-        BeforeSubscribe beforeSubscribe = generateBeforeSubscribe(i);
-        subscribe.setBeforeSubscribe(beforeSubscribe);
+        generateBeforeSubscribe(i,subscribe);
 
         generateSubscribeRecipe(recipe1, subscribe);
         generateSubscribeRecipe(recipe2, subscribe);
@@ -1645,8 +1645,9 @@ public class SubscribeApiControllerTest extends BaseTest {
         return subscribeOrder;
     }
 
-    private BeforeSubscribe generateBeforeSubscribe(int i) {
+    private BeforeSubscribe generateBeforeSubscribe(int i,Subscribe subscribe) {
         BeforeSubscribe beforeSubscribe = BeforeSubscribe.builder()
+                .subscribe(subscribe)
                 .subscribeCount(i)
                 .plan(SubscribePlan.HALF)
                 .oneMealRecommendGram(BigDecimal.valueOf(140.0))

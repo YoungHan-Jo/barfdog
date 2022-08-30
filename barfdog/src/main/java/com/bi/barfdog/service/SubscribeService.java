@@ -7,6 +7,7 @@ import com.bi.barfdog.api.subscribeDto.UseCouponDto;
 import com.bi.barfdog.common.RandomString;
 import com.bi.barfdog.directsend.DirectSendUtils;
 import com.bi.barfdog.domain.delivery.Delivery;
+import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
 import com.bi.barfdog.domain.order.SubscribeOrder;
 import com.bi.barfdog.domain.recipe.Recipe;
@@ -130,12 +131,23 @@ public class SubscribeService {
         Optional<SubscribeOrder> optionalSubscribeOrder = orderRepository.findByMerchantUid(subscribe.getNextOrderMerchantUid());
         if (optionalSubscribeOrder.isPresent()) {
             SubscribeOrder order = optionalSubscribeOrder.get();
+            Member member = order.getMember();
             Delivery delivery = order.getDelivery();
             orderRepository.delete(order);
             deliveryRepository.delete(delivery);
 
             subscribe.stopSubscribe(requestDto.getReasonList());
+
+            if (isSubscriber(member)) {
+                member.stopSubscriber();
+            }
         }
+
+    }
+
+    private boolean isSubscriber(Member member) {
+        Long count = subscribeRepository.findSubscribingCountByMember(member);
+        return !count.equals(0L);
     }
 
     private void unschedule(Subscribe subscribe) {

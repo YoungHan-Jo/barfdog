@@ -2182,9 +2182,23 @@ operation::update_plan_subscribe[snippets='curl-request,path-parameters,request-
 operation::skip_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 [[resources-stop-subscribe]]
-=== 구독 취소하기
+=== 구독 중단하기
 
-`POST` 요청을 사용하여 구독을 취소 할 수 있다.
+`POST` 요청을 사용하여 다음회차부터 구독을 중단 할 수 있다. +
+
+아임포트 api 다음 예약 취소 +
+
+다음번 예약 배송 정보 삭제 +
+다음번 예약 주문 정보 삭제 +
+
+ㅁ구독ㅁ +
+취소 이유 +
+구독 상태 변경 : BEFORE_PAYMENT +
+다음 주문merchantUid 삭제 +
+다음  결제 예정일 삭제 +
+다음 배송 예정일 삭제 +
+건너뛰기 주/회 초기화 +
+쿠폰 부활 +
 
 operation::stop_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 

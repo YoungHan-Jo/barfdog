@@ -246,18 +246,19 @@ public class Subscribe extends BaseTimeEntity {
     public void stopSubscribe(List<String> reasonList) {
         String reasons = getReasons(reasonList);
         this.cancelReason = reasons;
-        this.discountCoupon = 0;
+        this.status = SubscribeStatus.BEFORE_PAYMENT;
         this.nextOrderMerchantUid = null;
         this.nextPaymentDate = null;
         this.nextDeliveryDate = null;
-        this.nextPaymentPrice = 0;
-        this.status = SubscribeStatus.SUBSCRIBE_PENDING;
         this.countSkipOneTime = 0;
         this.countSkipOneWeek = 0;
+        this.nextPaymentPrice = 0;
+        this.discountCoupon = 0;
+        this.discountGrade = 0;
         if (this.memberCoupon != null) {
             memberCoupon.revivalCoupon();
+            memberCoupon = null;
         }
-
     }
 
     public void cancelPayment() {

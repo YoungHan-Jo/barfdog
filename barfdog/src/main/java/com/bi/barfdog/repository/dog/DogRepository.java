@@ -27,5 +27,4 @@ public interface DogRepository extends JpaRepository<Dog, Long>, DogRepositoryCu
     @Query("select min(d.weight) from Dog d where d.dogSize = :dogSize")
     double findLightestWeightByDogSize(@Param("dogSize") DogSize dogSize);
 
-    Optional<Dog> findByName(String name);
 }

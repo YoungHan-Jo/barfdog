@@ -117,8 +117,8 @@ public class NoticeApiControllerTest extends BaseTest {
     }
 
 
-    @Test
     @Ignore
+    @Test
     @DisplayName("정상적으로 공지사항 하나 조회")
     public void queryNotice() throws Exception {
        //given

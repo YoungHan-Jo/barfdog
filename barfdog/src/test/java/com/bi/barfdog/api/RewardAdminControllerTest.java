@@ -357,7 +357,39 @@ public class RewardAdminControllerTest extends BaseTest {
                         .accept(MediaTypes.HAL_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andDo(document("admin_publish_rewards_group",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("admin_query_rewards").description("적립금 내역 조회 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("jwt 토큰")
+                        ),
+                        requestFields(
+                                fieldWithPath("name").description("적립금 이름"),
+                                fieldWithPath("amount").description("적립금 수량"),
+                                fieldWithPath("subscribe").description("구독 여부 true/false"),
+                                fieldWithPath("longUnconnected").description("장기 미접속 true/false"),
+                                fieldWithPath("gradeList").description("등급 리스트"),
+                                fieldWithPath("area").description("지역 [ALL, METRO, NON_METRO]"),
+                                fieldWithPath("birthYearFrom").description("태어난 년도 from"),
+                                fieldWithPath("birthYearTo").description("태어난 년도 to"),
+                                fieldWithPath("alimTalk").description("알림톡 여부 [true/false]")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.LOCATION).description("location header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.admin_query_rewards.href").description("적립금 내역 조회 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
 
         em.flush();
         em.clear();

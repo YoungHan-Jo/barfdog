@@ -175,7 +175,7 @@ public class IndexApiControllerTest extends BaseTest {
 
 
     // TODO: 2022-07-29 대쉬보드 MemoryDB -> MariaDB
-    @Ignore
+
     @Test
     @DisplayName("관리자 대시보드 조회")
     public void queryAdminDashBoard() throws Exception {
