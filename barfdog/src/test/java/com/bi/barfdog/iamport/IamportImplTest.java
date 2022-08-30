@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -190,14 +191,35 @@ public class IamportImplTest {
     }
 
     @Test
+    public void schedule() {
+        String customerUid = "customer_Uid_l6d6evqi";
+        String merchantUid = "20220823_Q8n7HQt59ILJzT9asdf";
+        Date nextPaymentDate = java.sql.Timestamp.valueOf(LocalDateTime.now().plusDays(7));
+        int nextPaymentPrice = 10000;
+        ScheduleData scheduleData = new ScheduleData(customerUid);
+        scheduleData.addSchedule(new ScheduleEntry(merchantUid, nextPaymentDate, BigDecimal.valueOf(nextPaymentPrice)));
+
+        try {
+            IamportResponse<List<Schedule>> response = client.subscribeSchedule(scheduleData);
+            System.out.println("message = " + response.getMessage());
+            System.out.println("code = " + response.getCode());
+            System.out.println("response = " + response.getResponse().toString());
+        } catch (IamportResponseException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @Test
     public void unschedule() {
         String customerUid = "customer_Uid_l6d6evqi";
-        String merchantUid = "20220823_Q8n7HQt59ILJzT9";
+        String merchantUid = "20220823_Q8n7HQt59ILJzT9asdf";
         UnscheduleData unschedule_data = new UnscheduleData(customerUid);
         unschedule_data.addMerchantUid(merchantUid);
-        IamportResponse<List<Schedule>> unschedule_response = null;
         try {
-            unschedule_response = client.unsubscribeSchedule(unschedule_data);
+            client.unsubscribeSchedule(unschedule_data);
         } catch (IamportResponseException e) {
             e.printStackTrace();
         } catch (IOException e) {

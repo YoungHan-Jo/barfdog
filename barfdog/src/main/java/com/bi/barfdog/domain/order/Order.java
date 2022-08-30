@@ -114,10 +114,6 @@ public abstract class Order extends BaseTimeEntity {
         this.orderStatus = OrderStatus.PRODUCING;
     }
 
-    public void confirmAs(OrderStatus status) {
-        orderStatus = status;
-    }
-
     public void skipDelivery(LocalDate nextDeliveryDate) {
         delivery.skip(nextDeliveryDate);
     }
@@ -142,4 +138,7 @@ public abstract class Order extends BaseTimeEntity {
         orderStatus = status;
     }
 
+    public void changeMerchantUid(String merchantUid) {
+        this.merchantUid = merchantUid;
+    }
 }

@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import java.math.BigDecimal;
 
+import static javax.persistence.FetchType.*;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter @Builder
@@ -17,6 +19,10 @@ public class BeforeSubscribe {
     @Id @GeneratedValue
     @Column(name = "before_subscribe_id")
     private Long id;
+
+    @OneToOne(fetch = LAZY)
+    @JoinColumn(name = "subscribe_id")
+    private Subscribe subscribe;
 
     private int subscribeCount;
 
@@ -29,4 +35,7 @@ public class BeforeSubscribe {
 
     private int paymentPrice; // 주문 가격
 
+    public void setSubscribe(Subscribe subscribe) {
+        this.subscribe = subscribe;
+    }
 }

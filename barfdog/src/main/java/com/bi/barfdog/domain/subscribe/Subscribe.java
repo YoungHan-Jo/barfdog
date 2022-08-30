@@ -78,9 +78,6 @@ public class Subscribe extends BaseTimeEntity {
     @Builder.Default
     private boolean writeableReview = true; // status 가 SUBSCRIBING 이고 true 일 때 리뷰 가능, 리뷰 한 번 쓰고나면 false로 전환되어 추가로 쓰기 불가
 
-    @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "before_subscribe_id")
-    private BeforeSubscribe beforeSubscribe;
 
     /*
     * 연관관계 편의 메서드
@@ -116,7 +113,7 @@ public class Subscribe extends BaseTimeEntity {
 
 
     public void setBeforeSubscribe(BeforeSubscribe beforeSubscribe) {
-        this.beforeSubscribe = beforeSubscribe;
+        beforeSubscribe.setSubscribe(this);
     }
 
 
@@ -232,11 +229,18 @@ public class Subscribe extends BaseTimeEntity {
         this.nextOrderMerchantUid = merchantUid;
     }
 
-    public LocalDate skipAndGetNextDeliveryDate(int count) {
-        nextPaymentDate = nextPaymentDate.plusDays(count * 7);
-        nextDeliveryDate = nextDeliveryDate.plusDays(count * 7);
-        countSkipOneTime++;
-        return nextDeliveryDate;
+    public void skipSubscribe(String type) {
+
+        if (type.equals("WEEK")) {
+            nextPaymentDate = nextPaymentDate.plusDays(7);
+            nextDeliveryDate = nextDeliveryDate.plusDays(7);
+            countSkipOneWeek++;
+        } else if (type.equals("ONCE")) {
+            int days = plan == SubscribePlan.FULL ? 14 : 28;
+            nextPaymentDate = nextPaymentDate.plusDays(days);
+            nextDeliveryDate = nextDeliveryDate.plusDays(days);
+            countSkipOneTime++;
+        }
     }
 
     public void stopSubscribe(List<String> reasonList) {
@@ -299,5 +303,9 @@ public class Subscribe extends BaseTimeEntity {
         nextDeliveryDate = calculateNextDeliveryDate();
         this.countSkipOneTime = 0;
         this.countSkipOneWeek = 0;
+    }
+
+    public void changeNextMerchantUid(String merchantUid) {
+        this.nextOrderMerchantUid = merchantUid;
     }
 }

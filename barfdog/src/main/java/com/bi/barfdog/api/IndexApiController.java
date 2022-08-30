@@ -337,7 +337,6 @@ public class IndexApiController {
                 .atZone(ZoneId.systemDefault())
                 .toLocalDateTime();
 
-
         return localDateTime;
     }
 
@@ -353,11 +352,11 @@ public class IndexApiController {
                 profileRootUrlBuilder.slash("index.html#resources-login-naver").withRel("profile")
         );
 
-        String resultcode = responseDto.getResultcode();
-        if (resultcode.equals(SnsResponse.NEED_TO_CONNECT_NEW_SNS_CODE)) {
+        String resultCode = responseDto.getResultcode();
+        if (resultCode.equals(SnsResponse.NEED_TO_CONNECT_NEW_SNS_CODE)) {
             entityModel.add(linkTo(IndexApiController.class).slash("api/connectSns").withRel("connect_sns"));
         }
-        if (resultcode.equals(SnsResponse.SUCCESS_CODE)) {
+        if (resultCode.equals(SnsResponse.SUCCESS_CODE)) {
             String providerId = responseDto.getResponse().getId();
             Member member = memberRepository.findByProviderAndProviderId(SnsProvider.NAVER, providerId).get();
             generateAccessToken(response, member, requestDto.getTokenValidDays());

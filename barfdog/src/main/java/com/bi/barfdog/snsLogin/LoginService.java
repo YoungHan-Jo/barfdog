@@ -39,33 +39,30 @@ public class LoginService {
         }
 
         String providerId = naverResponseDto.getResponse().getId();
-        Optional<Member> optionalMemberByProvider = memberRepository.findByProviderAndProviderId(SnsProvider.NAVER, providerId);
-        if (optionalMemberByProvider.isPresent()) {
-            return naverResponseDto.success();
-        }
+        if (isJoinedMember(naverResponseDto, providerId)) return naverResponseDto.success();
 
         String phoneNumber = naverResponseDto.getResponse().getMobile().replace("-","");
 
         Optional<Member> optionalMember = memberRepository.findByPhoneNumber(phoneNumber);
 
-        if (isNewMember(optionalMember)) {
-            return naverResponseDto.newMember();
-        }
+        if (isNewMember(optionalMember)) return naverResponseDto.newMember();
 
         Member member = optionalMember.get();
 
         String provider = member.getProvider();
-        if (isNewSns(provider)) {
-            return naverResponseDto.connectNewSns();
-        }
-        if (provider.equals(SnsProvider.KAKAO)) {
-            return naverResponseDto.kakao();
-        }
-        if (provider.equals(SnsProvider.NAVER)) {
-            return naverResponseDto.success();
-        }
+        if (isNewSns(provider)) return naverResponseDto.connectNewSns();
+        if (provider.equals(SnsProvider.KAKAO)) return naverResponseDto.kakao();
+        if (provider.equals(SnsProvider.NAVER)) return naverResponseDto.success();
 
         return naverResponseDto;
+    }
+
+    private boolean isJoinedMember(NaverResponseDto naverResponseDto, String providerId) {
+        Optional<Member> optionalMemberByProvider = memberRepository.findByProviderAndProviderId(SnsProvider.NAVER, providerId);
+        if (optionalMemberByProvider.isPresent()) {
+            return true;
+        }
+        return false;
     }
 
     private boolean isNewSns(String provider) {

@@ -4,6 +4,7 @@ import com.bi.barfdog.api.orderDto.StopSubscribeDto;
 import com.bi.barfdog.api.subscribeDto.UpdateGramDto;
 import com.bi.barfdog.api.subscribeDto.UpdatePlanDto;
 import com.bi.barfdog.api.subscribeDto.UseCouponDto;
+import com.bi.barfdog.common.RandomString;
 import com.bi.barfdog.directsend.DirectSendUtils;
 import com.bi.barfdog.domain.delivery.Delivery;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
@@ -25,6 +26,8 @@ import com.siot.IamportRestClient.exception.IamportResponseException;
 import com.siot.IamportRestClient.request.ScheduleData;
 import com.siot.IamportRestClient.request.ScheduleEntry;
 import com.siot.IamportRestClient.request.UnscheduleData;
+import com.siot.IamportRestClient.response.IamportResponse;
+import com.siot.IamportRestClient.response.Schedule;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -68,18 +72,34 @@ public class SubscribeService {
     @Transactional
     public void updateGram(Long id, UpdateGramDto requestDto) {
         Subscribe subscribe = subscribeRepository.findById(id).get();
+        changeBeforeSubscribe(subscribe);
+
         subscribe.updateGram(requestDto);
 
         unscheduleAndNewSchedule(subscribe);
     }
 
+    private void changeBeforeSubscribe(Subscribe subscribe) {
+        BigDecimal oneMealRecommendGram = subscribe.getDog().getSurveyReport().getFoodAnalysis().getOneMealRecommendGram();
+
+        beforeSubscribeRepository.deleteAllBySubscribe(subscribe);
+
+        BeforeSubscribe beforeSubscribe = BeforeSubscribe.builder()
+                .subscribe(subscribe)
+                .subscribeCount(subscribe.getSubscribeCount())
+                .plan(subscribe.getPlan())
+                .oneMealRecommendGram(oneMealRecommendGram)
+                .recipeName(getRecipeName(subscribe))
+                .paymentPrice(subscribe.getNextPaymentPrice())
+                .build();
+        beforeSubscribeRepository.save(beforeSubscribe);
+
+    }
+
     @Transactional
     public void changePlan(Long id, UpdatePlanDto requestDto) {
         Subscribe subscribe = subscribeRepository.findById(id).get();
-
-//        String recipeName = getRecipeName(subscribe);
-//        BeforeSubscribe newBeforeSubscribe = saveNewBeforeSubscribe(subscribe, recipeName);
-//        subscribe.setBeforeSubscribe(newBeforeSubscribe);
+        changeBeforeSubscribe(subscribe);
 
         updatePlanAndChangeSelectRecipes(subscribe, requestDto);
 
@@ -88,19 +108,19 @@ public class SubscribeService {
     }
 
     @Transactional
-    public void skipSubscribe(Long id, int count) {
+    public void skipSubscribe(Long id, String type) {
         Subscribe subscribe = subscribeRepository.findById(id).get();
-        LocalDate nextDeliveryDate = subscribe.skipAndGetNextDeliveryDate(count);
+        subscribe.skipSubscribe(type);
 
         unscheduleAndNewSchedule(subscribe);
 
+        LocalDate nextDeliveryDate = subscribe.getNextDeliveryDate();
         String nextOrderMerchant_uid = subscribe.getNextOrderMerchantUid();
         Optional<SubscribeOrder> optionalSubscriberOrder = orderRepository.findByMerchantUid(nextOrderMerchant_uid);
         if (optionalSubscriberOrder.isPresent()) {
             SubscribeOrder order = optionalSubscriberOrder.get();
             order.skipDelivery(nextDeliveryDate);
         }
-
     }
 
     @Transactional
@@ -151,13 +171,20 @@ public class SubscribeService {
         }
         sleepThread(500);
 
+        SubscribeOrder subscribeOrder = orderRepository.findByMerchantUid(merchant_uid).get();
+
+        String newMerchantUid = generateMerchantUid();
+
+        subscribeOrder.changeMerchantUid(newMerchantUid);
+        subscribe.changeNextMerchantUid(newMerchantUid);
+
         Date nextPaymentDate = java.sql.Timestamp.valueOf(subscribe.getNextPaymentDate());
         int nextPaymentPrice = subscribe.getNextPaymentPrice();
         int discountCoupon = subscribe.getDiscountCoupon();
         int discountGrade = subscribe.getDiscountGrade();
         int finalPrice = nextPaymentPrice - (discountCoupon + discountGrade);
         ScheduleData scheduleData = new ScheduleData(customerUid);
-        scheduleData.addSchedule(new ScheduleEntry(merchant_uid, nextPaymentDate, BigDecimal.valueOf(finalPrice)));
+        scheduleData.addSchedule(new ScheduleEntry(newMerchantUid, nextPaymentDate, BigDecimal.valueOf(finalPrice)));
 
         try {
             client.subscribeSchedule(scheduleData);
@@ -166,6 +193,15 @@ public class SubscribeService {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private String generateMerchantUid() {
+        RandomString rs = new RandomString(15);
+        String randomString = rs.nextString();
+        LocalDate today = LocalDate.now();
+        String dateString = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String merchantUid = dateString + "_" + randomString;
+        return merchantUid;
     }
 
     private void sleepThread(int millis) {

@@ -1896,7 +1896,7 @@ impUid 저장 +
 구독회차 증가 +
 구독 상태 : SUBSCRIBING +
 카드 추가 +
-다음 배송일 설정 +
+다음 배송일 계산해서 설정(FULL : 14일 후/ HALF,TOPPING : 28일 후) +
 다음결제일 계산해서 설정(FULL : 14일 후/ HALF,TOPPING : 28일 후) +
 
 ㅁ 다음 회차 주문 생성 ㅁ +
@@ -2131,16 +2131,26 @@ operation::query_subscribes[snippets='curl-request,request-headers,request-param
 operation::query_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 [[resources-use-coupon-subscribe]]
-=== 구독 쿠폰 적용
+=== 다음 회차 구독 쿠폰 적용
 
-`POST` 요청을 사용하여 구독에 쿠폰을 적용할 수 있다.
+`POST` 요청을 사용하여 다음 회차 구독에 쿠폰을 적용할 수 있다. +
+
+기존에 적용된 쿠폰 없는 경우 : 새로운 쿠폰 적용 +
+기존에 적용된 쿠폰 있는 경우 : 기존 쿠폰 살리고 새로운 쿠폰 적용 +
+
+쿠폰 적용 후 아임포트api 기존 예약 취소 후 새로운 정보로 예약 +
+
 
 operation::use_coupon_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 [[resources-update-gram-subscribe]]
 === 구독 그램 변경 적용
 
-`POST` 요청을 사용하여 구독 그램 변경을 적용할 수 있다.
+`POST` 요청을 사용하여 구독 그램 변경을 적용할 수 있다. +
+
+변경 전 구독 정보 이전구독정보(beforeSubscribe)로 저장 +
+강아지 설문 기존 그램에서 변경한 그램으로 그램 수정 +
+새로운 구독상품 가격으로 쿠폰할인, 등급할인 적용해서 아임포트api 기존 예약 취소 후 새로운 정보로 예약 +
 
 operation::update_gram_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
@@ -2149,12 +2159,25 @@ operation::update_gram_subscribe[snippets='curl-request,path-parameters,request-
 
 `POST` 요청을 사용하여 구독 플랜 변경을 적용할 수 있다.
 
+변경 전 구독 정보 이전구독정보(beforeSubscribe)로 저장 +
+새로운 구독상품 가격으로 쿠폰할인, 등급할인 적용해서 아임포트api 기존 예약 취소 후 새로운 정보로 예약 +
+
 operation::update_plan_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 [[resources-skip-subscribe]]
 === 구독 건너뛰기
 
-`POST` 요청을 사용하여 구독을 n주 건너 뛰기 할 수 있다.
+`POST` 요청을 사용하여 다음번 구독을 주/회 단위로 건너 뛰기 할 수 있다. +
+
+ㅁ구독ㅁ +
+건너뛰기 회수 증가(주/회) +
+다음 결제 예정일 변경 +
+다음 배송 예정일 변경 +
+
+아임포트 api 기존 예약 취소, 새 예약 추가 +
+
+ㅁ다음번 배송ㅁ +
+배송 예정일 변경 +
 
 operation::skip_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 

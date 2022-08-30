@@ -743,9 +743,14 @@ public class SubscribeApiControllerTest extends BaseTest {
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
         SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtcUseCoupon(member, 1, OrderStatus.PAYMENT_DONE);
         Subscribe subscribe = subscribeOrder.getSubscribe();
+        int subscribeCount = subscribe.getSubscribeCount();
+        SubscribePlan plan = subscribe.getPlan();
+        int nextPaymentPrice = subscribe.getNextPaymentPrice();
+        BeforeSubscribe beforeSubscribe = beforeSubscribeRepository.findBySubscribe(subscribe).get();
+
 
         int gram = 100;
-        int totalPrice = 40000;
+        int totalPrice = 4000;
         UpdateGramDto requestDto = UpdateGramDto.builder()
                 .gram(gram)
                 .totalPrice(totalPrice)
@@ -805,11 +810,18 @@ public class SubscribeApiControllerTest extends BaseTest {
 
         Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
         assertThat(findSubscribe.getNextPaymentPrice()).isEqualTo(totalPrice);
-        assertThat(findSubscribe.getDiscountCoupon()).isEqualTo(discount);
 
         SurveyReport surveyReport = findSubscribe.getDog().getSurveyReport();
         assertThat(surveyReport.getFoodAnalysis().getOneMealRecommendGram()).isEqualTo(BigDecimal.valueOf(gram * 1.0).setScale(2));
         assertThat(surveyReport.getFoodAnalysis().getOneDayRecommendGram()).isEqualTo(BigDecimal.valueOf(gram * 2.0).setScale(2));
+
+        Optional<BeforeSubscribe> optionalBeforeSubscribe = beforeSubscribeRepository.findById(beforeSubscribe.getId());
+        assertThat(optionalBeforeSubscribe.isPresent()).isFalse();
+
+        BeforeSubscribe findBeforeSubscribe = beforeSubscribeRepository.findBySubscribe(findSubscribe).get();
+        assertThat(findBeforeSubscribe.getSubscribeCount()).isEqualTo(subscribeCount);
+        assertThat(findBeforeSubscribe.getPlan()).isEqualTo(plan);
+        assertThat(findBeforeSubscribe.getPaymentPrice()).isEqualTo(nextPaymentPrice);
 
 
     }
@@ -1064,14 +1076,15 @@ public class SubscribeApiControllerTest extends BaseTest {
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
         SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtcUseCoupon(member, 1, OrderStatus.PAYMENT_DONE);
         Subscribe subscribe = subscribeOrder.getSubscribe();
-        int skipCount = subscribe.getCountSkipOneTime();
+        int countSkipOneTime = subscribe.getCountSkipOneTime();
+        int countSkipOneWeek = subscribe.getCountSkipOneWeek();
         LocalDateTime nextPaymentDate = subscribe.getNextPaymentDate();
         LocalDate nextDeliveryDate = subscribe.getNextDeliveryDate();
 
-        int count = 1;
+        String type = "week";
 
        //when & then
-        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/subscribes/{id}/skip/{count}", subscribe.getId(), count)
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/subscribes/{id}/skip/{type}", subscribe.getId(), type)
                         .header(HttpHeaders.AUTHORIZATION, getUserToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
@@ -1085,7 +1098,7 @@ public class SubscribeApiControllerTest extends BaseTest {
                         ),
                         pathParameters(
                                 parameterWithName("id").description("구독 id"),
-                                parameterWithName("count").description("건너뛰기 n 주 (플랜에 맞게 건너 뛸 n주 입력. 1주 건너뛰기면 n=1)")
+                                parameterWithName("type").description("건너뛰기 타입 [WEEK, ONCE]")
                         ),
                         requestHeaders(
                                 headerWithName(HttpHeaders.ACCEPT).description("accept header"),
@@ -1106,49 +1119,52 @@ public class SubscribeApiControllerTest extends BaseTest {
         em.clear();
 
         Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
-        assertThat(findSubscribe.getNextDeliveryDate()).isEqualTo(nextDeliveryDate.plusDays(count * 7));
-        assertThat(findSubscribe.getNextPaymentDate()).isEqualTo(nextPaymentDate.plusDays(count * 7));
-        assertThat(findSubscribe.getCountSkipOneTime()).isEqualTo(skipCount + 1);
+        assertThat(findSubscribe.getNextDeliveryDate()).isEqualTo(nextDeliveryDate.plusDays(7));
+        assertThat(findSubscribe.getNextPaymentDate()).isEqualTo(nextPaymentDate.plusDays(7));
+        assertThat(findSubscribe.getCountSkipOneTime()).isEqualTo(countSkipOneTime);
+        assertThat(findSubscribe.getCountSkipOneWeek()).isEqualTo(countSkipOneWeek + 1);
 
         String nextOrderMerchant_uid = findSubscribe.getNextOrderMerchantUid();
         SubscribeOrder findOrder = orderRepository.findByMerchantUid(nextOrderMerchant_uid).get();
-        assertThat(findOrder.getDelivery().getNextDeliveryDate()).isEqualTo(nextDeliveryDate.plusDays(count * 7));
+        assertThat(findOrder.getDelivery().getNextDeliveryDate()).isEqualTo(nextDeliveryDate.plusDays(7));
     }
 
     @Test
-    @DisplayName("구독 2주 건너뛰기")
-    public void skipSubscribe_2week() throws Exception {
+    @DisplayName("구독 1회 건너뛰기")
+    public void skipSubscribe_once() throws Exception {
         //given
 
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
         SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtcUseCoupon(member, 1, OrderStatus.PAYMENT_DONE);
         Subscribe subscribe = subscribeOrder.getSubscribe();
-        int skipCount = subscribe.getCountSkipOneTime();
+        SubscribePlan plan = subscribe.getPlan();
+        int countSkipOneTime = subscribe.getCountSkipOneTime();
+        int countSkipOneWeek = subscribe.getCountSkipOneWeek();
         LocalDateTime nextPaymentDate = subscribe.getNextPaymentDate();
         LocalDate nextDeliveryDate = subscribe.getNextDeliveryDate();
 
-        int count = 2;
+        String type = "once";
 
         //when & then
-        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/subscribes/{id}/skip/{count}", subscribe.getId(), count)
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/subscribes/{id}/skip/{type}", subscribe.getId(), type)
                         .header(HttpHeaders.AUTHORIZATION, getUserToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
-                .andExpect(status().isOk())
-        ;
+                .andExpect(status().isOk());
 
         em.flush();
         em.clear();
 
         Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
-        assertThat(findSubscribe.getNextDeliveryDate()).isEqualTo(nextDeliveryDate.plusDays(count * 7));
-        assertThat(findSubscribe.getNextPaymentDate()).isEqualTo(nextPaymentDate.plusDays(count * 7));
-        assertThat(findSubscribe.getCountSkipOneTime()).isEqualTo(skipCount + 1);
+        assertThat(findSubscribe.getNextDeliveryDate()).isEqualTo(nextDeliveryDate.plusDays(plan == SubscribePlan.FULL ? 14 : 28));
+        assertThat(findSubscribe.getNextPaymentDate()).isEqualTo(nextPaymentDate.plusDays(plan == SubscribePlan.FULL ? 14 : 28));
+        assertThat(findSubscribe.getCountSkipOneTime()).isEqualTo(countSkipOneTime + 1);
+        assertThat(findSubscribe.getCountSkipOneWeek()).isEqualTo(countSkipOneWeek);
 
         String nextOrderMerchant_uid = findSubscribe.getNextOrderMerchantUid();
         SubscribeOrder findOrder = orderRepository.findByMerchantUid(nextOrderMerchant_uid).get();
-        assertThat(findOrder.getDelivery().getNextDeliveryDate()).isEqualTo(nextDeliveryDate.plusDays(count * 7));
+        assertThat(findOrder.getDelivery().getNextDeliveryDate()).isEqualTo(nextDeliveryDate.plusDays(plan == SubscribePlan.FULL ? 14 : 28));
     }
 
 

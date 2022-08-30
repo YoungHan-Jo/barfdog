@@ -18,6 +18,7 @@ import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
@@ -160,16 +161,18 @@ public class SubscribeApiController {
         return ResponseEntity.ok(representationModel);
     }
 
-    @PostMapping("/{id}/skip/{count}")
+    @PostMapping("/{id}/skip/{type}")
     public ResponseEntity skipSubscribe(@PathVariable Long id,
-                                        @PathVariable int count) {
+                                        @PathVariable String type) {
+        type = type.toUpperCase();
+        if (!type.equals("WEEK") && !type.equals("ONCE")) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         Optional<Subscribe> optionalSubscribe = subscribeRepository.findById(id);
         if (!optionalSubscribe.isPresent()) return notFound();
 
-        subscribeService.skipSubscribe(id, count);
+        subscribeService.skipSubscribe(id, type);
 
         RepresentationModel representationModel = new RepresentationModel();
-        representationModel.add(linkTo(SubscribeApiController.class).slash(id).slash("skip").slash(count).withSelfRel());
+        representationModel.add(linkTo(SubscribeApiController.class).slash(id).slash("skip").slash(type).withSelfRel());
         representationModel.add(linkTo(SubscribeApiController.class).slash(id).withRel("query_subscribe"));
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-skip-subscribe").withRel("profile"));
 

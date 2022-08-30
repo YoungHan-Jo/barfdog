@@ -579,8 +579,8 @@ public class OrderService {
         return dogName;
     }
 
-
     private void saveUsedRewardHistory(Member member, int tradeReward) {
+        if (tradeReward <= 0) return;
         Reward reward = Reward.builder()
                 .member(member)
                 .name(RewardName.USE_ORDER)
@@ -616,12 +616,14 @@ public class OrderService {
     }
 
     private void saveFailedOrderRewardHistory(Member member, Order order) {
+        int discountReward = order.getDiscountReward();
+        if (discountReward <= 0) return;
         Reward reward = Reward.builder()
                 .member(member)
                 .name(RewardName.FAILED_ORDER)
                 .rewardType(RewardType.ORDER)
                 .rewardStatus(RewardStatus.SAVED)
-                .tradeReward(order.getDiscountReward())
+                .tradeReward(discountReward)
                 .build();
         rewardRepository.save(reward);
     }
@@ -754,16 +756,6 @@ public class OrderService {
         return deliveryRepository.save(nextDelivery);
     }
 
-    private void saveRewardHistory(Member member, Order order) {
-        Reward reward = Reward.builder()
-                .member(member)
-                .name(RewardName.USE_ORDER)
-                .rewardType(RewardType.ORDER)
-                .rewardStatus(RewardStatus.USED)
-                .tradeReward(order.getDiscountReward())
-                .build();
-        rewardRepository.save(reward);
-    }
 
     private Card saveCard(Member member, String customerUid, String cardName, String cardNumber) {
         Card card = Card.builder()
@@ -921,12 +913,14 @@ public class OrderService {
     }
 
     private void saveExpectedRewardHistory(Member member, OrderItem orderItem) {
+        int saveReward = orderItem.getSaveReward();
+        if (saveReward <= 0) return;
         Reward reward = Reward.builder()
                 .member(member)
                 .name(RewardName.CONFIRM_ORDER)
                 .rewardType(RewardType.ORDER)
                 .rewardStatus(RewardStatus.SAVED)
-                .tradeReward(orderItem.getSaveReward())
+                .tradeReward(saveReward)
                 .build();
         rewardRepository.save(reward);
     }
@@ -1006,44 +1000,9 @@ public class OrderService {
         }
     }
 
-    private void revivalCoupon(OrderItem orderItem) {
-        MemberCoupon memberCoupon = orderItem.getMemberCoupon();
-        if (memberCoupon != null) {
-            memberCoupon.revivalCoupon();
-        }
-    }
-
-    private int getCancelReward(GeneralOrder order, int finalPrice) {
-        int allRewards = order.getDiscountReward();
-        int paymentPrice = order.getPaymentPrice();
-        int allAmount = paymentPrice + allRewards;
-        int percent = (int) Math.round(((double)finalPrice / allAmount) * 100);
-        int cancelReward = (int) (allRewards / 100) * percent;
-        return cancelReward;
-    }
-
-
-
-    private void revivalCancelOrderReward(OrderItem orderItem, GeneralOrder order, String name) {
-        int cancelReward = orderItem.getCancelReward();
-
-        if (cancelReward > 0) {
-            Member member = order.getMember();
-            member.chargeReward(cancelReward);
-            saveRewardHistory(name, cancelReward, member);
-        }
-    }
-    private void revivalCancelOrderReward(Order order, String rewardName) {
-        int cancelReward = order.getDiscountReward();
-
-        if (cancelReward > 0) {
-            Member member = order.getMember();
-            member.chargeReward(cancelReward);
-            saveRewardHistory(rewardName, cancelReward, member);
-        }
-    }
 
     private void saveRewardHistory(String name, int cancelReward, Member member) {
+        if (cancelReward <= 0) return;
         Reward reward = Reward.builder()
                 .member(member)
                 .name(name)
@@ -1269,7 +1228,7 @@ public class OrderService {
     @Transactional
     public void successPaymentSchedule(String merchantUid, String impUid) {
         SubscribeOrder order = orderRepository.findByMerchantUid(merchantUid).get();
-        // TODO: 2022-07-25 Beforesubscribe작업 ?
+
         Member member = order.getMember();
         Subscribe subscribe = order.getSubscribe();
 

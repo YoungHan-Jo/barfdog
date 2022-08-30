@@ -325,6 +325,7 @@ public class SubscribeRepositoryImpl implements SubscribeRepositoryCustom{
     }
 
     private String getRecipeNames(QuerySubscribesDto.SubscribeDto subscribeDto) {
+        String recipeNames = "";
         List<String> nameList = queryFactory
                 .select(recipe.name)
                 .from(subscribeRecipe)
@@ -332,7 +333,9 @@ public class SubscribeRepositoryImpl implements SubscribeRepositoryCustom{
                 .join(subscribeRecipe.recipe, recipe)
                 .where(subscribe.id.eq(subscribeDto.getSubscribeId()))
                 .fetch();
-        String recipeNames = nameList.get(0);
+        if (nameList.size() > 0) {
+            recipeNames = nameList.get(0);
+        }
         if (nameList.size() > 1) {
             recipeNames += "," + nameList.get(1);
         }

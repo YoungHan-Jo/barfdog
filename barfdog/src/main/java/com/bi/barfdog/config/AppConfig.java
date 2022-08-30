@@ -394,8 +394,7 @@ public class AppConfig {
                 Delivery delivery = generateDelivery(member, i);
 
                 Subscribe subscribe = generateSubscribeBeforePayment(i);
-                BeforeSubscribe beforeSubscribe = generateBeforeSubscribe(i);
-                subscribe.setBeforeSubscribe(beforeSubscribe);
+                generateBeforeSubscribe(i,subscribe);
 
                 generateSubscribeRecipe(recipe1, subscribe);
                 generateSubscribeRecipe(recipe2, subscribe);
@@ -465,8 +464,9 @@ public class AppConfig {
 
                 return subscribeOrder;
             }
-            private BeforeSubscribe generateBeforeSubscribe(int i) {
+            private BeforeSubscribe generateBeforeSubscribe(int i,Subscribe subscribe) {
                 BeforeSubscribe beforeSubscribe = BeforeSubscribe.builder()
+                        .subscribe(subscribe)
                         .subscribeCount(i)
                         .plan(SubscribePlan.HALF)
                         .oneMealRecommendGram(BigDecimal.valueOf(140.0))

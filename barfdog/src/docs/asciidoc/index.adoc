@@ -2148,6 +2148,7 @@ operation::use_coupon_subscribe[snippets='curl-request,path-parameters,request-h
 
 `POST` 요청을 사용하여 구독 그램 변경을 적용할 수 있다. +
 
+변경 전 구독 정보 이전구독정보(beforeSubscribe)로 저장 +
 강아지 설문 기존 그램에서 변경한 그램으로 그램 수정 +
 새로운 구독상품 가격으로 쿠폰할인, 등급할인 적용해서 아임포트api 기존 예약 취소 후 새로운 정보로 예약 +
 
@@ -2158,12 +2159,25 @@ operation::update_gram_subscribe[snippets='curl-request,path-parameters,request-
 
 `POST` 요청을 사용하여 구독 플랜 변경을 적용할 수 있다.
 
+변경 전 구독 정보 이전구독정보(beforeSubscribe)로 저장 +
+새로운 구독상품 가격으로 쿠폰할인, 등급할인 적용해서 아임포트api 기존 예약 취소 후 새로운 정보로 예약 +
+
 operation::update_plan_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,request-fields,response-headers,response-body,response-fields,links']
 
 [[resources-skip-subscribe]]
 === 구독 건너뛰기
 
-`POST` 요청을 사용하여 구독을 n주 건너 뛰기 할 수 있다.
+`POST` 요청을 사용하여 다음번 구독을 주/회 단위로 건너 뛰기 할 수 있다. +
+
+ㅁ구독ㅁ +
+건너뛰기 회수 증가(주/회) +
+다음 결제 예정일 변경 +
+다음 배송 예정일 변경 +
+
+아임포트 api 기존 예약 취소, 새 예약 추가 +
+
+ㅁ다음번 배송ㅁ +
+배송 예정일 변경 +
 
 operation::skip_subscribe[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 

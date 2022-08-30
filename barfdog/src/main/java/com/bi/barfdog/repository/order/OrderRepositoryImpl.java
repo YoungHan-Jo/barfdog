@@ -474,7 +474,7 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                 .join(QSubscribe.subscribe.dog, dog)
                 .join(dog.surveyReport, surveyReport)
                 .join(subscribeOrder.delivery, delivery)
-                .leftJoin(subscribe.beforeSubscribe, beforeSubscribe)
+                .leftJoin(beforeSubscribe).on(beforeSubscribe.subscribe.eq(subscribe))
                 .where(subscribeOrder.id.eq(id))
                 .fetchOne();
         return orderDto;
@@ -619,7 +619,7 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         beforeSubscribe.recipeName
                 ))
                 .from(subscribe)
-                .leftJoin(subscribe.beforeSubscribe, beforeSubscribe)
+                .leftJoin(beforeSubscribe).on(beforeSubscribe.subscribe.eq(subscribe))
                 .where(subscribe.id.eq(subscribeDto.getId()))
                 .fetchOne();
         return beforeSubscribeDto;

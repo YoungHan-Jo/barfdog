@@ -579,3 +579,6 @@
 1661509633947|0|rollback|connection 160|url jdbc:h2:mem:testdb||
 1661824422543|0|rollback|connection 191|url jdbc:mariadb://binter.synology.me:3307/barfdogTestHome?characterEncoding=UTF-8&serverTimezone=UTC||
 1661824838726|0|rollback|connection 365|url jdbc:mariadb://binter.synology.me:3307/barfdogTestHome?characterEncoding=UTF-8&serverTimezone=UTC||
+1661841948973|0|rollback|connection 160|url jdbc:h2:mem:testdb||
+1661842241874|0|commit|connection 163|url jdbc:h2:mem:testdb||
+1661842298642|0|rollback|connection 160|url jdbc:h2:mem:testdb||
