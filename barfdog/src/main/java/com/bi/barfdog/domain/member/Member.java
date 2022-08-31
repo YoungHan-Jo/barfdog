@@ -75,6 +75,8 @@ public class Member extends BaseTimeEntity {
 
     private boolean isBrochure; // 브로슈어 받은적 있는지 여부
 
+    private boolean isUnKnownPassword; // sns로 가입해서 비밀번호를 모르는 상태일 경우 true / 일반 회원가입: false
+
     @Embedded
     private FirstReward firstReward;
 
@@ -246,6 +248,17 @@ public class Member extends BaseTimeEntity {
                 .receiveAgree(true)
                 .recommend(getFirstReward().isRecommend())
                 .build();
+    }
+
+    public void changeSnsPassword(String hashPassword) {
+        changePassword(hashPassword);
+        this.isUnKnownPassword = false;
+    }
+
+
+    // 테스트용 메서드
+    public void setUnknownPassword() {
+        isUnKnownPassword = true;
     }
 }
 

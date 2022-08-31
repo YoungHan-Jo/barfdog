@@ -24,6 +24,7 @@ public class MemberSaveRequestDto {
     private String password;
     @NotEmpty
     private String confirmPassword;
+
     @NotEmpty
     private String phoneNumber;
 

@@ -103,9 +103,11 @@ public class MemberService {
     }
 
     private Member saveMember(MemberSaveRequestDto requestDto) {
-        String password = bCryptPasswordEncoder.encode(requestDto.getPassword());
+        String rawPassword = requestDto.getPassword();
+        String password = rawPassword == null || rawPassword.isEmpty() ? null : bCryptPasswordEncoder.encode(rawPassword);
+        String provider = requestDto.getProvider();
         Member member = Member.builder()
-                .provider(requestDto.getProvider())
+                .provider(provider)
                 .providerId(requestDto.getProviderId())
                 .name(requestDto.getName())
                 .email(requestDto.getEmail())
@@ -121,9 +123,20 @@ public class MemberService {
                 .accumulatedAmount(0)
                 .firstReward(new FirstReward(false,false))
                 .roles("USER")
+                .isUnKnownPassword(isUnKnownPassword(provider))
                 .build();
         memberRepository.save(member);
         return member;
+    }
+
+    private boolean isUnKnownPassword(String provider) {
+        if (provider == null) {
+            return false;
+        }
+        if (provider.isEmpty()) {
+            return false;
+        }
+        return true;
     }
 
     public DirectSendResponseDto sendPhoneAuth(String phoneNumber) throws IOException {
@@ -353,5 +366,26 @@ public class MemberService {
         Member member = memberRepository.findById(memberId).get();
         String hashPassword = bCryptPasswordEncoder.encode(newPassword);
         member.changePassword(hashPassword);
+    }
+
+    @Transactional
+    public void setPasswordSnsMember(Long id, SnsLoginSetPasswordDto requestDto) {
+
+        Member member = memberRepository.findById(id).get();
+        String hashPassword = bCryptPasswordEncoder.encode(requestDto.getPassword());
+        member.changeSnsPassword(hashPassword);
+
+    }
+
+    public IsUnknownPasswordDto checkUnknownPassword(Long id) {
+        Member member = memberRepository.findById(id).get();
+
+        boolean isUnKnownPassword = member.isUnKnownPassword();
+
+        IsUnknownPasswordDto responseDto = IsUnknownPasswordDto.builder()
+                .isUnKnownPassword(isUnKnownPassword)
+                .build();
+
+        return responseDto;
     }
 }

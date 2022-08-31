@@ -56,6 +56,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/banners/**").access("hasRole('ROLE_ADMIN')")
 
                 .antMatchers("/api/members/password").access("hasRole('ROLE_USER')")
+                .antMatchers("/api/members/sns/password").access("hasRole('ROLE_USER')")
                 .antMatchers("/api/dogs").access("hasRole('ROLE_USER')")
                 .antMatchers(HttpMethod.PUT,"/api/dogs/**").access("hasRole('ROLE_USER')")
 

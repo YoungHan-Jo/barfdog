@@ -62,6 +62,7 @@ import com.bi.barfdog.snsLogin.ConnectSnsRequestDto;
 import com.bi.barfdog.snsLogin.NaverLoginDto;
 import com.bi.barfdog.snsLogin.SnsProvider;
 import com.bi.barfdog.snsLogin.SnsResponse;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -84,6 +85,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 import static com.bi.barfdog.config.finalVariable.StandardVar.*;
@@ -792,8 +794,8 @@ public class IndexApiControllerTest extends BaseTest {
                                 fieldWithPath("providerId").description("간편로그인 제공사 회원 고유id값, 없으면 null"),
                                 fieldWithPath("name").description("회원 이름"),
                                 fieldWithPath("email").description("회원 이메일(로그인 ID)"),
-                                fieldWithPath("password").description("회원 비밀번호"),
-                                fieldWithPath("confirmPassword").description("회원 비밀번호 확인"),
+                                fieldWithPath("password").description("회원 비밀번호, sns로 가입시 null"),
+                                fieldWithPath("confirmPassword").description("회원 비밀번호 확인, sns로 가입시 null"),
                                 fieldWithPath("phoneNumber").description("휴대폰 번호 '010xxxxxxxx' -없는 문자열"),
                                 fieldWithPath("address.zipcode").description("우편 번호"),
                                 fieldWithPath("address.city").description("시/도"),
@@ -839,6 +841,135 @@ public class IndexApiControllerTest extends BaseTest {
         assertThat(findMember.getRecommendCode()).isEqualTo(sampleMember.getMyRecommendationCode());
         assertThat(findMember.getAgreement().isReceiveSms()).isTrue();
         assertThat(findMember.getAgreement().isReceiveEmail()).isTrue();
+    }
+
+
+
+    @Test
+    @DisplayName("provider가 빈 문자열 일 경우 unknowpassword 가 false")
+    public void join_provider_emptyString() throws Exception {
+        //Given
+        Member sampleMember = generateSampleMember();
+
+        String email = "verin4494@gmail.com";
+        String phoneNumber = "01012348544";
+        MemberSaveRequestDto requestDto = MemberSaveRequestDto.builder()
+                .provider("")
+                .name("이름")
+                .email(email)
+                .password("1234")
+                .confirmPassword("1234")
+                .phoneNumber(phoneNumber)
+                .address(new Address("48060","부산시","해운대구 센텀2로 19","브리티시인터내셔널"))
+                .birthday("19930521")
+                .gender(Gender.MALE)
+                .recommendCode(sampleMember.getMyRecommendationCode())
+                .agreement(new Agreement(true,true,true,true,true))
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/join")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isCreated());
+
+        em.flush();
+        em.clear();
+
+        Optional<Member> optionalMember = memberRepository.findByEmail(email);
+        assertThat(optionalMember.isPresent()).isTrue();
+
+        Member findMember = optionalMember.get();
+        assertThat(findMember.getPhoneNumber()).isEqualTo(phoneNumber);
+        assertThat(findMember.isUnKnownPassword()).isFalse();
+
+    }
+
+    @Test
+    @DisplayName("provider가 null 일 경우 unknowpassword 가 false")
+    public void join_provider_null() throws Exception {
+        //Given
+        Member sampleMember = generateSampleMember();
+
+        String email = "verin4494@gmail.com";
+        String phoneNumber = "01012348544";
+        MemberSaveRequestDto requestDto = MemberSaveRequestDto.builder()
+                .provider(null)
+                .name("이름")
+                .email(email)
+                .password("1234")
+                .confirmPassword("1234")
+                .phoneNumber(phoneNumber)
+                .address(new Address("48060","부산시","해운대구 센텀2로 19","브리티시인터내셔널"))
+                .birthday("19930521")
+                .gender(Gender.MALE)
+                .recommendCode(sampleMember.getMyRecommendationCode())
+                .agreement(new Agreement(true,true,true,true,true))
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/join")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isCreated());
+
+        em.flush();
+        em.clear();
+
+        Optional<Member> optionalMember = memberRepository.findByEmail(email);
+        assertThat(optionalMember.isPresent()).isTrue();
+
+        Member findMember = optionalMember.get();
+        assertThat(findMember.getPhoneNumber()).isEqualTo(phoneNumber);
+        assertThat(findMember.isUnKnownPassword()).isFalse();
+
+    }
+
+    @Test
+    @DisplayName("provider가 있으면 unknowpassword 가 true")
+    public void join_provider_true() throws Exception {
+        //Given
+        Member sampleMember = generateSampleMember();
+
+        String email = "verin4494@gmail.com";
+        String phoneNumber = "01012348544";
+        String provider = "naver";
+        MemberSaveRequestDto requestDto = MemberSaveRequestDto.builder()
+                .provider(provider)
+                .name("이름")
+                .email(email)
+                .password("1234")
+                .confirmPassword("1234")
+                .phoneNumber(phoneNumber)
+                .address(new Address("48060","부산시","해운대구 센텀2로 19","브리티시인터내셔널"))
+                .birthday("19930521")
+                .gender(Gender.MALE)
+                .recommendCode(sampleMember.getMyRecommendationCode())
+                .agreement(new Agreement(true,true,true,true,true))
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/join")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isCreated());
+
+        em.flush();
+        em.clear();
+
+        Optional<Member> optionalMember = memberRepository.findByEmail(email);
+        assertThat(optionalMember.isPresent()).isTrue();
+
+        Member findMember = optionalMember.get();
+        assertThat(findMember.getPhoneNumber()).isEqualTo(phoneNumber);
+        assertThat(findMember.isUnKnownPassword()).isTrue();
+
     }
 
     @Test
@@ -1786,10 +1917,13 @@ public class IndexApiControllerTest extends BaseTest {
     }
 
     @Test
-    @Ignore
     @DisplayName("정상적으로 네이버 회원 정보 호출")
     public void naverLogin_newMember() throws Exception {
        //given
+
+        memberCouponRepository.deleteAll();
+        memberRepository.deleteAll();
+
 
         String accessToken = SnsResponse.TEST_NAVER_ACCESS_TOKEN;
 

@@ -11,7 +11,7 @@ import javax.persistence.*;
 
 import java.time.LocalDateTime;
 
-import static javax.persistence.FetchType.LAZY;
+import static javax.persistence.FetchType.*;
 
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -30,6 +30,7 @@ public class OrderItem extends BaseTimeEntity {
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "item_id")
     private Item item;
+
     private int salePrice; // 판매가격
     private int amount; // 개수
 

@@ -90,10 +90,8 @@ public class MemberAdminController {
 
         memberService.updateBirthday(id,requestDto);
 
-        WebMvcLinkBuilder selfLinkBuilder = linkTo(AdminApiController.class).slash("members").slash(id).slash("birthday");
-
         RepresentationModel representationModel = new RepresentationModel();
-        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(AdminApiController.class).slash("members").slash(id).slash("birthday").withSelfRel());
         representationModel.add(linkTo(AdminApiController.class).slash("members").slash(id).withRel("query_member"));
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-updateBirthday").withRel("profile"));
 
@@ -110,10 +108,8 @@ public class MemberAdminController {
 
         memberService.updateGrade(id, requestDto);
 
-        WebMvcLinkBuilder selfLinkBuilder = linkTo(AdminApiController.class).slash("members").slash(id).slash("grade");
-
         RepresentationModel representationModel = new RepresentationModel();
-        representationModel.add(selfLinkBuilder.withSelfRel());
+        representationModel.add(linkTo(AdminApiController.class).slash("members").slash(id).slash("grade").withSelfRel());
         representationModel.add(linkTo(AdminApiController.class).slash("members").slash(id).withRel("query_member"));
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-admin-updateGrade").withRel("profile"));
 

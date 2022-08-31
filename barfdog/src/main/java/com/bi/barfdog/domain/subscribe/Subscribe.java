@@ -16,8 +16,10 @@ import com.bi.barfdog.domain.order.Order;
 import com.bi.barfdog.domain.order.SubscribeOrder;
 import com.bi.barfdog.domain.subscribeRecipe.SubscribeRecipe;
 import lombok.*;
+import org.springframework.http.ResponseEntity;
 
 import javax.persistence.*;
+import javax.servlet.http.HttpServletResponse;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;

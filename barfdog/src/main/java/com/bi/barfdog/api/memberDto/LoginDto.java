@@ -3,6 +3,7 @@ package com.bi.barfdog.api.memberDto;
 import lombok.*;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 @Data
 @AllArgsConstructor
@@ -10,7 +11,9 @@ import javax.validation.constraints.NotEmpty;
 @Builder
 public class LoginDto {
 
+
     private String email;
+
     private String password;
 
     private int tokenValidDays;

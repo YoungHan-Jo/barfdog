@@ -2,6 +2,7 @@ package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.memberDto.DeleteMemberDto;
 import com.bi.barfdog.api.memberDto.MemberUpdateRequestDto;
+import com.bi.barfdog.api.memberDto.SnsLoginSetPasswordDto;
 import com.bi.barfdog.api.memberDto.UpdatePasswordRequestDto;
 import com.bi.barfdog.common.AppProperties;
 import com.bi.barfdog.common.BarfUtils;
@@ -29,8 +30,7 @@ import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.li
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
-import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
-import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
+import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -388,6 +388,102 @@ public class MemberApiControllerTest extends BaseTest {
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
+
+
+    @Test
+    @DisplayName("비밀번호 모르는지 체크하는 테스트")
+    public void isUnknownPassword() throws Exception {
+       //given
+
+       //when & then
+        mockMvc.perform(get("/api/members/sns/password")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("unKnownPassword").value(false))
+                .andDo(document("check_unknown_password",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("unKnownPassword").description("비밀번호 모르면(sns가입자) true / 비밀번호 알면(일반가입자) false"),
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+    }
+
+
+    @Test
+    @DisplayName("sns 계정 회원수정하기 전 비밀번호 설정")
+    public void updatePasswordSns() throws Exception {
+       //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        member.setUnknownPassword();
+
+        em.flush();
+        em.clear();
+
+        assertThat(member.isUnKnownPassword()).isTrue();
+
+        String rawPassword = "12341234";
+        SnsLoginSetPasswordDto requestDto = SnsLoginSetPasswordDto.builder()
+                .password(rawPassword)
+                .confirmPassword(rawPassword)
+                .build();
+
+        //when & then
+        mockMvc.perform(post("/api/members/sns/password")
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("update_password_snsMember",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestFields(
+                                fieldWithPath("password").description("비밀번호"),
+                                fieldWithPath("confirmPassword").description("비밀번호 확인")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ));
+
+        em.flush();
+        em.clear();
+
+        Member findMember = memberRepository.findById(member.getId()).get();
+        assertThat(bCryptPasswordEncoder.matches(rawPassword, findMember.getPassword())).isTrue();
+        assertThat(findMember.isUnKnownPassword()).isFalse();
+
+    }
+
 
 
     @Test

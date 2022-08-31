@@ -58,7 +58,6 @@ public class MemberApiController {
         );
 
         return ResponseEntity.ok(entityModel);
-
     }
 
     @PutMapping
@@ -137,6 +136,37 @@ public class MemberApiController {
 
         return ResponseEntity.ok(representationModel);
     }
+
+    @GetMapping("/sns/password")
+    public ResponseEntity checkSnsPassword(@CurrentUser Member member) {
+
+        IsUnknownPasswordDto responseDto = memberService.checkUnknownPassword(member.getId());
+
+        EntityModel<IsUnknownPasswordDto> entityModel = EntityModel.of(responseDto,
+                linkTo(MemberApiController.class).slash("sns/password").withSelfRel(),
+                profileRootUrlBuilder.slash("index.html#resources-isKnownPassword").withRel("profile")
+                );
+
+        return ResponseEntity.ok(entityModel);
+    }
+
+
+    @PostMapping("/sns/password")
+    public ResponseEntity setPasswordSnsMember(@CurrentUser Member member,
+                                               @RequestBody @Valid SnsLoginSetPasswordDto requestDto,
+                                               Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+        memberValidator.validatePasswordConfirm(requestDto.getConfirmPassword(), requestDto.getPassword(), errors);
+
+        memberService.setPasswordSnsMember(member.getId(), requestDto);
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(MemberApiController.class).slash("sns/password").withSelfRel());
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-password-snsMember").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
 
     @GetMapping("/sns")
     public ResponseEntity querySnsProvider(@CurrentUser Member member) {
