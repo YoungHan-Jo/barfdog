@@ -138,13 +138,13 @@ public class MemberApiController {
     }
 
     @GetMapping("/sns/password")
-    public ResponseEntity checkSnsPassword(@CurrentUser Member member) {
+    public ResponseEntity checkNeedToSetPassword(@CurrentUser Member member) {
 
-        IsUnknownPasswordDto responseDto = memberService.checkUnknownPassword(member.getId());
+        IsNeedToSetPasswordDto responseDto = memberService.checkNeedToSetPassword(member.getId());
 
-        EntityModel<IsUnknownPasswordDto> entityModel = EntityModel.of(responseDto,
+        EntityModel<IsNeedToSetPasswordDto> entityModel = EntityModel.of(responseDto,
                 linkTo(MemberApiController.class).slash("sns/password").withSelfRel(),
-                profileRootUrlBuilder.slash("index.html#resources-isKnownPassword").withRel("profile")
+                profileRootUrlBuilder.slash("index.html#resources-isNeedToSetPassword").withRel("profile")
                 );
 
         return ResponseEntity.ok(entityModel);

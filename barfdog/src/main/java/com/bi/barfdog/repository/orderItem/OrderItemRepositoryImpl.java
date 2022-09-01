@@ -68,7 +68,8 @@ public class OrderItemRepositoryImpl implements OrderItemRepositoryCustom{
                         delivery.recipient.detailAddress,
                         delivery.departureDate,
                         delivery.arrivalDate,
-                        delivery.deliveryNumber
+                        delivery.deliveryNumber,
+                        delivery.request
                 ))
                 .from(orderItem)
                 .join(orderItem.generalOrder, generalOrder)
@@ -84,7 +85,9 @@ public class OrderItemRepositoryImpl implements OrderItemRepositoryCustom{
                         generalOrder.orderPrice,
                         generalOrder.deliveryPrice,
                         generalOrder.discountReward,
+                        generalOrder.discountCoupon,
                         generalOrder.paymentPrice,
+                        generalOrder.paymentMethod,
                         generalOrder.orderStatus,
                         generalOrder.orderConfirmDate
                 ))

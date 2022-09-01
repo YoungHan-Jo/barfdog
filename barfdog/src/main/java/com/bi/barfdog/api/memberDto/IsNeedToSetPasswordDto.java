@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class IsUnknownPasswordDto {
+public class IsNeedToSetPasswordDto {
 
-    boolean isUnKnownPassword;
+    boolean isNeedToSetPassword;
 }

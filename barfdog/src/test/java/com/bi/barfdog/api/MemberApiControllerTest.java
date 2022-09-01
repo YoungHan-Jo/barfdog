@@ -392,7 +392,7 @@ public class MemberApiControllerTest extends BaseTest {
 
     @Test
     @DisplayName("비밀번호 모르는지 체크하는 테스트")
-    public void isUnknownPassword() throws Exception {
+    public void isNeedToSetPassword() throws Exception {
        //given
 
        //when & then
@@ -402,8 +402,8 @@ public class MemberApiControllerTest extends BaseTest {
                         .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("unKnownPassword").value(false))
-                .andDo(document("check_unknown_password",
+                .andExpect(jsonPath("needToSetPassword").value(false))
+                .andDo(document("check_needToSetPassword",
                         links(
                                 linkWithRel("self").description("self 링크"),
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
@@ -417,7 +417,7 @@ public class MemberApiControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
                         ),
                         responseFields(
-                                fieldWithPath("unKnownPassword").description("비밀번호 모르면(sns가입자) true / 비밀번호 알면(일반가입자) false"),
+                                fieldWithPath("needToSetPassword").description("비밀번호 설정해야하는지 여부 true/false"),
                                 fieldWithPath("_links.self.href").description("self 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
@@ -436,7 +436,7 @@ public class MemberApiControllerTest extends BaseTest {
         em.flush();
         em.clear();
 
-        assertThat(member.isUnKnownPassword()).isTrue();
+        assertThat(member.isNeedToSetPassword()).isTrue();
 
         String rawPassword = "12341234";
         SnsLoginSetPasswordDto requestDto = SnsLoginSetPasswordDto.builder()
@@ -480,7 +480,7 @@ public class MemberApiControllerTest extends BaseTest {
 
         Member findMember = memberRepository.findById(member.getId()).get();
         assertThat(bCryptPasswordEncoder.matches(rawPassword, findMember.getPassword())).isTrue();
-        assertThat(findMember.isUnKnownPassword()).isFalse();
+        assertThat(findMember.isNeedToSetPassword()).isFalse();
 
     }
 

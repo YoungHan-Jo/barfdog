@@ -884,14 +884,28 @@ public class OrderAdminControllerTest extends BaseTest {
                                 fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.finalPrice").description("총 상품 금액"),
                                 fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.couponName").description("사용한 쿠폰 이름"),
                                 fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.discountAmount").description("쿠폰 할인 금액"),
-                                fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.status").description("주문한 상품 목록 하나 상태"),
+                                fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.status").description("주문한 상품(orderItem) 개별 상태"),
+                                fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.cancelReason").description("취소 이유, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.cancelDetailReason").description("취소 상세 이유, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.cancelRequestDate").description("취소 요청 날짜, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.cancelConfirmDate").description("취소 컨펌 날짜, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.returnReason").description("반품 이유, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.returnDetailReason").description("반품 상세 이유, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.returnRequestDate").description("반품 요청 날짜, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.returnConfirmDate").description("반품 컨펌 날짜, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.exchangeReason").description("교환 이유, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.exchangeDetailReason").description("교환 상세 이유, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.exchangeRequestDate").description("교환 요청 날짜, 없으면 null"),
+                                fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.exchangeConfirmDate").description("교환 컨펌 날짜, 없으면 null"),
                                 fieldWithPath("orderItemAndOptionDtoList[0].selectOptionDtoList[0].optionName").description("옵션 이름"),
                                 fieldWithPath("orderItemAndOptionDtoList[0].selectOptionDtoList[0].price").description("옵션 금액"),
                                 fieldWithPath("orderItemAndOptionDtoList[0].selectOptionDtoList[0].amount").description("옵션 개수"),
                                 fieldWithPath("paymentDto.orderPrice").description("상품 총 금액"),
                                 fieldWithPath("paymentDto.deliveryPrice").description("배달 요금"),
                                 fieldWithPath("paymentDto.discountReward").description("사용한 적립금"),
+                                fieldWithPath("paymentDto.discountCoupon").description("쿠폰 할인 할인분"),
                                 fieldWithPath("paymentDto.paymentPrice").description("결제 금액"),
+                                fieldWithPath("paymentDto.paymentMethod").description("결제 수단 [CREDIT_CARD, NAVER_PAY, KAKAO_PAY]"),
                                 fieldWithPath("paymentDto.orderStatus").description("주문 상태"),
                                 fieldWithPath("paymentDto.orderConfirmDate").description("구매 확정일"),
                                 fieldWithPath("deliveryDto.recipientName").description("수령자 이름"),
@@ -902,6 +916,7 @@ public class OrderAdminControllerTest extends BaseTest {
                                 fieldWithPath("deliveryDto.departureDate").description("배송 출발 시각"),
                                 fieldWithPath("deliveryDto.arrivalDate").description("배송 도착 시각"),
                                 fieldWithPath("deliveryDto.deliveryNumber").description("운송장 번호"),
+                                fieldWithPath("deliveryDto.request").description("배송 요청사항"),
                                 fieldWithPath("_links.self.href").description("self 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
@@ -948,7 +963,7 @@ public class OrderAdminControllerTest extends BaseTest {
                                 linkWithRel("profile").description("해당 API 관련 문서 링크")
                         ),
                         pathParameters(
-                                parameterWithName("id").description("일반 주문 주문 id")
+                                parameterWithName("id").description("주문상품(orderItem) id")
                         ),
                         requestHeaders(
                                 headerWithName(HttpHeaders.ACCEPT).description("accept header"),
@@ -974,7 +989,7 @@ public class OrderAdminControllerTest extends BaseTest {
                                 fieldWithPath("orderItemAndOptionDto.orderItemDto.finalPrice").description("총 상품 금액"),
                                 fieldWithPath("orderItemAndOptionDto.orderItemDto.couponName").description("사용한 쿠폰 이름"),
                                 fieldWithPath("orderItemAndOptionDto.orderItemDto.discountAmount").description("쿠폰 할인 금액"),
-                                fieldWithPath("orderItemAndOptionDto.orderItemDto.status").description("주문한 상품 목록 하나 상태"),
+                                fieldWithPath("orderItemAndOptionDto.orderItemDto.status").description("주문한 상품 개별 상태"),
                                 fieldWithPath("orderItemAndOptionDto.orderItemDto.cancelReason").description("취소 이유, 없으면 null"),
                                 fieldWithPath("orderItemAndOptionDto.orderItemDto.cancelDetailReason").description("취소 상세 이유, 없으면 null"),
                                 fieldWithPath("orderItemAndOptionDto.orderItemDto.cancelRequestDate").description("취소 요청 날짜, 없으면 null"),
@@ -993,7 +1008,9 @@ public class OrderAdminControllerTest extends BaseTest {
                                 fieldWithPath("paymentDto.orderPrice").description("상품 총 금액"),
                                 fieldWithPath("paymentDto.deliveryPrice").description("배달 요금"),
                                 fieldWithPath("paymentDto.discountReward").description("사용한 적립금"),
+                                fieldWithPath("paymentDto.discountCoupon").description("쿠폰 할인 할인분"),
                                 fieldWithPath("paymentDto.paymentPrice").description("결제 금액"),
+                                fieldWithPath("paymentDto.paymentMethod").description("결제 수단 [CREDIT_CARD, NAVER_PAY, KAKAO_PAY]"),
                                 fieldWithPath("paymentDto.orderStatus").description("주문 상태"),
                                 fieldWithPath("paymentDto.orderConfirmDate").description("구매 확정일"),
                                 fieldWithPath("deliveryDto.recipientName").description("수령자 이름"),
@@ -1004,6 +1021,7 @@ public class OrderAdminControllerTest extends BaseTest {
                                 fieldWithPath("deliveryDto.departureDate").description("배송 출발 시각"),
                                 fieldWithPath("deliveryDto.arrivalDate").description("배송 도착 시각"),
                                 fieldWithPath("deliveryDto.deliveryNumber").description("운송장 번호"),
+                                fieldWithPath("deliveryDto.request").description("배송 요청사항"),
                                 fieldWithPath("_links.self.href").description("self 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )

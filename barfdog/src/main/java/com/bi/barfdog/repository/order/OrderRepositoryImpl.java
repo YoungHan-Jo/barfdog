@@ -678,7 +678,8 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         delivery.recipient.detailAddress,
                         delivery.departureDate,
                         delivery.arrivalDate,
-                        delivery.deliveryNumber
+                        delivery.deliveryNumber,
+                        delivery.request
                 ))
                 .from(order)
                 .join(order.delivery, delivery)
@@ -695,7 +696,9 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         order.orderPrice,
                         order.deliveryPrice,
                         order.discountReward,
+                        order.discountCoupon,
                         order.paymentPrice,
+                        order.paymentMethod,
                         order.orderStatus,
                         order.orderConfirmDate
                 ))
@@ -715,7 +718,19 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         orderItem.finalPrice,
                         coupon.name,
                         orderItem.discountAmount,
-                        orderItem.status
+                        orderItem.status,
+                        orderItem.orderCancel.cancelReason,
+                        orderItem.orderCancel.cancelDetailReason,
+                        orderItem.orderCancel.cancelRequestDate,
+                        orderItem.orderCancel.cancelConfirmDate,
+                        orderItem.orderReturn.returnReason,
+                        orderItem.orderReturn.returnDetailReason,
+                        orderItem.orderReturn.returnRequestDate,
+                        orderItem.orderReturn.returnConfirmDate,
+                        orderItem.orderExchange.exchangeReason,
+                        orderItem.orderExchange.exchangeDetailReason,
+                        orderItem.orderExchange.exchangeRequestDate,
+                        orderItem.orderExchange.exchangeConfirmDate
                 ))
                 .from(orderItem)
                 .join(orderItem.item, item)

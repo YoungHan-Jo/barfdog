@@ -787,7 +787,7 @@ public class OrderService {
     }
 
     @Transactional
-    public void cancelRequestSubscribe(Long id) {
+    public void cancelRequestSubscribe(Long id, OrderCancelRequestDto requestDto) {
         SubscribeOrder order = (SubscribeOrder) orderRepository.findById(id).get();
         OrderStatus status = order.getOrderStatus();
         if (status == OrderStatus.PAYMENT_DONE) {
@@ -797,15 +797,14 @@ public class OrderService {
         } else if (status == OrderStatus.PRODUCING || status == OrderStatus.DELIVERY_READY) {
             // 취소 요청
             order.cancelRequest();
-            order.setCancelRequestDate();
+            order.setCancelRequestDate(requestDto);
         }
     }
 
 
-
     //    취소(요청) 주문 단위
     @Transactional
-    public void cancelRequestGeneral(Long id) {
+    public void cancelRequestGeneral(Long id, OrderCancelRequestDto requestDto) {
         GeneralOrder order = (GeneralOrder) orderRepository.findById(id).get();
 
         OrderStatus orderStatus = order.getOrderStatus();
@@ -817,7 +816,7 @@ public class OrderService {
             // 취소 요청
             List<OrderItem> orderItems = orderItemRepository.findAllByGeneralOrder(order);
             order.cancelRequest();
-            order.setCancelRequestDate();
+            order.setCancelRequestDate(requestDto);
             for (OrderItem orderItem : orderItems) {
                 orderItem.cancelRequestDate();
             }
@@ -1071,7 +1070,7 @@ public class OrderService {
             subscribe.cancelPayment();
             cardRepository.delete(card);
 
-            if (isSubscriber(member)) {
+            if (isNotSubscriber(member)) {
                 member.stopSubscriber();
             }
 
@@ -1084,9 +1083,9 @@ public class OrderService {
         }
     }
 
-    private boolean isSubscriber(Member member) {
+    private boolean isNotSubscriber(Member member) {
         Long count = subscribeRepository.findSubscribingCountByMember(member);
-        return !count.equals(0L);
+        return count.equals(0L);
     }
 
     private void revivalCoupon(SubscribeOrder order) {

@@ -58,7 +58,7 @@ public class Member extends BaseTimeEntity {
     private String myRecommendationCode; // 내 추천 코드
 
     @Enumerated(EnumType.STRING)
-    private Grade grade; // [BRONZE, SILVER, GOLD, PLATINUM, DIAMOND, BARF]
+    private Grade grade; // [브론즈, 실버, 골드, 플래티넘, 다이아몬드, 더바프]
 
     private int reward;
 
@@ -75,7 +75,7 @@ public class Member extends BaseTimeEntity {
 
     private boolean isBrochure; // 브로슈어 받은적 있는지 여부
 
-    private boolean isUnKnownPassword; // sns로 가입해서 비밀번호를 모르는 상태일 경우 true / 일반 회원가입: false
+    private boolean needToSetPassword; // sns로 가입해서 비밀번호 설정해야하는 경우 true / 일반 회원가입인 경우: false
 
     @Embedded
     private FirstReward firstReward;
@@ -160,9 +160,7 @@ public class Member extends BaseTimeEntity {
         this.providerId = "";
     }
 
-    public void subscribe() {
-        this.roles += ",SUBSCRIBER";
-    }
+
 
     public void subscribeOrder(SubscribeOrderRequestDto requestDto) {
         useReward(requestDto.getDiscountReward());
@@ -175,7 +173,10 @@ public class Member extends BaseTimeEntity {
         }
         accumulatedSubscribe++;
         isSubscribe = true;
-        roles = "USER,SUBSCRIBER";
+
+        if (!roles.contains("ADMIN")) {
+            roles = "USER,SUBSCRIBER";
+        }
     }
 
     public void generalOrder(GeneralOrderRequestDto requestDto) {
@@ -252,13 +253,19 @@ public class Member extends BaseTimeEntity {
 
     public void changeSnsPassword(String hashPassword) {
         changePassword(hashPassword);
-        this.isUnKnownPassword = false;
+        this.needToSetPassword = false;
     }
 
 
-    // 테스트용 메서드
+    // 테스트 용 메서드
     public void setUnknownPassword() {
-        isUnKnownPassword = true;
+        needToSetPassword = true;
     }
+    // 테스트 용 메서드
+    public void subscribe() {
+        this.roles += ",SUBSCRIBER";
+        isSubscribe = true;
+    }
+
 }
 

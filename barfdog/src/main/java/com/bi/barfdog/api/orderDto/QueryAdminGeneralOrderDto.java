@@ -1,6 +1,7 @@
 package com.bi.barfdog.api.orderDto;
 
 import com.bi.barfdog.domain.order.OrderStatus;
+import com.bi.barfdog.domain.order.PaymentMethod;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -62,6 +63,21 @@ public class QueryAdminGeneralOrderDto {
         private int discountAmount; // 쿠폰 적용 할인 금액
         private OrderStatus status;
 
+        private String cancelReason;
+        private String cancelDetailReason;
+        private LocalDateTime cancelRequestDate;
+        private LocalDateTime cancelConfirmDate;
+
+        private String returnReason;
+        private String returnDetailReason;
+        private LocalDateTime returnRequestDate;
+        private LocalDateTime returnConfirmDate;
+
+        private String exchangeReason;
+        private String exchangeDetailReason;
+        private LocalDateTime exchangeRequestDate;
+        private LocalDateTime exchangeConfirmDate;
+
     }
 
     @Data
@@ -81,7 +97,9 @@ public class QueryAdminGeneralOrderDto {
         private int orderPrice; // 주문 가격
         private int deliveryPrice; // 배송비
         private int discountReward; // 사용한 적립금
+        private int discountCoupon;
         private int paymentPrice; // 결제 금액
+        private PaymentMethod paymentMethod;
         private OrderStatus orderStatus;
 
         private LocalDateTime orderConfirmDate;
@@ -102,6 +120,8 @@ public class QueryAdminGeneralOrderDto {
         private LocalDateTime arrivalDate; // 도착일
 
         private String deliveryNumber;
+
+        private String request; // 요청사항
 
     }
 

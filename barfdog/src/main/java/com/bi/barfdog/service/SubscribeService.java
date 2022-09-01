@@ -56,7 +56,6 @@ public class SubscribeService {
 
     private IamportClient client = new IamportClient(Iamport_API.API_KEY, Iamport_API.API_SECRET);
 
-
     @Transactional
     public void changeCoupon(Long id, UseCouponDto requestDto) {
         Subscribe subscribe = subscribeRepository.findById(id).get();
@@ -67,7 +66,6 @@ public class SubscribeService {
         subscribe.changeCoupon(memberCoupon, discountCoupon);
 
         unscheduleAndNewSchedule(subscribe);
-
     }
 
     @Transactional
@@ -94,7 +92,6 @@ public class SubscribeService {
                 .paymentPrice(subscribe.getNextPaymentPrice())
                 .build();
         beforeSubscribeRepository.save(beforeSubscribe);
-
     }
 
     @Transactional
@@ -105,7 +102,6 @@ public class SubscribeService {
         updatePlanAndChangeSelectRecipes(subscribe, requestDto);
 
         unscheduleAndNewSchedule(subscribe);
-
     }
 
     @Transactional
@@ -142,7 +138,6 @@ public class SubscribeService {
                 member.stopSubscriber();
             }
         }
-
     }
 
     private boolean isSubscriber(Member member) {

@@ -123,7 +123,7 @@ public class MemberService {
                 .accumulatedAmount(0)
                 .firstReward(new FirstReward(false,false))
                 .roles("USER")
-                .isUnKnownPassword(isUnKnownPassword(provider))
+                .needToSetPassword(isUnKnownPassword(provider))
                 .build();
         memberRepository.save(member);
         return member;
@@ -377,13 +377,13 @@ public class MemberService {
 
     }
 
-    public IsUnknownPasswordDto checkUnknownPassword(Long id) {
+    public IsNeedToSetPasswordDto checkNeedToSetPassword(Long id) {
         Member member = memberRepository.findById(id).get();
 
-        boolean isUnKnownPassword = member.isUnKnownPassword();
+        boolean isNeedToSetPassword = member.isNeedToSetPassword();
 
-        IsUnknownPasswordDto responseDto = IsUnknownPasswordDto.builder()
-                .isUnKnownPassword(isUnKnownPassword)
+        IsNeedToSetPasswordDto responseDto = IsNeedToSetPasswordDto.builder()
+                .isNeedToSetPassword(isNeedToSetPassword)
                 .build();
 
         return responseDto;

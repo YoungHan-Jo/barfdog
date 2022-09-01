@@ -62,7 +62,6 @@ import com.bi.barfdog.snsLogin.ConnectSnsRequestDto;
 import com.bi.barfdog.snsLogin.NaverLoginDto;
 import com.bi.barfdog.snsLogin.SnsProvider;
 import com.bi.barfdog.snsLogin.SnsResponse;
-import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -883,7 +882,7 @@ public class IndexApiControllerTest extends BaseTest {
 
         Member findMember = optionalMember.get();
         assertThat(findMember.getPhoneNumber()).isEqualTo(phoneNumber);
-        assertThat(findMember.isUnKnownPassword()).isFalse();
+        assertThat(findMember.isNeedToSetPassword()).isFalse();
 
     }
 
@@ -925,7 +924,7 @@ public class IndexApiControllerTest extends BaseTest {
 
         Member findMember = optionalMember.get();
         assertThat(findMember.getPhoneNumber()).isEqualTo(phoneNumber);
-        assertThat(findMember.isUnKnownPassword()).isFalse();
+        assertThat(findMember.isNeedToSetPassword()).isFalse();
 
     }
 
@@ -968,7 +967,7 @@ public class IndexApiControllerTest extends BaseTest {
 
         Member findMember = optionalMember.get();
         assertThat(findMember.getPhoneNumber()).isEqualTo(phoneNumber);
-        assertThat(findMember.isUnKnownPassword()).isTrue();
+        assertThat(findMember.isNeedToSetPassword()).isTrue();
 
     }
 

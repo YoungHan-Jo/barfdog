@@ -1,5 +1,6 @@
 package com.bi.barfdog.domain.order;
 
+import com.bi.barfdog.api.orderDto.OrderCancelRequestDto;
 import com.bi.barfdog.domain.delivery.Delivery;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
@@ -76,8 +77,10 @@ public class SubscribeOrder extends Order{
                 .build();
     }
 
-    public void setCancelRequestDate() {
+    public void setCancelRequestDate(OrderCancelRequestDto requestDto) {
         orderCancel = OrderCancel.builder()
+                .cancelReason(requestDto.getReason())
+                .cancelDetailReason(requestDto.getDetailReason())
                 .cancelRequestDate(LocalDateTime.now())
                 .build();
     }

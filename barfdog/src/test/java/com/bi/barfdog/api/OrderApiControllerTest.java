@@ -154,6 +154,7 @@ public class OrderApiControllerTest extends BaseTest {
         itemRepository.deleteAll();
         deliveryRepository.deleteAll();
         subscribeRecipeRepository.deleteAll();
+        beforeSubscribeRepository.deleteAll();
         subscribeRepository.deleteAll();
         surveyReportRepository.deleteAll();
         dogRepository.deleteAll();
@@ -2478,6 +2479,7 @@ public class OrderApiControllerTest extends BaseTest {
     public void cancelRequestSubscribeOrder() throws Exception {
        //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        member.subscribe();
         int accumulatedSubscribe = member.getAccumulatedSubscribe();
         int accumulatedAmount = member.getAccumulatedAmount();
         SubscribeOrder order = generateSubscribeOrderAndEtc_NoBeforeSubscribe_no_deliveryNumber(member, 1, OrderStatus.PAYMENT_DONE);
@@ -2486,11 +2488,19 @@ public class OrderApiControllerTest extends BaseTest {
         int subscribeCount = subscribe.getSubscribeCount();
         String merchantUid = subscribe.getNextOrderMerchantUid();
 
+        String reason = "취소 요청 사유";
+        String detailReason = "취소 요청 상세 사유";
+        OrderCancelRequestDto requestDto = OrderCancelRequestDto.builder()
+                .reason(reason)
+                .detailReason(detailReason)
+                .build();
+
         //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.post("/api/orders/{id}/subscribe/cancelRequest", order.getId())
                         .header(HttpHeaders.AUTHORIZATION, getUserToken())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaTypes.HAL_JSON))
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(document("cancelRequest_subscribe",
@@ -2506,6 +2516,10 @@ public class OrderApiControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
                                 headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
                         ),
+                        requestFields(
+                                fieldWithPath("reason").description("취소 사유, 없으면 -> 빈문자열"),
+                                fieldWithPath("detailReason").description("취소 상세 사유, 없으면 -> 빈문자열")
+                        ),
                         responseHeaders(
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
                         ),
@@ -2514,7 +2528,6 @@ public class OrderApiControllerTest extends BaseTest {
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
                         )
                 ));
-
 
         em.flush();
         em.clear();
@@ -2533,14 +2546,11 @@ public class OrderApiControllerTest extends BaseTest {
         Delivery delivery = findOrder.getDelivery();
         assertThat(delivery.getStatus()).isEqualTo(DeliveryStatus.DELIVERY_CANCEL);
 
-        SubscribeOrder nextOrder = orderRepository.findByMerchantUid(merchantUid).get();
-        assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCEL_DONE_BUYER);
-        assertThat(nextOrder.getDelivery().getStatus()).isEqualTo(DeliveryStatus.DELIVERY_CANCEL);
-        assertThat(nextOrder.getOrderCancel().getCancelRequestDate()).isNotNull();
-        assertThat(nextOrder.getOrderCancel().getCancelConfirmDate()).isNotNull();
+        Optional<SubscribeOrder> optionalSubscribeOrder = orderRepository.findByMerchantUid(merchantUid);
+        assertThat(optionalSubscribeOrder.isPresent()).isFalse();
 
         Subscribe findSubscribe = subscribeRepository.findById(subscribe.getId()).get();
-        assertThat(findSubscribe.getStatus()).isEqualTo(SubscribeStatus.SUBSCRIBE_PENDING);
+        assertThat(findSubscribe.getStatus()).isEqualTo(SubscribeStatus.BEFORE_PAYMENT);
 
     }
 
@@ -2551,11 +2561,19 @@ public class OrderApiControllerTest extends BaseTest {
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
         SubscribeOrder order = generateSubscribeOrderAndEtc_NoBeforeSubscribe_no_deliveryNumber(member, 1, OrderStatus.PRODUCING);
 
+        String reason = "취소 요청 사유";
+        String detailReason = "취소 요청 상세 사유";
+        OrderCancelRequestDto requestDto = OrderCancelRequestDto.builder()
+                .reason(reason)
+                .detailReason(detailReason)
+                .build();
+
         //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.post("/api/orders/{id}/subscribe/cancelRequest", order.getId())
                         .header(HttpHeaders.AUTHORIZATION, getUserToken())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaTypes.HAL_JSON))
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isOk());
 
@@ -2565,6 +2583,8 @@ public class OrderApiControllerTest extends BaseTest {
         SubscribeOrder findOrder = (SubscribeOrder) orderRepository.findById(order.getId()).get();
         assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCEL_REQUEST);
         assertThat(findOrder.getOrderCancel().getCancelRequestDate()).isNotNull();
+        assertThat(findOrder.getOrderCancel().getCancelReason()).isEqualTo(reason);
+        assertThat(findOrder.getOrderCancel().getCancelDetailReason()).isEqualTo(detailReason);
 
     }
 
@@ -2593,11 +2613,19 @@ public class OrderApiControllerTest extends BaseTest {
             memberCouponList.add(memberCoupon);
         }
 
+        String reason = "취소 요청 사유";
+        String detailReason = "취소 요청 상세 사유";
+        OrderCancelRequestDto requestDto = OrderCancelRequestDto.builder()
+                .reason(reason)
+                .detailReason(detailReason)
+                .build();
+
         //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.post("/api/orders/{id}/general/cancelRequest", order.getId())
                         .header(HttpHeaders.AUTHORIZATION, getUserToken())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaTypes.HAL_JSON))
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(document("cancelRequest_general",
@@ -2612,6 +2640,10 @@ public class OrderApiControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.ACCEPT).description("accept header"),
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
                                 headerWithName(HttpHeaders.AUTHORIZATION).description("Json Web Token")
+                        ),
+                        requestFields(
+                                fieldWithPath("reason").description("취소 사유, 없으면 -> 빈문자열"),
+                                fieldWithPath("detailReason").description("취소 상세 사유, 없으면 -> 빈문자열")
                         ),
                         responseHeaders(
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
@@ -2648,6 +2680,44 @@ public class OrderApiControllerTest extends BaseTest {
     }
 
     @Test
+    @DisplayName("일반 주문 주문 취소 요청 - 상품 준비 전, 사유 null")
+    public void cancelRequestGeneralOrder_reason_null() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int rewardAmount = member.getReward();
+        int accumulatedAmount = member.getAccumulatedAmount();
+
+        GeneralOrder order = generateGeneralOrder(member, 1, OrderStatus.PAYMENT_DONE);
+        int discountReward = order.getDiscountReward();
+        int paymentPrice = order.getPaymentPrice();
+
+        List<Integer> remainingList = new ArrayList<>();
+        List<MemberCoupon> memberCouponList = new ArrayList<>();
+
+        List<OrderItem> orderItemList = orderItemRepository.findAllByGeneralOrder(order);
+        for (OrderItem orderItem : orderItemList) {
+            MemberCoupon memberCoupon = orderItem.getMemberCoupon();
+            remainingList.add(memberCoupon.getRemaining());
+            memberCouponList.add(memberCoupon);
+        }
+
+        String reason = "취소 요청 사유";
+        String detailReason = "취소 요청 상세 사유";
+        OrderCancelRequestDto requestDto = OrderCancelRequestDto.builder()
+                .build();
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/orders/{id}/general/cancelRequest", order.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+    }
+
+    @Test
     @DisplayName("일반 주문 주문 취소 요청 - 상품 준비 중")
     public void cancelRequestGeneralOrder_DELIVERYREADY() throws Exception {
         //given
@@ -2655,11 +2725,19 @@ public class OrderApiControllerTest extends BaseTest {
 
         GeneralOrder order = generateGeneralOrder(member, 1, OrderStatus.DELIVERY_READY);
 
+        String reason = "취소 요청 사유";
+        String detailReason = "취소 요청 상세 사유";
+        OrderCancelRequestDto requestDto = OrderCancelRequestDto.builder()
+                .reason(reason)
+                .detailReason(detailReason)
+                .build();
+
         //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.post("/api/orders/{id}/general/cancelRequest", order.getId())
                         .header(HttpHeaders.AUTHORIZATION, getUserToken())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaTypes.HAL_JSON))
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isOk());
 
@@ -2669,6 +2747,10 @@ public class OrderApiControllerTest extends BaseTest {
         GeneralOrder findOrder = (GeneralOrder) orderRepository.findById(order.getId()).get();
         assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCEL_REQUEST);
         assertThat(findOrder.getDelivery().getStatus()).isNotEqualTo(DeliveryStatus.DELIVERY_CANCEL);
+        assertThat(findOrder.getOrderCancel().getCancelRequestDate()).isNotNull();
+        assertThat(findOrder.getOrderCancel().getCancelReason()).isEqualTo(reason);
+        assertThat(findOrder.getOrderCancel().getCancelDetailReason()).isEqualTo(detailReason);
+
         List<OrderItem> orderItems = orderItemRepository.findAllByGeneralOrder(findOrder);
         for (OrderItem orderItem : orderItems) {
             assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.CANCEL_REQUEST);

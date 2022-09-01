@@ -239,13 +239,16 @@ public class OrderApiController {
     }
 
     @PostMapping("/{id}/general/cancelRequest")
-    public ResponseEntity generalOrderCancelRequest(@PathVariable Long id) {
+    public ResponseEntity generalOrderCancelRequest(@PathVariable Long id,
+                                                    @RequestBody @Valid OrderCancelRequestDto requestDto,
+                                                    Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
         Optional<Order> optionalOrder = orderRepository.findById(id);
         if(!optionalOrder.isPresent()) return notFound();
         Order order = optionalOrder.get();
         if (order instanceof SubscribeOrder) return notFound();
 
-        orderService.cancelRequestGeneral(id);
+        orderService.cancelRequestGeneral(id, requestDto);
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(OrderApiController.class).slash(id).slash("general/cancelRequest").slash(id).withSelfRel());
@@ -255,11 +258,13 @@ public class OrderApiController {
     }
 
     @PostMapping("/{id}/subscribe/cancelRequest")
-    public ResponseEntity subscribeOrderCancelRequest(@PathVariable Long id) {
+    public ResponseEntity subscribeOrderCancelRequest(@PathVariable Long id,
+                                                      @RequestBody @Valid OrderCancelRequestDto requestDto,
+                                                      Errors errors) {
         Optional<Order> optionalOrder = orderRepository.findById(id);
         if(!optionalOrder.isPresent()) return notFound();
 
-        orderService.cancelRequestSubscribe(id);
+        orderService.cancelRequestSubscribe(id, requestDto);
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(OrderApiController.class).slash(id).slash("subscribe/cancelRequest").slash(id).withSelfRel());
@@ -308,7 +313,6 @@ public class OrderApiController {
 
         return ResponseEntity.ok(representationModel);
     }
-
 
     private ResponseEntity<EntityModel<Errors>> badRequest(Errors errors) {
         return ResponseEntity.badRequest().body(new ErrorsResource(errors));

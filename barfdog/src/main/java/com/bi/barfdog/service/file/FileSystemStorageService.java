@@ -120,7 +120,10 @@ public class FileSystemStorageService implements StorageService {
 
         try (InputStream inputStream = file.getInputStream()) {
             UUID uuid = UUID.randomUUID();
-            String filename = uuid.toString() + "_" + file.getOriginalFilename();
+            String originalFilename = file.getOriginalFilename();
+            int index = originalFilename.lastIndexOf(".");
+            String imgType = originalFilename.substring(index);
+            String filename = uuid.toString() + imgType;
             Files.copy(inputStream,
                     root.resolve(filename),
                     StandardCopyOption.REPLACE_EXISTING);
@@ -131,7 +134,7 @@ public class FileSystemStorageService implements StorageService {
                     .build();
 
             if (fileType.equals("banners")) {
-                File inFile = new File(uploadPath, uuid.toString() + "_" + file.getOriginalFilename());
+                File inFile = new File(uploadPath, filename);
                 File outFile = new File(uploadPath, "s_" + filename);
 
                 Thumbnailator.createThumbnail(inFile, outFile, 400, 400);
