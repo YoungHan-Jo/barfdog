@@ -1520,7 +1520,6 @@ operation::query_admin_reject_cancelRequest[snippets='curl-request,request-heade
 
 
 
-
 [[resources-query-admin-order-general]]
 === 일반 주문 하나 조회
 
