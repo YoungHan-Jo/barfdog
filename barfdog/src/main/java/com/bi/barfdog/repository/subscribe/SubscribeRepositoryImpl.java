@@ -159,6 +159,7 @@ public class SubscribeRepositoryImpl implements SubscribeRepositoryCustom{
                 .select(Projections.constructor(QuerySubscribesDto.SubscribeDto.class,
                         subscribe.id,
                         dogPicture.filename,
+                        subscribe.status,
                         subscribe.plan,
                         dog.name,
                         subscribe.countSkipOneTime,

@@ -476,6 +476,7 @@ public class SubscribeApiControllerTest extends BaseTest {
                         responseFields(
                                 fieldWithPath("_embedded.querySubscribesDtoList[0].subscribeDto.subscribeId").description("구독 id"),
                                 fieldWithPath("_embedded.querySubscribesDtoList[0].subscribeDto.pictureUrl").description("프로필사진 url"),
+                                fieldWithPath("_embedded.querySubscribesDtoList[0].subscribeDto.status").description("구독 상태 [BEFORE_PAYMENT, SUBSCRIBING, SUBSCRIBE_PENDING, ADMIN]"),
                                 fieldWithPath("_embedded.querySubscribesDtoList[0].subscribeDto.plan").description("플랜 [FULL,HALF,TOPPING]"),
                                 fieldWithPath("_embedded.querySubscribesDtoList[0].subscribeDto.dogName").description("강아지 이름"),
                                 fieldWithPath("_embedded.querySubscribesDtoList[0].subscribeDto.countSkipOneTime").description("이번 회차 구독 한 회 건너뛰기 횟수, 다음회차 때 0으로 초기화"),

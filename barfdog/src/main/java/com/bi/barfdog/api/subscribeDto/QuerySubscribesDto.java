@@ -2,6 +2,7 @@ package com.bi.barfdog.api.subscribeDto;
 
 import com.bi.barfdog.api.InfoController;
 import com.bi.barfdog.domain.subscribe.SubscribePlan;
+import com.bi.barfdog.domain.subscribe.SubscribeStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,6 +29,7 @@ public class QuerySubscribesDto {
     public static class SubscribeDto{
         private Long subscribeId;
         private String pictureUrl;
+        private SubscribeStatus status;
         private SubscribePlan plan;
         private String dogName;
         private int countSkipOneTime;

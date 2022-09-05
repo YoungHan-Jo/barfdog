@@ -51,7 +51,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST,"/api/admin/guests").permitAll()
 //                .antMatchers(HttpMethod.PUT,"/api/banners/main/**").permitAll()
                 .antMatchers("/api/baskets").access("hasRole('ROLE_USER')")
-                .antMatchers("/api/orders/sheet/**").access("hasRole('ROLE_USER')")
+                .antMatchers("/api/orders/**").access("hasRole('ROLE_USER')")
                 .antMatchers("/api/admin/**").access("hasRole('ROLE_ADMIN')")
                 .antMatchers("/api/banners/**").access("hasRole('ROLE_ADMIN')")
 
