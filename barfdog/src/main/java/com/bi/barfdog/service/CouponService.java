@@ -272,4 +272,11 @@ public class CouponService {
     }
 
 
+    @Transactional
+    public void removeExpiredCoupon() {
+        List<MemberCoupon> memberCouponList = memberCouponRepository.findExpiredCoupon();
+        for (MemberCoupon memberCoupon : memberCouponList) {
+            memberCoupon.inactive();
+        }
+    }
 }

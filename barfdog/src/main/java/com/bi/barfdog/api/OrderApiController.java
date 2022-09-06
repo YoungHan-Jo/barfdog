@@ -111,6 +111,21 @@ public class OrderApiController {
         return ResponseEntity.ok(representationModel);
     }
 
+    @PostMapping("/{id}/general/cancel")
+    public ResponseEntity cancelGeneralOrder(@CurrentUser Member member,
+                                             @PathVariable Long id) {
+        Optional<Order> optionalOrder = orderRepository.findById(id);
+        if (!optionalOrder.isPresent()) return notFound();
+
+        orderService.cancelGeneralOrder(id, member.getId());
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderApiController.class).slash(id).slash("general/cancel").withSelfRel());
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-cancelPayment-generalOrder").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
     @GetMapping("/sheet/subscribe/{id}")
     public ResponseEntity queryOrderSheetSubscribe(@CurrentUser Member member,
                                                    @PathVariable Long id) {
@@ -175,6 +190,21 @@ public class OrderApiController {
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(OrderApiController.class).slash(id).slash("subscribe/fail").slash(id).withSelfRel());
         representationModel.add(profileRootUrlBuilder.slash("index.html#resources-fail-subscribeOrder").withRel("profile"));
+
+        return ResponseEntity.ok(representationModel);
+    }
+
+    @PostMapping("/{id}/subscribe/cancel")
+    public ResponseEntity cancelPaymentSubscribeOrder(@CurrentUser Member member,
+                                             @PathVariable Long id) {
+        Optional<Order> optionalOrder = orderRepository.findById(id);
+        if (!optionalOrder.isPresent()) return notFound();
+
+        orderService.cancelSubscribeOrder(id, member.getId());
+
+        RepresentationModel representationModel = new RepresentationModel();
+        representationModel.add(linkTo(OrderApiController.class).slash(id).slash("subscribe/cancel").slash(id).withSelfRel());
+        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-cancelPayment-subscribeOrder").withRel("profile"));
 
         return ResponseEntity.ok(representationModel);
     }

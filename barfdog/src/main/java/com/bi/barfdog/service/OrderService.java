@@ -597,7 +597,7 @@ public class OrderService {
         GeneralOrder order = (GeneralOrder) orderRepository.findById(orderId).get();
 
         member.generalOrderFail(order.getDiscountReward());
-        saveFailedOrderRewardHistory(member, order);
+        saveFailedOrderRewardHistory(member, order, RewardName.FAILED_ORDER);
 
         order.failPayment();
 
@@ -607,20 +607,38 @@ public class OrderService {
 
             List<SelectOption> selectOptionList = selectOptionRepository.findAllByOrderItem(orderItem);
             for (SelectOption selectOption : selectOptionList) {
-                selectOption.failPayment();
+                selectOption.increaseItemOption();
             }
         }
-
-
-
     }
 
-    private void saveFailedOrderRewardHistory(Member member, Order order) {
+    @Transactional
+    public void cancelGeneralOrder(Long orderId, Long memberId) {
+        Member member = memberRepository.findById(memberId).get();
+        GeneralOrder order = (GeneralOrder) orderRepository.findById(orderId).get();
+
+        member.generalOrderFail(order.getDiscountReward());
+        saveFailedOrderRewardHistory(member, order, RewardName.CANCEL_PAYMENT);
+
+        order.cancelOrderAndDelivery(OrderStatus.CANCEL_PAYMENT);
+
+        List<OrderItem> orderItemList = orderItemRepository.findAllByGeneralOrder(order);
+        for (OrderItem orderItem : orderItemList) {
+            orderItem.cancelPayment();
+
+            List<SelectOption> selectOptionList = selectOptionRepository.findAllByOrderItem(orderItem);
+            for (SelectOption selectOption : selectOptionList) {
+                selectOption.increaseItemOption();
+            }
+        }
+    }
+
+    private void saveFailedOrderRewardHistory(Member member, Order order, String rewardName) {
         int discountReward = order.getDiscountReward();
         if (discountReward <= 0) return;
         Reward reward = Reward.builder()
                 .member(member)
-                .name(RewardName.FAILED_ORDER)
+                .name(rewardName)
                 .rewardType(RewardType.ORDER)
                 .rewardStatus(RewardStatus.SAVED)
                 .tradeReward(discountReward)
@@ -686,19 +704,6 @@ public class OrderService {
 
     }
 
-    private LocalDate calculateFirstDeliveryDate() {
-        LocalDate today = LocalDate.now();
-        DayOfWeek dayOfWeek = today.getDayOfWeek();
-        int dayOfWeekNumber = dayOfWeek.getValue();
-        int i = dayOfWeekNumber - 3;
-        LocalDate nextDeliveryDate = null;
-        if (dayOfWeekNumber <= 5) {
-            nextDeliveryDate = today.plusDays(i+7);
-        } else {
-            nextDeliveryDate = today.plusDays(i+14);
-        }
-        return nextDeliveryDate;
-    }
 
     private SubscribeOrder saveReservedOrderAndDelivery(Member member, SubscribeOrder order, Subscribe subscribe) {
         Delivery nextDelivery = saveNextDelivery(order, subscribe);
@@ -774,9 +779,7 @@ public class OrderService {
         Member member = memberRepository.findById(memberId).get();
 
         member.subscribeOrderFail(order);
-        saveFailedOrderRewardHistory(member, order);
-
-        order.getMemberCoupon();
+        saveFailedOrderRewardHistory(member, order, RewardName.FAILED_ORDER);
 
         MemberCoupon memberCoupon = order.getMemberCoupon();
         if (memberCoupon != null) {
@@ -784,6 +787,22 @@ public class OrderService {
         }
 
         order.failPayment();
+    }
+
+    @Transactional
+    public void cancelSubscribeOrder(Long id, Long memberId) {
+        SubscribeOrder order = (SubscribeOrder) orderRepository.findById(id).get();
+        Member member = memberRepository.findById(memberId).get();
+
+        member.subscribeOrderFail(order);
+        saveFailedOrderRewardHistory(member, order, RewardName.CANCEL_PAYMENT);
+
+        MemberCoupon memberCoupon = order.getMemberCoupon();
+        if (memberCoupon != null) {
+            memberCoupon.revivalCoupon();
+        }
+
+        order.cancelOrderAndDelivery(OrderStatus.CANCEL_PAYMENT);
     }
 
     @Transactional
@@ -862,17 +881,7 @@ public class OrderService {
     }
 
     private void saveCancelOrderRewardHistory(Order order, Member member) {
-        int discountReward = order.getDiscountReward();
-        if (discountReward <= 0) return;
-
-        Reward reward = Reward.builder()
-                .member(member)
-                .name(RewardName.CANCEL_ORDER)
-                .rewardType(RewardType.ORDER)
-                .rewardStatus(RewardStatus.SAVED)
-                .tradeReward(discountReward)
-                .build();
-        rewardRepository.save(reward);
+        saveFailedOrderRewardHistory(member, order, RewardName.CANCEL_ORDER);
     }
 
     @Transactional
@@ -1325,4 +1334,34 @@ public class OrderService {
 
 
     }
+
+    @Transactional
+    public void autoConfirm() {
+        List<Order> orderList = orderRepository.findDeliveryDoneForAutoConfirm();
+        for (Order order : orderList) {
+            Member member = order.getMember();
+            order.generalConfirm();
+
+            if (order instanceof GeneralOrder) {
+                GeneralOrder generalOrder = (GeneralOrder) order;
+                List<OrderItem> orderItemList = orderItemRepository.findAllByGeneralOrder(generalOrder);
+                for (OrderItem orderItem : orderItemList) {
+                    if(alreadyConfirm(orderItem)) continue;
+
+                    if (isDeliveryDone(orderItem)) {
+                        orderItem.confirm();
+                        member.chargeReward(orderItem.getSaveReward());
+                        saveExpectedRewardHistory(member, orderItem);
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean isDeliveryDone(OrderItem orderItem) {
+        return orderItem.getStatus() == OrderStatus.DELIVERY_DONE;
+    }
+
+
+
 }

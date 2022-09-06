@@ -78,6 +78,12 @@ public class OrderItem extends BaseTimeEntity {
         revivalCoupon();
     }
 
+    public void cancelPayment() {
+        status = OrderStatus.CANCEL_PAYMENT;
+        item.increaseRemaining(amount);
+        revivalCoupon();
+    }
+
     public void cancelRequestDate() {
         status = OrderStatus.CANCEL_REQUEST;
         orderCancel = OrderCancel.builder()

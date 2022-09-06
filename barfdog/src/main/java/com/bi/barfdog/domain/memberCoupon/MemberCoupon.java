@@ -44,7 +44,7 @@ public class MemberCoupon extends BaseTimeEntity {
         memberCouponStatus = CouponStatus.ACTIVE;
     }
 
-    private void inactive() {
+    public void inactive() {
         memberCouponStatus = CouponStatus.INACTIVE;
     }
 

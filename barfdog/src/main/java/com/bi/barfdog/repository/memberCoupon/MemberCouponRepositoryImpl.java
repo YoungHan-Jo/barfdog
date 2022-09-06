@@ -13,6 +13,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.bi.barfdog.domain.coupon.QCoupon.coupon;
@@ -76,6 +77,16 @@ public class MemberCouponRepositoryImpl implements MemberCouponRepositoryCustom{
                 .join(memberCoupon.member, member)
                 .join(memberCoupon.coupon, coupon)
                 .where(member.eq(user).and(validGeneralCoupon()))
+                .fetch();
+    }
+
+    @Override
+    public List<MemberCoupon> findExpiredCoupon() {
+        return queryFactory
+                .select(memberCoupon)
+                .from(memberCoupon)
+                .where(memberCoupon.memberCouponStatus.eq(CouponStatus.ACTIVE)
+                        .and(memberCoupon.expiredDate.before(LocalDateTime.now())))
                 .fetch();
     }
 

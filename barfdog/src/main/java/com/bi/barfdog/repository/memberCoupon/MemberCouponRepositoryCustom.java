@@ -13,4 +13,6 @@ public interface MemberCouponRepositoryCustom {
     List<MemberCoupon> findByMemberAndCode(Member member, String code);
 
     List<OrderSheetGeneralCouponDto> findGeneralCouponsDto(Member member);
+
+    List<MemberCoupon> findExpiredCoupon();
 }

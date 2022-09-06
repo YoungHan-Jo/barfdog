@@ -32,7 +32,7 @@ public class SelectOption {
     private int price;
     private int amount;
 
-    public void failPayment() {
+    public void increaseItemOption() {
         itemOption.increaseRemaining(amount);
     }
 }

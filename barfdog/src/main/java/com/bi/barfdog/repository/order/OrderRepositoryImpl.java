@@ -5,6 +5,7 @@ import com.bi.barfdog.api.barfDto.AdminDashBoardRequestDto;
 import com.bi.barfdog.api.barfDto.AdminDashBoardResponseDto;
 import com.bi.barfdog.api.orderDto.*;
 import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.domain.order.Order;
 import com.bi.barfdog.domain.order.OrderStatus;
 import com.bi.barfdog.domain.orderItem.OrderItem;
 import com.bi.barfdog.domain.subscribe.QSubscribe;
@@ -84,6 +85,18 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
         }
 
         return queryAdminCancelRequestDtos;
+    }
+
+    @Override
+    public List<Order> findDeliveryDoneForAutoConfirm() {
+        return queryFactory
+                .select(order)
+                .from(order)
+                .join(order.delivery, delivery)
+                .where(order.orderStatus.eq(OrderStatus.DELIVERY_DONE)
+                        .and(delivery.arrivalDate.before(LocalDateTime.now().minusDays(7))))
+                .fetch()
+                ;
     }
 
     @Override

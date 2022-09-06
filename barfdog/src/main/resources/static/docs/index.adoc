@@ -1856,6 +1856,26 @@ operation::success_generalOrder[snippets='curl-request,path-parameters,request-h
 
 operation::fail_generalOrder[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
+[[resources-cancelPayment-generalOrder]]
+=== 일반 주문 결제 취소
+
+`POST` 요청을 사용하여 일반 주문 결제취소 상태를 반영할 수 있다.
+
+회원 적립금 복구 +
+
+적립금 복구 내역 생성 +
+
+묶음 배송일 경우 묶음 해제 +
+묶음 배송 아닐경우 배송 상태 : 배송취소 +
+
+주문 상태 : 결제 취소 +
+
+아이템 재고 복구 +
+주문한 아이템 상태: 결제 취소 +
+쿠폰 복구 +
+옵션 재고 복구 +
+
+operation::cancelPayment_generalOrder[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 
 
@@ -1955,6 +1975,22 @@ operation::success_subscribeOrder[snippets='curl-request,path-parameters,request
 배송 상태 : DELIVERY_CANCEL +
 
 operation::fail_subscribeOrder[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
+
+[[resources-cancelPayment-subscribeOrder]]
+=== 구독 주문 결제 취소 처리
+
+`POST` 요청을 사용하여 구독 주문 결제 취소 상태를 반영 할 수 있다. +
+
+회원 적립금 복구 +
+
+적립금 복구 내역 생성 +
+쿠폰 복구 +
+
+ㅁ주문ㅁ +
+상태 : CANCEL_PAYMENT +
+배송 상태 : DELIVERY_CANCEL +
+
+operation::cancelPayment_subscribeOrder[snippets='curl-request,path-parameters,request-headers,request-body,response-headers,response-body,response-fields,links']
 
 
 [[resources-cancelRequest-subscribe]]

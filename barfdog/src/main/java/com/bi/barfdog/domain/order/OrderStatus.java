@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 
 public enum OrderStatus {
     ALL,
-    BEFORE_PAYMENT,
+    BEFORE_PAYMENT, CANCEL_PAYMENT,
     HOLD, FAILED, RESERVED_PAYMENT,
     PAYMENT_DONE,
     PRODUCING, DELIVERY_READY,

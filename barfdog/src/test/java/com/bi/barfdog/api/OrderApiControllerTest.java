@@ -1314,6 +1314,135 @@ public class OrderApiControllerTest extends BaseTest {
         selectOptionDtoList.add(selectOptionDto);
     }
 
+    @Test
+    @DisplayName("정상적으로 일반주문 결제 취소처리")
+    public void cancelPaymentGeneralOrder() throws Exception {
+        //given
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int reward = member.getReward();
+        int accumulatedAmount = member.getAccumulatedAmount();
+
+        Item item1 = generateItem(1);
+        int itemRemain1 = item1.getRemaining();
+        ItemOption option1 = generateOption(item1, 1, 999);
+        int optionRemain1 = option1.getRemaining();
+        ItemOption option2 = generateOption(item1, 2, 999);
+        int optionRemain2 = option2.getRemaining();
+
+        Item item2 = generateItem(2);
+        int itemRemain2 = item2.getRemaining();
+        ItemOption option3 = generateOption(item1, 3, 999);
+        int optionRemain3 = option3.getRemaining();
+        ItemOption option4 = generateOption(item1, 4, 999);
+        int optionRemain4 = option4.getRemaining();
+
+        Coupon coupon1 = generateGeneralCoupon(1);
+        MemberCoupon memberCoupon1 = generateMemberCoupon(member, coupon1, 0, CouponStatus.INACTIVE);
+        int couponRemain1 = memberCoupon1.getRemaining();
+
+        Coupon coupon2 = generateGeneralCoupon(2);
+        MemberCoupon memberCoupon2 = generateMemberCoupon(member, coupon2, 1, CouponStatus.ACTIVE);
+        int couponRemain2 = memberCoupon2.getRemaining();
+
+
+        Delivery delivery = generateDelivery(DeliveryStatus.BEFORE_PAYMENT);
+
+        int discountReward = 4000;
+        GeneralOrder order = GeneralOrder.builder()
+                .orderStatus(OrderStatus.BEFORE_PAYMENT)
+                .isBrochure(true)
+                .member(member)
+                .paymentPrice(100000)
+                .discountReward(discountReward)
+                .paymentMethod(PaymentMethod.CREDIT_CARD)
+                .delivery(delivery)
+                .build();
+        orderRepository.save(order);
+
+        int orderItemAmount1 = 1;
+        OrderItem orderItem1 = generateOrderItem(item1, memberCoupon1, order, orderItemAmount1);
+        int optionAmount1 = 1;
+        generateSelectOption(option1, orderItem1, optionAmount1);
+        int optionAmount2 = 2;
+        generateSelectOption(option2, orderItem1, optionAmount2);
+        int orderItemAmount2 = 2;
+        OrderItem orderItem2 = generateOrderItem(item2, memberCoupon2, order, orderItemAmount2);
+        int optionAmount3 = 3;
+        generateSelectOption(option3, orderItem2, optionAmount3);
+        int optionAmount4 = 4;
+        generateSelectOption(option4, orderItem2, optionAmount4);
+
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/orders/{id}/general/cancel", order.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("cancelPayment_generalOrder",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("주문 id")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer jwt 토큰")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ))
+        ;
+
+        em.flush();
+        em.clear();
+
+        GeneralOrder findOrder = (GeneralOrder) orderRepository.findById(order.getId()).get();
+        assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCEL_PAYMENT);
+        assertThat(findOrder.getDelivery().getStatus()).isEqualTo(DeliveryStatus.DELIVERY_CANCEL);
+
+        Member findMember = memberRepository.findById(member.getId()).get();
+        assertThat(findMember.getReward()).isEqualTo(reward + discountReward);
+
+        List<OrderItem> orderItems = orderItemRepository.findAllByGeneralOrder(order);
+        for (OrderItem orderItem : orderItems) {
+            assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.CANCEL_PAYMENT);
+            assertThat(orderItem.isWriteableReview()).isEqualTo(false);
+        }
+
+        Item findItem1 = itemRepository.findById(item1.getId()).get();
+        assertThat(findItem1.getRemaining()).isEqualTo(itemRemain1 + orderItemAmount1);
+        Item findItem2 = itemRepository.findById(item2.getId()).get();
+        assertThat(findItem2.getRemaining()).isEqualTo(itemRemain2 + orderItemAmount2);
+
+        ItemOption findOption1 = itemOptionRepository.findById(option1.getId()).get();
+        assertThat(findOption1.getRemaining()).isEqualTo(optionRemain1 + optionAmount1);
+        ItemOption findOption2 = itemOptionRepository.findById(option2.getId()).get();
+        assertThat(findOption2.getRemaining()).isEqualTo(optionRemain2 + optionAmount2);
+        ItemOption findOption3 = itemOptionRepository.findById(option3.getId()).get();
+        assertThat(findOption3.getRemaining()).isEqualTo(optionRemain3 + optionAmount3);
+        ItemOption findOption4 = itemOptionRepository.findById(option4.getId()).get();
+        assertThat(findOption4.getRemaining()).isEqualTo(optionRemain4 + optionAmount4);
+
+        MemberCoupon findMemberCoupon1 = memberCouponRepository.findById(memberCoupon1.getId()).get();
+        assertThat(findMemberCoupon1.getMemberCouponStatus()).isEqualTo(CouponStatus.ACTIVE);
+        assertThat(findMemberCoupon1.getRemaining()).isEqualTo(couponRemain1 + 1);
+
+        MemberCoupon findMemberCoupon2 = memberCouponRepository.findById(memberCoupon2.getId()).get();
+        assertThat(findMemberCoupon2.getMemberCouponStatus()).isEqualTo(CouponStatus.ACTIVE);
+        assertThat(findMemberCoupon2.getRemaining()).isEqualTo(couponRemain2 + 1);
+
+    }
+
 
 
 
@@ -2086,6 +2215,114 @@ public class OrderApiControllerTest extends BaseTest {
                 .andDo(print())
                 .andExpect(status().isNotFound())
         ;
+
+    }
+
+    @Test
+    @DisplayName("구독 주문 결제 취소")
+    public void cancelPaymentSubscribeOrder() throws Exception {
+        //given
+
+        Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
+        int reward = member.getReward();
+        int accumulatedSubscribe = member.getAccumulatedSubscribe();
+        int accumulatedAmount = member.getAccumulatedAmount();
+
+        LocalDate nextDeliveryDate = LocalDate.now().plusDays(2);
+
+        Dog dog = generateDog(member, 1, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
+
+
+        Delivery delivery = Delivery.builder()
+                .recipient(Recipient.builder()
+                        .name(member.getName())
+                        .phone(member.getPhoneNumber())
+                        .zipcode(member.getAddress().getZipcode())
+                        .street(member.getAddress().getStreet())
+                        .detailAddress(member.getAddress().getDetailAddress())
+                        .build())
+                .status(DeliveryStatus.BEFORE_PAYMENT)
+                .request("안전배송 부탁드립니다.")
+                .build();
+        deliveryRepository.save(delivery);
+
+        int orderPrice = 100000;
+        Subscribe subscribe = generateSubscribeBeforePayment(member,dog, SubscribePlan.FULL, SubscribeStatus.BEFORE_PAYMENT, orderPrice);
+        int subscribeCount = subscribe.getSubscribeCount();
+
+        Coupon coupon = generateGeneralCoupon(1);
+
+        MemberCoupon memberCoupon = generateMemberCoupon(member, coupon, 0, CouponStatus.INACTIVE);
+        int remaining = memberCoupon.getRemaining();
+
+        int paymentPrice = 85000;
+        int discountReward = 10000;
+        SubscribeOrder subscribeOrder = SubscribeOrder.builder()
+                .orderStatus(OrderStatus.BEFORE_PAYMENT)
+                .member(member)
+                .orderPrice(orderPrice)
+                .deliveryPrice(0)
+                .discountTotal(15000)
+                .discountReward(discountReward)
+                .discountCoupon(5000)
+                .paymentPrice(paymentPrice)
+                .paymentMethod(PaymentMethod.CREDIT_CARD)
+                .isBrochure(true)
+                .isAgreePrivacy(true)
+                .delivery(delivery)
+                .subscribe(subscribe)
+                .memberCoupon(memberCoupon)
+                .subscribeCount(0)
+                .build();
+        orderRepository.save(subscribeOrder);
+
+        //when & then
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/orders/{id}/subscribe/cancel", subscribeOrder.getId())
+                        .header(HttpHeaders.AUTHORIZATION, getUserToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("cancelPayment_subscribeOrder",
+                        links(
+                                linkWithRel("self").description("self 링크"),
+                                linkWithRel("profile").description("해당 API 관련 문서 링크")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("구독 주문 id")
+                        ),
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header"),
+                                headerWithName(HttpHeaders.AUTHORIZATION).description("bearer jwt 토큰")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_links.self.href").description("self 링크"),
+                                fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
+                        )
+                ))
+        ;
+
+        em.flush();
+        em.clear();
+
+        Member findMember = memberRepository.findById(member.getId()).get();
+        assertThat(findMember.getReward()).isEqualTo(reward + discountReward);
+
+        SubscribeOrder findOrder = (SubscribeOrder) orderRepository.findById(subscribeOrder.getId()).get();
+        assertThat(findOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCEL_PAYMENT);
+        assertThat(findOrder.getDelivery().getStatus()).isEqualTo(DeliveryStatus.DELIVERY_CANCEL);
+        Subscribe findSubscribe = findOrder.getSubscribe();
+        assertThat(findSubscribe.getStatus()).isEqualTo(SubscribeStatus.BEFORE_PAYMENT);
+        assertThat(findSubscribe.getNextPaymentDate()).isNull();
+        assertThat(findSubscribe.getNextDeliveryDate()).isNull();
+
+        MemberCoupon findMemberCoupon = memberCouponRepository.findById(memberCoupon.getId()).get();
+        assertThat(findMemberCoupon.getRemaining()).isEqualTo(remaining + 1);
+        assertThat(findMemberCoupon.getMemberCouponStatus()).isEqualTo(CouponStatus.ACTIVE);
 
     }
 

@@ -72,6 +72,7 @@ public abstract class Order extends BaseTimeEntity {
     public void failPayment() {
         orderStatus = OrderStatus.FAILED;
         if (isPackage) {
+            isPackage = false;
             delivery = null;
         } else {
             delivery.cancel();

@@ -4,8 +4,11 @@ import com.bi.barfdog.api.barfDto.AdminDashBoardRequestDto;
 import com.bi.barfdog.api.barfDto.AdminDashBoardResponseDto;
 import com.bi.barfdog.api.orderDto.*;
 import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.domain.order.Order;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 public interface OrderRepositoryCustom {
     Page<QueryAdminOrdersDto> findAdminOrdersDto(Pageable pageable, OrderAdminCond cond);
@@ -25,4 +28,6 @@ public interface OrderRepositoryCustom {
     AdminDashBoardResponseDto findAdminDashBoard(AdminDashBoardRequestDto requestDto);
 
     Page<QueryAdminCancelRequestDto> findAdminCancelRequestDto(Pageable pageable, OrderAdminCond cond);
+
+    List<Order> findDeliveryDoneForAutoConfirm();
 }
