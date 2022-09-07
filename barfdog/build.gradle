@@ -4,182 +4,6 @@
 
 
 
-buildscript {
-	ext {
-		queryDslVersion = "5.0.0"
-	}
-}
-
-plugins {
-	id 'org.springframework.boot' version '2.6.4'
-	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-	id 'org.asciidoctor.jvm.convert' version '3.3.2' // asciidoctor plugin
-	id 'com.ewerk.gradle.plugins.querydsl' version '1.0.10'
-	id 'java'
-}
-
-group = 'com.bi'
-version = '0.0.1-SNAPSHOT'
-sourceCompatibility = "1.8"
-
-
-configurations {
-	asciidoctorExt
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
-}
-
-ext {
-	snippetsDir = file('build/generated-snippets') // 문서 저장위치
-}
-
-test {
-	outputs.dir snippetsDir
-	useJUnitPlatform()
-}
-
-asciidoctor {
-	configurations 'asciidoctorExt'
-	dependsOn test
-	inputs.dir snippetsDir
-}
-
-asciidoctor.doFirst {
-	delete file('src/main/resources/static/docs')
-}
-
-bootJar { // jar 설정
-	dependsOn asciidoctor
-	copy {
-		from file("src/build/asciidoc")
-		into file("src/main/resources/static/docs")
-	}
-	finalizedBy 'copyDocument'
-}
-
-task copyDocument(type: Copy) { // 생성된 docs 파일을 build시 static 아래에 docs로 복사!
-	dependsOn asciidoctor
-	from file("src/docs/asciidoc") // jar 설정
-	into file("src/main/resources/static/docs")
-}
-
-build {
-	dependsOn copyDocument // build시 copy 실행
-}
-
-
-repositories {
-	mavenCentral()
-}
-
-allprojects {
-	repositories {
-		maven { url 'https://jitpack.io' }
-	}
-}
-
-
-// utf-8 설정
-compileJava.options.encoding = 'UTF-8'
-tasks.withType(JavaCompile) {
-	options.encoding = 'UTF-8'
-}
-
-dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-hateoas'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-devtools'
-	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-	implementation 'com.auth0:java-jwt:3.19.0'
-
-	//querydsl 추가
-	implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
-	annotationProcessor "com.querydsl:querydsl-apt:${queryDslVersion}"
-//	implementation "com.querydsl:querydsl-apt:${queryDslVersion}"
-
-	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.5.8'
-
-	implementation 'junit:junit:4.13.1'
-
-	implementation 'org.modelmapper:modelmapper:3.1.0'
-	implementation 'net.coobird:thumbnailator:0.4.17'
-
-
-	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'com.h2database:h2'
-	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
-
-	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc' // mock용
-	asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
-	testImplementation 'org.springframework.restdocs:spring-restdocs-webtestclient' // webtestclient용
-
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.security:spring-security-test'
-	testImplementation 'pl.pragmatists:JUnitParams:1.1.1'
-
-	// https://mvnrepository.com/artifact/commons-fileupload/commons-fileupload
-	implementation 'commons-fileupload:commons-fileupload:1.4'
-
-	// https://mvnrepository.com/artifact/commons-io/commons-io
-	implementation 'commons-io:commons-io:2.11.0'
-
-	// https://mvnrepository.com/artifact/com.github.iamport/iamport-rest-client-java
-	implementation 'com.github.iamport:iamport-rest-client-java:0.2.21'
-
-
-}
-
-//querydsl 추가 시작
-def querydslDir = "$buildDir\\generated\\querydsl"
-querydsl {
-	jpa = true
-	querydslSourcesDir = querydslDir
-}
-sourceSets {
-	main.java.srcDir querydslDir
-}
-
-compileQuerydsl {
-	options.annotationProcessorPath = configurations.querydsl
-}
-configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
-	querydsl.extendsFrom compileClasspath
-}
-
-
-//configurations {
-//	querydsl.extendsFrom compileClasspath
-//}
-//querydsl 추가 끝
-
-//compileQuerydsl.doFirst {
-//	println "querydslDir = $querydslDir"
-//	if ( file("$buildDir\\generated").exists()){
-//
-//		delete(file(querydslDir))
-//	}
-//
-//}
-
-targetCompatibility = "1.8"
-
-
-
-// =============================================================================
-// ============================== war 빌드 세팅 ==================================
-// =============================================================================
-
-
-
-
 //buildscript {
 //	ext {
 //		queryDslVersion = "5.0.0"
@@ -192,7 +16,6 @@ targetCompatibility = "1.8"
 //	id 'org.asciidoctor.jvm.convert' version '3.3.2' // asciidoctor plugin
 //	id 'com.ewerk.gradle.plugins.querydsl' version '1.0.10'
 //	id 'java'
-//	id 'war'
 //}
 //
 //group = 'com.bi'
@@ -226,21 +49,18 @@ targetCompatibility = "1.8"
 //	delete file('src/main/resources/static/docs')
 //}
 //
-//bootWar { // war 설정
+//bootJar { // jar 설정
 //	dependsOn asciidoctor
 //	copy {
-//		from "${asciidoctor.outputDir}"
-//		into 'src/main/resources/static/docs'
+//		from file("src/build/asciidoc")
+//		into file("src/main/resources/static/docs")
 //	}
 //	finalizedBy 'copyDocument'
 //}
 //
-//
-//
 //task copyDocument(type: Copy) { // 생성된 docs 파일을 build시 static 아래에 docs로 복사!
 //	dependsOn asciidoctor
-//	from file("build/docs/asciidoc/") // war 설정
-////	from file("src/docs/asciidoc") // jar 설정
+//	from file("src/docs/asciidoc") // jar 설정
 //	into file("src/main/resources/static/docs")
 //}
 //
@@ -259,19 +79,14 @@ targetCompatibility = "1.8"
 //	}
 //}
 //
-//// war 배포 설정 시작
-//bootWar.enabled = false
-//war.enabled = true
-//// war 배포 설정 끝
 //
+//// utf-8 설정
+//compileJava.options.encoding = 'UTF-8'
+//tasks.withType(JavaCompile) {
+//	options.encoding = 'UTF-8'
+//}
 //
 //dependencies {
-//
-//	// war 배포 설정 시작
-//	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
-//	// war 배포 설정 끝
-//
-//
 //	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 //	implementation 'org.springframework.boot:spring-boot-starter-hateoas'
 //	implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -338,6 +153,8 @@ targetCompatibility = "1.8"
 //	}
 //	querydsl.extendsFrom compileClasspath
 //}
+//
+//
 ////configurations {
 ////	querydsl.extendsFrom compileClasspath
 ////}
@@ -352,10 +169,193 @@ targetCompatibility = "1.8"
 ////
 ////}
 //
-//compileJava.options.encoding = 'UTF-8'
-//
-//tasks.withType(JavaCompile) {
-//	options.encoding = 'UTF-8'
-//}
-//
 //targetCompatibility = "1.8"
+
+
+
+// =============================================================================
+// ============================== war 빌드 세팅 ==================================
+// =============================================================================
+
+
+
+
+buildscript {
+	ext {
+		queryDslVersion = "5.0.0"
+	}
+}
+
+plugins {
+	id 'org.springframework.boot' version '2.6.4'
+	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'org.asciidoctor.jvm.convert' version '3.3.2' // asciidoctor plugin
+	id 'com.ewerk.gradle.plugins.querydsl' version '1.0.10'
+	id 'java'
+	id 'war'
+}
+
+group = 'com.bi'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = "1.8"
+
+
+configurations {
+	asciidoctorExt
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+ext {
+	snippetsDir = file('build/generated-snippets') // 문서 저장위치
+}
+
+test {
+	outputs.dir snippetsDir
+	useJUnitPlatform()
+}
+
+asciidoctor {
+	configurations 'asciidoctorExt'
+	dependsOn test
+	inputs.dir snippetsDir
+}
+
+asciidoctor.doFirst {
+	delete file('src/main/resources/static/docs')
+}
+
+bootWar { // war 설정
+	dependsOn asciidoctor
+	copy {
+		from "${asciidoctor.outputDir}"
+		into 'src/main/resources/static/docs'
+	}
+	finalizedBy 'copyDocument'
+}
+
+
+
+task copyDocument(type: Copy) { // 생성된 docs 파일을 build시 static 아래에 docs로 복사!
+	dependsOn asciidoctor
+	from file("build/docs/asciidoc/") // war 설정
+//	from file("src/docs/asciidoc") // jar 설정
+	into file("src/main/resources/static/docs")
+}
+
+build {
+	dependsOn copyDocument // build시 copy 실행
+}
+
+
+repositories {
+	mavenCentral()
+}
+
+allprojects {
+	repositories {
+		maven { url 'https://jitpack.io' }
+	}
+}
+
+// war 배포 설정 시작
+bootWar.enabled = false
+war.enabled = true
+// war 배포 설정 끝
+
+
+dependencies {
+
+	// war 배포 설정 시작
+	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+	// war 배포 설정 끝
+
+
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-hateoas'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-devtools'
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+	implementation 'com.auth0:java-jwt:3.19.0'
+
+	//querydsl 추가
+	implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
+	annotationProcessor "com.querydsl:querydsl-apt:${queryDslVersion}"
+//	implementation "com.querydsl:querydsl-apt:${queryDslVersion}"
+
+	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.5.8'
+
+	implementation 'junit:junit:4.13.1'
+
+	implementation 'org.modelmapper:modelmapper:3.1.0'
+	implementation 'net.coobird:thumbnailator:0.4.17'
+
+
+	compileOnly 'org.projectlombok:lombok'
+	runtimeOnly 'com.h2database:h2'
+	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+
+	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc' // mock용
+	asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
+	testImplementation 'org.springframework.restdocs:spring-restdocs-webtestclient' // webtestclient용
+
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation 'pl.pragmatists:JUnitParams:1.1.1'
+
+	// https://mvnrepository.com/artifact/commons-fileupload/commons-fileupload
+	implementation 'commons-fileupload:commons-fileupload:1.4'
+
+	// https://mvnrepository.com/artifact/commons-io/commons-io
+	implementation 'commons-io:commons-io:2.11.0'
+
+	// https://mvnrepository.com/artifact/com.github.iamport/iamport-rest-client-java
+	implementation 'com.github.iamport:iamport-rest-client-java:0.2.21'
+
+
+}
+
+//querydsl 추가 시작
+def querydslDir = "$buildDir\\generated\\querydsl"
+querydsl {
+	jpa = true
+	querydslSourcesDir = querydslDir
+}
+sourceSets {
+	main.java.srcDir querydslDir
+}
+
+compileQuerydsl {
+	options.annotationProcessorPath = configurations.querydsl
+}
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+	querydsl.extendsFrom compileClasspath
+}
+//configurations {
+//	querydsl.extendsFrom compileClasspath
+//}
+//querydsl 추가 끝
+
+//compileQuerydsl.doFirst {
+//	println "querydslDir = $querydslDir"
+//	if ( file("$buildDir\\generated").exists()){
+//
+//		delete(file(querydslDir))
+//	}
+//
+//}
+
+compileJava.options.encoding = 'UTF-8'
+
+tasks.withType(JavaCompile) {
+	options.encoding = 'UTF-8'
+}
+
+targetCompatibility = "1.8"

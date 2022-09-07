@@ -6,8 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface DogPictureRepository extends JpaRepository<DogPicture, Long> {
+public interface DogPictureRepository extends JpaRepository<DogPicture, Long>, DogPictureRepositoryCustom {
     void deleteAllByDog(Dog dog);
 
     List<DogPicture> findByDog(Dog dog);
+
 }

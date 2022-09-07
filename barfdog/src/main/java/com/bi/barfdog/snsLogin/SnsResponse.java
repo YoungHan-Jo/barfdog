@@ -22,5 +22,5 @@ public interface SnsResponse {
     String AUTHENTICATION_FAILED_CODE = "024";
     String AUTHENTICATION_FAILED_MESSAGE = "authentication failed";
 
-    String TEST_NAVER_ACCESS_TOKEN = "AAAAOdBmlvQvgcqfPmW0tACkWAR2H1N5Q5mk12GNEi-HutjOCi4p8kKm1Zi-PYkZmJ19vcSovQSpEa8aAyjljU1b3HY";
+    String TEST_NAVER_ACCESS_TOKEN = "AAAAOdxBjKYZT8NIXCR9byF6WPrL26E9AejAXJrGAZ-lFmxez82f_X9K0NuZ3QoxWb2yKnVgQuJ-D34CwmXgR-00Z_o";
 }

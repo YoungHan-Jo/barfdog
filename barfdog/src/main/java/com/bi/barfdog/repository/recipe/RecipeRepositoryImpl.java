@@ -10,6 +10,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 
 import static com.bi.barfdog.domain.recipe.QRecipe.*;
@@ -55,5 +56,23 @@ public class RecipeRepositoryImpl implements RecipeRepositoryCustom{
             dto.changeUrl();
         }
         return result;
+    }
+
+    @Override
+    public List<String> findFilename1() {
+        return queryFactory
+                .select(recipe.thumbnailImage.filename1)
+                .from(recipe)
+                .fetch()
+                ;
+    }
+
+    @Override
+    public Collection<String> findFilename2() {
+        return queryFactory
+                .select(recipe.thumbnailImage.filename2)
+                .from(recipe)
+                .fetch()
+                ;
     }
 }

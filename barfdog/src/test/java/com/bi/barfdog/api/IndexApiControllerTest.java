@@ -2024,7 +2024,6 @@ public class IndexApiControllerTest extends BaseTest {
         ;
     }
 
-    @Ignore
     @Test
     @DisplayName("연동이되어있고 로그인 성공해서 토큰을 받음")
     public void naverLogin_success() throws Exception {

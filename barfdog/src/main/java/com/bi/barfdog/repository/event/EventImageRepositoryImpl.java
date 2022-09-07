@@ -50,4 +50,14 @@ public class EventImageRepositoryImpl implements EventImageRepositoryCustom{
                 .fetch();
     }
 
+    @Override
+    public List<String> findFilename() {
+       return queryFactory
+               .select(eventImage.filename)
+               .from(eventImage)
+               .fetch()
+               ;
+
+    }
+
 }

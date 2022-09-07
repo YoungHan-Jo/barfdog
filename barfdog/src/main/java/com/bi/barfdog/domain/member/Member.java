@@ -156,8 +156,8 @@ public class Member extends BaseTimeEntity {
     }
 
     public void unconnectSns() {
-        this.provider = "";
-        this.providerId = "";
+        this.provider = null;
+        this.providerId = null;
     }
 
 

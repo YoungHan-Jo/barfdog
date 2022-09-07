@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface BlogImageRepositoryCustom {
     List<AdminBlogImageDto> findAdminDtoByBlogId(Long id);
+
+    List<String> findFilename();
 }

@@ -35,4 +35,14 @@ public class ReviewImageRepositoryImpl implements ReviewImageRepositoryCustom{
 
         return result;
     }
+
+    @Override
+    public List<String> findFilename() {
+        return queryFactory
+                .select(reviewImage.filename)
+                .from(reviewImage)
+                .fetch()
+                ;
+
+    }
 }

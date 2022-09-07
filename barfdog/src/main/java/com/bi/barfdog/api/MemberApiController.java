@@ -185,7 +185,7 @@ public class MemberApiController {
     @DeleteMapping("/sns")
     public ResponseEntity unconnectSns(@CurrentUser Member member) {
 
-        memberService.unconnectSns(member);
+        memberService.unconnectSns(member.getId());
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(MemberApiController.class).slash("sns").withSelfRel());

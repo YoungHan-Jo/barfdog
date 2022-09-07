@@ -357,8 +357,13 @@ public class IndexApiController {
             entityModel.add(linkTo(IndexApiController.class).slash("api/connectSns").withRel("connect_sns"));
         }
         if (resultCode.equals(SnsResponse.SUCCESS_CODE)) {
-            String providerId = responseDto.getResponse().getId();
-            Member member = memberRepository.findByProviderAndProviderId(SnsProvider.NAVER, providerId).get();
+            // 네이버로 부터 받은 고유id 가 받을 때 마다 달라져서(테스트 api라서?) provider로 구분할 수 없음
+//            String providerId = responseDto.getResponse().getId();
+//            Member member = memberRepository.findByProviderAndProviderId(SnsProvider.NAVER, providerId).get();
+            String phoneNumber = responseDto.getResponse().getMobile().replace("-","");
+            Optional<Member> optionalMember = memberRepository.findByPhoneNumber(phoneNumber);
+            if (!optionalMember.isPresent()) return notfound();
+            Member member = optionalMember.get();
             generateAccessToken(response, member, requestDto.getTokenValidDays());
         }
 

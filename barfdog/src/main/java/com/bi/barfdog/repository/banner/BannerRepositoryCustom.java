@@ -51,4 +51,13 @@ public interface BannerRepositoryCustom {
     List<HomePageDto.MainBannerDto> findMainBannerDtoListByMember(Member member);
 
     List<HomePageDto.PopupBannerDto> findPopupBannerDtoList();
+
+    List<String> findMainFilenameMobile();
+    List<String> findMainFilenamePC();
+
+    List<String> findMyPageFilenameMobile();
+    List<String> findMyPageFilenamePC();
+
+    List<String> findPopupFilenameMobile();
+    List<String> findPopupFilenamePC();
 }

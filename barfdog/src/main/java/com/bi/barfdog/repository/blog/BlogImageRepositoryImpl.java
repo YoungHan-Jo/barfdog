@@ -40,4 +40,13 @@ public class BlogImageRepositoryImpl implements BlogImageRepositoryCustom{
 
         return result;
     }
+
+    @Override
+    public List<String> findFilename() {
+        return queryFactory
+                .select(blogImage.filename)
+                .from(blogImage)
+                .fetch()
+                ;
+    }
 }

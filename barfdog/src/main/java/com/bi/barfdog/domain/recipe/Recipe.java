@@ -38,6 +38,7 @@ public class Recipe extends BaseTimeEntity {
 
     private String descriptionForSurvey;
 
+    @Embedded
     private ThumbnailImage thumbnailImage;
 
     @Enumerated(EnumType.STRING)

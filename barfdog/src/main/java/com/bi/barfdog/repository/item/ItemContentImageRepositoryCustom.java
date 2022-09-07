@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface ItemContentImageRepositoryCustom {
     List<QueryItemAdminDto.ItemContentImageDto> findAdminDtoByItemId(Long id);
+
+    List<String> findFilename();
 }

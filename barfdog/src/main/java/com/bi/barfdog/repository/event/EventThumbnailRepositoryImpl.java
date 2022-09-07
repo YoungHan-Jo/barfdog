@@ -72,4 +72,13 @@ public class EventThumbnailRepositoryImpl implements EventThumbnailRepositoryCus
 
         return new PageImpl<>(result, pageable, totalCount);
     }
+
+    @Override
+    public List<String> findFilename() {
+        return queryFactory
+                .select(eventThumbnail.filename)
+                .from(eventThumbnail)
+                .fetch()
+                ;
+    }
 }

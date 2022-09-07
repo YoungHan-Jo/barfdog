@@ -34,4 +34,13 @@ public class ItemContentImageRepositoryImpl implements ItemContentImageRepositor
 
         return result;
     }
+
+    @Override
+    public List<String> findFilename() {
+        return queryFactory
+                .select(itemContentImage.filename)
+                .from(itemContentImage)
+                .fetch()
+                ;
+    }
 }

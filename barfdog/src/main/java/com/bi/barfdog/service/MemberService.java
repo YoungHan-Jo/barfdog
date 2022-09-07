@@ -266,7 +266,8 @@ public class MemberService {
     }
 
     @Transactional
-    public void unconnectSns(Member member) {
+    public void unconnectSns(Long memberId) {
+        Member member = memberRepository.findById(memberId).get();
         member.unconnectSns();
     }
 

@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface ReviewImageRepositoryCustom {
     List<QueryReviewImagesDto> findImagesDtoByReview(Review review);
+
+    List<String> findFilename();
 }

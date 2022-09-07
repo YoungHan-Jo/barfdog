@@ -33,4 +33,8 @@ public interface StorageService {
     Resource loadAsResource(String category, String filename);
 
     void deleteAll();
+
+    void deleteUnknownFiles(String folder);
+
+
 }

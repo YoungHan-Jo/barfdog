@@ -11,4 +11,6 @@ public interface EventImageRepositoryCustom {
     void deleteByIdList(List<Long> deleteImageIdList);
 
     List<EventImage> findByEventId(Long id);
+
+    List<String> findFilename();
 }

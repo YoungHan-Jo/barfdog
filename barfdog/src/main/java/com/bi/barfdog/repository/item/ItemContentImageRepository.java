@@ -10,4 +10,6 @@ public interface ItemContentImageRepository extends JpaRepository<ItemContentIma
     List<ItemContentImage> findByItem(Item item);
 
     void deleteByItem(Item item);
+
+
 }

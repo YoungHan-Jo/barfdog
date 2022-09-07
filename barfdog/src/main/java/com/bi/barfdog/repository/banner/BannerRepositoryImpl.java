@@ -301,6 +301,60 @@ public class BannerRepositoryImpl implements BannerRepositoryCustom{
     }
 
     @Override
+    public List<String> findMainFilenameMobile() {
+        return queryFactory
+                .select(mainBanner.imgFile.filenameMobile)
+                .from(mainBanner)
+                .fetch()
+                ;
+    }
+
+    @Override
+    public List<String> findMainFilenamePC() {
+        return queryFactory
+                .select(mainBanner.imgFile.filenamePc)
+                .from(mainBanner)
+                .fetch()
+                ;
+    }
+
+    @Override
+    public List<String> findMyPageFilenameMobile() {
+        return queryFactory
+                .select(myPageBanner.imgFile.filenameMobile)
+                .from(myPageBanner)
+                .fetch()
+                ;
+    }
+
+    @Override
+    public List<String> findMyPageFilenamePC() {
+        return queryFactory
+                .select(myPageBanner.imgFile.filenamePc)
+                .from(myPageBanner)
+                .fetch()
+                ;
+    }
+
+    @Override
+    public List<String> findPopupFilenameMobile() {
+        return queryFactory
+                .select(popupBanner.imgFile.filenameMobile)
+                .from(popupBanner)
+                .fetch()
+                ;
+    }
+
+    @Override
+    public List<String> findPopupFilenamePC() {
+        return queryFactory
+                .select(popupBanner.imgFile.filenamePc)
+                .from(popupBanner)
+                .fetch()
+                ;
+    }
+
+    @Override
     public List<MyPageBanner> findMyPageBanners() {
 
         return queryFactory
