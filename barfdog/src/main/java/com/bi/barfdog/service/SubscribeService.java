@@ -65,6 +65,15 @@ public class SubscribeService {
         int discountCoupon = requestDto.getDiscount();
         subscribe.changeCoupon(memberCoupon, discountCoupon);
 
+        String nextOrderMerchantUid = subscribe.getNextOrderMerchantUid();
+        Optional<SubscribeOrder> optionalSubscribeOrder = orderRepository.findByMerchantUid(nextOrderMerchantUid);
+        if (optionalSubscribeOrder.isPresent()) {
+            SubscribeOrder subscribeOrder = optionalSubscribeOrder.get();
+            subscribeOrder.changeSubscribe(subscribe);
+            subscribeOrder.changeCoupon(subscribe);
+        }
+
+
         unscheduleAndNewSchedule(subscribe);
     }
 
@@ -74,6 +83,13 @@ public class SubscribeService {
         changeBeforeSubscribe(subscribe);
 
         subscribe.updateGram(requestDto);
+
+        String nextOrderMerchantUid = subscribe.getNextOrderMerchantUid();
+        Optional<SubscribeOrder> optionalSubscribeOrder = orderRepository.findByMerchantUid(nextOrderMerchantUid);
+        if (optionalSubscribeOrder.isPresent()) {
+            SubscribeOrder subscribeOrder = optionalSubscribeOrder.get();
+            subscribeOrder.changeSubscribe(subscribe);
+        }
 
         unscheduleAndNewSchedule(subscribe);
     }
@@ -100,6 +116,13 @@ public class SubscribeService {
         changeBeforeSubscribe(subscribe);
 
         updatePlanAndChangeSelectRecipes(subscribe, requestDto);
+
+        String nextOrderMerchantUid = subscribe.getNextOrderMerchantUid();
+        Optional<SubscribeOrder> optionalSubscribeOrder = orderRepository.findByMerchantUid(nextOrderMerchantUid);
+        if (optionalSubscribeOrder.isPresent()) {
+            SubscribeOrder subscribeOrder = optionalSubscribeOrder.get();
+            subscribeOrder.changeSubscribe(subscribe);
+        }
 
         unscheduleAndNewSchedule(subscribe);
     }

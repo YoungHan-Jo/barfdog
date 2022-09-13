@@ -2463,18 +2463,17 @@ public class OrderApiControllerTest extends BaseTest {
                                 fieldWithPath("orderDto.beforeOneMealRecommendGram").description("변경 전 급여량 , 변경 없으면 null"),
                                 fieldWithPath("orderDto.beforeRecipeName").description("변경 전 레시피 이름 , 변경 없으면 null"),
                                 fieldWithPath("orderDto.beforeOrderPrice").description("변경 전 가격 , 변경 없으면 0"),
+                                fieldWithPath("orderDto.orderStatus").description("주문 상태"),
                                 fieldWithPath("orderDto.merchantUid").description("주문 번호"),
                                 fieldWithPath("orderDto.orderType").description("주문 타입 ['subscribe','general'"),
                                 fieldWithPath("orderDto.orderDate").description("주문 날짜"),
                                 fieldWithPath("orderDto.deliveryNumber").description("운송장번호 . 없으면 null"),
-                                fieldWithPath("orderDto.deliveryStatus").description("배송 상태 [PAYMENT_DONE,\n" +
-                                        "    PRODUCING, DELIVERY_READY,\n" +
-                                        "    DELIVERY_START,\n" +
-                                        "    DELIVERY_DONE]"),
+                                fieldWithPath("orderDto.deliveryStatus").description("배송 상태"),
                                 fieldWithPath("orderDto.deliveryPrice").description("배송비"),
                                 fieldWithPath("orderDto.discountTotal").description("할인 총합"),
                                 fieldWithPath("orderDto.discountReward").description("사용 적립금"),
                                 fieldWithPath("orderDto.discountCoupon").description("쿠폰 사용 금액"),
+                                fieldWithPath("orderDto.discountGrade").description("등급 할인 금액"),
                                 fieldWithPath("orderDto.paymentPrice").description("결제 금액"),
                                 fieldWithPath("orderDto.paymentMethod").description("결제 방법 [CREDIT_CARD, NAVER_PAY, KAKAO_PAY]"),
                                 fieldWithPath("orderDto.recipientName").description("받는사람 이름"),

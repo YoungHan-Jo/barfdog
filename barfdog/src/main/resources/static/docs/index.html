@@ -53314,9 +53314,9 @@ nextMerchantUid 삭제<br></p>
 <h4 id="resources-query-subscribeOrder_curl_request"><a class="link" href="#resources-query-subscribeOrder_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/orders/1033/subscribe' -i -X GET \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/orders/29/subscribe' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjUsImV4cCI6MTY2MTUxMDM2OCwiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSJ9.ASYHLcv6SOG69nBeVkqlRJGaCxbfNfYSSPbkkV10WNOS5CzETM1TagjlUyOKiJn8XjLvi6LqbevbzJaY-T-2aw' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjUsImV4cCI6MTY2MzA1NDM4NywiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSJ9.xZkMUHH_1hTqQHO6XSLMSgArPl55x98pmpqmy4sC0ylD-oFJVos4p1wC9lFvcff2bhZWjznlp9eIdhVpiS_9FQ' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -53424,16 +53424,17 @@ nextMerchantUid 삭제<br></p>
     "beforeOrderPrice" : 0,
     "merchantUid" : "merchant_uid1",
     "orderType" : "subscribe",
-    "orderDate" : "2022-08-26T17:39:28.612",
+    "orderDate" : "2022-09-13T14:33:07.304",
     "deliveryNumber" : "cj0239234231",
     "deliveryStatus" : "DELIVERY_START",
     "deliveryPrice" : 0,
     "discountTotal" : 0,
     "discountReward" : 0,
     "discountCoupon" : 0,
+    "discountGrade" : 0,
     "paymentPrice" : 120000,
     "paymentMethod" : "CREDIT_CARD",
-    "recipientName" : "김회원",
+    "recipientName" : "플래티넘회원",
     "recipientPhone" : "01099038544",
     "zipcode" : "12345",
     "street" : "부산광역시 해운대구 센텀2로 19",
@@ -53442,7 +53443,7 @@ nextMerchantUid 삭제<br></p>
   },
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/orders/1033/subscribe"
+      "href" : "http://localhost:8080/api/orders/29/subscribe"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-query-subscribeOrder"
@@ -53556,10 +53557,7 @@ nextMerchantUid 삭제<br></p>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderDto.deliveryStatus</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">배송 상태 [PAYMENT_DONE,
-    PRODUCING, DELIVERY_READY,
-    DELIVERY_START,
-    DELIVERY_DONE]</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">배송 상태</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderDto.deliveryPrice</code></p></td>
@@ -53580,6 +53578,11 @@ nextMerchantUid 삭제<br></p>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderDto.discountCoupon</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">쿠폰 사용 금액</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderDto.discountGrade</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">등급 할인 금액</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderDto.paymentPrice</code></p></td>

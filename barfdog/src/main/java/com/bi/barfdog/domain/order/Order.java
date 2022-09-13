@@ -5,6 +5,7 @@ import com.bi.barfdog.api.orderDto.SuccessSubscribeRequestDto;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.delivery.Delivery;
 import com.bi.barfdog.domain.member.Member;
+import com.bi.barfdog.domain.subscribe.Subscribe;
 import lombok.*;
 
 import javax.persistence.*;
@@ -60,6 +61,14 @@ public abstract class Order extends BaseTimeEntity {
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "delivery_id")
     private Delivery delivery;
+
+    public void changeSubscribe(Subscribe subscribe) {
+        orderPrice = subscribe.getNextPaymentPrice();
+        discountCoupon = subscribe.getDiscountCoupon();
+        discountGrade = subscribe.getDiscountGrade();
+        discountTotal = discountCoupon + discountGrade + discountReward;
+        paymentPrice = orderPrice - discountTotal;
+    }
 
 
     public void successGeneral(SuccessGeneralRequestDto requestDto) {
@@ -142,4 +151,6 @@ public abstract class Order extends BaseTimeEntity {
     public void changeMerchantUid(String merchantUid) {
         this.merchantUid = merchantUid;
     }
+
+
 }

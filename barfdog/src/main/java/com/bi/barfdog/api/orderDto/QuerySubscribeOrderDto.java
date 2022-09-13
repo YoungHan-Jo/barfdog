@@ -2,6 +2,7 @@ package com.bi.barfdog.api.orderDto;
 
 import com.bi.barfdog.api.InfoController;
 import com.bi.barfdog.domain.delivery.DeliveryStatus;
+import com.bi.barfdog.domain.order.OrderStatus;
 import com.bi.barfdog.domain.order.PaymentMethod;
 import com.bi.barfdog.domain.subscribe.SubscribePlan;
 import lombok.AllArgsConstructor;
@@ -52,6 +53,7 @@ public class QuerySubscribeOrderDto {
         private String beforeRecipeName; // [ , 로 구분]
         private int beforeOrderPrice; // 주문 가격
 
+        private OrderStatus orderStatus;
         private String merchantUid;
         private String orderType;
         private LocalDateTime orderDate;
@@ -63,6 +65,7 @@ public class QuerySubscribeOrderDto {
         private int discountTotal;
         private int discountReward;
         private int discountCoupon;
+        private int discountGrade;
 
         private int paymentPrice;
         private PaymentMethod paymentMethod; // [CREDIT_CARD, NAVER_PAY, KAKAO_PAY]

@@ -180,36 +180,58 @@ public class AppConfig {
                 // ====== 실제 서버 최초로 빌드할 때만 적용시키기 ==========================================================
                 // ====== 운영 중인 서버에서는 &&&&&&&&반드시 주석처리&&&&&&&& =============================================
                 // ===================================================================================================
-//                settingRepository.deleteAll();
-//                generateSetting();
-//                bannerRepository.deleteAll();
-//                generateMypageBanner();
-//                generateTopBanner();
-//
-//                memberCouponRepository.deleteAll();
-//                memberRepository.deleteAll();
-//                Member admin = generateMember(appProperties.getAdminEmail(), "관리자", appProperties.getAdminPassword(), "01056785678", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,SUBSCRIBER,USER", true);
-//                Member member = generateMember(appProperties.getUserEmail(), "플래티넘회원", appProperties.getUserPassword(), "01099038544", Gender.MALE, Grade.플래티넘, 50000, false, "USER", false);
-//
-//                couponRepository.deleteAll();
-//                Coupon subsCoupon = generateCouponAuto(JOIN_SUBSCRIBE_COUPON, "정기구독 할인 쿠폰", DiscountType.FIXED_RATE, 50, 0, CouponTarget.SUBSCRIBE);
-//                Coupon dogBirthCoupon = generateCouponAuto(DOG_BIRTH_COUPON, "반려견 생일 쿠폰", DiscountType.FIXED_RATE, 10, 0, CouponTarget.ALL);
-//                Coupon memberBirthCoupon = generateCouponAuto(MEMBER_BIRTH_COUPON, "견주 생일 쿠폰", DiscountType.FIXED_RATE, 15, 0, CouponTarget.ALL);
-//
-//                generateCouponAuto(SILVER_COUPON,"실버 쿠폰", DiscountType.FLAT_RATE,1000,20000, CouponTarget.ALL);
-//                generateCouponAuto(GOLD_COUPON,"골드 쿠폰", DiscountType.FLAT_RATE,2000,30000, CouponTarget.ALL);
-//                generateCouponAuto(PLATINUM_COUPON,"플래티넘 쿠폰", DiscountType.FLAT_RATE,2500,30000, CouponTarget.ALL);
-//                generateCouponAuto(DIAMOND_COUPON,"다이아 쿠폰", DiscountType.FLAT_RATE,3000,40000, CouponTarget.ALL);
-//                generateCouponAuto(BARF_COUPON,"더바프 쿠폰", DiscountType.FLAT_RATE,4000,50000, CouponTarget.ALL);
-//
-//                recipeRepository.deleteAll();
-//                Recipe recipe = generateRecipe("스타트", "닭,칠면조", "안정적인 첫 생식 적응", "스타트1.jpg", "스타트2.jpg");
-//                generateRecipe("터키비프", "칠면조,소", "피로회복 면역력 향상", "터키비프1.jpg", "터키비프2.jpg");
-//                generateRecipe("덕램", "오리,양", "피부와 모질강화 필요", "덕램1.jpg", "덕램2.jpg");
-//                generateRecipe("램비프", "양,소", "건강한 성장과 영양보충", "램비프1.jpg", "램비프2.jpg");
-//
-//                generateMemberCoupon(admin,subsCoupon);
-//                generateMemberCoupon(member,subsCoupon);
+                settingRepository.deleteAll();
+                bannerRepository.deleteAll();
+                memberCouponRepository.deleteAll();
+                memberRepository.deleteAll();
+                couponRepository.deleteAll();
+                recipeRepository.deleteAll();
+
+
+                generateSetting();
+                generateMypageBanner();
+                generateTopBanner();
+
+                Member admin = generateMember(appProperties.getAdminEmail(), "관리자", appProperties.getAdminPassword(), "01056785678", Gender.FEMALE, Grade.더바프, 100000, true, "ADMIN,SUBSCRIBER,USER", true);
+                Member member = generateMember(appProperties.getUserEmail(), "플래티넘회원", appProperties.getUserPassword(), "01099038544", Gender.MALE, Grade.플래티넘, 50000, false, "USER", false);
+
+                Coupon subsCoupon = generateCouponAuto(JOIN_SUBSCRIBE_COUPON, "정기구독 할인 쿠폰", DiscountType.FIXED_RATE, 50, 0, CouponTarget.SUBSCRIBE);
+                Coupon dogBirthCoupon = generateCouponAuto(DOG_BIRTH_COUPON, "반려견 생일 쿠폰", DiscountType.FIXED_RATE, 10, 0, CouponTarget.ALL);
+                Coupon memberBirthCoupon = generateCouponAuto(MEMBER_BIRTH_COUPON, "견주 생일 쿠폰", DiscountType.FIXED_RATE, 15, 0, CouponTarget.ALL);
+
+                generateCouponAuto(SILVER_COUPON,"실버 쿠폰", DiscountType.FLAT_RATE,1000,20000, CouponTarget.ALL);
+                generateCouponAuto(GOLD_COUPON,"골드 쿠폰", DiscountType.FLAT_RATE,2000,30000, CouponTarget.ALL);
+                generateCouponAuto(PLATINUM_COUPON,"플래티넘 쿠폰", DiscountType.FLAT_RATE,2500,30000, CouponTarget.ALL);
+                generateCouponAuto(DIAMOND_COUPON,"다이아 쿠폰", DiscountType.FLAT_RATE,3000,40000, CouponTarget.ALL);
+                generateCouponAuto(BARF_COUPON,"더바프 쿠폰", DiscountType.FLAT_RATE,4000,50000, CouponTarget.ALL);
+
+                Recipe recipe = generateRecipe("스타트", "닭,칠면조", "안정적인 첫 생식 적응", "스타트1.jpg", "스타트2.jpg");
+                generateRecipe("터키비프", "칠면조,소", "피로회복 면역력 향상", "터키비프1.jpg", "터키비프2.jpg");
+                generateRecipe("덕램", "오리,양", "피부와 모질강화 필요", "덕램1.jpg", "덕램2.jpg");
+                generateRecipe("램비프", "양,소", "건강한 성장과 영양보충", "램비프1.jpg", "램비프2.jpg");
+
+                generateMemberCoupon(admin,subsCoupon);
+                generateMemberCoupon(member,subsCoupon);
+
+                itemImageRepository.deleteAll();
+                itemOptionRepository.deleteAll();
+                itemRepository.deleteAll();
+
+                Item item1 = generateItem(1);
+                Item item2 = generateItem(2);
+                Item item3 = generateItem(3);
+                Item item4 = generateItem(4);
+
+                IntStream.range(1,3).forEach(i -> {
+                    generateOption(item1, i);
+                    generateOption(item2, i);
+                    generateOption(item3, i);
+                    generateOption(item4, i);
+                    generateItemImage(item1, i);
+                    generateItemImage(item2, i);
+                    generateItemImage(item3, i);
+                    generateItemImage(item4, i);
+                });
 
                 // =================================
                 // ====== 최초 필요한 데이터 끝 =======
@@ -259,17 +281,7 @@ public class AppConfig {
 //                generateMemberCoupon(member, memberBirthCoupon);
 //
 //                // ============= 작성 가능한 리뷰 데이터 시작 ==============
-//                Item item1 = generateItem(1);
-//                Item item2 = generateItem(2);
-//                Item item3 = generateItem(3);
-//                Item item4 = generateItem(4);
-//
-//                IntStream.range(1,4).forEach(i -> {
-//                    generateItemImage(item1, i);
-//                    generateItemImage(item2, i);
-//                    generateItemImage(item3, i);
-//                    generateItemImage(item4, i);
-//                });
+
 //
 //                IntStream.range(1,4).forEach(i -> {
 //                    generateOrderItemsAndOrder(member, item3, item4);
@@ -1017,10 +1029,10 @@ public class AppConfig {
                         .itemType(ItemType.RAW)
                         .name("상품" + i)
                         .description("상품설명" + i)
-                        .originalPrice(10000)
+                        .originalPrice(10000 * i)
                         .discountType(DiscountType.FLAT_RATE)
-                        .discountDegree(1000)
-                        .salePrice(9000)
+                        .discountDegree(0)
+                        .salePrice(10000 * i)
                         .inStock(true)
                         .remaining(999)
                         .contents("상세 내용" + i)

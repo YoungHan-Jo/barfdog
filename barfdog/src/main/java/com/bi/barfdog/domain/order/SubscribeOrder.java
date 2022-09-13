@@ -92,4 +92,8 @@ public class SubscribeOrder extends Order{
                 .cancelRequestDate(now)
                 .build();
     }
+
+    public void changeCoupon(Subscribe subscribe) {
+        this.memberCoupon = subscribe.getMemberCoupon();
+    }
 }
