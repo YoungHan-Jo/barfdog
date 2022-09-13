@@ -213,25 +213,32 @@ public class AppConfig {
                 generateMemberCoupon(admin,subsCoupon);
                 generateMemberCoupon(member,subsCoupon);
 
-                itemImageRepository.deleteAll();
-                itemOptionRepository.deleteAll();
-                itemRepository.deleteAll();
 
-                Item item1 = generateItem(1);
-                Item item2 = generateItem(2);
-                Item item3 = generateItem(3);
-                Item item4 = generateItem(4);
-
-                IntStream.range(1,3).forEach(i -> {
-                    generateOption(item1, i);
-                    generateOption(item2, i);
-                    generateOption(item3, i);
-                    generateOption(item4, i);
-                    generateItemImage(item1, i);
-                    generateItemImage(item2, i);
-                    generateItemImage(item3, i);
-                    generateItemImage(item4, i);
-                });
+                // =======================================
+                // ================아이템 추가==============
+                // =======================================
+//                itemImageRepository.deleteAll();
+//                itemOptionRepository.deleteAll();
+//                itemRepository.deleteAll();
+//
+//                Item item1 = generateItem(1);
+//                Item item2 = generateItem(2);
+//                Item item3 = generateItem(3);
+//                Item item4 = generateItem(4);
+//
+//                IntStream.range(1,3).forEach(i -> {
+//                    generateOption(item1, i);
+//                    generateOption(item2, i);
+//                    generateOption(item3, i);
+//                    generateOption(item4, i);
+//                    generateItemImage(item1, i);
+//                    generateItemImage(item2, i);
+//                    generateItemImage(item3, i);
+//                    generateItemImage(item4, i);
+//                });
+                // =======================================
+                // ================아이템 추가==============
+                // =======================================
 
                 // =================================
                 // ====== 최초 필요한 데이터 끝 =======
