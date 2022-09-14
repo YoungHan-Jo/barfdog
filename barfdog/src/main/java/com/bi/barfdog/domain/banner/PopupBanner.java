@@ -13,7 +13,7 @@ public class PopupBanner extends Banner{
     private int leakedOrder;
 
     @Enumerated(EnumType.STRING)
-    private PopupBannerPosition position; // [LEFT, MID, RIGHT]
+    private PopupBannerPosition position; // 팝업 위치 [LEFT, MID, RIGHT]
 
     @Embedded
     private ImgFile imgFile;

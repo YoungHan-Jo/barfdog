@@ -56,7 +56,7 @@ public class DeliveryRepositoryImpl implements DeliveryRepositoryCustom{
                 .join(subscribe.dog, dog)
                 .where(subscribeOrder.member.eq(member)
                         .and(subscribeOrder.orderStatus.notIn(OrderStatus.CONFIRM, OrderStatus.CANCEL_DONE_SELLER, OrderStatus.RETURN_DONE_SELLER,
-                                OrderStatus.EXCHANGE_DONE_SELLER, OrderStatus.FAILED, OrderStatus.BEFORE_PAYMENT, OrderStatus.HOLD, OrderStatus.SELLING_CANCEL))
+                                OrderStatus.EXCHANGE_DONE_SELLER, OrderStatus.FAILED, OrderStatus.BEFORE_PAYMENT, OrderStatus.HOLD))
                 )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -91,7 +91,7 @@ public class DeliveryRepositoryImpl implements DeliveryRepositoryCustom{
                 .from(subscribeOrder)
                 .where(subscribeOrder.member.eq(member)
                         .and(subscribeOrder.orderStatus.notIn(OrderStatus.CONFIRM, OrderStatus.CANCEL_DONE_SELLER, OrderStatus.RETURN_DONE_SELLER,
-                                OrderStatus.EXCHANGE_DONE_SELLER, OrderStatus.FAILED, OrderStatus.BEFORE_PAYMENT, OrderStatus.HOLD, OrderStatus.SELLING_CANCEL))
+                                OrderStatus.EXCHANGE_DONE_SELLER, OrderStatus.FAILED, OrderStatus.BEFORE_PAYMENT, OrderStatus.HOLD))
                 )
                 .fetchOne();
 
@@ -115,7 +115,7 @@ public class DeliveryRepositoryImpl implements DeliveryRepositoryCustom{
                 .join(generalOrder.delivery, delivery)
                 .where(generalOrder.member.eq(member)
                         .and(generalOrder.orderStatus.notIn(OrderStatus.CONFIRM, OrderStatus.CANCEL_DONE_SELLER, OrderStatus.RETURN_DONE_SELLER,
-                                OrderStatus.EXCHANGE_DONE_SELLER, OrderStatus.FAILED, OrderStatus.BEFORE_PAYMENT, OrderStatus.HOLD, OrderStatus.SELLING_CANCEL))
+                                OrderStatus.EXCHANGE_DONE_SELLER, OrderStatus.FAILED, OrderStatus.BEFORE_PAYMENT, OrderStatus.HOLD))
                 )
                 .orderBy(generalOrder.createdDate.desc())
                 .offset(pageable.getOffset())
@@ -130,7 +130,7 @@ public class DeliveryRepositoryImpl implements DeliveryRepositoryCustom{
                 .join(generalOrder.delivery, delivery)
                 .where(generalOrder.member.eq(member)
                         .and(generalOrder.orderStatus.notIn(OrderStatus.CONFIRM, OrderStatus.CANCEL_DONE_SELLER, OrderStatus.RETURN_DONE_SELLER,
-                                OrderStatus.EXCHANGE_DONE_SELLER, OrderStatus.FAILED, OrderStatus.BEFORE_PAYMENT, OrderStatus.HOLD, OrderStatus.SELLING_CANCEL))
+                                OrderStatus.EXCHANGE_DONE_SELLER, OrderStatus.FAILED, OrderStatus.BEFORE_PAYMENT, OrderStatus.HOLD))
                 )
                 .fetchOne();
 

@@ -13,15 +13,15 @@ import javax.persistence.*;
 @Getter @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MainBanner extends Banner{
 
-    private int leakedOrder;
+    private int leakedOrder; // 노출 순서
 
-    @Embedded
+    @Embedded // 임베디드 타입
     private ImgFile imgFile;
 
     @Enumerated(EnumType.STRING)
     private BannerTargets targets = BannerTargets.ALL; // [ALL, GUEST, USER, SUBSCRIBER]
 
-    @Builder
+    @Builder // 빌더 패턴, 상속 받을 땐 이런식으로 사용
     public MainBanner(Long id, String name, String pcLinkUrl, String mobileLinkUrl, BannerStatus status, int leakedOrder, ImgFile imgFile, BannerTargets targets) {
         super(id, name, pcLinkUrl, mobileLinkUrl, status);
         this.leakedOrder = leakedOrder;

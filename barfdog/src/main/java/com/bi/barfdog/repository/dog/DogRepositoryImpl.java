@@ -229,7 +229,8 @@ public class DogRepositoryImpl implements DogRepositoryCustom{
                         dog.birth,
                         dog.gender,
                         dog.representative,
-                        subscribe.status
+                        subscribe.status,
+                        subscribe.subscribeCount
                 ))
                 .from(dog)
                 .join(dog.subscribe, subscribe)
@@ -247,7 +248,8 @@ public class DogRepositoryImpl implements DogRepositoryCustom{
                         dog.birth,
                         dog.gender,
                         dog.representative,
-                        subscribe.status
+                        subscribe.status,
+                        subscribe.subscribeCount
                 ))
                 .from(dog)
                 .join(dog.subscribe, subscribe)

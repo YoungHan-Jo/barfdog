@@ -7,6 +7,7 @@ import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.order.Order;
+import com.bi.barfdog.domain.order.OrderStatus;
 import com.bi.barfdog.domain.order.SubscribeOrder;
 import com.bi.barfdog.domain.subscribe.Subscribe;
 import com.bi.barfdog.repository.member.MemberRepository;
@@ -169,8 +170,10 @@ public class OrderApiController {
         if (errors.hasErrors()) return badRequest(errors);
         Optional<Order> optionalOrder = orderRepository.findById(id);
         if (!optionalOrder.isPresent()) return notFound();
-
-        orderService.successSubscribeOrder(id, member.getId(), requestDto);
+        Order order = optionalOrder.get();
+        if (order.getOrderStatus() == OrderStatus.BEFORE_PAYMENT) {
+            orderService.successSubscribeOrder(id, member.getId(), requestDto);
+        }
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(OrderApiController.class).slash(id).slash("subscribe/success").slash(id).withSelfRel());

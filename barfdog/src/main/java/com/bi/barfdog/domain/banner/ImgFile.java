@@ -13,8 +13,8 @@ import javax.persistence.Embeddable;
 @Getter @Setter
 public class ImgFile {
 
-    private String folder;
-    private String filenamePc;
-    private String filenameMobile;
+    private String folder; // 저장된 폴더이름
+    private String filenamePc; // 파일 이름 PC
+    private String filenameMobile; // 파일 이름 Mobile
 
 }

@@ -34,11 +34,11 @@ public class Blog extends BaseTimeEntity {
     private BlogCategory category; // [NUTRITION,HEALTH,LIFE,NOTICE]
 
     @Column(columnDefinition = "TEXT")
-    private String contents; // 상세내용
+    private String contents; // 상세내용, html을 그대로 저장
 
     @OneToOne(fetch = LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "blog_thumbnail_id")
-    private BlogThumbnail blogThumbnail;
+    private BlogThumbnail blogThumbnail; // 블로그 썸네일 이미지
 
     public void update(UpdateBlogRequestDto requestDto, BlogThumbnail blogThumbnail) {
         this.status = requestDto.getStatus();

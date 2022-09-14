@@ -14,8 +14,10 @@ import javax.persistence.Entity;
 @Getter @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TopBanner extends Banner{
 
-    private String backgroundColor;
-    private String fontColor;
+    // 상단 띠 배너는 이미지를 삽입하지 않고, 그냥 글자만 넣기 때문에, 배경색과 폰트 색만 그대로 저장한다
+
+    private String backgroundColor; // 상단 띠 배너 배경 색
+    private String fontColor; // 상단 띠 배너 글씨 색깔
 
     @Builder
     public TopBanner(Long id, String name, String pcLinkUrl, String mobileLinkUrl, BannerStatus status, String backgroundColor, String fontColor) {

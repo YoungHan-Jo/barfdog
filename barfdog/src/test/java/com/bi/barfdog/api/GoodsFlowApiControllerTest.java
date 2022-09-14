@@ -237,7 +237,7 @@ public class GoodsFlowApiControllerTest extends BaseTest {
             generateGeneralOrder(member, i, OrderStatus.BEFORE_PAYMENT);
             generateGeneralOrder(member, i, OrderStatus.HOLD);
             generateGeneralOrder(member, i, OrderStatus.FAILED);
-            generateGeneralOrder(member, i, OrderStatus.SELLING_CANCEL);
+            generateGeneralOrder(member, i, OrderStatus.CANCEL_DONE_SELLER);
             generateGeneralOrder(member, i, OrderStatus.CANCEL_DONE_SELLER);
             generateGeneralOrder(member, i, OrderStatus.RETURN_DONE_SELLER);
             generateGeneralOrder(member, i, OrderStatus.EXCHANGE_DONE_SELLER);

@@ -9,4 +9,5 @@ public class ImgFilenamePath {
 
     public String folder;
     public String filename;
+
 }

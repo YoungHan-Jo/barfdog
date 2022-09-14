@@ -11,7 +11,7 @@ import static javax.persistence.FetchType.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder @Getter
 @Entity
-public class BlogImage extends BaseTimeEntity {
+public class BlogImage extends BaseTimeEntity { // 블로그 내용에 사용된 이미지 파일
 
     @Id @GeneratedValue
     @Column(name = "blog_image_id")
@@ -19,7 +19,7 @@ public class BlogImage extends BaseTimeEntity {
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "blog_id")
-    private Blog blog;
+    private Blog blog; // 해당하는 블로그
 
     private String folder;
     private String filename;

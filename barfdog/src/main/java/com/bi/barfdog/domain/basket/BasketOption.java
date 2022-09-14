@@ -12,7 +12,7 @@ import static javax.persistence.FetchType.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder @Getter
 @Entity
-public class BasketOption extends BaseTimeEntity {
+public class BasketOption extends BaseTimeEntity { // 장바구니에 담은 옵션
 
     @Id @GeneratedValue
     @Column(name = "basket_option_id")
@@ -20,11 +20,11 @@ public class BasketOption extends BaseTimeEntity {
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "basket_id")
-    private Basket basket;
+    private Basket basket; // 장바구니 옵션을 포함하고 있는 장바구니 객체
 
     @OneToOne(fetch = LAZY)
     @JoinColumn(name = "item_option_id")
-    private ItemOption itemOption;
+    private ItemOption itemOption; // 장바구니 옵션에 해당하는 일반아이템옵션
 
-    private int amount;
+    private int amount; // 일반 아이템 옵션 수량
 }

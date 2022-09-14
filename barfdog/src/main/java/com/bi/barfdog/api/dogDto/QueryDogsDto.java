@@ -25,6 +25,7 @@ public class QueryDogsDto {
     private Gender gender;
     private boolean representative;
     private SubscribeStatus subscribeStatus;
+    private int subscribeCount;
 
     public void changeUrl(String filename) {
         pictureUrl = linkTo(InfoController.class).slash("display/dogs?filename=" + filename).toString();

@@ -1125,8 +1125,8 @@ public class OrderService {
             OrderItem orderItem = optionalOrderItem.get();
             GeneralOrder order = orderItem.getGeneralOrder();
 
-            if (orderItem.getStatus() == OrderStatus.SELLING_CANCEL) continue;
-            cancelGeneralOrderNow(OrderStatus.SELLING_CANCEL, reason, detailReason, order);
+            if (orderItem.getStatus() == OrderStatus.CANCEL_DONE_SELLER) continue;
+            cancelGeneralOrderNow(OrderStatus.CANCEL_DONE_SELLER, reason, detailReason, order);
         }
 
         setOrderItemSellingCancel(orderItemIdList, reason, detailReason);
@@ -1139,8 +1139,8 @@ public class OrderService {
 
             OrderItem orderItem = optionalOrderItem.get();
             OrderStatus orderStatus = orderItem.getGeneralOrder().getOrderStatus();
-            if (orderStatus == OrderStatus.SELLING_CANCEL) {
-                orderItem.sellingCancel(OrderStatus.SELLING_CANCEL, reason, detailReason);
+            if (orderStatus == OrderStatus.CANCEL_DONE_SELLER) {
+                orderItem.sellingCancel(OrderStatus.CANCEL_DONE_SELLER, reason, detailReason);
             }
         }
     }
@@ -1160,7 +1160,7 @@ public class OrderService {
 
             SubscribeOrder subscribeOrder = (SubscribeOrder) order;
 
-            cancelSubscribeOrderNow(subscribeOrder, reason,detailReason,OrderStatus.SELLING_CANCEL);
+            cancelSubscribeOrderNow(subscribeOrder, reason,detailReason,OrderStatus.CANCEL_DONE_SELLER);
         }
     }
 

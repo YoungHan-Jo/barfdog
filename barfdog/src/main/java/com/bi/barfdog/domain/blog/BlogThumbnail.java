@@ -8,7 +8,7 @@ import javax.persistence.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder @Getter
 @Entity
-public class BlogThumbnail {
+public class BlogThumbnail { // 블로그 썸네일 사진
 
     @Id @GeneratedValue
     @Column(name = "blog_thumbnail_id")

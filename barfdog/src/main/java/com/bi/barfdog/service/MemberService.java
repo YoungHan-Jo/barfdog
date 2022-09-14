@@ -242,7 +242,6 @@ public class MemberService {
                 .dogNames(dogNames)
                 .build();
 
-
         return responseDto;
     }
 

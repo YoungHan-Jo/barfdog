@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
@@ -76,11 +77,30 @@ public class BlogService {
         Blog blog1 = blogRepository.findById(requestDto.getFirstBlogId()).get();
         Blog blog2 = blogRepository.findById(requestDto.getSecondBlogId()).get();
 
-        Article article1 = articleRepository.findByNumber(1).get();
-        Article article2 = articleRepository.findByNumber(2).get();
 
-        article1.change(blog1);
-        article2.change(blog2);
+        Optional<Article> optionalArticle1 = articleRepository.findByNumber(1);
+        if (optionalArticle1.isPresent()) {
+            Article article = optionalArticle1.get();
+            article.change(blog1);
+        } else {
+            saveArticle(blog1, 1);
+        }
+
+        Optional<Article> optionalArticle2 = articleRepository.findByNumber(2);
+        if (optionalArticle2.isPresent()) {
+            Article article = optionalArticle2.get();
+            article.change(blog2);
+        } else {
+            saveArticle(blog2, 2);
+        }
+    }
+
+    private void saveArticle(Blog blog1, int number) {
+        Article article = Article.builder()
+                .number(number)
+                .blog(blog1)
+                .build();
+        articleRepository.save(article);
     }
 
     public QueryAdminBlogDto findQueryAdminBlogDtoById(Long id) {

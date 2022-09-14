@@ -145,6 +145,7 @@ public class Member extends BaseTimeEntity {
     }
 
     public void withdrawal() {
+        phoneNumber = null;
         isWithdrawal = true;
         provider = "";
         providerId = "";

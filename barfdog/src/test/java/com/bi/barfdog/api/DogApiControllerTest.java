@@ -946,6 +946,7 @@ public class DogApiControllerTest extends BaseTest {
                                 fieldWithPath("_embedded.queryDogsDtoList[0].gender").description("강아지 성별 [MALE, FEMALE]"),
                                 fieldWithPath("_embedded.queryDogsDtoList[0].representative").description("대표견 여부 true/false"),
                                 fieldWithPath("_embedded.queryDogsDtoList[0].subscribeStatus").description("구독 상태 [BEFORE_PAYMENT, SUBSCRIBING, SUBSCRIBE_PENDING, ADMIN] 각 결제 전/ 구독 중/ 구독 보류 / 관리자구독"),
+                                fieldWithPath("_embedded.queryDogsDtoList[0].subscribeCount").description("강아지 구독 회수"),
                                 fieldWithPath("_embedded.queryDogsDtoList[0]._links.update_picture.href").description("강아지 사진 수정 링크"),
                                 fieldWithPath("_embedded.queryDogsDtoList[0]._links.set_representative_dog.href").description("대표견 설정 링크"),
                                 fieldWithPath("_embedded.queryDogsDtoList[0]._links.query_dog.href").description("강아지 정보 조회 링크"),
