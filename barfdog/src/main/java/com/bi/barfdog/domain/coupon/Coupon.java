@@ -42,13 +42,13 @@ public class Coupon extends BaseTimeEntity {
     private int amount; // 수량
 
     @Enumerated(EnumType.STRING)
-    private DiscountType discountType; // 할인 타입 [ FIXED_RATE, FLAT_RATE ]
+    private DiscountType discountType; // 할인 타입 [ FIXED_RATE, FLAT_RATE ], 각 퍼센트/ 절대값
 
-    private int discountDegree; // 할인 정도 ( 원/% )
+    private int discountDegree; // 할인 정도 ( discountType에 따라 % or 원 )
 
     private int availableMaxDiscount; // 적용가능 최대 할인금액
 
-    private int availableMinPrice; // 적용가능한 최소 금액
+    private int availableMinPrice; // 적용가능한 최소 상품 금액
 
     @Enumerated(EnumType.STRING)
     private CouponTarget couponTarget; // 사용 가능 품목 대상 [ALL, GENERAL, SUBSCRIBE]

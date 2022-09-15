@@ -25,21 +25,21 @@ public class Recipe extends BaseTimeEntity {
 
     private String description;
 
-    private String uiNameKorean;
-    private String uiNameEnglish;
+    private String uiNameKorean; // UI 이름 한글
+    private String uiNameEnglish; // UI 이름 영어
 
     @Column(precision = 7,scale = 3)
-    private BigDecimal pricePerGram;
+    private BigDecimal pricePerGram; // 그램당 가격
 
     @Column(precision = 9,scale = 5)
-    private BigDecimal gramPerKcal;
+    private BigDecimal gramPerKcal; // 칼로리 당 그램
 
-    private String ingredients; // 닭,오리,소 띄워쓰기 없이 콤마로 구분
+    private String ingredients; // '닭,오리,소' 와 같이띄워쓰기 없이 콤마로 구분
 
-    private String descriptionForSurvey;
+    private String descriptionForSurvey; // 설문조사에서 사용할 문장, ex) 안정적인 첫 생식 적응
 
     @Embedded
-    private ThumbnailImage thumbnailImage;
+    private ThumbnailImage thumbnailImage; // 썸네일 이미지 관련
 
     @Enumerated(EnumType.STRING)
     private Leaked leaked; // 노출 여부
@@ -47,10 +47,10 @@ public class Recipe extends BaseTimeEntity {
     private boolean inStock; // 재고 여부
 
     @Enumerated(EnumType.STRING)
-    private RecipeStatus status;
+    private RecipeStatus status; 
 
     @Builder.Default
-    @OneToMany(mappedBy = "recipe")
+    @OneToMany(mappedBy = "recipe") // 맵드바이, 조회용
     private List<SubscribeRecipe> subscribeRecipes = new ArrayList<>();
 
     public List<String> getIngredientList() {

@@ -11,7 +11,7 @@ import javax.persistence.*;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
-public class Reward extends BaseTimeEntity {
+public class Reward extends BaseTimeEntity { // 적립금 내역
 
     @Id @GeneratedValue
     @Column(name = "reward_id")
@@ -21,15 +21,15 @@ public class Reward extends BaseTimeEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    private String name;
+    private String name; // 적립금 이름
 
     @Enumerated(EnumType.STRING)
     private RewardType rewardType; // [RECOMMEND, INVITE, REVIEW, EVENT, ORDER, SUBSCRIBE, ADMIN]
 
     @Enumerated(EnumType.STRING)
-    private RewardStatus rewardStatus; // [SAVED, USED]
+    private RewardStatus rewardStatus; // [SAVED, USED] , 각 적립/사용
 
-    private int tradeReward;
+    private int tradeReward; // 적립금 수량
 
 
 

@@ -26,19 +26,19 @@ public abstract class Review extends BaseTimeEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    private LocalDate writtenDate;
+    private LocalDate writtenDate; // 작성일
 
-    private String username;
+    private String username; // 작성자이름
 
-    private int star;
+    private int star; // 별 1~5
 
     @Column(columnDefinition = "TEXT")
-    private String contents;
+    private String contents; // 내용
 
     @Enumerated(EnumType.STRING)
     private ReviewStatus status; // [REQUEST,RETURN,APPROVAL,ADMIN]
 
-    private String returnReason;
+    private String returnReason; // 리뷰 요청 반려 사유
 
     public void update(UpdateReviewDto requestDto) {
         this.star = requestDto.getStar();

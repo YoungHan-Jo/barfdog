@@ -8,6 +8,7 @@ import com.bi.barfdog.domain.orderItem.OrderItem;
 import lombok.*;
 
 import javax.persistence.DiscriminatorValue;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import java.time.LocalDateTime;
@@ -18,11 +19,12 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @DiscriminatorValue("general")
 @Entity
-public class GeneralOrder extends Order{
+public class GeneralOrder extends Order{ // Order를 상속받은 일반주문
 
-    private OrderCancel orderCancel;
+    @Embedded
+    private OrderCancel orderCancel; // 주문 취소 관련
 
-    @OneToMany(mappedBy = "generalOrder")
+    @OneToMany(mappedBy = "generalOrder") // mappedBy 라서 조회용 OneToMany
     private List<OrderItem> orderItemList = new ArrayList<>();
 
     @Builder

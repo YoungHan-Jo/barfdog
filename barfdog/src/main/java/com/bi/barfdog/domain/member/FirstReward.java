@@ -11,10 +11,10 @@ import javax.persistence.Embeddable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter @Builder
-public class FirstReward {
+public class FirstReward { // 첫 적립금 받은 여부
 
-    private boolean recommend;
-    private boolean receiveAgree;
+    private boolean recommend; // 다른사람 추천으로 인한
+    private boolean receiveAgree; // sms/email 수신동의로 인한
 
     public void setRecommend(boolean recommend) {
         this.recommend = recommend;

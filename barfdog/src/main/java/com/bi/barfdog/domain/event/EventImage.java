@@ -18,9 +18,9 @@ public class EventImage extends BaseTimeEntity {
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "event_id")
-    private Event event;
+    private Event event; // 이벤트 내용 이미지 : 이벤트  다대일 관계
 
-    private int leakOrder;
+    private int leakOrder; // 이미지 노출 순서
 
     private String folder;
     private String filename;

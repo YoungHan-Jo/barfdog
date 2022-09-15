@@ -15,7 +15,7 @@ import static javax.persistence.FetchType.LAZY;
 @NoArgsConstructor
 @Builder @Getter
 @Entity
-public class ItemOption extends BaseTimeEntity {
+public class ItemOption extends BaseTimeEntity { // 상품 옵션
 
     @Id @GeneratedValue
     @Column(name = "item_option_id")
@@ -23,13 +23,13 @@ public class ItemOption extends BaseTimeEntity {
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "item_id")
-    private Item item;
+    private Item item; // 아이템옵션:아이템 - 다대일 관계
 
-    private String name;
+    private String name; // 옵션이름
 
-    private int optionPrice;
+    private int optionPrice; // 옵션가격
 
-    private int remaining;
+    private int remaining; // 옵션 수량
 
     public void update(ItemUpdateDto.ItemOptionUpdateDto dto) {
         name = dto.getName();

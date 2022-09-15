@@ -20,15 +20,15 @@ public class Delivery extends BaseTimeEntity {
     @Column(name = "delivery_id")
     private Long id;
 
-    private String transUniqueCd;
+    private String transUniqueCd; // 굿스플로에 필요한 키값
 
-    private String deliveryNumber;
+    private String deliveryNumber; // 운송장번호
 
     @Embedded
-    private Recipient recipient;
+    private Recipient recipient; // 수령자 정보
 
     @Enumerated(EnumType.STRING)
-    private DeliveryStatus status;
+    private DeliveryStatus status; // 배송상태
 
     private String request; // 요청사항
 

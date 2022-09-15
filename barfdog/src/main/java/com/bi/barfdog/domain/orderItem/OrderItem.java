@@ -17,7 +17,7 @@ import static javax.persistence.FetchType.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder @Getter
 @Entity
-public class OrderItem extends BaseTimeEntity {
+public class OrderItem extends BaseTimeEntity { // 주문한 아이템
 
     @Id @GeneratedValue
     @Column(name = "order_item_id")
@@ -25,28 +25,28 @@ public class OrderItem extends BaseTimeEntity {
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "order_id")
-    private GeneralOrder generalOrder;
+    private GeneralOrder generalOrder; // 주문한아이템:일반주문 - 다대일
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "item_id")
-    private Item item;
+    private Item item; // 주문한아이템:아이템 - 다대일
 
-    private int salePrice; // 판매가격
+    private int salePrice; // 해당 아이템 판매가격
     private int amount; // 개수
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "member_coupon_id")
     private MemberCoupon memberCoupon; // 사용 쿠폰
 
-    private int discountAmount;
+    private int discountAmount; // 쿠폰 할인량
 
     private int finalPrice; // 옵션 포함 쿠폰적용 최종 가격
 
     @Enumerated(EnumType.STRING)
-    private OrderStatus status;
+    private OrderStatus status; // 주문상태
 
-    private int cancelReward; // 취소 반품으로 돌려받는 적립금 (주문단위 취소 시 알수 없음)
-    private int cancelPrice; // 취소 반품으로 돌려받는 금액 (주문단위 취소 시 알수 없음)
+    private int cancelReward; // 취소 반품으로 돌려받는 적립금 (현재 사용하지 않음)
+    private int cancelPrice; // 취소 반품으로 돌려받는 금액 (현재 사용하지 않음)
 
     @Embedded
     private OrderCancel orderCancel;
@@ -57,8 +57,8 @@ public class OrderItem extends BaseTimeEntity {
     @Embedded
     private OrderExchange orderExchange;
 
-    private int saveReward;
-    private boolean isSavedReward;
+    private int saveReward; // 구매확정시 받을 적립예정금
+    private boolean isSavedReward; // 구매확정으로 적립받았는지 여부
 
     @Builder.Default
     private boolean writeableReview = true; //  true이고 상태 confirm 일 때 리뷰 작성 가능

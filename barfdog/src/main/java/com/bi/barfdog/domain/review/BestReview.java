@@ -10,17 +10,17 @@ import static javax.persistence.FetchType.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder @Getter
 @Entity
-public class BestReview {
+public class BestReview { // 베스트 리뷰
 
     @Id @GeneratedValue
     @Column(name = "best_review_id")
     private Long id;
 
-    private int leakedOrder;
+    private int leakedOrder; // 노출 순서
 
     @OneToOne(fetch = LAZY)
     @JoinColumn(name = "review_id")
-    private Review review;
+    private Review review; // 베스트 리뷰: 리뷰 - 일대일
 
 
     public void changeLeakedOrder(int leakedOrder) {

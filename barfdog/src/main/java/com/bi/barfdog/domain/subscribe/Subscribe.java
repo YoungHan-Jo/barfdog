@@ -33,7 +33,7 @@ import static javax.persistence.FetchType.*;
 @Builder
 @Getter
 @Entity
-public class Subscribe extends BaseTimeEntity {
+public class Subscribe extends BaseTimeEntity { // 구독, 다음번 결제 예정 정보
 
     @Id
     @GeneratedValue
@@ -45,32 +45,32 @@ public class Subscribe extends BaseTimeEntity {
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "card_id")
-    private Card card;
+    private Card card; // 결제 카드
 
-    private int subscribeCount;
+    private int subscribeCount; // 구독회차
 
     @Enumerated(EnumType.STRING)
     private SubscribePlan plan; // [FULL, HALF, TOPPING]
 
     @Builder.Default
-    @OneToMany(mappedBy = "subscribe")
-    private List<SubscribeRecipe> subscribeRecipes = new ArrayList<>();
+    @OneToMany(mappedBy = "subscribe") // 맵드바이, 조회용
+    private List<SubscribeRecipe> subscribeRecipes = new ArrayList<>(); // 구독레시피 리스트
 
     @OneToOne(fetch = LAZY)
     @JoinColumn(name = "member_coupon_id")
-    private MemberCoupon memberCoupon;
+    private MemberCoupon memberCoupon; // 다음번 결제에 사용할 쿠폰
 
-    private int discountCoupon;
-    private int discountGrade;
+    private int discountCoupon; // 쿠폰 할인량
+    private int discountGrade; // 등급 할인량
 
     private String nextOrderMerchantUid; // 다음번 결제 주문uid
 
     private LocalDateTime nextPaymentDate; // 다음 결제일
     private int nextPaymentPrice; // 다음 회차 결제 금액(구독상품 원가) -> 실제로는 nextpaymentprice - (discountGrade + discountCoupon)금액이 결제 됨
-    private LocalDate nextDeliveryDate;
+    private LocalDate nextDeliveryDate; // 다음 배송일
 
-    private int countSkipOneTime;
-    private int countSkipOneWeek;
+    private int countSkipOneTime; // 한 회 건너뛰기 횟수
+    private int countSkipOneWeek; // 한 주 건너뛰기 횟수
 
     private String cancelReason; // 구독 취소 사유/ (,)콤마 기준으로 나열
 

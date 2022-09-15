@@ -14,7 +14,7 @@ import static javax.persistence.FetchType.*;
 @NoArgsConstructor
 @Builder @Getter
 @Entity
-public class SelectOption {
+public class SelectOption { // 선택한 옵션
 
     @Id @GeneratedValue
     @Column(name = "select_option_id")
@@ -22,15 +22,15 @@ public class SelectOption {
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "order_item_id")
-    private OrderItem orderItem;
+    private OrderItem orderItem; // 선택한옵션:주문아이템 - 다대일 관계
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "item_option_id")
-    private ItemOption itemOption;
+    private ItemOption itemOption; // 선택한옵션:아이템옵션 - 다대일
 
-    private String name;
-    private int price;
-    private int amount;
+    private String name; // 옵션명
+    private int price; // 옵션 하나 가격
+    private int amount; // 옵션 수량
 
     public void increaseItemOption() {
         itemOption.increaseRemaining(amount);

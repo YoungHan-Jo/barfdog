@@ -39,10 +39,10 @@ public class Member extends BaseTimeEntity {
     private String password;
 
     @Column(unique = true)
-    private String phoneNumber;
+    private String phoneNumber; // '010xxxxXXXX'
 
     @Embedded
-    private Address address;
+    private Address address; // 주소
 
     @Column(length = 8)
     private String birthday; // 'yyyyMMdd'
@@ -51,23 +51,23 @@ public class Member extends BaseTimeEntity {
     private Gender gender; // [MALE, FEMALE, NONE]
 
     @Embedded
-    private Agreement agreement;
+    private Agreement agreement; // 각종 동의 여부 임베디드 타입
 
-    private String recommendCode; // 추천한 코드
+    private String recommendCode; // 내가 추천한 코드
 
-    private String myRecommendationCode; // 내 추천 코드
+    private String myRecommendationCode; // 나의 추천 코드
 
     @Enumerated(EnumType.STRING)
     private Grade grade; // [브론즈, 실버, 골드, 플래티넘, 다이아몬드, 더바프]
 
-    private int reward;
+    private int reward; // 남은 적립금
 
     private boolean isPaid; // 구매한 적 있는지 여부
     private LocalDateTime firstPaymentDate; // 첫 결제 날짜
 
-    private boolean isTemporaryPassword; // 임시 비밀번호 여부
+    private boolean isTemporaryPassword; // 임시 비밀번호 여부 (비밀번호 임시발급하면 여기가 true로 됨)
     
-    private int accumulatedAmount; // 누적 금액
+    private int accumulatedAmount; // 누적 구매 금액
 
     private boolean isSubscribe; // 정기 구독 여부
 

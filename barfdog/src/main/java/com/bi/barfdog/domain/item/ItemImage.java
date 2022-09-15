@@ -14,7 +14,7 @@ import static javax.persistence.FetchType.LAZY;
 @NoArgsConstructor
 @Builder @Getter
 @Entity
-public class ItemImage extends BaseTimeEntity {
+public class ItemImage extends BaseTimeEntity { // 상품 이미지
 
     @Id @GeneratedValue
     @Column(name = "item_image_id")
@@ -22,7 +22,7 @@ public class ItemImage extends BaseTimeEntity {
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "item_id")
-    private Item item;
+    private Item item; // 아이템이미지:아이템 - 다대일관계
 
     private int leakOrder;
     private String folder;

@@ -22,19 +22,20 @@ import static javax.persistence.FetchType.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @DiscriminatorValue("subscribe")
 @Entity
-public class SubscribeOrder extends Order{
+public class SubscribeOrder extends Order{ // Order를 상속받은 구독주문
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "subscribe_id")
-    private Subscribe subscribe;
+    private Subscribe subscribe; // 해당 구독
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "member_coupon_id")
-    private MemberCoupon memberCoupon;
+    private MemberCoupon memberCoupon; // 사용한 쿠폰
 
-    private int subscribeCount;
+    private int subscribeCount; // 해당 구독 주문이 몇번째 구독회차인지
 
-    private OrderCancel orderCancel;
+    @Embedded
+    private OrderCancel orderCancel; // 주문취소 관련 임베디드
 
     @Builder
     public SubscribeOrder(Long id, String impUid, String merchantUid, OrderStatus orderStatus, Member member, int orderPrice, int deliveryPrice, int discountTotal, int discountReward, int discountCoupon, int discountGrade, int paymentPrice, PaymentMethod paymentMethod, LocalDateTime paymentDate, LocalDateTime orderConfirmDate, boolean isPackage, boolean isBrochure, boolean isAgreePrivacy, Delivery delivery, Subscribe subscribe, MemberCoupon memberCoupon, int subscribeCount, OrderCancel orderCancel) {
