@@ -79,6 +79,7 @@ public class MemberApiControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
                         ),
                         responseFields(
+                                fieldWithPath("memberId").description("회원 인덱스 id"),
                                 fieldWithPath("name").description("회원 이름"),
                                 fieldWithPath("email").description("회원 이메일(로그인 ID)"),
                                 fieldWithPath("phoneNumber").description("휴대폰 번호"),

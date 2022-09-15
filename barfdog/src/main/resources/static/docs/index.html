@@ -4217,9 +4217,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="resources-admin-dashBoard_curl_request"><a class="link" href="#resources-admin-dashBoard_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/admin/dashBoard?from=2022-08-23&amp;to=2022-08-30' -i -X GET \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/admin/dashBoard?from=2022-09-08&amp;to=2022-09-15' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MTg3NzY5MSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.QcwTzOj0j81-3JTCExHMVQsnCrQX5wcJmYK2rkJvsrWbu5k7C4VOs1y13pmwcMXBU-DBM-Pl4Al_wI8zo2I0nw' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MzIzNTE4OCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.pJSpOv38vCBW-byiUz_FG-u4oa9FMXLqkC4s3z9PPbJ6kH80iKpLb6TNMWZMiyh-DsFEijTKZ7UJEbHhvGg27g' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -4313,7 +4313,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "newOrderCount" : 21,
-  "newMemberCount" : 4,
+  "newMemberCount" : 2,
   "subscribePendingCount" : 9,
   "orderStatusCountDtoList" : [ {
     "orderstatus" : "CANCEL_REQUEST",
@@ -4335,11 +4335,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
     "count" : 5
   } ],
   "generalOrderCountByMonthList" : [ {
-    "month" : "2022-08",
+    "month" : "2022-09",
     "generalCount" : 12
   } ],
   "subscribeOrderCountByMonthList" : [ {
-    "month" : "2022-08",
+    "month" : "2022-09",
     "subscribeCount" : 9
   } ],
   "_links" : {
@@ -22286,7 +22286,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/members' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEwLCJleHAiOjE2NjEzMTAwMjgsImVtYWlsIjoidXNlckBnbWFpbC5jb20ifQ.RUOdkg0ltH262QKxz8fcx3uSvik_5SdcSfOoYK-Q4PnbP3azj8bmkbzURw66wXIQFfiG7Vej-Ndp4OyDdteBMQ' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjUsImV4cCI6MTY2MzIyMzU2MSwiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSJ9.w4Y4uzSSr803yofW7g6xwLc8z0cqy06Um_xAhKOIGnOlPXc1MKq_JT3XLtzJBLXZAIE4dr6Cu-8MAzs1ONb8ow' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -22354,7 +22354,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "name" : "김회원",
+  "memberId" : 5,
+  "name" : "플래티넘회원",
   "email" : "user@gmail.com",
   "phoneNumber" : "01099038544",
   "address" : {
@@ -22400,6 +22401,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </tr>
 </thead>
 <tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>memberId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">회원 인덱스 id</p></td>
+</tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>name</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
@@ -25473,7 +25479,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/dogs' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEwLCJleHAiOjE2NjEzMDk5NzIsImVtYWlsIjoidXNlckBnbWFpbC5jb20ifQ.Xvjn_cWLEg-BB98LT4TC3NBUf_LK45Jq9BZh9UAMeIu11sgu9IAnUmGdDTLp5M0etVik8ssPq0P2IMs8AacFUw' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjUsImV4cCI6MTY2MzIyODc3MywiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSJ9.xtkzRUxSO0WFrNRgZIRwRj3j_AcNNgMcXhwehkzdXdeZHT4b8FlmjdAj439cTHL-0RDp3gmp_IQ5znisQIokUQ' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -25543,8 +25549,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "_embedded" : {
     "queryDogsDtoList" : [ {
-      "id" : 2398,
-      "dogPictureId" : 2399,
+      "id" : 43,
+      "dogPictureId" : 44,
       "pictureName" : "filename1.jpg",
       "pictureUrl" : "http://localhost:8080/display/dogs?filename=filename1.jpg",
       "name" : "대표견",
@@ -25552,26 +25558,27 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
       "gender" : "MALE",
       "representative" : true,
       "subscribeStatus" : "BEFORE_PAYMENT",
+      "subscribeCount" : 0,
       "_links" : {
         "update_picture" : {
-          "href" : "http://localhost:8080/api/dogs/2398/picture"
+          "href" : "http://localhost:8080/api/dogs/43/picture"
         },
         "set_representative_dog" : {
-          "href" : "http://localhost:8080/api/dogs/2398/representative"
+          "href" : "http://localhost:8080/api/dogs/43/representative"
         },
         "query_dog" : {
-          "href" : "http://localhost:8080/api/dogs/2398"
+          "href" : "http://localhost:8080/api/dogs/43"
         },
         "query_surveyReport" : {
-          "href" : "http://localhost:8080/api/dogs/2398/surveyReport"
+          "href" : "http://localhost:8080/api/dogs/43/surveyReport"
         },
         "delete_dog" : {
-          "href" : "http://localhost:8080/api/dogs/2398"
+          "href" : "http://localhost:8080/api/dogs/43"
         }
       }
     }, {
-      "id" : 2401,
-      "dogPictureId" : 2403,
+      "id" : 46,
+      "dogPictureId" : 48,
       "pictureName" : "filename1.jpg",
       "pictureUrl" : "http://localhost:8080/display/dogs?filename=filename1.jpg",
       "name" : "샘플독1",
@@ -25579,26 +25586,27 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
       "gender" : "MALE",
       "representative" : false,
       "subscribeStatus" : "BEFORE_PAYMENT",
+      "subscribeCount" : 0,
       "_links" : {
         "update_picture" : {
-          "href" : "http://localhost:8080/api/dogs/2401/picture"
+          "href" : "http://localhost:8080/api/dogs/46/picture"
         },
         "set_representative_dog" : {
-          "href" : "http://localhost:8080/api/dogs/2401/representative"
+          "href" : "http://localhost:8080/api/dogs/46/representative"
         },
         "query_dog" : {
-          "href" : "http://localhost:8080/api/dogs/2401"
+          "href" : "http://localhost:8080/api/dogs/46"
         },
         "query_surveyReport" : {
-          "href" : "http://localhost:8080/api/dogs/2401/surveyReport"
+          "href" : "http://localhost:8080/api/dogs/46/surveyReport"
         },
         "delete_dog" : {
-          "href" : "http://localhost:8080/api/dogs/2401"
+          "href" : "http://localhost:8080/api/dogs/46"
         }
       }
     }, {
-      "id" : 2406,
-      "dogPictureId" : 2408,
+      "id" : 51,
+      "dogPictureId" : 53,
       "pictureName" : "filename2.jpg",
       "pictureUrl" : "http://localhost:8080/display/dogs?filename=filename2.jpg",
       "name" : "샘플독2",
@@ -25606,26 +25614,27 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
       "gender" : "MALE",
       "representative" : false,
       "subscribeStatus" : "BEFORE_PAYMENT",
+      "subscribeCount" : 0,
       "_links" : {
         "update_picture" : {
-          "href" : "http://localhost:8080/api/dogs/2406/picture"
+          "href" : "http://localhost:8080/api/dogs/51/picture"
         },
         "set_representative_dog" : {
-          "href" : "http://localhost:8080/api/dogs/2406/representative"
+          "href" : "http://localhost:8080/api/dogs/51/representative"
         },
         "query_dog" : {
-          "href" : "http://localhost:8080/api/dogs/2406"
+          "href" : "http://localhost:8080/api/dogs/51"
         },
         "query_surveyReport" : {
-          "href" : "http://localhost:8080/api/dogs/2406/surveyReport"
+          "href" : "http://localhost:8080/api/dogs/51/surveyReport"
         },
         "delete_dog" : {
-          "href" : "http://localhost:8080/api/dogs/2406"
+          "href" : "http://localhost:8080/api/dogs/51"
         }
       }
     }, {
-      "id" : 2411,
-      "dogPictureId" : 2413,
+      "id" : 56,
+      "dogPictureId" : 58,
       "pictureName" : "filename3.jpg",
       "pictureUrl" : "http://localhost:8080/display/dogs?filename=filename3.jpg",
       "name" : "샘플독3",
@@ -25633,21 +25642,22 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
       "gender" : "MALE",
       "representative" : false,
       "subscribeStatus" : "BEFORE_PAYMENT",
+      "subscribeCount" : 0,
       "_links" : {
         "update_picture" : {
-          "href" : "http://localhost:8080/api/dogs/2411/picture"
+          "href" : "http://localhost:8080/api/dogs/56/picture"
         },
         "set_representative_dog" : {
-          "href" : "http://localhost:8080/api/dogs/2411/representative"
+          "href" : "http://localhost:8080/api/dogs/56/representative"
         },
         "query_dog" : {
-          "href" : "http://localhost:8080/api/dogs/2411"
+          "href" : "http://localhost:8080/api/dogs/56"
         },
         "query_surveyReport" : {
-          "href" : "http://localhost:8080/api/dogs/2411/surveyReport"
+          "href" : "http://localhost:8080/api/dogs/56/surveyReport"
         },
         "delete_dog" : {
-          "href" : "http://localhost:8080/api/dogs/2411"
+          "href" : "http://localhost:8080/api/dogs/56"
         }
       }
     } ]
@@ -25726,6 +25736,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <td class="tableblock halign-left valign-top"><p class="tableblock">구독 상태 [BEFORE_PAYMENT, SUBSCRIBING, SUBSCRIBE_PENDING, ADMIN] 각 결제 전/ 구독 중/ 구독 보류 / 관리자구독</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>_embedded.queryDogsDtoList[0].subscribeCount</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">강아지 구독 회수</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>_embedded.queryDogsDtoList[0]._links.update_picture.href</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">강아지 사진 수정 링크</p></td>
@@ -25800,7 +25815,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/dogs/picture/upload' -i -X POST \
     -H 'Content-Type: multipart/form-data;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEwLCJleHAiOjE2NjEzMDk5NzQsImVtYWlsIjoidXNlckBnbWFpbC5jb20ifQ.uIfjdpBOoOV0wBSXRNQ-0OeVLLj3oq8mPL6Lol0alMk9J6Gz6OBL9nE_OAJP6JWEXfL1PcC2WiCyW9vxvbBvtQ' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjUsImV4cCI6MTY2MzIyODc3NiwiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSJ9.QP2VpLwCiCeWywoijesj0_6EDgKeDNj5Lfou3XkuTtCsJ197GzM_XaAf5sO74dRB3eurm6snBO4whlbY1RSnPw' \
     -H 'Accept: application/hal+json' \
     -F 'file=@file1.jpg;type=image/jpg'</code></pre>
 </div>
@@ -25890,8 +25905,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "id" : 2451,
-  "url" : "http://localhost:8080/display/dogs?filename=d6ad5cb0-2727-4e99-97a4-467bc5c946cc_file1.jpg",
+  "id" : 96,
+  "url" : "http://localhost:8080/display/dogs?filename=8cdddf52-f49a-4b66-96a8-f9a5e67fe3fa.jpg",
   "_links" : {
     "self" : {
       "href" : "http://localhost:8080/api/dogs/picture/upload"
@@ -25982,12 +25997,12 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <h4 id="resources-update-dogPicture_curl_request"><a class="link" href="#resources-update-dogPicture_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/dogs/2515/picture' -i -X PUT \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/dogs/160/picture' -i -X PUT \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEwLCJleHAiOjE2NjEzMDk5NzYsImVtYWlsIjoidXNlckBnbWFpbC5jb20ifQ.YciyF0X8A3XI_0mTCA7MWku5QPUmqQbC9zRheydviuM812qa5OZHAuVimdx4WmsYzl_ikh0nx81LtZ6AXpX4yQ' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjUsImV4cCI6MTY2MzIyODc3NywiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSJ9.eQNXdDqdBOOfVOEXS5TgPrjjMY-Cn5qpa0ej6uNlDazmhsE6MagIdUYN8Lsz3MOYybdohqdlhCPoF7ZoiR2U4g' \
     -H 'Accept: application/hal+json' \
     -d '{
-  "dogPictureId" : 2517
+  "dogPictureId" : 162
 }'</code></pre>
 </div>
 </div>
@@ -26048,7 +26063,7 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "dogPictureId" : 2517
+  "dogPictureId" : 162
 }</code></pre>
 </div>
 </div>
@@ -26105,7 +26120,7 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/dogs/2515/picture"
+      "href" : "http://localhost:8080/api/dogs/160/picture"
     },
     "query_dogs" : {
       "href" : "http://localhost:8080/api/dogs"
@@ -26191,9 +26206,9 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <h4 id="resources-update-representative-dog_curl_request"><a class="link" href="#resources-update-representative-dog_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/dogs/2522/representative' -i -X PUT \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/dogs/167/representative' -i -X PUT \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEwLCJleHAiOjE2NjEzMDk5NzYsImVtYWlsIjoidXNlckBnbWFpbC5jb20ifQ.YciyF0X8A3XI_0mTCA7MWku5QPUmqQbC9zRheydviuM812qa5OZHAuVimdx4WmsYzl_ikh0nx81LtZ6AXpX4yQ' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjUsImV4cCI6MTY2MzIyODc3NywiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSJ9.eQNXdDqdBOOfVOEXS5TgPrjjMY-Cn5qpa0ej6uNlDazmhsE6MagIdUYN8Lsz3MOYybdohqdlhCPoF7ZoiR2U4g' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -26285,7 +26300,7 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/dogs/2522/representative"
+      "href" : "http://localhost:8080/api/dogs/167/representative"
     },
     "query_dogs" : {
       "href" : "http://localhost:8080/api/dogs"
@@ -26371,9 +26386,9 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <h4 id="resources-query-dog_curl_request"><a class="link" href="#resources-query-dog_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/dogs/2422' -i -X GET \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/dogs/67' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEwLCJleHAiOjE2NjEzMDk5NzMsImVtYWlsIjoidXNlckBnbWFpbC5jb20ifQ.FrJX4sk_7sQfU2Ns_j4-f3JslHI9el8gnQ3UBi1zmnm--YBGUt1A15nKyJTS5KHwCgVo497caiTF7mCJVN-lpA' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjUsImV4cCI6MTY2MzIyODc3NCwiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSJ9.PuMGQ3a7sMQ8bnItT-HolWazeJqVcempzVKvuuyWwxEIMk-0Ffy_ZzRYBm8xhzSNZxN184CIW0_ZCGdyl_njVQ' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -26464,7 +26479,7 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "dogDto" : {
-    "id" : 2422,
+    "id" : 67,
     "name" : "샘플독",
     "gender" : "MALE",
     "birth" : "202005",
@@ -26480,33 +26495,33 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
     "snackCountLevel" : "NORMAL",
     "inedibleFood" : "NONE",
     "inedibleFoodEtc" : "NONE",
-    "recommendRecipeId" : 13,
+    "recommendRecipeId" : 14,
     "caution" : "NONE"
   },
   "recipeDtoList" : [ {
-    "id" : 13,
+    "id" : 14,
     "descriptionForSurvey" : "안정적인 첫 생식 적응",
     "ingredients" : [ "닭", "칠면조" ]
   }, {
-    "id" : 14,
+    "id" : 15,
     "descriptionForSurvey" : "피로회복 면역력 향상",
     "ingredients" : [ "칠면조", "소" ]
   }, {
-    "id" : 15,
+    "id" : 16,
     "descriptionForSurvey" : "피부와 모질강화 필요",
     "ingredients" : [ "오리", "양" ]
   }, {
-    "id" : 16,
+    "id" : 17,
     "descriptionForSurvey" : "건강한 성장과 영양보충",
     "ingredients" : [ "양", "소" ]
   } ],
   "ingredients" : [ "닭", "칠면조", "소", "오리", "양" ],
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/dogs/2422"
+      "href" : "http://localhost:8080/api/dogs/67"
     },
     "update_dog" : {
-      "href" : "http://localhost:8080/api/dogs/2422"
+      "href" : "http://localhost:8080/api/dogs/67"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-query-dog"
@@ -26699,9 +26714,9 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <h4 id="resources-update-dog_curl_request"><a class="link" href="#resources-update-dog_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/dogs/2396' -i -X PUT \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/dogs/41' -i -X PUT \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEwLCJleHAiOjE2NjEzMDk5NzIsImVtYWlsIjoidXNlckBnbWFpbC5jb20ifQ.Xvjn_cWLEg-BB98LT4TC3NBUf_LK45Jq9BZh9UAMeIu11sgu9IAnUmGdDTLp5M0etVik8ssPq0P2IMs8AacFUw' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjUsImV4cCI6MTY2MzIyODc3MiwiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSJ9.AFyJYZvZMvki6BRiZs7Y88yGNqPfidhAG3vPI00WHv7TBB_tWl9xxlP73zhc3zmzapep-4KeY8kWH2nVfIrY-w' \
     -H 'Accept: application/hal+json' \
     -d '{
   "name" : "수정된이름",
@@ -26719,7 +26734,7 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
   "snackCountLevel" : "NORMAL",
   "inedibleFood" : "NONE",
   "inedibleFoodEtc" : "NONE",
-  "recommendRecipeId" : 13,
+  "recommendRecipeId" : 14,
   "caution" : "NONE"
 }'</code></pre>
 </div>
@@ -26774,7 +26789,7 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
   "snackCountLevel" : "NORMAL",
   "inedibleFood" : "NONE",
   "inedibleFoodEtc" : "NONE",
-  "recommendRecipeId" : 13,
+  "recommendRecipeId" : 14,
   "caution" : "NONE"
 }</code></pre>
 </div>
@@ -26912,10 +26927,10 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/dogs/2396"
+      "href" : "http://localhost:8080/api/dogs/41"
     },
     "query_surveyReport" : {
-      "href" : "http://localhost:8080/api/dogs/2396/surveyReport"
+      "href" : "http://localhost:8080/api/dogs/41/surveyReport"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-update-dog"
@@ -26998,9 +27013,9 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <h4 id="resources-query-dog-surveyReport_curl_request"><a class="link" href="#resources-query-dog-surveyReport_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/dogs/2417/surveyReport' -i -X GET \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/dogs/62/surveyReport' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEwLCJleHAiOjE2NjEzMDk5NzMsImVtYWlsIjoidXNlckBnbWFpbC5jb20ifQ.FrJX4sk_7sQfU2Ns_j4-f3JslHI9el8gnQ3UBi1zmnm--YBGUt1A15nKyJTS5KHwCgVo497caiTF7mCJVN-lpA' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjUsImV4cCI6MTY2MzIyODc3NCwiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSJ9.PuMGQ3a7sMQ8bnItT-HolWazeJqVcempzVKvuuyWwxEIMk-0Ffy_ZzRYBm8xhzSNZxN184CIW0_ZCGdyl_njVQ' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -27090,7 +27105,7 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "lastSurveyDate" : "2022-08-24",
+  "lastSurveyDate" : "2022-09-15",
   "myDogName" : "김바프",
   "dogSize" : "SMALL",
   "dogActivity" : {
@@ -27099,14 +27114,14 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
     "walkingTimePerOneTime" : 1.1
   },
   "ageAnalysis" : {
-    "avgAgeMonth" : 18,
+    "avgAgeMonth" : 19,
     "ageGroupOneCount" : 0,
     "ageGroupTwoCount" : 0,
     "ageGroupThreeCount" : 0,
     "ageGroupFourCount" : 0,
     "ageGroupFiveCount" : 1,
     "myAgeGroup" : 5,
-    "myStartAgeMonth" : 18
+    "myStartAgeMonth" : 19
   },
   "weightAnalysis" : {
     "avgWeight" : 3.5,
@@ -27128,7 +27143,7 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
     "myActivityGroup" : 3
   },
   "walkingAnalysis" : {
-    "highRankPercent" : 200.0,
+    "highRankPercent" : 100.0,
     "walkingCountPerWeek" : 10,
     "totalWalingTime" : 11.0,
     "avgWalkingTimeInCity" : 11.0,
@@ -27148,10 +27163,10 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
   },
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/dogs/2417/surveyReport"
+      "href" : "http://localhost:8080/api/dogs/62/surveyReport"
     },
     "query_surveyReportResult" : {
-      "href" : "http://localhost:8080/api/dogs/2417/surveyReportResult"
+      "href" : "http://localhost:8080/api/dogs/62/surveyReportResult"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-query-dog-surveyReport"
@@ -27444,9 +27459,9 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <h4 id="resources-query-dog-surveyReportResult_curl_request"><a class="link" href="#resources-query-dog-surveyReportResult_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/dogs/2443/surveyReportResult' -i -X GET \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/dogs/88/surveyReportResult' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEwLCJleHAiOjE2NjEzMDk5NzQsImVtYWlsIjoidXNlckBnbWFpbC5jb20ifQ.uIfjdpBOoOV0wBSXRNQ-0OeVLLj3oq8mPL6Lol0alMk9J6Gz6OBL9nE_OAJP6JWEXfL1PcC2WiCyW9vxvbBvtQ' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjUsImV4cCI6MTY2MzIyODc3NSwiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSJ9.29kql9KUdDryp8gCFpaIuhbMAJdouUtSV8AGhIDCbwdsi2b-7e9kQBCPYHw4ZlOD_Sqz1ZY_JOgB8S7MdX91UA' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -27536,11 +27551,11 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "dogId" : 2443,
+  "dogId" : 88,
   "dogName" : "김바프",
-  "subscribeId" : 2439,
+  "subscribeId" : 84,
   "subscribeStatus" : "SUBSCRIBING",
-  "recommendRecipeId" : 13,
+  "recommendRecipeId" : 14,
   "recommendRecipeName" : "스타트",
   "recommendRecipeDescription" : "레시피 설명",
   "recommendRecipeImgUrl" : "http://localhost:8080/display/recipes?filename=스타트1.jpg",
@@ -27552,7 +27567,7 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
     "oneMealRecommendGram" : 101
   },
   "recipeDtoList" : [ {
-    "id" : 13,
+    "id" : 14,
     "name" : "스타트",
     "description" : "레시피 설명",
     "pricePerGram" : 48.234,
@@ -27560,7 +27575,7 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
     "inStock" : true,
     "imgUrl" : "http://localhost:8080/display/recipes?filename=스타트2.jpg"
   }, {
-    "id" : 14,
+    "id" : 15,
     "name" : "터키비프",
     "description" : "레시피 설명",
     "pricePerGram" : 48.234,
@@ -27568,7 +27583,7 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
     "inStock" : true,
     "imgUrl" : "http://localhost:8080/display/recipes?filename=터키비프2.jpg"
   }, {
-    "id" : 15,
+    "id" : 16,
     "name" : "덕램",
     "description" : "레시피 설명",
     "pricePerGram" : 48.234,
@@ -27576,7 +27591,7 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
     "inStock" : true,
     "imgUrl" : "http://localhost:8080/display/recipes?filename=덕램2.jpg"
   }, {
-    "id" : 16,
+    "id" : 17,
     "name" : "램비프",
     "description" : "레시피 설명",
     "pricePerGram" : 48.234,
@@ -27587,18 +27602,18 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
   "plan" : "FULL",
   "recipeName" : "스타트,터키비프",
   "oneMealRecommendGram" : 101,
-  "nextPaymentDate" : "2022-08-30T09:59:34.614",
+  "nextPaymentDate" : "2022-09-21T14:59:35.691",
   "nextPaymentPrice" : 120000,
-  "nextDeliveryDate" : "2022-09-01",
+  "nextDeliveryDate" : "2022-09-23",
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/dogs/2443/surveyReportResult"
+      "href" : "http://localhost:8080/api/dogs/88/surveyReportResult"
     },
     "query-orderSheet-subscribe" : {
-      "href" : "http://localhost:8080/api/orders/sheet/subscribe/2439"
+      "href" : "http://localhost:8080/api/orders/sheet/subscribe/84"
     },
     "update_subscribe" : {
-      "href" : "http://localhost:8080/api/subscribes/2439"
+      "href" : "http://localhost:8080/api/subscribes/84"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-query-dog-surveyReportResult"
@@ -28047,9 +28062,9 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <h4 id="resources-delete-dog_curl_request"><a class="link" href="#resources-delete-dog_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/dogs/2433' -i -X DELETE \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/dogs/78' -i -X DELETE \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEwLCJleHAiOjE2NjEzMDk5NzQsImVtYWlsIjoidXNlckBnbWFpbC5jb20ifQ.uIfjdpBOoOV0wBSXRNQ-0OeVLLj3oq8mPL6Lol0alMk9J6Gz6OBL9nE_OAJP6JWEXfL1PcC2WiCyW9vxvbBvtQ' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjUsImV4cCI6MTY2MzIyODc3NSwiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSJ9.29kql9KUdDryp8gCFpaIuhbMAJdouUtSV8AGhIDCbwdsi2b-7e9kQBCPYHw4ZlOD_Sqz1ZY_JOgB8S7MdX91UA' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -28234,7 +28249,7 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/dogs' -i -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjEwLCJleHAiOjE2NjEzMTA0ODMsImVtYWlsIjoidXNlckBnbWFpbC5jb20ifQ.LId0fMeBMwe1di139v8XGQP5RUHg_ZJheA3wzYeY3B26cPhLZqgXiJpmAcs9eStibxPbg6PI73GTnyOHkAbgLA' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjUsImV4cCI6MTY2MzIyODc3NywiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSJ9.eQNXdDqdBOOfVOEXS5TgPrjjMY-Cn5qpa0ej6uNlDazmhsE6MagIdUYN8Lsz3MOYybdohqdlhCPoF7ZoiR2U4g' \
     -H 'Accept: application/hal+json' \
     -d '{
   "name" : "김바프",
@@ -28252,7 +28267,7 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
   "snackCountLevel" : "NORMAL",
   "inedibleFood" : "NONE",
   "inedibleFoodEtc" : "NONE",
-  "recommendRecipeId" : 13,
+  "recommendRecipeId" : 14,
   "caution" : "NONE"
 }'</code></pre>
 </div>
@@ -28307,7 +28322,7 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
   "snackCountLevel" : "NORMAL",
   "inedibleFood" : "NONE",
   "inedibleFoodEtc" : "NONE",
-  "recommendRecipeId" : 13,
+  "recommendRecipeId" : 14,
   "caution" : "NONE"
 }</code></pre>
 </div>
@@ -28452,7 +28467,7 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
       "href" : "http://localhost:8080/api/dogs"
     },
     "query_surveyReport" : {
-      "href" : "http://localhost:8080/api/surveyReports/177"
+      "href" : "http://localhost:8080/api/surveyReports/156"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-create-dog"
@@ -44028,11 +44043,11 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/admin/orders/search?page=1&amp;size=5' -i -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MTUwOTk3MiwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.B27DttR8_MlMX4WoS4TLHVtvri5Wv2xXoMZ-yFMQ19QP2tsRa-SvsPj1BK4sy7lV6OzbEPsEh0xnctghS7ArNQ' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MzIyODIzNSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.auN3RhRswiC1Ebq0INrQMeoNv-mXFeiPM3WMkc2X6d2iED9PfI3Pmds2Gp3n2Q2GEEUGp3jDlPOFHvT8SLekQQ' \
     -H 'Accept: application/hal+json' \
     -d '{
-  "from" : "2022-07-26",
-  "to" : "2022-08-26",
+  "from" : "2022-08-15",
+  "to" : "2022-09-15",
   "merchantUid" : null,
   "memberName" : null,
   "memberEmail" : null,
@@ -44102,8 +44117,8 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "from" : "2022-07-26",
-  "to" : "2022-08-26",
+  "from" : "2022-08-15",
+  "to" : "2022-09-15",
   "merchantUid" : null,
   "memberName" : null,
   "memberEmail" : null,
@@ -44201,10 +44216,10 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "_embedded" : {
     "queryAdminOrdersDtoList" : [ {
-      "id" : 2505,
+      "id" : 2446,
       "orderType" : "general",
       "merchantUid" : "merchant_uid14",
-      "orderItemId" : 2502,
+      "orderItemId" : 2443,
       "orderStatus" : "PAYMENT_DONE",
       "deliveryNumber" : "cj02392342314",
       "memberEmail" : "admin@gmail.com",
@@ -44212,18 +44227,18 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
       "memberPhoneNumber" : "01056785678",
       "recipientName" : "관리자",
       "recipientPhoneNumber" : "01056785678",
+      "orderDate" : "2022-09-15T14:50:35.828",
       "packageDelivery" : false,
-      "orderDate" : "2022-08-26T17:32:52.028",
       "_links" : {
         "query_order" : {
-          "href" : "http://localhost:8080/api/admin/orders/2505/general"
+          "href" : "http://localhost:8080/api/admin/orders/2446/general"
         }
       }
     }, {
-      "id" : 2490,
+      "id" : 2431,
       "orderType" : "general",
       "merchantUid" : "merchant_uid13",
-      "orderItemId" : 2481,
+      "orderItemId" : 2422,
       "orderStatus" : "PAYMENT_DONE",
       "deliveryNumber" : "cj02392342313",
       "memberEmail" : "admin@gmail.com",
@@ -44231,18 +44246,18 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
       "memberPhoneNumber" : "01056785678",
       "recipientName" : "관리자",
       "recipientPhoneNumber" : "01056785678",
+      "orderDate" : "2022-09-15T14:50:35.819",
       "packageDelivery" : false,
-      "orderDate" : "2022-08-26T17:32:52.024",
       "_links" : {
         "query_order" : {
-          "href" : "http://localhost:8080/api/admin/orders/2490/general"
+          "href" : "http://localhost:8080/api/admin/orders/2431/general"
         }
       }
     }, {
-      "id" : 2490,
+      "id" : 2431,
       "orderType" : "general",
       "merchantUid" : "merchant_uid13",
-      "orderItemId" : 2487,
+      "orderItemId" : 2428,
       "orderStatus" : "PAYMENT_DONE",
       "deliveryNumber" : "cj02392342313",
       "memberEmail" : "admin@gmail.com",
@@ -44250,49 +44265,49 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
       "memberPhoneNumber" : "01056785678",
       "recipientName" : "관리자",
       "recipientPhoneNumber" : "01056785678",
+      "orderDate" : "2022-09-15T14:50:35.819",
       "packageDelivery" : false,
-      "orderDate" : "2022-08-26T17:32:52.024",
       "_links" : {
         "query_order" : {
-          "href" : "http://localhost:8080/api/admin/orders/2490/general"
+          "href" : "http://localhost:8080/api/admin/orders/2431/general"
         }
       }
     }, {
-      "id" : 2451,
+      "id" : 2392,
       "orderType" : "general",
       "merchantUid" : "merchant_uid8",
-      "orderItemId" : 2448,
+      "orderItemId" : 2389,
       "orderStatus" : "PAYMENT_DONE",
       "deliveryNumber" : "cj0239234238",
       "memberEmail" : "user@gmail.com",
-      "memberName" : "김회원",
+      "memberName" : "플래티넘회원",
       "memberPhoneNumber" : "01099038544",
-      "recipientName" : "김회원",
+      "recipientName" : "플래티넘회원",
       "recipientPhoneNumber" : "01099038544",
+      "orderDate" : "2022-09-15T14:50:35.792",
       "packageDelivery" : false,
-      "orderDate" : "2022-08-26T17:32:52.014",
       "_links" : {
         "query_order" : {
-          "href" : "http://localhost:8080/api/admin/orders/2451/general"
+          "href" : "http://localhost:8080/api/admin/orders/2392/general"
         }
       }
     }, {
-      "id" : 2451,
+      "id" : 2392,
       "orderType" : "general",
       "merchantUid" : "merchant_uid8",
-      "orderItemId" : 2442,
+      "orderItemId" : 2383,
       "orderStatus" : "PAYMENT_DONE",
       "deliveryNumber" : "cj0239234238",
       "memberEmail" : "user@gmail.com",
-      "memberName" : "김회원",
+      "memberName" : "플래티넘회원",
       "memberPhoneNumber" : "01099038544",
-      "recipientName" : "김회원",
+      "recipientName" : "플래티넘회원",
       "recipientPhoneNumber" : "01099038544",
+      "orderDate" : "2022-09-15T14:50:35.792",
       "packageDelivery" : false,
-      "orderDate" : "2022-08-26T17:32:52.014",
       "_links" : {
         "query_order" : {
-          "href" : "http://localhost:8080/api/admin/orders/2451/general"
+          "href" : "http://localhost:8080/api/admin/orders/2392/general"
         }
       }
     } ]
@@ -44522,11 +44537,11 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/admin/orders/cancelRequest?page=1&amp;size=5' -i -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MTUwOTk2NSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ._P1uThGPZM5ieWpkN_PuctvYLbEaswFOgEvKRIbZH1BhnIWtGZhPpa803jjlsN5KbwxYX2CnJK2xmf93876CaQ' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MzIyODIyNiwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.4tGPSrXSRHsLVUiNDFGR-UeAx3SfdkwD9gFk9-8R6k0N8E8HvpR05FgIsFmRPUB3xfNifzJKrmNA5eqd2AzSNg' \
     -H 'Accept: application/hal+json' \
     -d '{
-  "from" : "2022-07-26",
-  "to" : "2022-08-26",
+  "from" : "2022-08-15",
+  "to" : "2022-09-15",
   "merchantUid" : null,
   "memberName" : null,
   "memberEmail" : null,
@@ -44596,8 +44611,8 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "from" : "2022-07-26",
-  "to" : "2022-08-26",
+  "from" : "2022-08-15",
+  "to" : "2022-09-15",
   "merchantUid" : null,
   "memberName" : null,
   "memberEmail" : null,
@@ -44695,27 +44710,27 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "_embedded" : {
     "queryAdminCancelRequestDtoList" : [ {
-      "id" : 711,
+      "id" : 627,
       "orderType" : "general",
       "merchantUid" : "merchant_uid5",
       "orderStatus" : "CANCEL_REQUEST",
       "deliveryNumber" : "cj0239234235",
       "memberEmail" : "user@gmail.com",
-      "memberName" : "김회원",
+      "memberName" : "플래티넘회원",
       "memberPhoneNumber" : "01099038544",
-      "recipientName" : "김회원",
+      "recipientName" : "플래티넘회원",
       "recipientPhoneNumber" : "01099038544",
       "cancelReason" : "취소 사유",
       "cancelDetailReason" : "취소 상세 사유",
+      "orderDate" : "2022-09-15T14:50:26.642",
       "packageDelivery" : false,
-      "orderDate" : "2022-08-26T17:32:45.567",
       "_links" : {
         "query_order" : {
-          "href" : "http://localhost:8080/api/admin/orders/711/general"
+          "href" : "http://localhost:8080/api/admin/orders/627/general"
         }
       }
     }, {
-      "id" : 681,
+      "id" : 597,
       "orderType" : "general",
       "merchantUid" : "merchant_uid4",
       "orderStatus" : "CANCEL_REQUEST",
@@ -44727,35 +44742,35 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
       "recipientPhoneNumber" : "01056785678",
       "cancelReason" : "취소 사유",
       "cancelDetailReason" : "취소 상세 사유",
+      "orderDate" : "2022-09-15T14:50:26.626",
       "packageDelivery" : false,
-      "orderDate" : "2022-08-26T17:32:45.556",
       "_links" : {
         "query_order" : {
-          "href" : "http://localhost:8080/api/admin/orders/681/general"
+          "href" : "http://localhost:8080/api/admin/orders/597/general"
         }
       }
     }, {
-      "id" : 666,
+      "id" : 582,
       "orderType" : "general",
       "merchantUid" : "merchant_uid4",
       "orderStatus" : "CANCEL_REQUEST",
       "deliveryNumber" : "cj0239234234",
       "memberEmail" : "user@gmail.com",
-      "memberName" : "김회원",
+      "memberName" : "플래티넘회원",
       "memberPhoneNumber" : "01099038544",
-      "recipientName" : "김회원",
+      "recipientName" : "플래티넘회원",
       "recipientPhoneNumber" : "01099038544",
       "cancelReason" : "취소 사유",
       "cancelDetailReason" : "취소 상세 사유",
+      "orderDate" : "2022-09-15T14:50:26.617",
       "packageDelivery" : false,
-      "orderDate" : "2022-08-26T17:32:45.553",
       "_links" : {
         "query_order" : {
-          "href" : "http://localhost:8080/api/admin/orders/666/general"
+          "href" : "http://localhost:8080/api/admin/orders/582/general"
         }
       }
     }, {
-      "id" : 636,
+      "id" : 552,
       "orderType" : "general",
       "merchantUid" : "merchant_uid3",
       "orderStatus" : "CANCEL_REQUEST",
@@ -44767,31 +44782,31 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
       "recipientPhoneNumber" : "01056785678",
       "cancelReason" : "취소 사유",
       "cancelDetailReason" : "취소 상세 사유",
+      "orderDate" : "2022-09-15T14:50:26.603",
       "packageDelivery" : false,
-      "orderDate" : "2022-08-26T17:32:45.544",
       "_links" : {
         "query_order" : {
-          "href" : "http://localhost:8080/api/admin/orders/636/general"
+          "href" : "http://localhost:8080/api/admin/orders/552/general"
         }
       }
     }, {
-      "id" : 621,
+      "id" : 537,
       "orderType" : "general",
       "merchantUid" : "merchant_uid3",
       "orderStatus" : "CANCEL_REQUEST",
       "deliveryNumber" : "cj0239234233",
       "memberEmail" : "user@gmail.com",
-      "memberName" : "김회원",
+      "memberName" : "플래티넘회원",
       "memberPhoneNumber" : "01099038544",
-      "recipientName" : "김회원",
+      "recipientName" : "플래티넘회원",
       "recipientPhoneNumber" : "01099038544",
       "cancelReason" : "취소 사유",
       "cancelDetailReason" : "취소 상세 사유",
+      "orderDate" : "2022-09-15T14:50:26.592",
       "packageDelivery" : false,
-      "orderDate" : "2022-08-26T17:32:45.539",
       "_links" : {
         "query_order" : {
-          "href" : "http://localhost:8080/api/admin/orders/621/general"
+          "href" : "http://localhost:8080/api/admin/orders/537/general"
         }
       }
     } ]
@@ -45054,10 +45069,10 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/admin/orders/cancelRequest/reject' -i -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MTUwOTk3NCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.gXAnuy59LHxYNt0u_JEsKTGbzK8PApiIDvwaIajoCBAj4878umE4x_tdqszXTld1iLn_KGxzFd-OKeT6F-tL0w' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MzIyODIzOCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.UySAxkT23lPu0n0Rai-Hk-4IJkMgKKzhpHSbPsSoS3WKwxKTjA0dRTcVO5I1gePcQX9g2_eDP9Qx2MSAfQs23g' \
     -H 'Accept: application/hal+json' \
     -d '{
-  "orderIdList" : [ 3346, 3352 ]
+  "orderIdList" : [ 3287, 3293 ]
 }'</code></pre>
 </div>
 </div>
@@ -45096,7 +45111,7 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "orderIdList" : [ 3346, 3352 ]
+  "orderIdList" : [ 3287, 3293 ]
 }</code></pre>
 </div>
 </div>
@@ -45242,9 +45257,9 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <h4 id="resources-query-admin-order-general_curl_request"><a class="link" href="#resources-query-admin-order-general_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/admin/orders/138/general' -i -X GET \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/admin/orders/1681/general' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MjA1MTUyNSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.npzSWmun0Yz-OHWJH82iDb2AM1oBKZ9aoz3cuyTDoGuWFEzJ3r_o_enZ_2_L2tU6T9wwm2FuEFi9xaccGp9gdQ' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MzIyODIzMywiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.L7QsdLGweHHJwMKNOCt4GVmSQvxF-5HcjQin087uUJOAzmaK8uMnOL6YxqIodNiDGxJbeYTfeVBKISPnZTSQbQ' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -45335,36 +45350,41 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "orderInfoDto" : {
-    "id" : 138,
+    "id" : 1681,
     "merchantUid" : "merchant_uid1",
-    "orderDate" : "2022-09-01T23:58:45.479",
+    "orderDate" : "2022-09-15T14:50:33.211",
     "orderType" : "general",
     "memberName" : "플래티넘회원",
     "phoneNumber" : "01099038544",
+    "orderStatus" : "CANCEL_REQUEST",
+    "cancelRequestDate" : "2022-09-15T14:50:33.204",
+    "cancelConfirmDate" : null,
+    "cancelReason" : "취소 사유",
+    "cancelDetailReason" : "취소 상세 사유",
     "package" : false,
-    "subscribe" : true,
+    "subscribe" : false,
     "email" : "user@gmail.com"
   },
   "orderItemAndOptionDtoList" : [ {
     "orderItemDto" : {
-      "orderItemId" : 129,
+      "orderItemId" : 1672,
       "itemName" : "굿즈 상품1",
       "amount" : 1,
       "finalPrice" : 9000,
       "couponName" : "관리자 직접 발행 쿠폰1",
       "discountAmount" : 0,
-      "status" : "CONFIRM",
+      "status" : "CANCEL_REQUEST",
       "cancelReason" : "이유",
       "cancelDetailReason" : "상세이유",
-      "cancelRequestDate" : "2022-08-29T23:58:45.467",
+      "cancelRequestDate" : "2022-09-12T14:50:33.207",
       "cancelConfirmDate" : null,
       "returnReason" : "이유",
       "returnDetailReason" : "상세이유",
-      "returnRequestDate" : "2022-08-29T23:58:45.468",
+      "returnRequestDate" : "2022-09-12T14:50:33.207",
       "returnConfirmDate" : null,
       "exchangeReason" : "이유",
       "exchangeDetailReason" : "상세이유",
-      "exchangeRequestDate" : "2022-08-29T23:58:45.468",
+      "exchangeRequestDate" : "2022-09-12T14:50:33.207",
       "exchangeConfirmDate" : null
     },
     "selectOptionDtoList" : [ {
@@ -45374,24 +45394,24 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
     } ]
   }, {
     "orderItemDto" : {
-      "orderItemId" : 135,
+      "orderItemId" : 1678,
       "itemName" : "굿즈 상품2",
       "amount" : 2,
       "finalPrice" : 18000,
       "couponName" : "관리자 직접 발행 쿠폰2",
       "discountAmount" : 0,
-      "status" : "CONFIRM",
+      "status" : "CANCEL_REQUEST",
       "cancelReason" : "이유",
       "cancelDetailReason" : "상세이유",
-      "cancelRequestDate" : "2022-08-29T23:58:45.477",
+      "cancelRequestDate" : "2022-09-12T14:50:33.209",
       "cancelConfirmDate" : null,
       "returnReason" : "이유",
       "returnDetailReason" : "상세이유",
-      "returnRequestDate" : "2022-08-29T23:58:45.477",
+      "returnRequestDate" : "2022-09-12T14:50:33.209",
       "returnConfirmDate" : null,
       "exchangeReason" : "이유",
       "exchangeDetailReason" : "상세이유",
-      "exchangeRequestDate" : "2022-08-29T23:58:45.477",
+      "exchangeRequestDate" : "2022-09-12T14:50:33.209",
       "exchangeConfirmDate" : null
     },
     "selectOptionDtoList" : [ {
@@ -45411,8 +45431,8 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
     "discountCoupon" : 0,
     "paymentPrice" : 110000,
     "paymentMethod" : "CREDIT_CARD",
-    "orderStatus" : "CONFIRM",
-    "orderConfirmDate" : "2022-09-01T20:58:45.463"
+    "orderStatus" : "CANCEL_REQUEST",
+    "orderConfirmDate" : "2022-09-15T11:50:33.204"
   },
   "deliveryDto" : {
     "recipientName" : "플래티넘회원",
@@ -45420,14 +45440,14 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
     "zipcode" : "12345",
     "street" : "부산광역시 해운대구 센텀2로 19",
     "detailAddress" : "106호",
-    "departureDate" : "2022-08-28T23:58:45.462",
-    "arrivalDate" : "2022-08-31T23:58:45.462",
+    "departureDate" : "2022-09-11T14:50:33.203",
+    "arrivalDate" : "2022-09-14T14:50:33.203",
     "deliveryNumber" : "cj0239234231",
     "request" : "안전배송 부탁드립니다."
   },
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/admin/orders/138/general"
+      "href" : "http://localhost:8080/api/admin/orders/1681/general"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-query-admin-order-general"
@@ -45497,6 +45517,31 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderInfoDto.subscribe</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">구독 여부 true/false</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderInfoDto.orderStatus</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">주문단위 주문상태</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderInfoDto.cancelRequestDate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">주문단위 취소요청날짜</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderInfoDto.cancelConfirmDate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">주문단위 취소요청 관리자컴펌날짜</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderInfoDto.cancelReason</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">주문단위 취소요청 사유</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderInfoDto.cancelDetailReason</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">주문단위 취소요청 상세 사유</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderItemAndOptionDtoList[0].orderItemDto.orderItemId</code></p></td>
@@ -45745,9 +45790,9 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <h4 id="resources-query-admin-order-orderItem_curl_request"><a class="link" href="#resources-query-admin-order-orderItem_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/admin/orders/orderItem/135' -i -X GET \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/admin/orders/orderItem/51' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MjA1MjA1OCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.MYJrILXE_jwq8UQ6gUIhKdCKdEtvk7trQwFmKK_WrOOgVXZsMrl3bVWnMB0mNArbOCFP6g_k7-k234fu3VfaYA' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MzIyODY1OSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.lRyip1PZnYn5oP2rbV_G-Wc9pIGqdvlp-tjqqaWIbbWUqyvZfpvaYtpb6CfhtCZwKVU7VunAm1iPacX5sQuLGQ' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -45838,19 +45883,24 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "orderInfoDto" : {
-    "orderId" : 138,
+    "orderId" : 54,
     "merchantUid" : "merchant_uid1",
-    "orderDate" : "2022-09-02T00:07:38.303",
+    "orderDate" : "2022-09-15T14:57:39.52",
     "orderType" : "general",
     "memberName" : "플래티넘회원",
     "phoneNumber" : "01099038544",
-    "package" : false,
-    "subscribe" : true,
-    "email" : "user@gmail.com"
+    "orderStatus" : "CONFIRM",
+    "cancelRequestDate" : null,
+    "cancelConfirmDate" : null,
+    "cancelReason" : null,
+    "cancelDetailReason" : null,
+    "email" : "user@gmail.com",
+    "subscribe" : false,
+    "package" : false
   },
   "orderItemAndOptionDto" : {
     "orderItemDto" : {
-      "orderItemId" : 135,
+      "orderItemId" : 51,
       "itemName" : "굿즈 상품2",
       "amount" : 2,
       "finalPrice" : 18000,
@@ -45859,15 +45909,15 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
       "status" : "CONFIRM",
       "cancelReason" : "이유",
       "cancelDetailReason" : "상세이유",
-      "cancelRequestDate" : "2022-08-30T00:07:38.3",
+      "cancelRequestDate" : "2022-09-12T14:57:39.512",
       "cancelConfirmDate" : null,
       "returnReason" : "이유",
       "returnDetailReason" : "상세이유",
-      "returnRequestDate" : "2022-08-30T00:07:38.3",
+      "returnRequestDate" : "2022-09-12T14:57:39.512",
       "returnConfirmDate" : null,
       "exchangeReason" : "이유",
       "exchangeDetailReason" : "상세이유",
-      "exchangeRequestDate" : "2022-08-30T00:07:38.3",
+      "exchangeRequestDate" : "2022-09-12T14:57:39.512",
       "exchangeConfirmDate" : null
     },
     "selectOptionDtoList" : [ {
@@ -45888,7 +45938,7 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
     "paymentPrice" : 110000,
     "paymentMethod" : "CREDIT_CARD",
     "orderStatus" : "CONFIRM",
-    "orderConfirmDate" : "2022-09-01T21:07:38.282"
+    "orderConfirmDate" : "2022-09-15T11:57:39.491"
   },
   "deliveryDto" : {
     "recipientName" : "플래티넘회원",
@@ -45896,14 +45946,14 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
     "zipcode" : "12345",
     "street" : "부산광역시 해운대구 센텀2로 19",
     "detailAddress" : "106호",
-    "departureDate" : "2022-08-29T00:07:38.28",
-    "arrivalDate" : "2022-09-01T00:07:38.28",
+    "departureDate" : "2022-09-11T14:57:39.484",
+    "arrivalDate" : "2022-09-14T14:57:39.484",
     "deliveryNumber" : "cj0239234231",
     "request" : "안전배송 부탁드립니다."
   },
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/admin/orders/orderItem/135"
+      "href" : "http://localhost:8080/api/admin/orders/orderItem/51"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-query-admin-order-orderItem"
@@ -45973,6 +46023,31 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderInfoDto.subscribe</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">구독 여부 true/false</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderInfoDto.orderStatus</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">주문단위 주문상태</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderInfoDto.cancelRequestDate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">주문단위 취소요청날짜</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderInfoDto.cancelConfirmDate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">주문단위 취소요청 관리자컴펌날짜</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderInfoDto.cancelReason</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">주문단위 취소요청 사유</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderInfoDto.cancelDetailReason</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">주문단위 취소요청 상세 사유</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderItemAndOptionDto.orderItemDto.orderItemId</code></p></td>
@@ -46217,9 +46292,9 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <h4 id="resources-query-admin-order-subscribe_curl_request"><a class="link" href="#resources-query-admin-order-subscribe_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/admin/orders/3392/subscribe' -i -X GET \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/admin/orders/3333/subscribe' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MTUwOTk3NSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.ImLkUM73YsjSuc400hyIrOCc7MolX8RAx1bo4G1LMjg4L23nSLScOALaGPEFhDskXAYhy5yvCvLm94v_d2eKqg' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MzIyODIzOSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.RI-YnWhhBzh8Q-vM2-Q73uEPMtISf2qx_c7fFgy1mWkfgJxuWMub2vOWz9OBv4X6x437n1N-KZaWRyiqo8Cl2Q' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -46310,18 +46385,18 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "subscribeOrderInfoDto" : {
-    "id" : 3392,
+    "id" : 3333,
     "merchantUid" : "merchant_uid1",
-    "orderDate" : "2022-08-26T17:32:55.268",
+    "orderDate" : "2022-09-15T14:50:39.19",
     "orderType" : "subscribe",
-    "memberName" : "김회원",
+    "memberName" : "플래티넘회원",
     "phoneNumber" : "01099038544",
     "cancelReason" : "취소 사유",
     "cancelDetailReason" : "취소 상세 사유",
-    "cancelRequestDate" : "2022-08-23T17:32:55.268",
-    "cancelConfirmDate" : "2022-08-25T17:32:55.268",
+    "cancelRequestDate" : "2022-09-12T14:50:39.19",
+    "cancelConfirmDate" : "2022-09-14T14:50:39.19",
     "package" : false,
-    "subscribe" : true,
+    "subscribe" : false,
     "email" : "user@gmail.com"
   },
   "dogDto" : {
@@ -46331,14 +46406,14 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
     "caution" : "NONE"
   },
   "subscribeDto" : {
-    "id" : 3384,
+    "id" : 3325,
     "subscribeCount" : 2,
     "plan" : "FULL",
     "oneMealRecommendGram" : 101.0,
     "recipeName" : "스타트,터키비프"
   },
   "beforeSubscribeDto" : {
-    "id" : 3385,
+    "id" : 3326,
     "subscribeCount" : 1,
     "plan" : "HALF",
     "oneMealRecommendGram" : 140.0,
@@ -46353,22 +46428,22 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
     "paymentPrice" : 120000,
     "paymentMethod" : "CREDIT_CARD",
     "orderStatus" : "CANCEL_DONE_SELLER",
-    "orderConfirmDate" : "2022-08-26T14:32:55.268"
+    "orderConfirmDate" : "2022-09-15T11:50:39.19"
   },
   "subscribeDeliveryDto" : {
-    "recipientName" : "김회원",
+    "recipientName" : "플래티넘회원",
     "recipientPhone" : "01099038544",
     "zipcode" : "12345",
     "street" : "부산광역시 해운대구 센텀2로 19",
     "detailAddress" : "106호",
-    "departureDate" : "2022-08-22T17:32:55.2",
-    "arrivalDate" : "2022-08-25T17:32:55.2",
+    "departureDate" : "2022-09-11T14:50:39.161",
+    "arrivalDate" : "2022-09-14T14:50:39.161",
     "deliveryNumber" : "cj0239234231",
     "request" : "안전배송 부탁드립니다."
   },
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/admin/orders/3392/subscribe"
+      "href" : "http://localhost:8080/api/admin/orders/3333/subscribe"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-query-admin-order-subscribe"
@@ -46669,10 +46744,10 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/admin/orders/general/orderConfirm' -i -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MTUwOTk3MywiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.Hh6JYKys--XuXJy13iQJ6A0zK2Rj_3S939_QyVzpeujurfcxr9Jfs2CFsgvFZQ8GgOWxmlazrdI_zwy3h9EIqQ' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MzIyODIzNywiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.kRXyQ-UL-2wJtxI8cGgPRNqifb5GEVqesnZNjMbLRGJSQ8vUsPdSgp5dH31L6PnOhCYMhlbOahD1SXdTc489Yg' \
     -H 'Accept: application/hal+json' \
     -d '{
-  "orderItemIdList" : [ 3307, 3313 ]
+  "orderItemIdList" : [ 3248, 3254 ]
 }'</code></pre>
 </div>
 </div>
@@ -46711,7 +46786,7 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "orderItemIdList" : [ 3307, 3313 ]
+  "orderItemIdList" : [ 3248, 3254 ]
 }</code></pre>
 </div>
 </div>
@@ -46856,10 +46931,10 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/admin/orders/subscribe/orderConfirm' -i -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MTUwOTk2NiwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.LeMT5mlNR5LflVk_72nMICyb9goq16viI2-jAA-seDVA7GKZl3GlH1LwIvHTg7CFjD8gIS-eowNEqJiS56SYsg' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MzIyODIyOCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.VkEGjyKFy3dlSrTsvuoitK6b85-IhMPNt_NcOU0Mz0jMnhifRv1b8wkasApgBkbr4Lb1hyR-M2F7o8oEBp6gqA' \
     -H 'Accept: application/hal+json' \
     -d '{
-  "orderIdList" : [ 960, 966, 972, 978, 984 ]
+  "orderIdList" : [ 876, 882, 888, 894, 900 ]
 }'</code></pre>
 </div>
 </div>
@@ -46898,7 +46973,7 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "orderIdList" : [ 960, 966, 972, 978, 984 ]
+  "orderIdList" : [ 876, 882, 888, 894, 900 ]
 }</code></pre>
 </div>
 </div>
@@ -47682,10 +47757,10 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/admin/orders/general/cancelConfirm' -i -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MTUxMDMwNiwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.4LhVE1EgHT_kCIVcW4hNZh2norpvhtxgahBcbpKGmFfUiWbM3Si2mTB2qA8sj4yMPqMQOIzlz41u1pl2lHW2CA' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MzIyODIzNiwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.DmVKlPAw-dF4fWZfXAT8kDxRY4iUQM1svJ0DeUTJ2F296SY3aActj03oR24f4PDDnnKBtPslwASgC3Uyu0YwkQ' \
     -H 'Accept: application/hal+json' \
     -d '{
-  "orderIdList" : [ 138 ]
+  "orderIdList" : [ 3064 ]
 }'</code></pre>
 </div>
 </div>
@@ -47724,7 +47799,7 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "orderIdList" : [ 138 ]
+  "orderIdList" : [ 3064 ]
 }</code></pre>
 </div>
 </div>
@@ -47872,10 +47947,10 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/admin/orders/subscribe/cancelConfirm' -i -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MTUwOTk2OCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.-axR1QBY5e25VfiZVHL7PjCFXStOeKIg9woDMALNl5VpfHgHvM9yMMAB0OSr8kz7TE0TrooyYVuWr5Z04xdLOw' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MzIyODU2NiwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.B3vbcP6PqHwjK-4C9uJUIJ4UF5saV_DE5T0Zb0UclpDXJlx_yGD9009cRQVCPUzJm1vezWEpBqaDozJ4yOcVAA' \
     -H 'Accept: application/hal+json' \
     -d '{
-  "orderIdList" : [ 990, 996 ]
+  "orderIdList" : [ 46, 53 ]
 }'</code></pre>
 </div>
 </div>
@@ -47914,7 +47989,7 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "orderIdList" : [ 990, 996 ]
+  "orderIdList" : [ 46, 53 ]
 }</code></pre>
 </div>
 </div>
@@ -48086,10 +48161,10 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/admin/orders/general/orderCancel' -i -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MTUxMDI3MSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ._ySZ5J6SKjIFAAECZpyCrp9lQjPJdscyBieUhUF9SwGKVC4zvm5wXnZ1i3CTtVdqyKvoiU9-1eo9GOigR76JiA' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MzIyODIzMSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.BWHU5lQWtgDth8uLNfZX4KWbVgyY1uuDEaGC2QkkI8AUu59FBL_JwitV9HTcEUDUMOR0jsK41HhPW_uHW9xgzg' \
     -H 'Accept: application/hal+json' \
     -d '{
-  "orderItemIdList" : [ 129, 135 ],
+  "orderItemIdList" : [ 1630, 1636 ],
   "reason" : "취소 이유",
   "detailReason" : "취소 상세 이유"
 }'</code></pre>
@@ -48130,7 +48205,7 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "orderItemIdList" : [ 129, 135 ],
+  "orderItemIdList" : [ 1630, 1636 ],
   "reason" : "취소 이유",
   "detailReason" : "취소 상세 이유"
 }</code></pre>
@@ -48328,10 +48403,10 @@ nextMerchantUid 삭제<br></p>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/admin/orders/subscribe/orderCancel' -i -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MTc2NTkzNiwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.5M0Vldmd2nd8QLsrnLBz16WeDntDaeTbitPc7oGIkUKL8EmwyHr2sawni2pXtwdlFvj_ZiRfmeU8SNYt-M1f7g' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MzIyODIzMSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.BWHU5lQWtgDth8uLNfZX4KWbVgyY1uuDEaGC2QkkI8AUu59FBL_JwitV9HTcEUDUMOR0jsK41HhPW_uHW9xgzg' \
     -H 'Accept: application/hal+json' \
     -d '{
-  "orderIdList" : [ 135, 147 ],
+  "orderIdList" : [ 1652, 1664 ],
   "reason" : "취소 사유",
   "detailReason" : "취소 상세 사유"
 }'</code></pre>
@@ -48372,7 +48447,7 @@ nextMerchantUid 삭제<br></p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "orderIdList" : [ 135, 147 ],
+  "orderIdList" : [ 1652, 1664 ],
   "reason" : "취소 사유",
   "detailReason" : "취소 상세 사유"
 }</code></pre>
@@ -48536,10 +48611,10 @@ nextMerchantUid 삭제<br></p>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/admin/orders/general/confirmReturn/buyer' -i -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MTUwOTk3MCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.LAF_xAeCqOF0DsPwlBVc_WiorBnp8mqiNqNBTHWi2Aw_VkwLn8b0GTzVL2w2wL_ABPXL-AP7LNBwObgsAYLelw' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MzIyODIzNCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.ss9gZNQn6SOlYf8qgJ7DP30vnKZaOsqFnXzbGY2eHf17yN5SHYPqFEl3GukCa_1JdJHm1nfNi2uqnZta2ieNJw' \
     -H 'Accept: application/hal+json' \
     -d '{
-  "orderItemIdList" : [ 1746, 1752 ]
+  "orderItemIdList" : [ 1687, 1693 ]
 }'</code></pre>
 </div>
 </div>
@@ -48578,7 +48653,7 @@ nextMerchantUid 삭제<br></p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "orderItemIdList" : [ 1746, 1752 ]
+  "orderItemIdList" : [ 1687, 1693 ]
 }</code></pre>
 </div>
 </div>
@@ -48730,10 +48805,10 @@ nextMerchantUid 삭제<br></p>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/admin/orders/general/confirmReturn/seller' -i -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MTUwOTk2NCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.PshD4plkpbwRpbzhGPKpfH2G5zO2_xGTaAvrWg5X1Zsg6TEcHt881XjUTkx1R3dBRQwEWKqjlzX5I8xFhJ0E1Q' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MzIyODIyNSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.zUyKOS_tqe5JtWSitR6MtVVtREaFqqtctYLe1RkCQMzMu-eYPB2zs1DabCBdCp98iqaRZZiwVERKmRmph6r6fA' \
     -H 'Accept: application/hal+json' \
     -d '{
-  "orderItemIdList" : [ 507, 513 ]
+  "orderItemIdList" : [ 423, 429 ]
 }'</code></pre>
 </div>
 </div>
@@ -48772,7 +48847,7 @@ nextMerchantUid 삭제<br></p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "orderItemIdList" : [ 507, 513 ]
+  "orderItemIdList" : [ 423, 429 ]
 }</code></pre>
 </div>
 </div>
@@ -48920,10 +48995,10 @@ nextMerchantUid 삭제<br></p>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/admin/orders/general/denyReturn' -i -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MTUwOTk3NSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.ImLkUM73YsjSuc400hyIrOCc7MolX8RAx1bo4G1LMjg4L23nSLScOALaGPEFhDskXAYhy5yvCvLm94v_d2eKqg' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MzIyODIzOSwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.RI-YnWhhBzh8Q-vM2-Q73uEPMtISf2qx_c7fFgy1mWkfgJxuWMub2vOWz9OBv4X6x437n1N-KZaWRyiqo8Cl2Q' \
     -H 'Accept: application/hal+json' \
     -d '{
-  "orderItemIdList" : [ 3373, 3379 ]
+  "orderItemIdList" : [ 3314, 3320 ]
 }'</code></pre>
 </div>
 </div>
@@ -48962,7 +49037,7 @@ nextMerchantUid 삭제<br></p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "orderItemIdList" : [ 3373, 3379 ]
+  "orderItemIdList" : [ 3314, 3320 ]
 }</code></pre>
 </div>
 </div>
@@ -49113,10 +49188,10 @@ nextMerchantUid 삭제<br></p>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/admin/orders/general/confirmExchange/buyer' -i -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MTUwOTk2NiwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.LeMT5mlNR5LflVk_72nMICyb9goq16viI2-jAA-seDVA7GKZl3GlH1LwIvHTg7CFjD8gIS-eowNEqJiS56SYsg' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MzIyODIyNywiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.FO-NQA74O5uw5jUgxDLdAZL4kAUZqvRwhQekkXp9-pPzn7Mfq6zsWqIWi833aqwt3gyqVVQlLp8qyGsCm5aZwA' \
     -H 'Accept: application/hal+json' \
     -d '{
-  "orderItemIdList" : [ 945, 951 ]
+  "orderItemIdList" : [ 861, 867 ]
 }'</code></pre>
 </div>
 </div>
@@ -49155,7 +49230,7 @@ nextMerchantUid 삭제<br></p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "orderItemIdList" : [ 945, 951 ]
+  "orderItemIdList" : [ 861, 867 ]
 }</code></pre>
 </div>
 </div>
@@ -49306,10 +49381,10 @@ nextMerchantUid 삭제<br></p>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/admin/orders/general/confirmExchange/seller' -i -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MTUwOTk3NCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.gXAnuy59LHxYNt0u_JEsKTGbzK8PApiIDvwaIajoCBAj4878umE4x_tdqszXTld1iLn_KGxzFd-OKeT6F-tL0w' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MzIyODIzOCwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.UySAxkT23lPu0n0Rai-Hk-4IJkMgKKzhpHSbPsSoS3WKwxKTjA0dRTcVO5I1gePcQX9g2_eDP9Qx2MSAfQs23g' \
     -H 'Accept: application/hal+json' \
     -d '{
-  "orderItemIdList" : [ 3358, 3364 ]
+  "orderItemIdList" : [ 3299, 3305 ]
 }'</code></pre>
 </div>
 </div>
@@ -49348,7 +49423,7 @@ nextMerchantUid 삭제<br></p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "orderItemIdList" : [ 3358, 3364 ]
+  "orderItemIdList" : [ 3299, 3305 ]
 }</code></pre>
 </div>
 </div>
@@ -49496,10 +49571,10 @@ nextMerchantUid 삭제<br></p>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/admin/orders/general/denyExchange' -i -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MTUwOTk3MiwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.B27DttR8_MlMX4WoS4TLHVtvri5Wv2xXoMZ-yFMQ19QP2tsRa-SvsPj1BK4sy7lV6OzbEPsEh0xnctghS7ArNQ' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjQsImV4cCI6MTY2MzIyODIzNiwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.DmVKlPAw-dF4fWZfXAT8kDxRY4iUQM1svJ0DeUTJ2F296SY3aActj03oR24f4PDDnnKBtPslwASgC3Uyu0YwkQ' \
     -H 'Accept: application/hal+json' \
     -d '{
-  "orderItemIdList" : [ 3099, 3105 ]
+  "orderItemIdList" : [ 3040, 3046 ]
 }'</code></pre>
 </div>
 </div>
@@ -49538,7 +49613,7 @@ nextMerchantUid 삭제<br></p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
-  "orderItemIdList" : [ 3099, 3105 ]
+  "orderItemIdList" : [ 3040, 3046 ]
 }</code></pre>
 </div>
 </div>
@@ -53314,9 +53389,9 @@ nextMerchantUid 삭제<br></p>
 <h4 id="resources-query-subscribeOrder_curl_request"><a class="link" href="#resources-query-subscribeOrder_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/orders/29/subscribe' -i -X GET \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/orders/49/subscribe' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjUsImV4cCI6MTY2MzA1NDM4NywiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSJ9.xZkMUHH_1hTqQHO6XSLMSgArPl55x98pmpqmy4sC0ylD-oFJVos4p1wC9lFvcff2bhZWjznlp9eIdhVpiS_9FQ' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjUsImV4cCI6MTY2MzIzMjA1NywiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSJ9.dheauEDJR7db-ONO2AQJxt22OpTgax3y0GzD6X-Vp0_avvdPW1jg3X_3BetZvNlp6D9Ciya6H-SHKHsRMb0zbA' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -53422,9 +53497,14 @@ nextMerchantUid 삭제<br></p>
     "beforeOneMealRecommendGram" : 140.0,
     "beforeRecipeName" : "덕램",
     "beforeOrderPrice" : 0,
+    "orderStatus" : "CANCEL_REQUEST",
+    "cancelRequestDate" : "2022-09-15T15:54:17.527",
+    "cancelConfirmDate" : null,
+    "cancelReason" : "취소 사유",
+    "cancelDetailReason" : "취소 상세 사유",
     "merchantUid" : "merchant_uid1",
     "orderType" : "subscribe",
-    "orderDate" : "2022-09-13T14:33:07.304",
+    "orderDate" : "2022-09-15T15:54:17.539",
     "deliveryNumber" : "cj0239234231",
     "deliveryStatus" : "DELIVERY_START",
     "deliveryPrice" : 0,
@@ -53443,7 +53523,7 @@ nextMerchantUid 삭제<br></p>
   },
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/orders/29/subscribe"
+      "href" : "http://localhost:8080/api/orders/49/subscribe"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-query-subscribeOrder"
@@ -53533,6 +53613,31 @@ nextMerchantUid 삭제<br></p>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderDto.beforeOrderPrice</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">변경 전 가격 , 변경 없으면 0</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderDto.orderStatus</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">주문 상태</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderDto.cancelRequestDate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">취소요청날짜</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderDto.cancelConfirmDate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">취소요청 관리자컴펌날짜</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderDto.cancelReason</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">취소요청 사유</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderDto.cancelDetailReason</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">취소요청 상세 사유</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderDto.merchantUid</code></p></td>
@@ -54035,9 +54140,9 @@ nextMerchantUid 삭제<br></p>
 <h4 id="resources-query-generalOrder_curl_request"><a class="link" href="#resources-query-generalOrder_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/orders/437/general' -i -X GET \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/orders/60/general' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjUsImV4cCI6MTY2MTUxMDM2NCwiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSJ9.ZuDNr4XXXNmUCKuTqxYjWnyQgkqwdOB2i_iSBuJLMN6jFXVxOcxT0vLJE6uz7O8miGHCaqXs4aIe5WeKzEK8_w' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjUsImV4cCI6MTY2MzIzMTM1NSwiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSJ9.88v4lDf__Yts7911LiGjEgUQWxf6Lzw447irkEF7rDQqBj0AGMzdsPP3QTw-_cPfwGyMm2TNFOQgriJqvk7FLA' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -54128,7 +54233,7 @@ nextMerchantUid 삭제<br></p>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "orderItemDtoList" : [ {
-    "orderItemId" : 425,
+    "orderItemId" : 48,
     "thumbnailUrl" : "http://localhost:8080/display/items?filename=filename11",
     "selectOptionDtoList" : [ {
       "optionName" : "옵션1",
@@ -54138,28 +54243,28 @@ nextMerchantUid 삭제<br></p>
     "amount" : 1,
     "finalPrice" : 9000,
     "discountAmount" : 0,
-    "status" : "DELIVERY_START",
+    "status" : "CANCEL_REQUEST",
     "saveReward" : 500,
     "orderCancel" : {
       "cancelReason" : "이유",
       "cancelDetailReason" : "상세이유",
-      "cancelRequestDate" : "2022-08-23T17:39:24.24",
-      "cancelConfirmDate" : "2022-08-25T17:39:24.24"
+      "cancelRequestDate" : "2022-09-12T15:42:34.965",
+      "cancelConfirmDate" : "2022-09-14T15:42:34.965"
     },
     "orderReturn" : {
       "returnReason" : "이유",
       "returnDetailReason" : "상세이유",
-      "returnRequestDate" : "2022-08-23T17:39:24.24",
-      "returnConfirmDate" : "2022-08-25T17:39:24.24"
+      "returnRequestDate" : "2022-09-12T15:42:34.965",
+      "returnConfirmDate" : "2022-09-14T15:42:34.965"
     },
     "orderExchange" : {
       "exchangeReason" : "이유",
       "exchangeDetailReason" : "상세이유",
-      "exchangeRequestDate" : "2022-08-23T17:39:24.24",
-      "exchangeConfirmDate" : "2022-08-25T17:39:24.24"
+      "exchangeRequestDate" : "2022-09-12T15:42:34.966",
+      "exchangeConfirmDate" : "2022-09-14T15:42:34.966"
     }
   }, {
-    "orderItemId" : 434,
+    "orderItemId" : 57,
     "thumbnailUrl" : "http://localhost:8080/display/items?filename=filename12",
     "selectOptionDtoList" : [ {
       "optionName" : "옵션1",
@@ -54172,33 +54277,33 @@ nextMerchantUid 삭제<br></p>
     "amount" : 2,
     "finalPrice" : 18000,
     "discountAmount" : 0,
-    "status" : "DELIVERY_START",
+    "status" : "CANCEL_REQUEST",
     "saveReward" : 1000,
     "orderCancel" : {
       "cancelReason" : "이유",
       "cancelDetailReason" : "상세이유",
-      "cancelRequestDate" : "2022-08-23T17:39:24.244",
-      "cancelConfirmDate" : "2022-08-25T17:39:24.244"
+      "cancelRequestDate" : "2022-09-12T15:42:34.984",
+      "cancelConfirmDate" : "2022-09-14T15:42:34.984"
     },
     "orderReturn" : {
       "returnReason" : "이유",
       "returnDetailReason" : "상세이유",
-      "returnRequestDate" : "2022-08-23T17:39:24.244",
-      "returnConfirmDate" : "2022-08-25T17:39:24.244"
+      "returnRequestDate" : "2022-09-12T15:42:34.984",
+      "returnConfirmDate" : "2022-09-14T15:42:34.984"
     },
     "orderExchange" : {
       "exchangeReason" : "이유",
       "exchangeDetailReason" : "상세이유",
-      "exchangeRequestDate" : "2022-08-23T17:39:24.244",
-      "exchangeConfirmDate" : "2022-08-25T17:39:24.244"
+      "exchangeRequestDate" : "2022-09-12T15:42:34.984",
+      "exchangeConfirmDate" : "2022-09-14T15:42:34.984"
     }
   } ],
   "orderDto" : {
-    "orderId" : 437,
+    "orderId" : 60,
     "merchantUid" : "merchant_uid1",
-    "paymentDate" : "2022-08-24T17:39:24.236",
+    "paymentDate" : "2022-09-13T15:42:34.959",
     "deliveryNumber" : "cj0239234231",
-    "arrivalDate" : "2022-08-25T17:39:24.235",
+    "arrivalDate" : "2022-09-14T15:42:34.929",
     "orderPrice" : 120000,
     "deliveryPrice" : 0,
     "discountTotal" : 10000,
@@ -54206,21 +54311,26 @@ nextMerchantUid 삭제<br></p>
     "discountCoupon" : 0,
     "paymentPrice" : 110000,
     "paymentMethod" : "CREDIT_CARD",
-    "name" : "김회원",
+    "name" : "플래티넘회원",
     "phone" : "01099038544",
     "zipcode" : "12345",
     "street" : "부산광역시 해운대구 센텀2로 19",
     "detailAddress" : "106호",
     "request" : "안전배송 부탁드립니다.",
+    "orderStatus" : "CANCEL_REQUEST",
+    "cancelRequestDate" : "2022-09-15T15:42:34.959",
+    "cancelConfirmDate" : null,
+    "cancelReason" : "취소 사유",
+    "cancelDetailReason" : "취소 상세 사유",
     "package" : false
   },
   "savedRewardTotal" : 1500,
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/orders/437/general"
+      "href" : "http://localhost:8080/api/orders/60/general"
     },
     "generalOrder_cancel_request" : {
-      "href" : "http://localhost:8080/api/orders/437/general/cancelRequest"
+      "href" : "http://localhost:8080/api/orders/60/general/cancelRequest"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-query-generalOrder"
@@ -54289,16 +54399,7 @@ nextMerchantUid 삭제<br></p>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderItemDtoList[0].status</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">주문 상태     BEFORE_PAYMENT,
-    HOLD, FAILED,
-    PAYMENT_DONE,
-    PRODUCING, DELIVERY_READY,
-    DELIVERY_START,
-    SELLING_CANCEL,
-    CANCEL_REQUEST, CANCEL_DONE,
-    RETURN_REQUEST, RETURN_DONE,
-    EXCHANGE_REQUEST, EXCHANGE_DONE,
-    CONFIRM]</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">주문 상태</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderItemDtoList[0].saveReward</code></p></td>
@@ -54454,6 +54555,31 @@ nextMerchantUid 삭제<br></p>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderDto.request</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">배송요청사항</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderDto.orderStatus</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">주문단위 주문상태</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderDto.cancelRequestDate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">주문단위 취소요청날짜</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderDto.cancelConfirmDate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">주문단위 취소요청 관리자컴펌날짜</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderDto.cancelReason</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">주문단위 취소요청 사유</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderDto.cancelDetailReason</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">주문단위 취소요청 상세 사유</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderDto.package</code></p></td>

@@ -1,5 +1,6 @@
 package com.bi.barfdog.domain.orderItem;
 
+import com.bi.barfdog.api.orderDto.OrderCancelRequestDto;
 import com.bi.barfdog.domain.BaseTimeEntity;
 import com.bi.barfdog.domain.item.Item;
 import com.bi.barfdog.domain.memberCoupon.MemberCoupon;
@@ -84,9 +85,11 @@ public class OrderItem extends BaseTimeEntity { // 주문한 아이템
         revivalCoupon();
     }
 
-    public void cancelRequestDate() {
+    public void cancelRequestDate(OrderCancelRequestDto requestDto) {
         status = OrderStatus.CANCEL_REQUEST;
         orderCancel = OrderCancel.builder()
+                .cancelReason(requestDto.getReason())
+                .cancelDetailReason(requestDto.getDetailReason())
                 .cancelRequestDate(LocalDateTime.now())
                 .build();
     }

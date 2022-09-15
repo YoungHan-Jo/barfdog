@@ -86,6 +86,12 @@ public class QueryGeneralOrderDto {
         private String detailAddress;
         private String request; // 요청사항
 
+        private OrderStatus orderStatus;
+        private LocalDateTime cancelRequestDate;
+        private LocalDateTime cancelConfirmDate;
+        private String cancelReason;
+        private String cancelDetailReason;
+
 
     }
 

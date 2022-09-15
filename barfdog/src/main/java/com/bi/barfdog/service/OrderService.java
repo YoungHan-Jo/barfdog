@@ -837,7 +837,7 @@ public class OrderService {
             order.cancelRequest();
             order.setCancelRequestDate(requestDto);
             for (OrderItem orderItem : orderItems) {
-                orderItem.cancelRequestDate();
+                orderItem.cancelRequestDate(requestDto);
             }
         }
     }

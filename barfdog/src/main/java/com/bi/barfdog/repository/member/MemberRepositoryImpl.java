@@ -137,6 +137,7 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
     public Optional<MemberInfoResponseDto> findMemberInfoDto(Member user) {
         MemberInfoResponseDto responseDto = queryFactory
                 .select(Projections.constructor(MemberInfoResponseDto.class,
+                        member.id,
                         member.name,
                         member.email,
                         member.phoneNumber,

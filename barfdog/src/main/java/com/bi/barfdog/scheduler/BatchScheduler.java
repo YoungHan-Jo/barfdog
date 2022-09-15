@@ -25,12 +25,12 @@ public class BatchScheduler {
         subscribeService.paymentAlimScheduler();
     }
 
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0 * * * *")
     public void deliveryCheck() {
         deliveryService.deliveryDoneScheduler();
     }
 
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0 0 * * *")
     public void autoConfirmOrders() {
         orderService.autoConfirm();
     }

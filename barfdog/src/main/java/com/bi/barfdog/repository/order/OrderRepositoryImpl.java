@@ -279,7 +279,12 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         delivery.recipient.zipcode,
                         delivery.recipient.street,
                         delivery.recipient.detailAddress,
-                        delivery.request
+                        delivery.request,
+                        generalOrder.orderStatus,
+                        generalOrder.orderCancel.cancelRequestDate,
+                        generalOrder.orderCancel.cancelConfirmDate,
+                        generalOrder.orderCancel.cancelReason,
+                        generalOrder.orderCancel.cancelDetailReason
                 ))
                 .from(generalOrder)
                 .join(generalOrder.delivery, delivery)
@@ -335,9 +340,10 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
         List<Object[]> resultList = em.createNativeQuery(subscribeCountSql).getResultList();
 
         List<AdminDashBoardResponseDto.SubscribeOrderCountByMonth> subscribeOrderCountByMonthList = resultList.stream().map(product -> new AdminDashBoardResponseDto.SubscribeOrderCountByMonth(
-                product[0].toString(),
+                convertToString(product),
                 ((BigInteger) product[1]).longValue()
         )).collect(Collectors.toList());
+
         return subscribeOrderCountByMonthList;
     }
 
@@ -352,10 +358,28 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
         List<Object[]> resultList = em.createNativeQuery(generalCountSql).getResultList();
 
         List<AdminDashBoardResponseDto.GeneralOrderCountByMonth> generalOrderCountByMonthList = resultList.stream().map(product -> new AdminDashBoardResponseDto.GeneralOrderCountByMonth(
-                product[0].toString(),
+                convertToString(product),
                 ((BigInteger) product[1]).longValue()
         )).collect(Collectors.toList());
         return generalOrderCountByMonthList;
+    }
+
+    private String convertToString(Object[] product) {
+        String str = "";
+
+        String toString = product[0].toString();
+        if (toString.contains("@")) {
+            byte[] bytes = (byte[]) product[0];
+
+            for (byte b :bytes){
+                int a = b;
+                char ch = (char) a;
+                str += String.valueOf(ch);
+            }
+        } else {
+            str = toString;
+        }
+        return str;
     }
 
     private Long getSubscribePendingCount() {
@@ -465,6 +489,10 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         beforeSubscribe.recipeName,
                         beforeSubscribe.paymentPrice,
                         subscribeOrder.orderStatus,
+                        subscribeOrder.orderCancel.cancelRequestDate,
+                        subscribeOrder.orderCancel.cancelConfirmDate,
+                        subscribeOrder.orderCancel.cancelReason,
+                        subscribeOrder.orderCancel.cancelDetailReason,
                         subscribeOrder.merchantUid,
                         Expressions.constant("subscribe"),
                         subscribeOrder.createdDate,
@@ -788,7 +816,12 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         member.name,
                         member.phoneNumber,
                         member.email,
-                        member.isSubscribe
+                        member.isSubscribe,
+                        generalOrder.orderStatus,
+                        generalOrder.orderCancel.cancelRequestDate,
+                        generalOrder.orderCancel.cancelConfirmDate,
+                        generalOrder.orderCancel.cancelReason,
+                        generalOrder.orderCancel.cancelDetailReason
                 ))
                 .from(generalOrder)
                 .join(generalOrder.member, member)

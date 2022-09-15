@@ -54,6 +54,11 @@ public class QuerySubscribeOrderDto {
         private int beforeOrderPrice; // 주문 가격
 
         private OrderStatus orderStatus;
+        private LocalDateTime cancelRequestDate;
+        private LocalDateTime cancelConfirmDate;
+        private String cancelReason;
+        private String cancelDetailReason;
+
         private String merchantUid;
         private String orderType;
         private LocalDateTime orderDate;

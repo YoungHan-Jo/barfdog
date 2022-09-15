@@ -840,7 +840,7 @@ public class OrderAdminControllerTest extends BaseTest {
        //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-        GeneralOrder generalOrder = generateGeneralOrder(member, 1, OrderStatus.CONFIRM);
+        GeneralOrder generalOrder = generateGeneralOrder(member, 1, OrderStatus.CANCEL_REQUEST);
 
         //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.get("/api/admin/orders/{id}/general", generalOrder.getId())
@@ -878,6 +878,11 @@ public class OrderAdminControllerTest extends BaseTest {
                                 fieldWithPath("orderInfoDto.package").description("묶음배송 여부 true/false"),
                                 fieldWithPath("orderInfoDto.email").description("구매자 email"),
                                 fieldWithPath("orderInfoDto.subscribe").description("구독 여부 true/false"),
+                                fieldWithPath("orderInfoDto.orderStatus").description("주문단위 주문상태"),
+                                fieldWithPath("orderInfoDto.cancelRequestDate").description("주문단위 취소요청날짜"),
+                                fieldWithPath("orderInfoDto.cancelConfirmDate").description("주문단위 취소요청 관리자컴펌날짜"),
+                                fieldWithPath("orderInfoDto.cancelReason").description("주문단위 취소요청 사유"),
+                                fieldWithPath("orderInfoDto.cancelDetailReason").description("주문단위 취소요청 상세 사유"),
                                 fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.orderItemId").description("상품주문번호 id"),
                                 fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.itemName").description("상품 이름"),
                                 fieldWithPath("orderItemAndOptionDtoList[0].orderItemDto.amount").description("상품 수량"),
@@ -983,6 +988,11 @@ public class OrderAdminControllerTest extends BaseTest {
                                 fieldWithPath("orderInfoDto.package").description("묶음배송 여부 true/false"),
                                 fieldWithPath("orderInfoDto.email").description("구매자 email"),
                                 fieldWithPath("orderInfoDto.subscribe").description("구독 여부 true/false"),
+                                fieldWithPath("orderInfoDto.orderStatus").description("주문단위 주문상태"),
+                                fieldWithPath("orderInfoDto.cancelRequestDate").description("주문단위 취소요청날짜"),
+                                fieldWithPath("orderInfoDto.cancelConfirmDate").description("주문단위 취소요청 관리자컴펌날짜"),
+                                fieldWithPath("orderInfoDto.cancelReason").description("주문단위 취소요청 사유"),
+                                fieldWithPath("orderInfoDto.cancelDetailReason").description("주문단위 취소요청 상세 사유"),
                                 fieldWithPath("orderItemAndOptionDto.orderItemDto.orderItemId").description("상품주문번호 id"),
                                 fieldWithPath("orderItemAndOptionDto.orderItemDto.itemName").description("상품 이름"),
                                 fieldWithPath("orderItemAndOptionDto.orderItemDto.amount").description("상품 수량"),
@@ -1494,7 +1504,6 @@ public class OrderAdminControllerTest extends BaseTest {
         Member findMember = memberRepository.findById(member.getId()).get();
         assertThat(findMember.getReward()).isEqualTo(memberReward + memberDiscountReward);
         assertThat(findMember.getAccumulatedAmount()).isEqualTo(accumulatedAmountMember - paymentPriceMember);
-        assertThat(findMember.getAccumulatedSubscribe()).isEqualTo(accumulatedSubscribeMember - 1);
 
 
         Member findAdmin = memberRepository.findById(admin.getId()).get();
@@ -2970,6 +2979,7 @@ public class OrderAdminControllerTest extends BaseTest {
             orderCancel = OrderCancel.builder()
                     .cancelReason("취소 사유")
                     .cancelDetailReason("취소 상세 사유")
+                    .cancelRequestDate(LocalDateTime.now())
                     .build();
         }
 
@@ -3093,7 +3103,15 @@ public class OrderAdminControllerTest extends BaseTest {
         Delivery delivery = generateDelivery(member, i);
         Dog dog = generateDog(member, i, 20L, DogSize.LARGE, "15.2", ActivityLevel.LITTLE, 1, 1, SnackCountLevel.NORMAL);
 
+        Card card = Card.builder()
+                .customerUid("sldkfwef")
+                .cardName("name")
+                .cardNumber("123123")
+                .build();
+        cardRepository.save(card);
+
         Subscribe subscribe = Subscribe.builder()
+                .card(card)
                 .dog(dog)
                 .subscribeCount(i)
                 .plan(SubscribePlan.FULL)
