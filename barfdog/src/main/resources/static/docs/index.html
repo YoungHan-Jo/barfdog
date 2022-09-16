@@ -53389,9 +53389,9 @@ nextMerchantUid 삭제<br></p>
 <h4 id="resources-query-subscribeOrder_curl_request"><a class="link" href="#resources-query-subscribeOrder_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/orders/49/subscribe' -i -X GET \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/orders/29/subscribe' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjUsImV4cCI6MTY2MzIzMjA1NywiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSJ9.dheauEDJR7db-ONO2AQJxt22OpTgax3y0GzD6X-Vp0_avvdPW1jg3X_3BetZvNlp6D9Ciya6H-SHKHsRMb0zbA' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjUsImV4cCI6MTY2MzMxOTYyOCwiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSJ9.fqgWjj24CRTrPP2b_T-w2uj9s-0SK6ShvlkAcTr_8EKQiTelpOJ9CPzphCZNrU0huTzbrj17zSLVRbfc9T4arA' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -53498,13 +53498,13 @@ nextMerchantUid 삭제<br></p>
     "beforeRecipeName" : "덕램",
     "beforeOrderPrice" : 0,
     "orderStatus" : "CANCEL_REQUEST",
-    "cancelRequestDate" : "2022-09-15T15:54:17.527",
+    "cancelRequestDate" : "2022-09-16T16:13:48.284",
     "cancelConfirmDate" : null,
     "cancelReason" : "취소 사유",
     "cancelDetailReason" : "취소 상세 사유",
     "merchantUid" : "merchant_uid1",
     "orderType" : "subscribe",
-    "orderDate" : "2022-09-15T15:54:17.539",
+    "orderDate" : "2022-09-16T16:13:48.292",
     "deliveryNumber" : "cj0239234231",
     "deliveryStatus" : "DELIVERY_START",
     "deliveryPrice" : 0,
@@ -53513,6 +53513,7 @@ nextMerchantUid 삭제<br></p>
     "discountCoupon" : 0,
     "discountGrade" : 0,
     "paymentPrice" : 120000,
+    "saveReward" : 0,
     "paymentMethod" : "CREDIT_CARD",
     "recipientName" : "플래티넘회원",
     "recipientPhone" : "01099038544",
@@ -53523,7 +53524,7 @@ nextMerchantUid 삭제<br></p>
   },
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/orders/49/subscribe"
+      "href" : "http://localhost:8080/api/orders/29/subscribe"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-query-subscribeOrder"
@@ -53693,6 +53694,11 @@ nextMerchantUid 삭제<br></p>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderDto.paymentPrice</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">결제 금액</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderDto.saveReward</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">적립예정 적립금</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderDto.paymentMethod</code></p></td>
@@ -58987,7 +58993,7 @@ order status가 PAYMENT_DONE 일 경우 즉시 카드/적립금/쿠폰 환불처
 <div id="footer">
 <div id="footer-text">
 Version 0.0.1-SNAPSHOT<br>
-Last updated 2022-09-06 22:00:40 +0900
+Last updated 2022-09-08 11:38:38 +0900
 </div>
 </div>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css">
