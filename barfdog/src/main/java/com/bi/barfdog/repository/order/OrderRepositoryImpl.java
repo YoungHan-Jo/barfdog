@@ -10,6 +10,7 @@ import com.bi.barfdog.domain.order.OrderStatus;
 import com.bi.barfdog.domain.orderItem.OrderItem;
 import com.bi.barfdog.domain.subscribe.QSubscribe;
 import com.bi.barfdog.domain.subscribe.SubscribeStatus;
+import com.bi.barfdog.domain.surveyReport.QSurveyReport;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
@@ -504,6 +505,7 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         subscribeOrder.discountCoupon,
                         subscribeOrder.discountGrade,
                         subscribeOrder.paymentPrice,
+                        subscribeOrder.saveReward,
                         subscribeOrder.paymentMethod,
                         delivery.recipient.name,
                         delivery.recipient.phone,
@@ -520,6 +522,7 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                 .leftJoin(beforeSubscribe).on(beforeSubscribe.subscribe.eq(subscribe))
                 .where(subscribeOrder.id.eq(id))
                 .fetchOne();
+
         return orderDto;
     }
 

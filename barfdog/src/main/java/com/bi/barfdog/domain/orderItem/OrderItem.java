@@ -58,7 +58,7 @@ public class OrderItem extends BaseTimeEntity { // 주문한 아이템
     @Embedded
     private OrderExchange orderExchange;
 
-    private int saveReward; // 구매확정시 받을 적립예정금
+    private int saveReward; // 구매확정시 받을 적립예정금액
     private boolean isSavedReward; // 구매확정으로 적립받았는지 여부
 
     @Builder.Default

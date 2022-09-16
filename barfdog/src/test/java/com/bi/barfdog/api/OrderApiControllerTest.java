@@ -2479,6 +2479,7 @@ public class OrderApiControllerTest extends BaseTest {
                                 fieldWithPath("orderDto.discountCoupon").description("쿠폰 사용 금액"),
                                 fieldWithPath("orderDto.discountGrade").description("등급 할인 금액"),
                                 fieldWithPath("orderDto.paymentPrice").description("결제 금액"),
+                                fieldWithPath("orderDto.saveReward").description("적립예정 적립금"),
                                 fieldWithPath("orderDto.paymentMethod").description("결제 방법 [CREDIT_CARD, NAVER_PAY, KAKAO_PAY]"),
                                 fieldWithPath("orderDto.recipientName").description("받는사람 이름"),
                                 fieldWithPath("orderDto.recipientPhone").description("받는사람 휴대전화"),

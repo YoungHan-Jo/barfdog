@@ -73,6 +73,7 @@ public class QuerySubscribeOrderDto {
         private int discountGrade;
 
         private int paymentPrice;
+        private int saveReward;
         private PaymentMethod paymentMethod; // [CREDIT_CARD, NAVER_PAY, KAKAO_PAY]
 
         private String recipientName;

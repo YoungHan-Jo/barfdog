@@ -37,14 +37,22 @@ public class SubscribeOrder extends Order{ // Order를 상속받은 구독주문
     @Embedded
     private OrderCancel orderCancel; // 주문취소 관련 임베디드
 
+    private int saveReward; // 구매확정시 받을 적립예정금
+    private boolean isSavedReward; // 구매확정으로 적립받았는지 여부
+
     @Builder
-    public SubscribeOrder(Long id, String impUid, String merchantUid, OrderStatus orderStatus, Member member, int orderPrice, int deliveryPrice, int discountTotal, int discountReward, int discountCoupon, int discountGrade, int paymentPrice, PaymentMethod paymentMethod, LocalDateTime paymentDate, LocalDateTime orderConfirmDate, boolean isPackage, boolean isBrochure, boolean isAgreePrivacy, Delivery delivery, Subscribe subscribe, MemberCoupon memberCoupon, int subscribeCount, OrderCancel orderCancel) {
+    public SubscribeOrder(Long id, String impUid, String merchantUid, OrderStatus orderStatus, Member member, int orderPrice, int deliveryPrice, int discountTotal, int discountReward, int discountCoupon, int discountGrade, int paymentPrice, PaymentMethod paymentMethod, LocalDateTime paymentDate, LocalDateTime orderConfirmDate, boolean isPackage, boolean isBrochure, boolean isAgreePrivacy, Delivery delivery, Subscribe subscribe, MemberCoupon memberCoupon, int subscribeCount, OrderCancel orderCancel, int saveReward, boolean isSavedReward) {
         super(id, impUid, merchantUid, orderStatus, member, orderPrice, deliveryPrice, discountTotal, discountReward, discountCoupon, discountGrade, paymentPrice, paymentMethod, paymentDate, orderConfirmDate, isPackage, isBrochure, isAgreePrivacy, delivery);
         this.subscribe = subscribe;
         this.memberCoupon = memberCoupon;
         this.subscribeCount = subscribeCount;
         this.orderCancel = orderCancel;
+        this.saveReward = saveReward;
+        this.isSavedReward = isSavedReward;
     }
+
+
+
 
     public void setSubscribe(Subscribe subscribe) {
         this.subscribe = subscribe;
@@ -52,9 +60,10 @@ public class SubscribeOrder extends Order{ // Order를 상속받은 구독주문
 
     public void setCancelOrderInfo(String reason, String detailReason) {
         LocalDateTime now = LocalDateTime.now();
+
         orderCancel = OrderCancel.builder()
-                .cancelReason(reason)
-                .cancelDetailReason(detailReason)
+                .cancelReason(orderCancel != null ? orderCancel.getCancelReason() : reason)
+                .cancelDetailReason(orderCancel != null ? orderCancel.getCancelDetailReason() : detailReason)
                 .cancelRequestDate(orderCancel != null ? orderCancel.getCancelRequestDate() : now)
                 .cancelConfirmDate(now)
                 .build();
@@ -96,5 +105,9 @@ public class SubscribeOrder extends Order{ // Order를 상속받은 구독주문
 
     public void changeCoupon(Subscribe subscribe) {
         this.memberCoupon = subscribe.getMemberCoupon();
+    }
+
+    public void giveExpectedRewards() {
+        isSavedReward = true;
     }
 }
