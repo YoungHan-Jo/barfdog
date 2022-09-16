@@ -1,5 +1,9 @@
 package com.bi.barfdog.snsLogin;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,6 +30,23 @@ public class SnsLogin {
         return responseBody;
     }
 
+    public static String Kakao(String token) {
+        String header = "Bearer " + token; // Bearer 다음에 공백 추가
+
+        String apiURL = "https://kapi.kakao.com/v2/user/me";
+
+        Map<String, String> requestHeaders = new HashMap<>();
+        requestHeaders.put("Authorization", header);
+        String responseBody = get(apiURL, requestHeaders);
+
+        System.out.println(responseBody);
+
+
+
+
+
+        return responseBody;
+    }
 
     private static String get(String apiUrl, Map<String, String> requestHeaders) {
         HttpURLConnection con = connect(apiUrl);

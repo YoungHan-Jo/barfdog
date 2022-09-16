@@ -22,5 +22,17 @@ public interface SnsResponse {
     String AUTHENTICATION_FAILED_CODE = "024";
     String AUTHENTICATION_FAILED_MESSAGE = "authentication failed";
 
+    String UNFINISHED_MEMBER_CODE = "-101";
+    String UNFINISHED_MEMBER_MESSAGE = "did not finished to connecting by kakao";
+
+    String ALREADY_CONNECTED_MEMBER_CODE = "-102";
+    String ALREADY_CONNECTED_MEMBER_MESSAGE = "has already been connected by by kakao";
+
+    String NONE_EXISTENT_MEMBER_CODE = "-103";
+    String NONE_EXISTENT_MEMBER_MESSAGE = "does not exist account";
+
+    String LESS_THAN_FOURTEEN_MEMBER_CODE = "-406";
+    String LESS_THAN_FOURTEEN_MEMBER_MESSAGE = "member under the age of 14";
+
     String TEST_NAVER_ACCESS_TOKEN = "AAAAOdxBjKYZT8NIXCR9byF6WPrL26E9AejAXJrGAZ-lFmxez82f_X9K0NuZ3QoxWb2yKnVgQuJ-D34CwmXgR-00Z_o";
 }

@@ -5,16 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.DiscriminatorValue;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@DiscriminatorValue("naver")
 @Builder
-public class NaverResponseDto {
-
-    private String resultcode;
-
-    private String message;
-
+public class NaverResponseDto extends ResponseDto {
     private ResponseDto response;
 
     public NaverResponseDto newMember() {

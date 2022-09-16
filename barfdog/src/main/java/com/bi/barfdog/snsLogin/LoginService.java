@@ -57,7 +57,50 @@ public class LoginService {
         return naverResponseDto;
     }
 
-    private boolean isJoinedMember(NaverResponseDto naverResponseDto, String providerId) {
+    public KakaoResponseDto kakao(NaverLoginDto requestDto) {
+        String str = SnsLogin.Kakao(requestDto.getAccessToken());
+        KakaoResponseDto kakaoResponseDto = new KakaoResponseDto();
+
+        try {
+            kakaoResponseDto = objectMapper.readValue(str, KakaoResponseDto.class);
+            if (kakaoResponseDto.getResultcode().equals("-101") ||
+                    kakaoResponseDto.getResultcode().equals("-102") ||
+                    kakaoResponseDto.getResultcode().equals("-103") ||
+                    kakaoResponseDto.getResultcode().equals("-406") ||
+                    kakaoResponseDto.getResultcode().equals("500")) {
+                return kakaoResponseDto;
+            }
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return kakaoResponseDto.internalServerError();
+        }
+
+
+        Long kakaoId = kakaoResponseDto.getResponse().getId();
+        String providerId = kakaoId.toString();
+
+        if (isJoinedMember(kakaoResponseDto, providerId)) return kakaoResponseDto.success();
+
+        Kakao_account.KakaoPhone_number kakaoPhone_number = kakaoResponseDto.getResponse().getKakao_account().getKakaoPhone_number();
+        String phone_number = kakaoPhone_number.getPhone_number();
+
+        phone_number = "0" + phone_number.substring(phone_number.indexOf(" ") + 1).replace("-", "");
+
+        Optional<Member> optionalMember = memberRepository.findByPhoneNumber(phone_number);
+
+        if (isNewMember(optionalMember)) return kakaoResponseDto.newMember();
+
+        Member member = optionalMember.get();
+
+        String provider = member.getProvider();
+        if (isNewSns(provider)) return kakaoResponseDto.connectNewSns();
+        if (provider.equals(SnsProvider.KAKAO)) return kakaoResponseDto.success();
+        if (provider.equals(SnsProvider.NAVER)) return kakaoResponseDto.naver();
+
+        return kakaoResponseDto;
+    }
+
+    private boolean isJoinedMember(ResponseDto responseDto, String providerId) {
         Optional<Member> optionalMemberByProvider = memberRepository.findByProviderAndProviderId(SnsProvider.NAVER, providerId);
         if (optionalMemberByProvider.isPresent()) {
             return true;
