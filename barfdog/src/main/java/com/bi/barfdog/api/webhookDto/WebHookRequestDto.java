@@ -1,4 +1,4 @@
-package com.bi.barfdog.api.iamportDto;
+package com.bi.barfdog.api.webhookDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
