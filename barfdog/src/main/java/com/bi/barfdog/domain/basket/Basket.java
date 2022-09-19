@@ -40,4 +40,8 @@ public class Basket extends BaseTimeEntity { // 장바구니 객체
             amount--;
         }
     }
+
+    public void merge(int itemAmount) {
+        amount += itemAmount;
+    }
 }

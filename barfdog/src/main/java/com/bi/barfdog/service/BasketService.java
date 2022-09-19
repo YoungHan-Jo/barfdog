@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static com.bi.barfdog.api.basketDto.SaveBasketDto.*;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -40,7 +41,17 @@ public class BasketService {
 
     @Transactional
     public void createBasket(Member member, SaveBasketDto requestDto) {
-        Basket basket = saveBasket(member, requestDto);
+
+        Basket basket = null;
+
+        Optional<Basket> optionalBasket = basketRepository.findByMemberAndItemId(member, requestDto.getItemId());
+        if (optionalBasket.isPresent()) {
+            basket = optionalBasket.get();
+            basket.merge(requestDto.getItemAmount());
+        } else {
+            basket = saveBasket(member, requestDto);
+        }
+
         saveOptionBaskets(requestDto, basket);
     }
 
@@ -59,15 +70,29 @@ public class BasketService {
         List<OptionDto> optionDtoList = requestDto.getOptionDtoList();
         for (OptionDto optionDto : optionDtoList) {
 
-            ItemOption itemOption = itemOptionRepository.findById(optionDto.getOptionId()).get();
+            Long optionId = optionDto.getOptionId();
 
-            BasketOption basketOption = BasketOption.builder()
-                    .basket(basket)
-                    .itemOption(itemOption)
-                    .amount(optionDto.getOptionAmount())
-                    .build();
-            basketOptionRepository.save(basketOption);
+            Optional<BasketOption> optionalBasketOption = basketOptionRepository.findByOptionIdAndBasket(optionId, basket);
+
+            if (optionalBasketOption.isPresent()) {
+                BasketOption basketOption = optionalBasketOption.get();
+                basketOption.merge(optionDto.getOptionAmount());
+            } else {
+                saveBasketOption(basket, optionDto);
+            }
+
         }
+    }
+
+    private void saveBasketOption(Basket basket, OptionDto optionDto) {
+        ItemOption itemOption = itemOptionRepository.findById(optionDto.getOptionId()).get();
+
+        BasketOption basketOption = BasketOption.builder()
+                .basket(basket)
+                .itemOption(itemOption)
+                .amount(optionDto.getOptionAmount())
+                .build();
+        basketOptionRepository.save(basketOption);
     }
 
     public QueryBasketsPageDto getQueryBasketsPage(Member member) {

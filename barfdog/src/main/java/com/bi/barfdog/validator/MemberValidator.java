@@ -6,6 +6,7 @@ import com.bi.barfdog.api.memberDto.MemberUpdateRequestDto;
 import com.bi.barfdog.api.memberDto.UpdatePasswordRequestDto;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.repository.member.MemberRepository;
+import com.bi.barfdog.repository.order.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,7 @@ public class MemberValidator {
 
     private final MemberRepository memberRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final OrderRepository orderRepository;
 
 
     public void validatePasswordConfirm(String password, String confirmPassword, Errors errors) {
@@ -111,6 +113,15 @@ public class MemberValidator {
     }
 
     public void validateOrders(Member member, Errors errors) {
+        Long orderingCount = orderRepository.findOrderingCountByMember(member);
+        if (orderingCount > 0) {
+            errors.reject("ordering","진행중인 주문이 존재합니다.");
+        }
+
+        Long reservedOrderCount = orderRepository.findReservedOrderCount(member);
+        if (reservedOrderCount > 0) {
+            errors.reject("reserving","결제 예정 주문이 존재합니다.");
+        }
 
     }
 }

@@ -101,6 +101,30 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
     }
 
     @Override
+    public Long findOrderingCountByMember(Member member) {
+        return queryFactory
+                .select(order.count())
+                .from(order)
+                .where(order.orderStatus.in(OrderStatus.PAYMENT_DONE, OrderStatus.PRODUCING, OrderStatus.DELIVERY_READY,
+                        OrderStatus.DELIVERY_START, OrderStatus.CANCEL_REQUEST, OrderStatus.RETURN_REQUEST, OrderStatus.EXCHANGE_REQUEST)
+                        .and(order.member.eq(member)))
+                .fetchOne()
+                ;
+    }
+
+    @Override
+    public Long findReservedOrderCount(Member member) {
+        return queryFactory
+                .select(order.count())
+                .from(order)
+                .where(order.orderStatus.in(OrderStatus.RESERVED_PAYMENT)
+                        .and(order.member.eq(member)))
+                .fetchOne()
+                ;
+
+    }
+
+    @Override
     public QueryAdminGeneralOrderDto findAdminGeneralOrderDto(Long id) {
 
         OrderInfoDto orderInfoDto = getOrderInfoDto(id);

@@ -2,27 +2,22 @@ package com.bi.barfdog.repository.basket;
 
 import com.bi.barfdog.api.basketDto.QueryBasketsDto;
 import com.bi.barfdog.domain.basket.Basket;
-import com.bi.barfdog.domain.basket.QBasketOption;
 import com.bi.barfdog.domain.item.Item;
-import com.bi.barfdog.domain.item.QItemOption;
 import com.bi.barfdog.domain.member.Member;
-import com.bi.barfdog.domain.member.QMember;
-import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
-import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-import static com.bi.barfdog.domain.basket.QBasket.*;
+import static com.bi.barfdog.domain.basket.QBasket.basket;
 import static com.bi.barfdog.domain.basket.QBasketOption.*;
 import static com.bi.barfdog.domain.item.QItem.*;
 import static com.bi.barfdog.domain.item.QItemImage.*;
 import static com.bi.barfdog.domain.item.QItemOption.*;
-import static com.bi.barfdog.domain.member.QMember.*;
 
 @RequiredArgsConstructor
 @Repository
@@ -62,6 +57,18 @@ public class BasketRepositoryImpl implements BasketRepositoryCustom{
                 .where(basket.member.eq(user)
                         .and(basket.item.in(selectItemList)))
                 .fetch();
+    }
+
+    @Override
+    public Optional<Basket> findByMemberAndItemId(Member member, Long itemId) {
+
+        Basket findBasket = queryFactory
+                .selectFrom(basket)
+                .where(basket.member.eq(member)
+                        .and(basket.item.id.eq(itemId)))
+                .fetchOne();
+
+        return Optional.ofNullable(findBasket);
     }
 
     private List<QueryBasketsDto> getQueryBasketsDtos(List<QueryBasketsDto.ItemDto> itemDtoList) {
