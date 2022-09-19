@@ -4,6 +4,7 @@ import com.bi.barfdog.api.InfoController;
 import com.bi.barfdog.api.blogDto.UploadedImageDto;
 import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
 import com.bi.barfdog.api.dogDto.UpdateDogPictureDto;
+import com.bi.barfdog.api.dogDto.UpdateDogResponseDto;
 import com.bi.barfdog.domain.banner.ImgFilenamePath;
 import com.bi.barfdog.domain.dog.*;
 import com.bi.barfdog.domain.member.Member;
@@ -128,6 +129,10 @@ public class DogService {
         surveyReportRepository.save(surveyReport);
 
         dog.setSurveyReport(surveyReport);
+
+        BigDecimal oneMealRecommendGram = surveyReport.getFoodAnalysis().getOneMealRecommendGram();
+
+        subscribe.changeOneMealGram(oneMealRecommendGram);
 
         return surveyReport;
     }
@@ -560,7 +565,7 @@ public class DogService {
     }
 
     @Transactional
-    public void updateDog(Member member, Long id, DogSaveRequestDto requestDto) {
+    public UpdateDogResponseDto updateDog(Member member, Long id, DogSaveRequestDto requestDto) {
         Dog dog = dogRepository.findById(id).get();
         Long recipeId = requestDto.getRecommendRecipeId();
         Recipe recipe = recipeRepository.findById(recipeId).get();
@@ -570,6 +575,11 @@ public class DogService {
         SurveyReport newSurveyReport = getNewSurveyReport(member, requestDto, dog, recipe);
         surveyReport.update(newSurveyReport);
 
+        UpdateDogResponseDto responseDto = UpdateDogResponseDto.builder()
+                .oneMealRecommendGram(newSurveyReport.getFoodAnalysis().getOneMealRecommendGram())
+                .build();
+
+        return responseDto;
     }
 
     private SurveyReport getNewSurveyReport(Member member, DogSaveRequestDto requestDto, Dog dog, Recipe recipe) {

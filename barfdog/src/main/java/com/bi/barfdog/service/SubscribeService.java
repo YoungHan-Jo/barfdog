@@ -300,6 +300,9 @@ public class SubscribeService {
         updatePlanAndChangeSelectRecipes(subscribe, requestDto);
     }
 
+
+
+
     private void updatePlanAndChangeSelectRecipes(Subscribe subscribe, UpdatePlanDto requestDto) {
         subscribe.updatePlan(requestDto);
 

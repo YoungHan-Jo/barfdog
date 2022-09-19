@@ -24,6 +24,7 @@ public class MemberValidator {
     private final MemberRepository memberRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
+
     public void validatePasswordConfirm(String password, String confirmPassword, Errors errors) {
         if (!password.equals(confirmPassword)) {
             errors.reject("Passwords are different each other","비밀번호와 비밀번호확인이 서로 다릅니다.");
@@ -107,5 +108,9 @@ public class MemberValidator {
         if (member.isWithdrawal() == true) {
             errors.reject("withdrawn user","탈퇴한 유저입니다.");
         }
+    }
+
+    public void validateOrders(Member member, Errors errors) {
+
     }
 }

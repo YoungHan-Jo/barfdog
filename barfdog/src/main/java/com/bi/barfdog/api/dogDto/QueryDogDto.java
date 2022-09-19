@@ -52,6 +52,8 @@ public class QueryDogDto {
         private Long recommendRecipeId;
         private String caution; // 질병 및 주의사항
 
+        private BigDecimal oneMealRecommendGram;
+
     }
 
 

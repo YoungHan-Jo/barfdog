@@ -186,7 +186,7 @@ public class AppConfig {
 //                memberRepository.deleteAll();
 //                couponRepository.deleteAll();
 //                recipeRepository.deleteAll();
-//
+
 //                generateSetting();
 //                generateMypageBanner();
 //                generateTopBanner();

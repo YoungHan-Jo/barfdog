@@ -115,7 +115,7 @@ public class AdminApiController {
                                        Errors errors) {
         if (errors.hasErrors()) return badRequest(errors);
 
-        guestService.createGuest(requestDto);
+        guestService.createGuest(requestDto.getName(), requestDto.getPhoneNumber(), requestDto.getEmail());
 
         RepresentationModel representationModel = new RepresentationModel();
         representationModel.add(linkTo(AdminApiController.class).slash("guests").withSelfRel());

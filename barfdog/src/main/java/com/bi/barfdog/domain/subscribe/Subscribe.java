@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 
 import javax.persistence.*;
 import javax.servlet.http.HttpServletResponse;
+import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -48,6 +49,8 @@ public class Subscribe extends BaseTimeEntity { // 구독, 다음번 결제 예�
     private Card card; // 결제 카드
 
     private int subscribeCount; // 구독회차
+
+    private BigDecimal oneMealRecommendGram; // 권장 한끼량
 
     @Enumerated(EnumType.STRING)
     private SubscribePlan plan; // [FULL, HALF, TOPPING]
@@ -106,6 +109,7 @@ public class Subscribe extends BaseTimeEntity { // 구독, 다음번 결제 예�
         int originalPrice = requestDto.getNextPaymentPrice();
         Member member = dog.getMember();
 
+        this.oneMealRecommendGram = dog.getSurveyReport().getFoodAnalysis().getOneMealRecommendGram();
         this.plan = requestDto.getPlan();
         this.nextPaymentPrice = originalPrice;
         this.discountCoupon = calculateDiscountCoupon(originalPrice, memberCoupon);
@@ -173,10 +177,16 @@ public class Subscribe extends BaseTimeEntity { // 구독, 다음번 결제 예�
         MemberCoupon memberCoupon = getMemberCoupon();
         Member member = dog.getMember();
 
-        dog.updateGram(requestDto.getGram());
+        int gram = requestDto.getGram();
+//        dog.updateGram(gram);
+        this.oneMealRecommendGram = BigDecimal.valueOf(gram);
         this.nextPaymentPrice = originalPrice;
         this.discountCoupon = calculateDiscountCoupon(originalPrice, memberCoupon);
         this.discountGrade = calculateDiscountGrade(originalPrice, member);
+    }
+
+    public void changeOneMealGram(BigDecimal oneMealRecommendGram) {
+        this.oneMealRecommendGram = oneMealRecommendGram;
     }
 
     private int calculateDiscountCoupon(int originalPrice, MemberCoupon memberCoupon) {
@@ -311,4 +321,6 @@ public class Subscribe extends BaseTimeEntity { // 구독, 다음번 결제 예�
     public void changeNextMerchantUid(String merchantUid) {
         this.nextOrderMerchantUid = merchantUid;
     }
+
+
 }

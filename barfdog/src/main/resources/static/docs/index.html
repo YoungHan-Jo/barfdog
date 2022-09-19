@@ -26386,9 +26386,9 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <h4 id="resources-query-dog_curl_request"><a class="link" href="#resources-query-dog_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/dogs/67' -i -X GET \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/dogs/21' -i -X GET \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjUsImV4cCI6MTY2MzIyODc3NCwiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSJ9.PuMGQ3a7sMQ8bnItT-HolWazeJqVcempzVKvuuyWwxEIMk-0Ffy_ZzRYBm8xhzSNZxN184CIW0_ZCGdyl_njVQ' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjUsImV4cCI6MTY2MzU4NTM4MCwiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSJ9.BohcFR_m1l1FAfRLepKyXj_uoc4uGvGNXBhNF8qdHGykJ09rxRoN3H8MTE5iLo7oZjpYWfoYlFpPxouTHx7l0w' \
     -H 'Accept: application/hal+json'</code></pre>
 </div>
 </div>
@@ -26479,7 +26479,7 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
   "dogDto" : {
-    "id" : 67,
+    "id" : 21,
     "name" : "샘플독",
     "gender" : "MALE",
     "birth" : "202005",
@@ -26496,7 +26496,8 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
     "inedibleFood" : "NONE",
     "inedibleFoodEtc" : "NONE",
     "recommendRecipeId" : 14,
-    "caution" : "NONE"
+    "caution" : "NONE",
+    "oneMealRecommendGram" : 121.0
   },
   "recipeDtoList" : [ {
     "id" : 14,
@@ -26518,10 +26519,10 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
   "ingredients" : [ "닭", "칠면조", "소", "오리", "양" ],
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/dogs/67"
+      "href" : "http://localhost:8080/api/dogs/21"
     },
     "update_dog" : {
-      "href" : "http://localhost:8080/api/dogs/67"
+      "href" : "http://localhost:8080/api/dogs/21"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-query-dog"
@@ -26638,6 +26639,11 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <td class="tableblock halign-left valign-top"><p class="tableblock">기타 특이사항 [없으면 'NONE']</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>dogDto.oneMealRecommendGram</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">현재 강아지 추천 한끼 그램 수</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>recipeDtoList[0].id</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">레시피 id</p></td>
@@ -26714,9 +26720,9 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <h4 id="resources-update-dog_curl_request"><a class="link" href="#resources-update-dog_curl_request">Example request</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/dogs/41' -i -X PUT \
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ curl 'http://localhost:8080/api/dogs/21' -i -X PUT \
     -H 'Content-Type: application/json;charset=UTF-8' \
-    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjUsImV4cCI6MTY2MzIyODc3MiwiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSJ9.AFyJYZvZMvki6BRiZs7Y88yGNqPfidhAG3vPI00WHv7TBB_tWl9xxlP73zhc3zmzapep-4KeY8kWH2nVfIrY-w' \
+    -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLthqDtgbAg7J2066aEIiwiaWQiOjUsImV4cCI6MTY2MzU4NzUzMSwiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSJ9.FjKdzVUvwyxptE4BE0OBJdByCjtXcEalQD4opqN-FGOKyL2nTH7V2XPYc0PepW2QLogAlQgNOPxwzJpszHVicw' \
     -H 'Accept: application/hal+json' \
     -d '{
   "name" : "수정된이름",
@@ -26925,12 +26931,13 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">{
+  "oneMealRecommendGram" : 165,
   "_links" : {
     "self" : {
-      "href" : "http://localhost:8080/api/dogs/41"
+      "href" : "http://localhost:8080/api/dogs/21"
     },
     "query_surveyReport" : {
-      "href" : "http://localhost:8080/api/dogs/41/surveyReport"
+      "href" : "http://localhost:8080/api/dogs/21/surveyReport"
     },
     "profile" : {
       "href" : "/docs/index.html#resources-update-dog"
@@ -26956,6 +26963,11 @@ dogPictureId가 null인 경우 기존 사진 삭제 처리</p>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>oneMealRecommendGram</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">새로 계산된 한끼 추천 그램 수</p></td>
+</tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>_links.self.href</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>

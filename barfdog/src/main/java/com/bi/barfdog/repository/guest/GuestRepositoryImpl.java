@@ -40,8 +40,7 @@ public class GuestRepositoryImpl implements GuestRepositoryCustom{
                         member.isPaid
                 ))
                 .from(guest)
-                .leftJoin(member).on(member.email.eq(guest.email))
-                .leftJoin(member).on(member.phoneNumber.eq(guest.phoneNumber))
+                .leftJoin(member).on(member.email.eq(guest.email).or(member.phoneNumber.eq(guest.phoneNumber)))
                 .where(
                         guestNameContains(cond.getName()),
                         guestEmailContains(cond.getEmail()),
@@ -55,8 +54,7 @@ public class GuestRepositoryImpl implements GuestRepositoryCustom{
         Long totalCount = queryFactory
                 .select(guest.count())
                 .from(guest)
-                .leftJoin(member).on(member.email.eq(guest.email))
-                .leftJoin(member).on(member.phoneNumber.eq(guest.phoneNumber))
+                .leftJoin(member).on(member.email.eq(guest.email).or(member.phoneNumber.eq(guest.phoneNumber)))
                 .where(
                         guestNameContains(cond.getName()),
                         guestEmailContains(cond.getEmail()),

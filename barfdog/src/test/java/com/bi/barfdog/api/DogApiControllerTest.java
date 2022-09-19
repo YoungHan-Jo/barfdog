@@ -574,6 +574,7 @@ public class DogApiControllerTest extends BaseTest {
                                 fieldWithPath("dogDto.inedibleFoodEtc").description("기타('ETC') 일 경우 못 먹는 음식 입력 [없으면 'NONE']"),
                                 fieldWithPath("dogDto.recommendRecipeId").description("특별히 챙겨주고싶은 부분에 해당하는 레시피 id"),
                                 fieldWithPath("dogDto.caution").description("기타 특이사항 [없으면 'NONE']"),
+                                fieldWithPath("dogDto.oneMealRecommendGram").description("현재 강아지 추천 한끼 그램 수"),
                                 fieldWithPath("recipeDtoList[0].id").description("레시피 id"),
                                 fieldWithPath("recipeDtoList[0].descriptionForSurvey").description("설문조사용 레시피 설명"),
                                 fieldWithPath("recipeDtoList[0].ingredients").description("레시피에 들어간 재료 리스트"),
@@ -1035,6 +1036,7 @@ public class DogApiControllerTest extends BaseTest {
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
                         ),
                         responseFields(
+                                fieldWithPath("oneMealRecommendGram").description("새로 계산된 한끼 추천 그램 수"),
                                 fieldWithPath("_links.self.href").description("self 링크"),
                                 fieldWithPath("_links.query_surveyReport.href").description("설문조사 레포트 조회 링크"),
                                 fieldWithPath("_links.profile.href").description("해당 API 관련 문서 링크")
@@ -1368,6 +1370,12 @@ public class DogApiControllerTest extends BaseTest {
     }
 
     private Dog generateDog(Member member, long startAgeMonth, DogSize dogSize, String weight, ActivityLevel activitylevel, int walkingCountPerWeek, double walkingTimePerOneTime, SnackCountLevel snackCountLevel) {
+
+        Subscribe subscribe = Subscribe.builder()
+                .oneMealRecommendGram(new BigDecimal(121))
+                .build();
+        subscribeRepository.save(subscribe);
+
         List<Recipe> recipes = recipeRepository.findAll();
         Dog dog = Dog.builder()
                 .member(member)
@@ -1386,6 +1394,7 @@ public class DogApiControllerTest extends BaseTest {
                 .inedibleFood("NONE")
                 .inedibleFoodEtc("NONE")
                 .caution("NONE")
+                .subscribe(subscribe)
                 .build();
         return dogRepository.save(dog);
     }
@@ -1673,6 +1682,7 @@ public class DogApiControllerTest extends BaseTest {
 
         Subscribe subscribe = Subscribe.builder()
                 .status(SubscribeStatus.BEFORE_PAYMENT)
+                .oneMealRecommendGram(new BigDecimal(100))
                 .build();
         subscribeRepository.save(subscribe);
 

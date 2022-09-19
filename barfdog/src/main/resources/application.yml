@@ -6,32 +6,14 @@
 #      fail-on-unknown-properties: true
 #
 ### 테스트 DB
-##  datasource:
-##    url: jdbc:mariadb://binter.synology.me:3307/barfdogTestDB?characterEncoding=UTF-8&serverTimezone=UTC
-##    driver-class-name: org.mariadb.jdbc.Driver
-##    username: britishinter
-##    password: Britain001!
-##  jpa:
-##    hibernate:
-##      ddl-auto: create # 테스트 서버 설정
-##    properties:
-##      hibernate:
-##        format_sql: true
-##        default_batch_fetch_size: 500
-##        jdbc.lob.non_contextual_creation: true
-##        jdbc:
-##          batch_size: 1000
-#
-#
-#  datasource: # cafe24 DB
-#    url: jdbc:mariadb://barfdogserver.co.kr:3306/freshour?characterEncoding=UTF-8&serverTimezone=UTC
+#  datasource:
+#    url: jdbc:mariadb://binter.synology.me:3307/barfdogTestDB?characterEncoding=UTF-8&serverTimezone=UTC
 #    driver-class-name: org.mariadb.jdbc.Driver
-#    username: freshour
-#    password: vmfptnldkdnj1!
-#
+#    username: britishinter
+#    password: Britain001!
 #  jpa:
 #    hibernate:
-#      ddl-auto: none # 테스트 서버 설정
+#      ddl-auto: create # 테스트 서버 설정
 #    properties:
 #      hibernate:
 #        format_sql: true
@@ -39,6 +21,24 @@
 #        jdbc.lob.non_contextual_creation: true
 #        jdbc:
 #          batch_size: 1000
+#
+#
+##  datasource: # cafe24 DB
+##    url: jdbc:mariadb://barfdogserver.co.kr:3306/freshour?characterEncoding=UTF-8&serverTimezone=UTC
+##    driver-class-name: org.mariadb.jdbc.Driver
+##    username: freshour
+##    password: vmfptnldkdnj1!
+##
+##  jpa:
+##    hibernate:
+##      ddl-auto: none # 테스트 서버 설정
+##    properties:
+##      hibernate:
+##        format_sql: true
+##        default_batch_fetch_size: 500
+##        jdbc.lob.non_contextual_creation: true
+##        jdbc:
+##          batch_size: 1000
 #
 #  security:
 #    oauth2:
