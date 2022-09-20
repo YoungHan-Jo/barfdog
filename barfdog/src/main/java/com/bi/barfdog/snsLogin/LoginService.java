@@ -8,6 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -57,8 +60,10 @@ public class LoginService {
         return naverResponseDto;
     }
 
-    public KakaoResponseDto kakao(KakaoLoginDto requestDto) {
-        String str = SnsLogin.Kakao(requestDto.getAccessToken());
+    public KakaoResponseDto kakao(String code) {
+        KakaoLoginResponseDto kakaoLoginResponseDto = getKakaoLoginResponseDto(code);
+
+        String str = SnsLogin.Kakao(kakaoLoginResponseDto.getAccess_token());
         KakaoResponseDto kakaoResponseDto = new KakaoResponseDto();
 
         try {
@@ -75,15 +80,12 @@ public class LoginService {
             return kakaoResponseDto.internalServerError();
         }
 
-
-        Long kakaoId = kakaoResponseDto.getResponse().getId();
+        Long kakaoId = kakaoResponseDto.getId();
         String providerId = kakaoId.toString();
 
         if (isJoinedMember(kakaoResponseDto, providerId)) return kakaoResponseDto.success();
 
-        KakaoAccountDto.KakaoPhone_number kakaoPhone_number = kakaoResponseDto.getResponse().getKakao_accountDto().getKakaoPhone_number();
-        String phone_number = kakaoPhone_number.getPhone_number();
-
+        String phone_number =kakaoResponseDto.getKakao_account().getPhone_number();
         phone_number = "0" + phone_number.substring(phone_number.indexOf(" ") + 1).replace("-", "");
 
         Optional<Member> optionalMember = memberRepository.findByPhoneNumber(phone_number);
@@ -98,6 +100,61 @@ public class LoginService {
         if (provider.equals(SnsProvider.NAVER)) return kakaoResponseDto.naver();
 
         return kakaoResponseDto;
+    }
+
+    public KakaoLoginResponseDto getKakaoLoginResponseDto(String code) {
+        String access_token = "";
+        String refresh_token = "";
+        KakaoLoginRequestDto kakaoLoginRequestDto;
+        KakaoLoginResponseDto kakaoLoginResponseDto = null;
+        String requestURL = "https://kauth.kakao.com/oauth/token";
+
+        try {
+            URL url = new URL(requestURL);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            kakaoLoginRequestDto = KakaoLoginRequestDto.builder()
+                    .code(code)
+                    .build();
+
+            // post 요청
+            conn.setRequestMethod("POST");
+            conn.setDoOutput(true);
+
+            // POST 요청에 필요로 요구하는 파라미터 스트림을 통해 전송
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream()));
+            StringBuilder sb = new StringBuilder();
+            sb.append("grant_type=" + kakaoLoginRequestDto.getGrant_type());
+            sb.append("&client_id=" + kakaoLoginRequestDto.getClient_id());
+            sb.append("&redirect_uri" + kakaoLoginRequestDto.getRedirect_uri());
+            sb.append("&code=" + kakaoLoginRequestDto.getCode());
+            bw.write(sb.toString());
+            bw.flush();
+
+            // 결과 코드가 200이라면 성공
+            int responseCode = conn.getResponseCode();
+            System.out.println("responseCode : " + responseCode);
+
+            // 요청을 통해 얻은 JSON 타입의 Response 메세지 읽어오기
+            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            String line = "";
+            String result = "";
+
+            while ((line = br.readLine()) != null) {
+                result += line;
+            }
+            System.out.println("response body : " + result);
+
+            // Gson 라이브러리에 포함된 클래스로 JSON 파싱 객체 생성
+            kakaoLoginResponseDto = objectMapper.readValue(result, KakaoLoginResponseDto.class);
+
+            br.close();
+            bw.close();
+
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+
+        return kakaoLoginResponseDto;
     }
 
     private boolean isJoinedMember(ResponseDto responseDto, String providerId) {

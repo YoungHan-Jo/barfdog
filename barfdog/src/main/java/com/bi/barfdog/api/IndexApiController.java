@@ -413,11 +413,12 @@ public class IndexApiController {
 
     @PostMapping("/api/login/kakao")
     public ResponseEntity loginKakao(HttpServletResponse response,
-                                     @RequestBody @Valid KakaoLoginDto requestDto,
+                                     @RequestBody @Valid KakaoLoginRequestDto requestDto,
                                      Errors errors) {
         if (errors.hasErrors()) return badRequest(errors);
 
-        KakaoResponseDto responseDto = loginService.kakao(requestDto);
+        KakaoResponseDto responseDto = loginService.kakao(requestDto.getCode());
+        KakaoLoginResponseDto loginResponseDto = loginService.getKakaoLoginResponseDto(requestDto.getCode());
         EntityModel<KakaoResponseDto> entityModel = EntityModel.of(responseDto,
                 linkTo(IndexApiController.class).slash("api/login/kakao").withSelfRel(),
                 profileRootUrlBuilder.slash("index.html#resources-login-kakao").withRel("profile")
@@ -432,15 +433,14 @@ public class IndexApiController {
 //            String providerId = responseDto.getResponse().getId();
 //            Member member = memberRepository.findByProviderAndProviderId(SnsProvider.KAKAO, providerId).get();
 
-            KakaoAccountDto.KakaoPhone_number kakaoPhone_number = responseDto.getResponse().getKakao_accountDto().getKakaoPhone_number();
-            String phone_number = kakaoPhone_number.getPhone_number();
 
+            String phone_number = responseDto.getKakao_account().getPhone_number();
             phone_number = "0" + phone_number.substring(phone_number.indexOf(" ") + 1).replace("-", "");
 
             Optional<Member> optionalMember = memberRepository.findByPhoneNumber(phone_number);
             if (!optionalMember.isPresent()) return notfound();
             Member member = optionalMember.get();
-            generateAccessToken(response, member, requestDto.getTokenValidDays());
+            generateAccessToken(response, member, loginResponseDto.getExpires_in());
         }
 
         return ResponseEntity.ok(entityModel);

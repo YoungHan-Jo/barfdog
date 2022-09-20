@@ -10,7 +10,63 @@ import javax.persistence.DiscriminatorValue;
 @Builder
 @EqualsAndHashCode(callSuper = false)
 public class KakaoResponseDto extends ResponseDto {
-    private ResponseDto response;
+    private Long id;
+    private String connected_at;
+    private KakaoForPartner for_partner;
+    private KakaoProperties properties;
+    private KakaoAccount kakao_account;
+
+    public static class KakaoForPartner {
+        private String uuid;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class KakaoProperties{
+        private String nickname;
+        private String profile_image;
+        private String thumbnail_image;
+
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class KakaoAccount {
+        private boolean profile_needs_agreement;
+        private KakaoProfile profile;
+        private boolean has_email;
+        private boolean email_needs_agreement;
+        private boolean is_email_valid;
+        private boolean is_email_verified;
+        private String email;
+        private boolean has_age_range;
+        private boolean age_range_needs_agreement;
+        private String age_range;
+        private boolean has_birthday;
+        private boolean birthday_needs_agreement;
+        private String birthday;
+        private String birthday_type;
+        private boolean has_gender;
+        private boolean gender_needs_agreement;
+        private String gender;
+        private boolean phone_number_needs_agreement;
+        private String phone_number;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class KakaoProfile {
+        private String nickname;
+        private String thumbnail_image_url;
+        private String profile_image_url;
+        private boolean is_default_image;
+    }
 
     public KakaoResponseDto newMember() {
         resultcode = SnsResponse.NEW_MEMBER_CODE;
@@ -76,15 +132,5 @@ public class KakaoResponseDto extends ResponseDto {
         resultcode = SnsResponse.LESS_THAN_FOURTEEN_MEMBER_CODE;
         message = SnsResponse.LESS_THAN_FOURTEEN_MEMBER_MESSAGE;
         return this;
-    }
-
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Builder
-    public static class ResponseDto{
-        private Long id;
-        private boolean has_signed_up;
-        private KakaoAccountDto kakao_accountDto;
     }
 }
