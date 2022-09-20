@@ -370,6 +370,41 @@ public class IndexApiController {
         return ResponseEntity.ok(entityModel);
     }
 
+    @PostMapping("/api/login/kakao")
+    public ResponseEntity loginKakao(HttpServletResponse response,
+                                     @RequestBody @Valid KakaoLoginDto requestDto,
+                                     Errors errors) {
+        if (errors.hasErrors()) return badRequest(errors);
+
+        KakaoResponseDto responseDto = loginService.kakao(requestDto);
+        EntityModel<KakaoResponseDto> entityModel = EntityModel.of(responseDto,
+                linkTo(IndexApiController.class).slash("api/login/kakao").withSelfRel(),
+                profileRootUrlBuilder.slash("index.html#resources-login-kakao").withRel("profile")
+        );
+
+        String resultCode = responseDto.getResultcode();
+        if (resultCode.equals(SnsResponse.NEED_TO_CONNECT_NEW_SNS_CODE)) {
+            entityModel.add(linkTo(IndexApiController.class).slash("api/connectSns").withRel("connect_sns"));
+        }
+        if (resultCode.equals(SnsResponse.SUCCESS_CODE)) {
+            // 네이버로 부터 받은 고유id 가 받을 때 마다 달라져서(테스트 api라서?) provider로 구분할 수 없음
+//            String providerId = responseDto.getResponse().getId();
+//            Member member = memberRepository.findByProviderAndProviderId(SnsProvider.KAKAO, providerId).get();
+
+            KakaoAccountDto.KakaoPhone_number kakaoPhone_number = responseDto.getResponse().getKakao_accountDto().getKakaoPhone_number();
+            String phone_number = kakaoPhone_number.getPhone_number();
+
+            phone_number = "0" + phone_number.substring(phone_number.indexOf(" ") + 1).replace("-", "");
+
+            Optional<Member> optionalMember = memberRepository.findByPhoneNumber(phone_number);
+            if (!optionalMember.isPresent()) return notfound();
+            Member member = optionalMember.get();
+            generateAccessToken(response, member, requestDto.getTokenValidDays());
+        }
+
+        return ResponseEntity.ok(entityModel);
+    }
+
     @PostMapping("/api/connectSns")
     public ResponseEntity connectSns(HttpServletResponse response,
                                      @RequestBody @Valid ConnectSnsRequestDto requestDto,

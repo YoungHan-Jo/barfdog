@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Kakao_account {
+public class KakaoAccountDto {
     private KakaoProfile kakaoProfile;
     private KakaoName kakaoName;
     private KakaoEmail kakaoEmail;

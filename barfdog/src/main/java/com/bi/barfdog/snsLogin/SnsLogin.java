@@ -41,10 +41,6 @@ public class SnsLogin {
 
         System.out.println(responseBody);
 
-
-
-
-
         return responseBody;
     }
 

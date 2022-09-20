@@ -1,13 +1,6 @@
 package com.bi.barfdog.snsLogin;
 
-import com.sun.xml.internal.ws.api.ha.StickyFeature;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
-
-import javax.persistence.DiscriminatorColumn;
+import lombok.*;
 import javax.persistence.DiscriminatorValue;
 
 @Data
@@ -15,6 +8,7 @@ import javax.persistence.DiscriminatorValue;
 @NoArgsConstructor
 @DiscriminatorValue("kakao")
 @Builder
+@EqualsAndHashCode(callSuper = false)
 public class KakaoResponseDto extends ResponseDto {
     private ResponseDto response;
 
@@ -91,6 +85,6 @@ public class KakaoResponseDto extends ResponseDto {
     public static class ResponseDto{
         private Long id;
         private boolean has_signed_up;
-        private Kakao_account kakao_account;
+        private KakaoAccountDto kakao_accountDto;
     }
 }

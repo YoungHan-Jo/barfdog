@@ -1,9 +1,6 @@
 package com.bi.barfdog.api.deliveryDto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -13,7 +10,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@Builder @Getter
 public class UpdateDeliveryNumberDto {
 
     @Builder.Default
@@ -23,7 +20,7 @@ public class UpdateDeliveryNumberDto {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    @Builder
+    @Builder @Getter
     public static class DeliveryNumberDto {
         @NotEmpty
         private String transUniqueCd;

@@ -57,7 +57,7 @@ public class LoginService {
         return naverResponseDto;
     }
 
-    public KakaoResponseDto kakao(NaverLoginDto requestDto) {
+    public KakaoResponseDto kakao(KakaoLoginDto requestDto) {
         String str = SnsLogin.Kakao(requestDto.getAccessToken());
         KakaoResponseDto kakaoResponseDto = new KakaoResponseDto();
 
@@ -81,7 +81,7 @@ public class LoginService {
 
         if (isJoinedMember(kakaoResponseDto, providerId)) return kakaoResponseDto.success();
 
-        Kakao_account.KakaoPhone_number kakaoPhone_number = kakaoResponseDto.getResponse().getKakao_account().getKakaoPhone_number();
+        KakaoAccountDto.KakaoPhone_number kakaoPhone_number = kakaoResponseDto.getResponse().getKakao_accountDto().getKakaoPhone_number();
         String phone_number = kakaoPhone_number.getPhone_number();
 
         phone_number = "0" + phone_number.substring(phone_number.indexOf(" ") + 1).replace("-", "");

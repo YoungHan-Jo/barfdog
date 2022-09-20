@@ -1,9 +1,6 @@
 package com.bi.barfdog.snsLogin;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.DiscriminatorValue;
 
@@ -12,6 +9,7 @@ import javax.persistence.DiscriminatorValue;
 @NoArgsConstructor
 @DiscriminatorValue("naver")
 @Builder
+@EqualsAndHashCode(callSuper = false)
 public class NaverResponseDto extends ResponseDto {
     private ResponseDto response;
 

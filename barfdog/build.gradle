@@ -281,6 +281,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 	implementation 'com.auth0:java-jwt:3.19.0'
 
+	// https://mvnrepository.com/artifact/com.google.code.findbugs/jsr305
+	implementation 'com.google.code.findbugs:jsr305:3.0.2'
+
 	//querydsl 추가
 	implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
 	annotationProcessor "com.querydsl:querydsl-apt:${queryDslVersion}"
