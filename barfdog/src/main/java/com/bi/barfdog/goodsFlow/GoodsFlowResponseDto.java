@@ -16,16 +16,12 @@ public class GoodsFlowResponseDto {
         this.message = message;
     }
 
-    public static GoodsFlowResponseDto success() {
-        return GoodsFlowResponseDto.builder()
-                .success(true)
-                .build();
+    public void success() {
+        success = true;
     }
 
-    public static GoodsFlowResponseDto fail() {
-        return GoodsFlowResponseDto.builder()
-                .success(false)
-                .message("서버에서 요청을 처리할 수 없음")
-                .build();
+    public void fail() {
+        success = false;
+        message = "서버에서 요청을 처리할 수 없음";
     }
 }

@@ -1,5 +1,6 @@
 package com.bi.barfdog.goodsFlow;
 
+import com.bi.barfdog.api.deliveryDto.SaveDeliveryNumDto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
@@ -12,6 +13,10 @@ import java.util.List;
 @NoArgsConstructor
 @Builder @Getter
 public class GoodsFlowRequestDto {
+
+
+
+
     @Builder.Default
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<RequestDto> items = new ArrayList<>();

@@ -2,6 +2,7 @@ package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.deliveryDto.QueryGeneralDeliveriesDto;
 import com.bi.barfdog.api.deliveryDto.QuerySubscribeDeliveriesDto;
+import com.bi.barfdog.api.deliveryDto.SaveDeliveryNumDto;
 import com.bi.barfdog.api.deliveryDto.UpdateDeliveryNumberDto;
 import com.bi.barfdog.api.resource.GeneralDeliveriesDtoResource;
 import com.bi.barfdog.api.resource.SubscribeDeliveriesDtoResource;
@@ -41,10 +42,10 @@ public class DeliveryApiController {
 
     private final DeliveryRepository deliveryRepository;
     private final DeliveryService deliveryService;
-    private GoodsFlowResponseDto responseDto;
-    private UpdateDeliveryNumberDto updateDeliveryNumberDto;
-    private UpdateDeliveryNumberDto.DeliveryNumberDto deliveryNumberDto;
-    private List<UpdateDeliveryNumberDto.DeliveryNumberDto> list;
+//    private GoodsFlowResponseDto responseDto;
+//    private UpdateDeliveryNumberDto updateDeliveryNumberDto;
+//    private UpdateDeliveryNumberDto.DeliveryNumberDto deliveryNumberDto;
+//    private List<UpdateDeliveryNumberDto.DeliveryNumberDto> list;
 
     WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
 
@@ -75,42 +76,6 @@ public class DeliveryApiController {
         return ResponseEntity.ok(pagedModel);
     }
 
-    @PostMapping(value = "/goodsFlow/postTraceResult", produces = MediaType.APPLICATION_JSON_VALUE)
-    public GoodsFlowResponseDto GoodsFlowData(
-                                        @RequestBody @Valid Optional<GoodsFlowRequestDto> requestDto,
-                                        Errors errors) {
-        list = new ArrayList<>();
-
-        if(errors.hasErrors()) {
-            responseDto = GoodsFlowResponseDto.fail();
-        } else {
-            // 운송장 등록
-            try {
-                for (GoodsFlowRequestDto.RequestDto item : requestDto.get().getItems()) {
-                    deliveryNumberDto = UpdateDeliveryNumberDto.DeliveryNumberDto.builder()
-                            .transUniqueCd(item.getTransUniqueCd())
-                            .deliveryNumber(item.getSheetNo())
-                            .build();
-                    list.add(deliveryNumberDto);
-                }
-
-                updateDeliveryNumberDto = UpdateDeliveryNumberDto.builder()
-                        .deliveryNumberDtoList(list)
-                        .build();
-
-                deliveryService.setDeliveryNumber(updateDeliveryNumberDto);
-                responseDto = GoodsFlowResponseDto.success();
-            } catch (Exception e) {
-                e.printStackTrace();
-                responseDto = GoodsFlowResponseDto.fail();
-            }
-        }
-
-
-        EntityModel<GoodsFlowResponseDto> entityModel = EntityModel.of(responseDto);
-
-        return responseDto;
-    }
 
 
     private ResponseEntity<EntityModel<Errors>> badRequest(Errors errors) {

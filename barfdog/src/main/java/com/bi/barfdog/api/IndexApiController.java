@@ -3,6 +3,8 @@ package com.bi.barfdog.api;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.bi.barfdog.api.barfDto.*;
+import com.bi.barfdog.api.deliveryDto.SaveDeliveryNumDto;
+import com.bi.barfdog.api.deliveryDto.UpdateDeliveryNumberDto;
 import com.bi.barfdog.api.memberDto.*;
 import com.bi.barfdog.auth.CurrentUser;
 import com.bi.barfdog.common.ErrorsResource;
@@ -11,9 +13,11 @@ import com.bi.barfdog.directsend.DirectSendResponseDto;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.api.memberDto.jwt.JwtProperties;
 import com.bi.barfdog.api.memberDto.jwt.JwtTokenProvider;
+import com.bi.barfdog.goodsFlow.GoodsFlowResponseDto;
 import com.bi.barfdog.repository.member.MemberRepository;
 import com.bi.barfdog.repository.order.OrderRepository;
 import com.bi.barfdog.service.BarfService;
+import com.bi.barfdog.service.DeliveryService;
 import com.bi.barfdog.service.MemberService;
 import com.bi.barfdog.snsLogin.*;
 import com.bi.barfdog.validator.MemberValidator;
@@ -35,6 +39,7 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -54,9 +59,45 @@ public class IndexApiController {
     private final JwtTokenProvider jwtTokenProvider;
     private final BarfService barfService;
     private final OrderRepository orderRepository;
+    private final DeliveryService deliveryService;
 
 
     WebMvcLinkBuilder profileRootUrlBuilder = linkTo(IndexApiController.class).slash("docs");
+
+
+    @PostMapping("/api/goodsFlow/postTraceResult")
+    public ResponseEntity saveDeliveryNumber(@RequestBody @Valid SaveDeliveryNumDto requestDto,
+                                             Errors errors) {
+
+        GoodsFlowResponseDto responseDto = new GoodsFlowResponseDto();
+
+        if (errors.hasErrors()){
+            responseDto.fail();
+            return ResponseEntity.ok(responseDto);
+        }
+
+
+        List<UpdateDeliveryNumberDto.DeliveryNumberDto> deliveryNumberDtoList = new ArrayList<>();
+
+        for (SaveDeliveryNumDto.ItemDto item : requestDto.getData().getItems()) {
+            UpdateDeliveryNumberDto.DeliveryNumberDto deliveryNumberDto = UpdateDeliveryNumberDto.DeliveryNumberDto.builder()
+                    .transUniqueCd(item.getTransUniqueCd())
+                    .deliveryNumber(item.getDeliverCode())
+                    .build();
+            deliveryNumberDtoList.add(deliveryNumberDto);
+        }
+
+        UpdateDeliveryNumberDto updateDeliveryNumberDto = UpdateDeliveryNumberDto.builder()
+                .deliveryNumberDtoList(deliveryNumberDtoList)
+                .build();
+
+        deliveryService.setDeliveryNumber(updateDeliveryNumberDto);
+
+        responseDto.success();
+
+        return ResponseEntity.ok(responseDto);
+    }
+
 
     @GetMapping("/api/home")
     public ResponseEntity home(@CurrentUser Member member) {

@@ -96,6 +96,9 @@ public class Member extends BaseTimeEntity {
         return new ArrayList<>();
     }
 
+    public void changeAddress(Address address) {
+        this.address = address;
+    }
 
     /*
     * 비지니스 로직
