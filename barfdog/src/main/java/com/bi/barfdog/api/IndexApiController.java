@@ -82,7 +82,7 @@ public class IndexApiController {
         for (SaveDeliveryNumDto.ItemDto item : requestDto.getData().getItems()) {
             UpdateDeliveryNumberDto.DeliveryNumberDto deliveryNumberDto = UpdateDeliveryNumberDto.DeliveryNumberDto.builder()
                     .transUniqueCd(item.getTransUniqueCd())
-                    .deliveryNumber(item.getDeliverCode())
+                    .deliveryNumber(item.getSheetNo())
                     .build();
             deliveryNumberDtoList.add(deliveryNumberDto);
         }
