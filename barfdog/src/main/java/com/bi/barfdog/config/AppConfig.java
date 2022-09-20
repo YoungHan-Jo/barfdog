@@ -186,6 +186,8 @@ public class AppConfig {
 //                memberRepository.deleteAll();
 //                couponRepository.deleteAll();
 //                recipeRepository.deleteAll();
+                // 바프독 운영할때 최초 1번만 주석 풀고 돌리기
+//              // ======= 삭제시키는거 주석처리하기 ======== 실제 운영DB 돌리면 다날아감 =================
 
 //                generateSetting();
 //                generateMypageBanner();
