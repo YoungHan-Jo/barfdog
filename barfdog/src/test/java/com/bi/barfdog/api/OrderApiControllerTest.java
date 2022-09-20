@@ -2424,7 +2424,7 @@ public class OrderApiControllerTest extends BaseTest {
        //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtc(member, 1, OrderStatus.DELIVERY_READY);
+        SubscribeOrder subscribeOrder = generateSubscribeOrderAndEtc(member, 1, OrderStatus.CANCEL_REQUEST);
 
         //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.get("/api/orders/{id}/subscribe", subscribeOrder.getId())
@@ -2464,6 +2464,10 @@ public class OrderApiControllerTest extends BaseTest {
                                 fieldWithPath("orderDto.beforeRecipeName").description("변경 전 레시피 이름 , 변경 없으면 null"),
                                 fieldWithPath("orderDto.beforeOrderPrice").description("변경 전 가격 , 변경 없으면 0"),
                                 fieldWithPath("orderDto.orderStatus").description("주문 상태"),
+                                fieldWithPath("orderDto.cancelRequestDate").description("취소요청날짜"),
+                                fieldWithPath("orderDto.cancelConfirmDate").description("취소요청 관리자컴펌날짜"),
+                                fieldWithPath("orderDto.cancelReason").description("취소요청 사유"),
+                                fieldWithPath("orderDto.cancelDetailReason").description("취소요청 상세 사유"),
                                 fieldWithPath("orderDto.merchantUid").description("주문 번호"),
                                 fieldWithPath("orderDto.orderType").description("주문 타입 ['subscribe','general'"),
                                 fieldWithPath("orderDto.orderDate").description("주문 날짜"),
@@ -2475,6 +2479,7 @@ public class OrderApiControllerTest extends BaseTest {
                                 fieldWithPath("orderDto.discountCoupon").description("쿠폰 사용 금액"),
                                 fieldWithPath("orderDto.discountGrade").description("등급 할인 금액"),
                                 fieldWithPath("orderDto.paymentPrice").description("결제 금액"),
+                                fieldWithPath("orderDto.saveReward").description("적립예정 적립금"),
                                 fieldWithPath("orderDto.paymentMethod").description("결제 방법 [CREDIT_CARD, NAVER_PAY, KAKAO_PAY]"),
                                 fieldWithPath("orderDto.recipientName").description("받는사람 이름"),
                                 fieldWithPath("orderDto.recipientPhone").description("받는사람 휴대전화"),
@@ -2603,7 +2608,7 @@ public class OrderApiControllerTest extends BaseTest {
        //given
         Member member = memberRepository.findByEmail(appProperties.getUserEmail()).get();
 
-        GeneralOrder generalOrder = generateGeneralOrder(member, 1, OrderStatus.DELIVERY_START);
+        GeneralOrder generalOrder = generateGeneralOrder(member, 1, OrderStatus.CANCEL_REQUEST);
 
         //when & then
         mockMvc.perform(RestDocumentationRequestBuilders.get("/api/orders/{id}/general", generalOrder.getId())
@@ -2638,17 +2643,7 @@ public class OrderApiControllerTest extends BaseTest {
                                 fieldWithPath("orderItemDtoList[0].amount").description("수량"),
                                 fieldWithPath("orderItemDtoList[0].finalPrice").description("쿠폰적용 후 주문 금액"),
                                 fieldWithPath("orderItemDtoList[0].discountAmount").description("쿠폰 할인 금액"),
-                                fieldWithPath("orderItemDtoList[0].status").description("주문 상태 " +
-                                        "    BEFORE_PAYMENT,\n" +
-                                        "    HOLD, FAILED,\n" +
-                                        "    PAYMENT_DONE,\n" +
-                                        "    PRODUCING, DELIVERY_READY,\n" +
-                                        "    DELIVERY_START,\n" +
-                                        "    SELLING_CANCEL,\n" +
-                                        "    CANCEL_REQUEST, CANCEL_DONE,\n" +
-                                        "    RETURN_REQUEST, RETURN_DONE,\n" +
-                                        "    EXCHANGE_REQUEST, EXCHANGE_DONE,\n" +
-                                        "    CONFIRM]"),
+                                fieldWithPath("orderItemDtoList[0].status").description("주문 상태"),
                                 fieldWithPath("orderItemDtoList[0].saveReward").description("적립예정금액"),
                                 fieldWithPath("orderItemDtoList[0].orderCancel.cancelReason").description("취소 이유, 없으면 null"),
                                 fieldWithPath("orderItemDtoList[0].orderCancel.cancelDetailReason").description("취소 상세 이유, 없으면 null"),
@@ -2680,6 +2675,11 @@ public class OrderApiControllerTest extends BaseTest {
                                 fieldWithPath("orderDto.street").description("도로명주소"),
                                 fieldWithPath("orderDto.detailAddress").description("상세주소"),
                                 fieldWithPath("orderDto.request").description("배송요청사항"),
+                                fieldWithPath("orderDto.orderStatus").description("주문단위 주문상태"),
+                                fieldWithPath("orderDto.cancelRequestDate").description("주문단위 취소요청날짜"),
+                                fieldWithPath("orderDto.cancelConfirmDate").description("주문단위 취소요청 관리자컴펌날짜"),
+                                fieldWithPath("orderDto.cancelReason").description("주문단위 취소요청 사유"),
+                                fieldWithPath("orderDto.cancelDetailReason").description("주문단위 취소요청 상세 사유"),
                                 fieldWithPath("orderDto.package").description("묶음 배송 여부 true/false"),
                                 fieldWithPath("savedRewardTotal").description("총 적립 예정 적립금"),
                                 fieldWithPath("_links.self.href").description("self 링크"),
@@ -3367,6 +3367,16 @@ public class OrderApiControllerTest extends BaseTest {
         Coupon coupon = generateGeneralCoupon(1);
         MemberCoupon memberCoupon = generateMemberCoupon(member, coupon, 1, CouponStatus.ACTIVE);
 
+
+        OrderCancel orderCancel = null;
+        if (orderStatus == OrderStatus.CANCEL_REQUEST) {
+            orderCancel = OrderCancel.builder()
+                    .cancelReason("취소 사유")
+                    .cancelDetailReason("취소 상세 사유")
+                    .cancelRequestDate(LocalDateTime.now())
+                    .build();
+        }
+
         SubscribeOrder subscribeOrder = SubscribeOrder.builder()
                 .impUid("imp_uid"+i)
                 .merchantUid("merchant_uid"+i)
@@ -3385,6 +3395,7 @@ public class OrderApiControllerTest extends BaseTest {
                 .memberCoupon(memberCoupon)
                 .subscribeCount(subscribe.getSubscribeCount())
                 .orderConfirmDate(LocalDateTime.now().minusHours(3))
+                .orderCancel(orderCancel)
                 .build();
         orderRepository.save(subscribeOrder);
 
@@ -3652,6 +3663,16 @@ public class OrderApiControllerTest extends BaseTest {
     private GeneralOrder generateGeneralOrder(Member member, int i, OrderStatus orderstatus) {
 
         Delivery delivery = generateDelivery(member, i);
+
+        OrderCancel orderCancel = null;
+        if (orderstatus == OrderStatus.CANCEL_REQUEST) {
+            orderCancel = OrderCancel.builder()
+                    .cancelReason("취소 사유")
+                    .cancelDetailReason("취소 상세 사유")
+                    .cancelRequestDate(LocalDateTime.now())
+                    .build();
+        }
+
         GeneralOrder generalOrder = GeneralOrder.builder()
                 .impUid("imp_uid" + i)
                 .merchantUid("merchant_uid" + i)
@@ -3668,6 +3689,7 @@ public class OrderApiControllerTest extends BaseTest {
                 .isPackage(false)
                 .delivery(delivery)
                 .orderConfirmDate(LocalDateTime.now().minusHours(3))
+                .orderCancel(orderCancel)
                 .build();
 
         IntStream.range(1,3).forEach(j -> {

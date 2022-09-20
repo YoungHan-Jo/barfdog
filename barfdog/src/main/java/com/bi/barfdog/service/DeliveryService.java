@@ -15,6 +15,10 @@ import com.bi.barfdog.domain.order.Order;
 import com.bi.barfdog.domain.order.OrderStatus;
 import com.bi.barfdog.domain.order.SubscribeOrder;
 import com.bi.barfdog.domain.orderItem.OrderItem;
+import com.bi.barfdog.domain.reward.Reward;
+import com.bi.barfdog.domain.reward.RewardName;
+import com.bi.barfdog.domain.reward.RewardStatus;
+import com.bi.barfdog.domain.reward.RewardType;
 import com.bi.barfdog.goodsFlow.CheckTraceResultRequestDto;
 import com.bi.barfdog.goodsFlow.GoodsFlowUtils;
 import com.bi.barfdog.goodsFlow.TraceResultResponseDto;
@@ -22,6 +26,7 @@ import com.bi.barfdog.repository.delivery.DeliveryRepository;
 import com.bi.barfdog.repository.dog.DogRepository;
 import com.bi.barfdog.repository.order.OrderRepository;
 import com.bi.barfdog.repository.orderItem.OrderItemRepository;
+import com.bi.barfdog.repository.reward.RewardRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +47,7 @@ public class DeliveryService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final DogRepository dogRepository;
+    private final RewardRepository rewardRepository;
 
     @Transactional
     public List<QueryOrderInfoForDelivery> queryInfoForGoodsFlow(OrderIdListDto requestDto) {
@@ -196,6 +202,8 @@ public class DeliveryService {
                 Delivery delivery = optionalDelivery.get();
                 isDeliveryDone(checkTraceResultRequestDtoList, item, delivery);
                 isDeliveryStart(checkTraceResultRequestDtoList, item, delivery);
+
+                saveReward(delivery);
             }
         }
 
@@ -206,6 +214,33 @@ public class DeliveryService {
             e.printStackTrace();
         }
 
+    }
+
+    private void saveReward(Delivery delivery) {
+        List<Order> orderList = orderRepository.findByDelivery(delivery);
+        for (Order order : orderList) {
+            if (order instanceof SubscribeOrder) {
+                SubscribeOrder subscribeOrder = (SubscribeOrder) order;
+                Member member = subscribeOrder.getMember();
+                int saveReward = subscribeOrder.getSaveReward();
+
+                subscribeOrder.giveExpectedRewards();
+                member.chargeReward(saveReward);
+                saveSubscribeOrderRewardHistory(subscribeOrder, member);
+
+            }
+        }
+    }
+
+    private void saveSubscribeOrderRewardHistory(SubscribeOrder subscribeOrder, Member member) {
+        Reward reward = Reward.builder()
+                .member(member)
+                .name(RewardName.CONFIRM_ORDER)
+                .rewardType(RewardType.ORDER)
+                .rewardStatus(RewardStatus.SAVED)
+                .tradeReward(subscribeOrder.getSaveReward())
+                .build();
+        rewardRepository.save(reward);
     }
 
     private void isDeliveryStart(List<CheckTraceResultRequestDto> checkTraceResultRequestDtoList, TraceResultResponseDto.InnerData.InnerItem item, Delivery delivery) {

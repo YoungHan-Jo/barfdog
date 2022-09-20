@@ -198,9 +198,11 @@ public class DogRepositoryImpl implements DogRepositoryCustom{
                         dog.inedibleFood,
                         dog.inedibleFoodEtc,
                         dog.recommendRecipe.id,
-                        dog.caution
+                        dog.caution,
+                        subscribe.oneMealRecommendGram
                 ))
                 .from(dog)
+                .join(dog.subscribe, subscribe)
                 .where(dog.id.eq(id))
                 .fetchOne();
 

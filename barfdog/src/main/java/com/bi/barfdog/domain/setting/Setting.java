@@ -11,7 +11,7 @@ import javax.persistence.*;
 @Builder
 @Getter
 @Entity
-public class Setting extends BaseTimeEntity {
+public class Setting extends BaseTimeEntity { // 바프독 전역 설정
 
     @Id
     @GeneratedValue
@@ -19,13 +19,13 @@ public class Setting extends BaseTimeEntity {
     private Long id;
 
     @Embedded
-    private ActivityConstant activityConstant;
+    private ActivityConstant activityConstant; // 활동량 관련
 
     @Embedded
-    private SnackConstant snackConstant;
+    private SnackConstant snackConstant; // 간식량 관련
 
     @Embedded
-    private DeliveryConstant deliveryConstant;
+    private DeliveryConstant deliveryConstant; // 배송 관련
 
 
     public void update(UpdateSettingDto requestDto) {

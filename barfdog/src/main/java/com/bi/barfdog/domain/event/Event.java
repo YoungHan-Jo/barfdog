@@ -20,7 +20,7 @@ public class Event extends BaseTimeEntity {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private EventStatus status; // [LEAKED, HIDDEN]
+    private EventStatus status; // [LEAKED, HIDDEN] 이벤트 노출여부
 
     private String title;
 

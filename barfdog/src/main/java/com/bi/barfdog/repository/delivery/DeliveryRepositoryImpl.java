@@ -5,6 +5,7 @@ import com.bi.barfdog.api.deliveryDto.QuerySubscribeDeliveriesDto;
 import com.bi.barfdog.domain.delivery.Delivery;
 import com.bi.barfdog.domain.member.Member;
 import com.bi.barfdog.domain.order.OrderStatus;
+import com.bi.barfdog.domain.order.QOrder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
@@ -24,6 +25,7 @@ import static com.bi.barfdog.domain.dog.QDog.*;
 import static com.bi.barfdog.domain.item.QItem.*;
 import static com.bi.barfdog.domain.member.QMember.*;
 import static com.bi.barfdog.domain.order.QGeneralOrder.*;
+import static com.bi.barfdog.domain.order.QOrder.*;
 import static com.bi.barfdog.domain.order.QSubscribeOrder.*;
 import static com.bi.barfdog.domain.orderItem.QOrderItem.*;
 import static com.bi.barfdog.domain.recipe.QRecipe.*;
@@ -51,13 +53,12 @@ public class DeliveryRepositoryImpl implements DeliveryRepositoryCustom{
                         delivery.deliveryNumber
                 ))
                 .from(subscribeOrder)
+                .join(order).on(subscribeOrder.eq(order))
                 .join(subscribeOrder.delivery, delivery)
                 .join(subscribeOrder.subscribe, subscribe)
                 .join(subscribe.dog, dog)
                 .where(subscribeOrder.member.eq(member)
-                        .and(subscribeOrder.orderStatus.notIn(OrderStatus.CONFIRM, OrderStatus.CANCEL_DONE_SELLER, OrderStatus.RETURN_DONE_SELLER,
-                                OrderStatus.EXCHANGE_DONE_SELLER, OrderStatus.FAILED, OrderStatus.BEFORE_PAYMENT, OrderStatus.HOLD))
-                )
+                        .and(isDelivering()))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .orderBy(subscribeOrder.createdDate.desc())
@@ -89,14 +90,20 @@ public class DeliveryRepositoryImpl implements DeliveryRepositoryCustom{
         Long totalCount = queryFactory
                 .select(subscribeOrder.count())
                 .from(subscribeOrder)
+                .join(order).on(subscribeOrder.eq(order))
                 .where(subscribeOrder.member.eq(member)
-                        .and(subscribeOrder.orderStatus.notIn(OrderStatus.CONFIRM, OrderStatus.CANCEL_DONE_SELLER, OrderStatus.RETURN_DONE_SELLER,
-                                OrderStatus.EXCHANGE_DONE_SELLER, OrderStatus.FAILED, OrderStatus.BEFORE_PAYMENT, OrderStatus.HOLD))
+                        .and(isDelivering())
                 )
                 .fetchOne();
 
 
         return new PageImpl<>(result, pageable, totalCount);
+    }
+
+    private BooleanExpression isDelivering() {
+        return order.orderStatus.in(
+                OrderStatus.PAYMENT_DONE, OrderStatus.PRODUCING, OrderStatus.DELIVERY_READY, OrderStatus.DELIVERY_START
+        );
     }
 
 
@@ -112,10 +119,13 @@ public class DeliveryRepositoryImpl implements DeliveryRepositoryCustom{
                         delivery.deliveryNumber
                 ))
                 .from(generalOrder)
-                .join(generalOrder.delivery, delivery)
+                .join(order).on(generalOrder.eq(order))
+                .join(order.delivery, delivery)
+                // FROM generalOrder go
+                // JOIN delivery d
+                // ON d.delivery_id = go.delivery_id
                 .where(generalOrder.member.eq(member)
-                        .and(generalOrder.orderStatus.notIn(OrderStatus.CONFIRM, OrderStatus.CANCEL_DONE_SELLER, OrderStatus.RETURN_DONE_SELLER,
-                                OrderStatus.EXCHANGE_DONE_SELLER, OrderStatus.FAILED, OrderStatus.BEFORE_PAYMENT, OrderStatus.HOLD))
+                        .and(isDelivering())
                 )
                 .orderBy(generalOrder.createdDate.desc())
                 .offset(pageable.getOffset())
@@ -127,10 +137,10 @@ public class DeliveryRepositoryImpl implements DeliveryRepositoryCustom{
         Long totalCount = queryFactory
                 .select(generalOrder.count())
                 .from(generalOrder)
+                .join(order).on(generalOrder.eq(order))
                 .join(generalOrder.delivery, delivery)
                 .where(generalOrder.member.eq(member)
-                        .and(generalOrder.orderStatus.notIn(OrderStatus.CONFIRM, OrderStatus.CANCEL_DONE_SELLER, OrderStatus.RETURN_DONE_SELLER,
-                                OrderStatus.EXCHANGE_DONE_SELLER, OrderStatus.FAILED, OrderStatus.BEFORE_PAYMENT, OrderStatus.HOLD))
+                        .and(isDelivering())
                 )
                 .fetchOne();
 

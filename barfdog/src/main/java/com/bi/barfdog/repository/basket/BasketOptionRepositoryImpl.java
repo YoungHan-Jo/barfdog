@@ -1,12 +1,14 @@
 package com.bi.barfdog.repository.basket;
 
 import com.bi.barfdog.domain.basket.Basket;
+import com.bi.barfdog.domain.basket.BasketOption;
 import com.bi.barfdog.domain.basket.QBasketOption;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.bi.barfdog.domain.basket.QBasketOption.*;
 
@@ -30,5 +32,16 @@ public class BasketOptionRepositoryImpl implements BasketOptionRepositoryCustom{
                 .delete(basketOption)
                 .where(basketOption.basket.in(deleteBasketList))
                 .execute();
+    }
+
+    @Override
+    public Optional<BasketOption> findByOptionIdAndBasket(Long optionId, Basket basket) {
+        BasketOption findBasketOption = queryFactory
+                .selectFrom(QBasketOption.basketOption)
+                .where(QBasketOption.basketOption.basket.eq(basket)
+                        .and(QBasketOption.basketOption.itemOption.id.eq(optionId)))
+                .fetchOne();
+
+        return Optional.ofNullable(findBasketOption);
     }
 }

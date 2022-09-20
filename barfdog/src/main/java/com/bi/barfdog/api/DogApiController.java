@@ -1,10 +1,7 @@
 package com.bi.barfdog.api;
 
 import com.bi.barfdog.api.blogDto.UploadedImageDto;
-import com.bi.barfdog.api.dogDto.DogSaveRequestDto;
-import com.bi.barfdog.api.dogDto.QueryDogDto;
-import com.bi.barfdog.api.dogDto.QueryDogsDto;
-import com.bi.barfdog.api.dogDto.UpdateDogPictureDto;
+import com.bi.barfdog.api.dogDto.*;
 import com.bi.barfdog.api.surveyReportDto.SurveyReportResponseDto;
 import com.bi.barfdog.api.surveyReportDto.DogSurveyResultResponseDto;
 import com.bi.barfdog.auth.CurrentUser;
@@ -216,14 +213,14 @@ public class DogApiController {
         dogValidator.validateMyDog(member, id, errors);
         if (errors.hasErrors()) return badRequest(errors);
 
-        dogService.updateDog(member, id, requestDto);
+        UpdateDogResponseDto responseDto = dogService.updateDog(member, id, requestDto);
 
-        RepresentationModel representationModel = new RepresentationModel();
-        representationModel.add(linkTo(DogApiController.class).slash(id).withSelfRel());
-        representationModel.add(linkTo(DogApiController.class).slash(id).slash("surveyReport").withRel("query_surveyReport"));
-        representationModel.add(profileRootUrlBuilder.slash("index.html#resources-update-dog").withRel("profile"));
+        EntityModel<UpdateDogResponseDto> entityModel = EntityModel.of(responseDto);
+        entityModel.add(linkTo(DogApiController.class).slash(id).withSelfRel());
+        entityModel.add(linkTo(DogApiController.class).slash(id).slash("surveyReport").withRel("query_surveyReport"));
+        entityModel.add(profileRootUrlBuilder.slash("index.html#resources-update-dog").withRel("profile"));
 
-        return ResponseEntity.ok(representationModel);
+        return ResponseEntity.ok(entityModel);
     }
 
     @GetMapping("/{id}/surveyReport")

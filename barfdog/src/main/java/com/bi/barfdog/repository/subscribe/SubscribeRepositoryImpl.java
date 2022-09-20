@@ -246,7 +246,7 @@ public class SubscribeRepositoryImpl implements SubscribeRepositoryCustom{
                         dog.name,
                         subscribe.subscribeCount,
                         subscribe.plan,
-                        surveyReport.foodAnalysis.oneMealRecommendGram,
+                        subscribe.oneMealRecommendGram,
                         subscribe.nextPaymentDate,
                         subscribe.countSkipOneTime,
                         subscribe.countSkipOneWeek,
@@ -259,7 +259,6 @@ public class SubscribeRepositoryImpl implements SubscribeRepositoryCustom{
                 ))
                 .from(subscribe)
                 .join(subscribe.dog, dog)
-                .join(dog.surveyReport, surveyReport)
                 .leftJoin(subscribe.memberCoupon, memberCoupon)
                 .leftJoin(memberCoupon.coupon, coupon)
                 .where(subscribe.id.eq(id))

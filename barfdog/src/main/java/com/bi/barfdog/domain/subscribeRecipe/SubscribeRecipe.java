@@ -13,7 +13,8 @@ import static javax.persistence.FetchType.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder @Getter
 @Entity
-public class SubscribeRecipe extends BaseTimeEntity {
+public class SubscribeRecipe extends BaseTimeEntity { // 구독한 레시피
+    // 구독 : 구독한레시피 : 레시피 = 1:N:1 로 풀었음
 
     @Id @GeneratedValue
     @Column(name = "subscribe_recipe_id")

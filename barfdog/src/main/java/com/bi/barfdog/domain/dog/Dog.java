@@ -34,7 +34,7 @@ public class Dog extends BaseTimeEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    private boolean representative; // 대표견
+    private boolean representative; // 대표견 여부
 
     private String name;
 
@@ -43,16 +43,16 @@ public class Dog extends BaseTimeEntity {
 
     private String birth; // yyyyMM 형식
 
-    private Long startAgeMonth; // 바프독 시작 나이(개월)
+    private Long startAgeMonth; // 바프독 시작했을 당시 강아지 나이(개월 단위)
 
     private boolean oldDog; // 노령견 여부
 
-    private String dogType; //  견종
+    private String dogType; // 견종
 
     @Enumerated(EnumType.STRING)
     private DogSize dogSize; // [LARGE, MIDDLE, SMALL]
 
-    private BigDecimal weight;
+    private BigDecimal weight; // 무게 BigDecimal 타입
 
     private boolean neutralization; // 중성화 여부
 
@@ -65,22 +65,22 @@ public class Dog extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private SnackCountLevel snackCountLevel; // [LITTLE, NORMAL, MUCH]
 
-    private String inedibleFood;
+    private String inedibleFood; // 못 먹는 음식
     private String inedibleFoodEtc; // 못먹는 음식 기타 일 때
 
     @OneToOne(fetch = LAZY)
     @JoinColumn(name = "recipe_id")
-    private Recipe recommendRecipe;
+    private Recipe recommendRecipe; // 설문결과 추천 레시피
 
     private String caution; // 질병 및 주의사항
 
     @OneToOne(fetch = LAZY)
     @JoinColumn(name = "subscribe_id")
-    private Subscribe subscribe;
+    private Subscribe subscribe; // 강아지:구독 일대일 관계
 
     @OneToOne(fetch = LAZY)
     @JoinColumn(name = "survey_report_id")
-    private SurveyReport surveyReport;
+    private SurveyReport surveyReport; // 강아지:설문결과 일대일 관계
 
 
     public void setSurveyReport(SurveyReport surveyReport) {

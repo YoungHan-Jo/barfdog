@@ -11,5 +11,5 @@ public interface RewardName {
     String CANCEL_PAYMENT = "[결제취소] 결제 취소 반환 적립금";
     String CANCEL_ORDER = "[주문취소] 주문 취소 적립금";
     String RETURN_ORDER = "[반품] 반품 적립금";
-    String CONFIRM_ORDER = "[구매확정] 구매확정 적립금";
+    String CONFIRM_ORDER = "[구매] 구매 적립금";
 }

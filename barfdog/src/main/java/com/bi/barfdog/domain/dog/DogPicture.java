@@ -9,7 +9,7 @@ import javax.persistence.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder @Getter
 @Entity
-public class DogPicture {
+public class DogPicture { // 강아지 프로필 사진
 
     @Id @GeneratedValue
     @Column(name = "dog_picture_id")
@@ -17,7 +17,7 @@ public class DogPicture {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dog_id")
-    private Dog dog;
+    private Dog dog; // 강아지:강아지 사진 일대일
 
     private String folder;
     private String filename;

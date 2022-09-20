@@ -14,7 +14,7 @@ import static javax.persistence.FetchType.*;
 @NoArgsConstructor
 @Getter @Builder
 @Entity
-public class BeforeSubscribe {
+public class BeforeSubscribe { // 변경 전 이전 구독 정보
 
     @Id @GeneratedValue
     @Column(name = "before_subscribe_id")
@@ -22,14 +22,14 @@ public class BeforeSubscribe {
 
     @OneToOne(fetch = LAZY)
     @JoinColumn(name = "subscribe_id")
-    private Subscribe subscribe;
+    private Subscribe subscribe; // 현재 구독정보
 
-    private int subscribeCount;
+    private int subscribeCount; // 몇번째 회차였는지
 
     @Enumerated(EnumType.STRING)
     private SubscribePlan plan; // [FULL, HALF, TOPPING]
 
-    private BigDecimal oneMealRecommendGram;
+    private BigDecimal oneMealRecommendGram; // 추천 한끼 그램
 
     private String recipeName; // [ , 로 구분]
 

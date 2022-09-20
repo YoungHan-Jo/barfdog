@@ -10,6 +10,7 @@ import com.bi.barfdog.domain.order.OrderStatus;
 import com.bi.barfdog.domain.orderItem.OrderItem;
 import com.bi.barfdog.domain.subscribe.QSubscribe;
 import com.bi.barfdog.domain.subscribe.SubscribeStatus;
+import com.bi.barfdog.domain.surveyReport.QSurveyReport;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
@@ -97,6 +98,30 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         .and(delivery.arrivalDate.before(LocalDateTime.now().minusDays(7))))
                 .fetch()
                 ;
+    }
+
+    @Override
+    public Long findOrderingCountByMember(Member member) {
+        return queryFactory
+                .select(order.count())
+                .from(order)
+                .where(order.orderStatus.in(OrderStatus.PAYMENT_DONE, OrderStatus.PRODUCING, OrderStatus.DELIVERY_READY,
+                        OrderStatus.DELIVERY_START, OrderStatus.CANCEL_REQUEST, OrderStatus.RETURN_REQUEST, OrderStatus.EXCHANGE_REQUEST)
+                        .and(order.member.eq(member)))
+                .fetchOne()
+                ;
+    }
+
+    @Override
+    public Long findReservedOrderCount(Member member) {
+        return queryFactory
+                .select(order.count())
+                .from(order)
+                .where(order.orderStatus.in(OrderStatus.RESERVED_PAYMENT)
+                        .and(order.member.eq(member)))
+                .fetchOne()
+                ;
+
     }
 
     @Override
@@ -279,7 +304,12 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         delivery.recipient.zipcode,
                         delivery.recipient.street,
                         delivery.recipient.detailAddress,
-                        delivery.request
+                        delivery.request,
+                        generalOrder.orderStatus,
+                        generalOrder.orderCancel.cancelRequestDate,
+                        generalOrder.orderCancel.cancelConfirmDate,
+                        generalOrder.orderCancel.cancelReason,
+                        generalOrder.orderCancel.cancelDetailReason
                 ))
                 .from(generalOrder)
                 .join(generalOrder.delivery, delivery)
@@ -335,9 +365,10 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
         List<Object[]> resultList = em.createNativeQuery(subscribeCountSql).getResultList();
 
         List<AdminDashBoardResponseDto.SubscribeOrderCountByMonth> subscribeOrderCountByMonthList = resultList.stream().map(product -> new AdminDashBoardResponseDto.SubscribeOrderCountByMonth(
-                product[0].toString(),
+                convertToString(product),
                 ((BigInteger) product[1]).longValue()
         )).collect(Collectors.toList());
+
         return subscribeOrderCountByMonthList;
     }
 
@@ -352,10 +383,28 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
         List<Object[]> resultList = em.createNativeQuery(generalCountSql).getResultList();
 
         List<AdminDashBoardResponseDto.GeneralOrderCountByMonth> generalOrderCountByMonthList = resultList.stream().map(product -> new AdminDashBoardResponseDto.GeneralOrderCountByMonth(
-                product[0].toString(),
+                convertToString(product),
                 ((BigInteger) product[1]).longValue()
         )).collect(Collectors.toList());
         return generalOrderCountByMonthList;
+    }
+
+    private String convertToString(Object[] product) {
+        String str = "";
+
+        String toString = product[0].toString();
+        if (toString.contains("@")) {
+            byte[] bytes = (byte[]) product[0];
+
+            for (byte b :bytes){
+                int a = b;
+                char ch = (char) a;
+                str += String.valueOf(ch);
+            }
+        } else {
+            str = toString;
+        }
+        return str;
     }
 
     private Long getSubscribePendingCount() {
@@ -465,6 +514,10 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         beforeSubscribe.recipeName,
                         beforeSubscribe.paymentPrice,
                         subscribeOrder.orderStatus,
+                        subscribeOrder.orderCancel.cancelRequestDate,
+                        subscribeOrder.orderCancel.cancelConfirmDate,
+                        subscribeOrder.orderCancel.cancelReason,
+                        subscribeOrder.orderCancel.cancelDetailReason,
                         subscribeOrder.merchantUid,
                         Expressions.constant("subscribe"),
                         subscribeOrder.createdDate,
@@ -476,6 +529,7 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         subscribeOrder.discountCoupon,
                         subscribeOrder.discountGrade,
                         subscribeOrder.paymentPrice,
+                        subscribeOrder.saveReward,
                         subscribeOrder.paymentMethod,
                         delivery.recipient.name,
                         delivery.recipient.phone,
@@ -492,6 +546,7 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                 .leftJoin(beforeSubscribe).on(beforeSubscribe.subscribe.eq(subscribe))
                 .where(subscribeOrder.id.eq(id))
                 .fetchOne();
+
         return orderDto;
     }
 
@@ -788,7 +843,12 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                         member.name,
                         member.phoneNumber,
                         member.email,
-                        member.isSubscribe
+                        member.isSubscribe,
+                        generalOrder.orderStatus,
+                        generalOrder.orderCancel.cancelRequestDate,
+                        generalOrder.orderCancel.cancelConfirmDate,
+                        generalOrder.orderCancel.cancelReason,
+                        generalOrder.orderCancel.cancelDetailReason
                 ))
                 .from(generalOrder)
                 .join(generalOrder.member, member)

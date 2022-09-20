@@ -15,12 +15,12 @@ public class GuestService {
     private final GuestRepository guestRepository;
 
     @Transactional
-    public void createGuest(SaveGuestRequest requestDto) {
+    public void createGuest(String name, String phoneNumber, String email) {
 
         Guest guest = Guest.builder()
-                .name(requestDto.getName())
-                .phoneNumber(requestDto.getPhoneNumber())
-                .email(requestDto.getEmail())
+                .name(name)
+                .phoneNumber(phoneNumber)
+                .email(email)
                 .build();
         guestRepository.save(guest);
 

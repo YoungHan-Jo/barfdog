@@ -10,7 +10,7 @@ import static javax.persistence.FetchType.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder @Getter
 @Entity
-public class ReviewImage {
+public class ReviewImage { // 리뷰 이미지
 
     @Id @GeneratedValue
     @Column(name = "review_image_id")
@@ -18,7 +18,7 @@ public class ReviewImage {
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "review_id")
-    private Review review;
+    private Review review; // 다대일
 
     private String folder;
     private String filename;

@@ -19,7 +19,7 @@ import static javax.persistence.FetchType.*;
 @NoArgsConstructor
 @Getter @Builder
 @Entity
-public class MemberCoupon extends BaseTimeEntity {
+public class MemberCoupon extends BaseTimeEntity { // 회원이 보유한 쿠폰
 
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "member_coupon_id")
@@ -27,11 +27,11 @@ public class MemberCoupon extends BaseTimeEntity {
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "member_id")
-    private Member member;
+    private Member member; // 멤버쿠폰:멤버 - 다대일
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "coupon_id")
-    private Coupon coupon;
+    private Coupon coupon; // 멤버쿠폰:쿠폰 - 다대일
 
     private LocalDateTime expiredDate; // 쿠폰 유효 기간
 

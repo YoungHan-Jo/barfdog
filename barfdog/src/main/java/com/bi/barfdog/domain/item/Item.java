@@ -11,7 +11,7 @@ import javax.persistence.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder @Getter
 @Entity
-public class Item extends BaseTimeEntity {
+public class Item extends BaseTimeEntity { // 일반 상품, 상품,
 
     @Id @GeneratedValue
     @Column(name = "item_id")
@@ -27,17 +27,17 @@ public class Item extends BaseTimeEntity {
     private int originalPrice; // 원가
 
     @Enumerated(EnumType.STRING)
-    private DiscountType discountType; // [FIXED_RATE, FLAT_RATE]
+    private DiscountType discountType; // [FIXED_RATE, FLAT_RATE] 할인 타입
 
-    private int discountDegree;
+    private int discountDegree; // 할인 정도
 
-    private int salePrice; // 판매가
+    private int salePrice; // 할인 후 판매가격, originalPrice-totalSalesAmount
 
-    private boolean inStock;
+    private boolean inStock; // 재고 여부
 
-    private int remaining;
+    private int remaining; // 남은수량
 
-    private int totalSalesAmount;
+    private int totalSalesAmount; // 할인 량
 
     @Column(columnDefinition = "TEXT")
     private String contents; // 상세내용
@@ -49,7 +49,7 @@ public class Item extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private ItemStatus status; // [LEAKED,HIDDEN]
 
-    private boolean isDeleted;
+    private boolean isDeleted; // 삭제된 아이템인지 여부
 
     public void update(ItemUpdateDto requestDto) {
         itemType = requestDto.getItemType();

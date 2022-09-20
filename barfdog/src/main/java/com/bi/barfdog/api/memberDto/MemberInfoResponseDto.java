@@ -12,6 +12,8 @@ import lombok.Setter;
 @NoArgsConstructor
 public class MemberInfoResponseDto {
 
+    private Long memberId;
+
     private String name;
 
     private String email;

@@ -15,7 +15,7 @@ import static javax.persistence.FetchType.*;
 @NoArgsConstructor
 @Builder @Getter
 @Entity
-public class ItemContentImage extends BaseTimeEntity {
+public class ItemContentImage extends BaseTimeEntity { // 상품 상세내용에 사용되는 이미지
 
     @Id @GeneratedValue
     @Column(name = "product_content_image_id")

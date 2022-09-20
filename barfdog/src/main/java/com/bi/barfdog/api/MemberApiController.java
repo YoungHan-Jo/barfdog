@@ -102,6 +102,8 @@ public class MemberApiController {
         if (errors.hasErrors()) return badRequest(errors);
         memberValidator.validatePassword(member, requestDto.getPassword(), errors);
         if (errors.hasErrors()) return badRequest(errors);
+        memberValidator.validateOrders(member, errors);
+        if (errors.hasErrors()) return badRequest(errors);
 
         memberService.deleteMember(member.getId());
 

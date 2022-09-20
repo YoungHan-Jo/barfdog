@@ -16,7 +16,7 @@ import javax.persistence.Id;
 @Builder
 @Getter
 @Entity
-public class Guest extends BaseTimeEntity {
+public class Guest extends BaseTimeEntity { // 채널톡 상담 신청자
 
     @Id @GeneratedValue
     @Column(name = "guest_id")

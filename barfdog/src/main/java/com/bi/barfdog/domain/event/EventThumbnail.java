@@ -19,7 +19,7 @@ public class EventThumbnail extends BaseTimeEntity {
 
     @OneToOne(fetch = LAZY)
     @JoinColumn(name = "event_id")
-    private Event event;
+    private Event event; // 썸네일: 이벤트 일대일관계
 
     private String folder;
     private String filename;

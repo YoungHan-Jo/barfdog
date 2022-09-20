@@ -27,4 +27,8 @@ public class BasketOption extends BaseTimeEntity { // 장바구니에 담은 옵
     private ItemOption itemOption; // 장바구니 옵션에 해당하는 일반아이템옵션
 
     private int amount; // 일반 아이템 옵션 수량
+
+    public void merge(int optionAmount) {
+        amount += optionAmount;
+    }
 }

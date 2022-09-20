@@ -28,39 +28,39 @@ public abstract class Order extends BaseTimeEntity {
     @Column(name = "order_id")
     private Long id;
 
-    private String impUid; // 아임포트 결제번호
+    private String impUid; // 아임포트사 DB에 저장된 주문번호, 아임포트api 호출 시 사용가능
 
-    private String merchantUid;
+    private String merchantUid; // 주문 번호, 아임포트api 호출 시 사용가능
 
     @Enumerated(EnumType.STRING)
-    private OrderStatus orderStatus;
+    private OrderStatus orderStatus; // 주문상태
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "member_id")
-    private Member member;
+    private Member member; // 주문한 유저
 
-    private int orderPrice; // 주문 가격(일반: 주문 총 가격/ 구독: 구독상품 원가);
-    private int deliveryPrice;
-    private int discountTotal;
-    private int discountReward;
-    private int discountCoupon;
-    private int discountGrade;
+    private int orderPrice; // 주문 가격(일반: 주문 총 가격/ 구독: 구독상품 원가)
+    private int deliveryPrice; // 배송비
+    private int discountTotal; // 할인 총 합계
+    private int discountReward; // 적립금 할인
+    private int discountCoupon; // 쿠폰 할인
+    private int discountGrade; // 등급 할인
 
     private int paymentPrice; // 최종 결제 가격
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod; // [CREDIT_CARD, NAVER_PAY, KAKAO_PAY]
     private LocalDateTime paymentDate; // 결제 시간
 
-    private LocalDateTime orderConfirmDate;
+    private LocalDateTime orderConfirmDate; // 주문 컨펌날짜
 
     private boolean isPackage; // 묶음배송여부
 
-    private boolean isBrochure;
-    private boolean isAgreePrivacy;
+    private boolean isBrochure; // 브로슈어 받을지 여부
+    private boolean isAgreePrivacy; // 연령 정책 동의 여부
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "delivery_id")
-    private Delivery delivery;
+    private Delivery delivery; // 주문:배송 - 다대일 관계 (묶음배송이면 하나의 배송에 여러개의 주문이 포함될 수 있음)
 
     public void changeSubscribe(Subscribe subscribe) {
         orderPrice = subscribe.getNextPaymentPrice();

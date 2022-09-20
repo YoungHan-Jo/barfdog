@@ -1,17 +1,17 @@
-package com.bi.barfdog.api.iamportDto;
+package com.bi.barfdog.api.dogDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class WebHookRequestDto {
+public class UpdateDogResponseDto {
 
-    private String imp_uid;
-    private String merchant_uid;
-    private String status;
+    private BigDecimal oneMealRecommendGram;
 }

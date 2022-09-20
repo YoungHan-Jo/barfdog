@@ -30,4 +30,8 @@ public interface OrderRepositoryCustom {
     Page<QueryAdminCancelRequestDto> findAdminCancelRequestDto(Pageable pageable, OrderAdminCond cond);
 
     List<Order> findDeliveryDoneForAutoConfirm();
+
+    Long findOrderingCountByMember(Member member);
+
+    Long findReservedOrderCount(Member member);
 }

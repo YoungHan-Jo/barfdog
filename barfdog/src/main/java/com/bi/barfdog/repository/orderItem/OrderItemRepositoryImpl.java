@@ -166,7 +166,12 @@ public class OrderItemRepositoryImpl implements OrderItemRepositoryCustom{
                         member.name,
                         member.phoneNumber,
                         member.email,
-                        member.isSubscribe
+                        member.isSubscribe,
+                        generalOrder.orderStatus,
+                        generalOrder.orderCancel.cancelRequestDate,
+                        generalOrder.orderCancel.cancelConfirmDate,
+                        generalOrder.orderCancel.cancelReason,
+                        generalOrder.orderCancel.cancelDetailReason
                 ))
                 .from(orderItem)
                 .join(orderItem.generalOrder, generalOrder)

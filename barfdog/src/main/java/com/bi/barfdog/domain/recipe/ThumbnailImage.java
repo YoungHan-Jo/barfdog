@@ -13,7 +13,7 @@ import javax.persistence.Embeddable;
 public class ThumbnailImage {
 
     private String folder;
-    private String filename1;
-    private String filename2;
+    private String filename1; // 썸네일1
+    private String filename2; // 썸네일2
 
 }

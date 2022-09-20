@@ -160,7 +160,7 @@ public class OrderService {
             Long memberCouponId = orderItemDto.getMemberCouponId();
             MemberCoupon memberCoupon = useCoupon(memberCouponId);
 
-            int expectedSaveReward = getExpectedSaveReward(member, orderItemDto);
+            int expectedSaveReward = getExpectedSaveReward(member, orderItemDto.getFinalPrice());
 
             OrderItem orderItem = OrderItem.builder()
                     .generalOrder(generalOrder)
@@ -205,7 +205,7 @@ public class OrderService {
         return memberCoupon;
     }
 
-    private int getExpectedSaveReward(Member member, GeneralOrderRequestDto.OrderItemDto orderItemDto) {
+    private int getExpectedSaveReward(Member member, int paymentPrice) {
         double rewardPercent = 0.0;
 
         Grade grade = member.getGrade();
@@ -229,7 +229,7 @@ public class OrderService {
                 rewardPercent = 0.0;
                 break;
         }
-        int savedReward = (int) Math.round(orderItemDto.getFinalPrice() * rewardPercent / 100.0);
+        int savedReward = (int) Math.round(paymentPrice * rewardPercent / 100.0);
         return savedReward;
     }
 
@@ -323,6 +323,7 @@ public class OrderService {
 
     private SubscribeOrder saveSubscribeOrder(Member member, SubscribeOrderRequestDto requestDto, Delivery delivery, Subscribe subscribe, MemberCoupon memberCoupon) {
         String merchantUid = generateMerchantUid();
+        int paymentPrice = requestDto.getPaymentPrice();
         SubscribeOrder subscribeOrder = SubscribeOrder.builder()
                 .merchantUid(merchantUid)
                 .orderStatus(OrderStatus.BEFORE_PAYMENT)
@@ -333,7 +334,7 @@ public class OrderService {
                 .discountReward(requestDto.getDiscountReward())
                 .discountCoupon(requestDto.getDiscountCoupon())
                 .discountGrade(requestDto.getDiscountGrade())
-                .paymentPrice(requestDto.getPaymentPrice())
+                .paymentPrice(paymentPrice)
                 .paymentMethod(requestDto.getPaymentMethod())
                 .isPackage(false)
                 .isAgreePrivacy(requestDto.isAgreePrivacy())
@@ -342,6 +343,8 @@ public class OrderService {
                 .memberCoupon(memberCoupon != null ? memberCoupon : null)
                 .subscribeCount(subscribe.getSubscribeCount() + 1)
                 .isBrochure(requestDto.isBrochure())
+                .saveReward(getExpectedSaveReward(member, paymentPrice))
+                .isSavedReward(false)
                 .build();
         return orderRepository.save(subscribeOrder);
     }
@@ -837,7 +840,7 @@ public class OrderService {
             order.cancelRequest();
             order.setCancelRequestDate(requestDto);
             for (OrderItem orderItem : orderItems) {
-                orderItem.cancelRequestDate();
+                orderItem.cancelRequestDate(requestDto);
             }
         }
     }
